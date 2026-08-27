@@ -92,7 +92,7 @@ final class CreationUserType extends AbstractType
                 'attr' => ['placeholder' => 'impression 3d, déco, cadeau'],
                 'constraints' => [new Assert\Length(max: 255, maxMessage: 'Les tags ne doivent pas dépasser {{ limit }} caractères.')],
             ])
-            ->add('save', SubmitType::class, ['label' => 'Publier ma création']);
+            ->add('save', SubmitType::class, ['label' => 'creation_user_form.submit']);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

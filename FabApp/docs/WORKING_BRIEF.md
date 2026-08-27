@@ -130,6 +130,12 @@ utilisateur avait **5 champs obligatoires et 0 mention « requis »**.
 `maintenance/batch`, `features`) : ce sont des matrices, les replier les cacherait
 sans les raccourcir.
 
+✅ **R1 fait le 2026-08-27** : les libellés des formulaires passent de **186
+littéraux à 9**, et les 9 sont des exemples de format (`01:30`, `#9E1B56`,
+`https://…`), pas de la prose. Les pages admin rendues en anglais sont maintenant
+entièrement anglaises. ⚠️ Dont `/creations/new`, qui n'est pas un écran admin : un
+membre publiait son projet sur une page française quelle que soit sa langue.
+
 **Prochain travail** : 🅿️ un petit reste de R3 — la mention « requis » s'affiche sur
 des `<select>` qui n'ont aucune option vide (Statut, Thème, Langue) : elle promet
 une contrainte qu'on ne peut pas enfreindre. À corriger dans le thème. Puis **R1**

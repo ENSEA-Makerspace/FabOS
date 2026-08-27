@@ -3091,6 +3091,8 @@ admin_users:
 
 # Badge (création/édition) — S134c.
 admin_badge_form:
+    institutions: "Anerkannt von (Einrichtungen)"
+    prerequisite: "Vorausgesetzter Ausweis"
     browser_title_new: "Abzeichen anlegen - FabOS"
     browser_title_edit: "%badge% bearbeiten - FabOS"
     title_new: "Abzeichen anlegen"
@@ -3218,6 +3220,10 @@ fallback:
     no_message: "Keine Nachricht"
 
 materials_form:
+    color: "Farbe"
+    specs: "Technische Daten"
+    machines: "Maschinen, die dieses Material annehmen"
+    purchase_url: "Kauf-Link"
     help_icon: "Ein Emoji, in Listen angezeigt, wenn kein Bild vorhanden ist."
     help_image: "Eine Bild-URL. Andernfalls wird das Symbol unten verwendet."
     help_purchase: "Der Nachbestell-Link für das Team. Er wird nicht öffentlich gezeigt."
@@ -3337,6 +3343,8 @@ form:
     storage_location: "Lagerort"
 
 admin_maintenance_form:
+    machines: "Betroffene Maschinen"
+    submit_batch: "Für alle Maschinen anlegen"
     choice_preventive: "Vorbeugend"
     choice_corrective: "Behebend"
     machine: "Maschine"
@@ -3348,6 +3356,7 @@ admin_maintenance_form:
     notes: "Notizen (optional)"
 
 creation_user_form:
+    submit: "Mein Projekt veröffentlichen"
     image_upload: "Bild (erforderlich)"
     help_image_upload: "PNG, JPG, JPEG oder WEBP. Maximal 5 MB. Das Bild wird automatisch optimiert."
     print_duration: "Druckzeit"
@@ -3358,7 +3367,30 @@ creation_user_form:
     tags: "Tags (optional)"
     help_tags: "Durch Kommas getrennt. Beispiele: 3D-Druck, Deko, Geschenk."
 
+admin_rfid_form:
+    name: "Name des Lesegeräts"
+    reader_token: "Token des Lesegeräts"
+    help_reader_token: "Leer lassen, um automatisch einen lesbaren Token zu erzeugen."
+    machine: "Verknüpfte Maschine"
+    ph_machine: "Maschine wählen"
+    is_active: "Lesegerät aktiv"
+    help_is_active: "Ist das Lesegerät inaktiv, weist der Worker seine Scans ab."
+
+admin_lab_page_form:
+    contenu: "Inhalt"
+    parent_page: "Übergeordnete Seite (max. 2 Ebenen)"
+    ph_parent_page: "Keine (Seite der obersten Ebene)"
+
+admin_institution_form:
+    url: "Link"
+
+admin_loanable_form:
+    quantity: "Menge"
+
 admin_place_form:
+    capacite: "Kapazität (Personen)"
+    manager: "Verantwortlich"
+    department: "Abteilung"
     section_identity: "Identität"
     section_where: "Wo und wie viele"
     section_admin: "Interne Zuordnung"

@@ -41,7 +41,7 @@ final class BadgeAdminType extends AbstractType
                 'constraints' => [new Assert\Length(max: 255, maxMessage: "L'icône ne doit pas dépasser {{ limit }} caractères.")],
             ])
             ->add('institutions', EntityType::class, [
-                'label' => 'Reconnu par (institutions)',
+                'label' => 'admin_badge_form.institutions',
                 'class' => Institution::class,
                 'choice_label' => 'nom',
                 'multiple' => true,
@@ -49,11 +49,11 @@ final class BadgeAdminType extends AbstractType
                 'required' => false,
             ])
             ->add('prerequisiteBadge', EntityType::class, [
-                'label' => 'Badge prérequis (ex : lvl1 pour un badge lvl2)',
+                'label' => 'admin_badge_form.prerequisite',
                 'class' => Badge::class,
                 'choice_label' => 'nom',
                 'required' => false,
-                'placeholder' => 'Aucun',
+                'placeholder' => 'common.none',
                 'query_builder' => fn (BadgeRepository $repository): QueryBuilder => $repository->createQueryBuilder('b')
                     ->andWhere('b.id != :self')
                     ->setParameter('self', $badge instanceof Badge ? ($badge->getId() ?? 0) : 0)

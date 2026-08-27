@@ -63,13 +63,13 @@ final class PlaceAdminType extends AbstractType
                 'constraints' => [new Assert\Length(max: 150, maxMessage: 'Ce champ ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('capacite', IntegerType::class, [
-                'label' => 'Capacité (personnes)',
+                'label' => 'admin_place_form.capacite',
                 'required' => false,
                 'constraints' => [new Assert\PositiveOrZero(message: 'La capacité doit être positive.')],
             ])
             ->add('category', TextType::class, ['label' => 'form.category', 'required' => false, 'constraints' => [new Assert\Length(max: 120)]])
-            ->add('manager', TextType::class, ['label' => 'Responsable', 'required' => false, 'constraints' => [new Assert\Length(max: 150)]])
-            ->add('department', TextType::class, ['label' => 'Département', 'required' => false, 'constraints' => [new Assert\Length(max: 150)]])
+            ->add('manager', TextType::class, ['label' => 'admin_place_form.manager', 'required' => false, 'constraints' => [new Assert\Length(max: 150)]])
+            ->add('department', TextType::class, ['label' => 'admin_place_form.department', 'required' => false, 'constraints' => [new Assert\Length(max: 150)]])
             ->add('description', TextareaType::class, [
                 'label' => 'form.description',
                 // ⚠️ La pleine largeur vient d'ICI, pas du gabarit — les deux

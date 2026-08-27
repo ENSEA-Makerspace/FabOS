@@ -30,15 +30,15 @@ final class LabPageAdminType extends AbstractType
                 ],
             ])
             ->add('contenu', TextareaType::class, [
-                'label' => 'Contenu',
+                'label' => 'admin_lab_page_form.contenu',
                 'required' => false,
             ])
             ->add('parentPage', EntityType::class, [
-                'label' => 'Page parente (2 niveaux maximum)',
+                'label' => 'admin_lab_page_form.parent_page',
                 'class' => LabPage::class,
                 'choice_label' => 'titre',
                 'required' => false,
-                'placeholder' => 'Aucune (page de premier niveau)',
+                'placeholder' => 'admin_lab_page_form.ph_parent_page',
                 // Only top-level pages can be a parent, and a page can't be its own parent:
                 // this keeps the hierarchy fixed at exactly 2 levels.
                 'query_builder' => fn (LabPageRepository $repository): QueryBuilder => $repository->createQueryBuilder('p')

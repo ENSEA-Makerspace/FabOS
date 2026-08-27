@@ -79,7 +79,7 @@ final class MaterialAdminType extends AbstractType
                 'constraints' => [new Assert\Length(max: 80)],
             ])
             ->add('color', TextType::class, [
-                'label' => 'Couleur',
+                'label' => 'materials_form.color',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 60)],
             ])
@@ -91,7 +91,7 @@ final class MaterialAdminType extends AbstractType
                 'constraints' => [new Assert\Length(max: 2000, maxMessage: 'La description ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('specs', TextareaType::class, [
-                'label' => 'Spécifications',
+                'label' => 'materials_form.specs',
                 'required' => false,
                 'row_attr' => ['class' => 'full'],
                 'help' => 'materials_form.help_specs',
@@ -108,7 +108,7 @@ final class MaterialAdminType extends AbstractType
             // endroit et `form_row()` redevient utilisable, avec son aide, son
             // `aria-describedby` et son bloc d'erreurs.
             ->add('machines', EntityType::class, [
-                'label' => 'Machines qui acceptent ce matériau',
+                'label' => 'materials_form.machines',
                 'class' => Machine::class,
                 'choice_label' => 'nom',
                 'multiple' => true,
@@ -127,7 +127,7 @@ final class MaterialAdminType extends AbstractType
                 'constraints' => [new Assert\Length(max: 180)],
             ])
             ->add('purchaseUrl', UrlType::class, [
-                'label' => 'Lien d’achat',
+                'label' => 'materials_form.purchase_url',
                 'required' => false,
                 'default_protocol' => 'https',
                 'help' => 'materials_form.help_purchase',

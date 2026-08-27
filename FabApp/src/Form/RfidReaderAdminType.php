@@ -19,7 +19,7 @@ final class RfidReaderAdminType extends AbstractType
     {
         $builder
             ->add('name', TextType::class, [
-                'label' => 'Nom du lecteur',
+                'label' => 'admin_rfid_form.name',
                 'empty_data' => '',
                 'constraints' => [
                     new Assert\NotBlank(message: 'Le nom est obligatoire.'),
@@ -27,26 +27,26 @@ final class RfidReaderAdminType extends AbstractType
                 ],
             ])
             ->add('readerToken', TextType::class, [
-                'label' => 'readerToken',
+                'label' => 'admin_rfid_form.reader_token',
                 'required' => false,
                 'empty_data' => '',
-                'help' => 'Laissez vide pour générer un token lisible automatiquement.',
+                'help' => 'admin_rfid_form.help_reader_token',
                 'constraints' => [
                     new Assert\Length(max: 120, maxMessage: 'Le readerToken ne doit pas dépasser {{ limit }} caractères.'),
                     new Assert\Regex(pattern: '/^[a-zA-Z0-9_-]*$/', message: 'Utilisez uniquement lettres, chiffres, tirets et underscores.'),
                 ],
             ])
             ->add('machine', EntityType::class, [
-                'label' => 'Machine associée',
+                'label' => 'admin_rfid_form.machine',
                 'class' => Machine::class,
                 'choice_label' => static fn (Machine $machine): string => sprintf('%s (%s)', $machine->getNom(), $machine->getMachineToken()),
                 'choice_attr' => static fn (Machine $machine): array => ['data-machine-token' => $machine->getMachineToken()],
-                'placeholder' => 'Choisir une machine',
+                'placeholder' => 'admin_rfid_form.ph_machine',
                 'constraints' => [new Assert\NotNull(message: 'La machine associée est obligatoire.')],
             ])
             ->add('isActive', CheckboxType::class, [
-                'label' => 'Lecteur actif',
-                'help' => 'Si le lecteur est inactif, le worker refuse ses scans. Le lecteur reste visible dans l’admin et l’historique est conservé.',
+                'label' => 'admin_rfid_form.is_active',
+                'help' => 'admin_rfid_form.help_is_active',
                 'required' => false,
             ])
             ->add('save', SubmitType::class, ['label' => 'common.save']);

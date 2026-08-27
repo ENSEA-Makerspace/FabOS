@@ -3093,6 +3093,8 @@ admin_users:
 
 # Badge (création/édition) — S134c.
 admin_badge_form:
+    institutions: "Reconnu par (institutions)"
+    prerequisite: "Badge prérequis"
     browser_title_new: "Créer un badge - FabOS"
     browser_title_edit: "Modifier %badge% - FabOS"
     title_new: "Créer un badge"
@@ -3220,6 +3222,10 @@ fallback:
     no_message: "Aucun message"
 
 materials_form:
+    color: "Couleur"
+    specs: "Spécifications"
+    machines: "Machines qui acceptent ce matériau"
+    purchase_url: "Lien d’achat"
     help_icon: "Un emoji, affiché dans les listes quand il n’y a pas d’image."
     help_image: "Une URL d’image. À défaut, l’icône ci-dessous est utilisée."
     help_purchase: "Le lien de rachat, pour l’équipe. Il n’est pas montré au public."
@@ -3339,6 +3345,8 @@ form:
     storage_location: "Emplacement de stockage"
 
 admin_maintenance_form:
+    machines: "Machines concernées"
+    submit_batch: "Créer pour toutes les machines"
     choice_preventive: "Préventive"
     choice_corrective: "Corrective"
     machine: "Machine"
@@ -3350,6 +3358,7 @@ admin_maintenance_form:
     notes: "Notes (optionnel)"
 
 creation_user_form:
+    submit: "Publier ma création"
     image_upload: "Image obligatoire"
     help_image_upload: "PNG, JPG, JPEG ou WEBP. 5 Mo maximum. L’image sera optimisée automatiquement."
     print_duration: "Temps d’impression"
@@ -3360,7 +3369,30 @@ creation_user_form:
     tags: "Tags optionnels"
     help_tags: "Séparés par des virgules. Exemples : impression 3d, déco, cadeau."
 
+admin_rfid_form:
+    name: "Nom du lecteur"
+    reader_token: "Token du lecteur"
+    help_reader_token: "Laissez vide pour générer un token lisible automatiquement."
+    machine: "Machine associée"
+    ph_machine: "Choisir une machine"
+    is_active: "Lecteur actif"
+    help_is_active: "Si le lecteur est inactif, le worker refuse ses scans."
+
+admin_lab_page_form:
+    contenu: "Contenu"
+    parent_page: "Page parente (2 niveaux maximum)"
+    ph_parent_page: "Aucune (page de premier niveau)"
+
+admin_institution_form:
+    url: "Lien"
+
+admin_loanable_form:
+    quantity: "Quantité"
+
 admin_place_form:
+    capacite: "Capacité (personnes)"
+    manager: "Responsable"
+    department: "Département"
     section_identity: "Identité"
     section_where: "Où et combien"
     section_admin: "Classement interne"

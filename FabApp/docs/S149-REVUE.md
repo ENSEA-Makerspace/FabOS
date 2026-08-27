@@ -519,14 +519,46 @@ rouvrent-ils sur un refus » est répondue : oui.
 
 ## 🅿️ Ce que la passe a trouvé et qui RESTE — décisions, pas des bugs
 
-### 🔴 R1 — les libellés des formulaires admin sont du français en dur
-Rendu de `/admin/events/new` **en anglais** : « Titre », « Début »,
-« Fin (optionnelle) », « Nom du lieu », « Où se déroule l'événement ? » — **15 des
-16 étiquettes en français**. `/admin/materials/new` : 20 sur 20.
-Compté dans `src/Form/` : **148 libellés littéraux contre 117 clés de catalogue**,
-sur **42 classes `FormType`**. `debug:translation` ne lit pas ce PHP, donc rien ne
-le signale. `/admin/usage-rights/new` montre que le contraire se fait très bien.
+### ✅ R1 — les libellés en dur (fait le 2026-08-27)
 
+**De 186 occurrences littérales à 9.** Trois passes :
+
+| passe | ce qu'elle a pris | occurrences |
+|---|---|---|
+| 1 | les mots GÉNÉRIQUES, dans un bloc `form:` de 14 clés + `common.save` / `common.none` qui existaient déjà | 54 |
+| 2 | le vocabulaire propre aux huit `FormType` les plus chargés, dans les espaces de noms créés pour les sections de R3 | 88 |
+| 3 | la queue — lecteurs RFID, maintenance en lot, matériaux, badges, pages du lab, espaces, institutions, objets prêtables | 29 |
+
+**Les 9 qui restent sont des EXEMPLES, pas de la prose** : `fablab@exemple.fr`,
+`contact@exemple.fr`, `https://fablab.exemple.fr` ×2, `https://fab.example.org`,
+`https://...`, `01:30`, `#9E1B56`. 🅿️ Le neuvième,
+`impression 3d, déco, cadeau`, est du français — mais il vit dans
+`'attr' => ['placeholder' => …]`, un attribut de widget que Symfony ne traduit pas :
+il faudrait injecter le traducteur dans `CreationUserType`. Laissé tel quel plutôt
+que fait à moitié.
+
+🔴 **Trois choses que seule la page rendue a montrées.**
+1. **Les libellés de CHOIX étaient une catégorie oubliée.** La première extraction
+   ne regardait que `label`, `help` et `placeholder` ; « Au fablab » et « Ailleurs
+   (adresse spécifique) » vivent dans le tableau `choices`. 14 de plus.
+2. **`admin-rfid-reader-form` imprimait `vars.help` SANS `|trans`.** Invisible tant
+   que l'aide était une phrase française en dur ; le jour où elle est devenue une
+   clé, la page a affiché `admin_rfid_form.help_reader_token`. Corrigé avec
+   `form_help()`, qui traduit **et** pose l'`id` que `aria-describedby` vise déjà.
+3. **Six faux positifs dans mon propre décompte** : `network.instanceUuid` et ses
+   voisins SONT des clés, mais mon test « est-ce une clé ? » rejetait le camelCase.
+   Vérifié sur le rendu de `/admin/network` — « Instance UUID », « Peer origin »,
+   « Key ID » s'affichaient déjà traduits.
+
+⚠️ **Et le piège de la réutilisation.** `'Nom'` existe dans le catalogue sous
+`register.lastname`, qui veut dire « nom de famille » : une substitution par
+correspondance de chaîne aurait donné « Last name » sur le nom d'un badge, d'une
+machine et d'un matériau. La table est écrite champ par champ pour cette raison,
+et le commentaire du bloc `form:` le dit pour la prochaine fois.
+
+✅ **Vérifié** : balayage des 168 pages, **0 clé brute** — les sept pages qui
+contiennent une chaîne pointée sont `/admin/design`, `/roadmap` et leurs voisines,
+qui impriment des noms de FICHIERS et des identifiants de capacité, pas des clés.
 ### ✅ R2 — la largeur des cartes de formulaire (fait le 2026-08-27)
 **22 formulaires admin** rendaient leur champ le plus large à 888 px — toute la
 largeur du panneau — parce que `.form-grid` s'étirait et que `.form-field input`

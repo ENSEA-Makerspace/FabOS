@@ -3091,6 +3091,8 @@ admin_users:
 
 # Badge (création/édition) — S134c.
 admin_badge_form:
+    institutions: "Riconosciuto da (istituzioni)"
+    prerequisite: "Badge prerequisito"
     browser_title_new: "Crea un badge - FabOS"
     browser_title_edit: "Modifica %badge% - FabOS"
     title_new: "Crea un badge"
@@ -3218,6 +3220,10 @@ fallback:
     no_message: "Nessun messaggio"
 
 materials_form:
+    color: "Colore"
+    specs: "Specifiche"
+    machines: "Macchine che accettano questo materiale"
+    purchase_url: "Link di acquisto"
     help_icon: "Un’emoji, mostrata negli elenchi quando non c’è immagine."
     help_image: "Un URL di immagine. In mancanza, si usa l’icona qui sotto."
     help_purchase: "Il link di riacquisto, per il team. Non è mostrato al pubblico."
@@ -3337,6 +3343,8 @@ form:
     storage_location: "Luogo di stoccaggio"
 
 admin_maintenance_form:
+    machines: "Macchine interessate"
+    submit_batch: "Crea per tutte le macchine"
     choice_preventive: "Preventiva"
     choice_corrective: "Correttiva"
     machine: "Macchina"
@@ -3348,6 +3356,7 @@ admin_maintenance_form:
     notes: "Note (facoltativo)"
 
 creation_user_form:
+    submit: "Pubblica il mio progetto"
     image_upload: "Immagine (obbligatoria)"
     help_image_upload: "PNG, JPG, JPEG o WEBP. Massimo 5 MB. L’immagine viene ottimizzata automaticamente."
     print_duration: "Tempo di stampa"
@@ -3358,7 +3367,30 @@ creation_user_form:
     tags: "Tag (facoltativi)"
     help_tags: "Separati da virgole. Esempi: stampa 3d, decorazione, regalo."
 
+admin_rfid_form:
+    name: "Nome del lettore"
+    reader_token: "Token del lettore"
+    help_reader_token: "Lasciare vuoto per generare automaticamente un token leggibile."
+    machine: "Macchina associata"
+    ph_machine: "Scegliere una macchina"
+    is_active: "Lettore attivo"
+    help_is_active: "Se il lettore è inattivo, il worker rifiuta le sue scansioni."
+
+admin_lab_page_form:
+    contenu: "Contenuto"
+    parent_page: "Pagina superiore (2 livelli massimo)"
+    ph_parent_page: "Nessuna (pagina di primo livello)"
+
+admin_institution_form:
+    url: "Link"
+
+admin_loanable_form:
+    quantity: "Quantità"
+
 admin_place_form:
+    capacite: "Capienza (persone)"
+    manager: "Responsabile"
+    department: "Dipartimento"
     section_identity: "Identità"
     section_where: "Dove e quanti"
     section_admin: "Classificazione interna"

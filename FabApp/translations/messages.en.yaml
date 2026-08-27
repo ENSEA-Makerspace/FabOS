@@ -3092,6 +3092,8 @@ admin_users:
 
 # Badge (création/édition) — S134c.
 admin_badge_form:
+    institutions: "Recognised by (institutions)"
+    prerequisite: "Prerequisite badge"
     browser_title_new: "Create a badge - FabOS"
     browser_title_edit: "Edit %badge% - FabOS"
     title_new: "Create a badge"
@@ -3219,6 +3221,10 @@ fallback:
     no_message: "No message"
 
 materials_form:
+    color: "Colour"
+    specs: "Specifications"
+    machines: "Machines that accept this material"
+    purchase_url: "Purchase link"
     help_icon: "An emoji, shown in lists when there is no image."
     help_image: "An image URL. Failing that, the icon below is used."
     help_purchase: "The reorder link, for the team. It is not shown to the public."
@@ -3338,6 +3344,8 @@ form:
     storage_location: "Storage location"
 
 admin_maintenance_form:
+    machines: "Machines concerned"
+    submit_batch: "Create for every machine"
     choice_preventive: "Preventive"
     choice_corrective: "Corrective"
     machine: "Machine"
@@ -3349,6 +3357,7 @@ admin_maintenance_form:
     notes: "Notes (optional)"
 
 creation_user_form:
+    submit: "Publish my project"
     image_upload: "Image (required)"
     help_image_upload: "PNG, JPG, JPEG or WEBP. 5 MB maximum. The image is optimised automatically."
     print_duration: "Print time"
@@ -3359,7 +3368,30 @@ creation_user_form:
     tags: "Tags (optional)"
     help_tags: "Comma-separated. Examples: 3d printing, decor, gift."
 
+admin_rfid_form:
+    name: "Reader name"
+    reader_token: "Reader token"
+    help_reader_token: "Leave empty to generate a readable token automatically."
+    machine: "Linked machine"
+    ph_machine: "Choose a machine"
+    is_active: "Reader active"
+    help_is_active: "If the reader is inactive, the worker refuses its scans."
+
+admin_lab_page_form:
+    contenu: "Content"
+    parent_page: "Parent page (2 levels maximum)"
+    ph_parent_page: "None (top-level page)"
+
+admin_institution_form:
+    url: "Link"
+
+admin_loanable_form:
+    quantity: "Quantity"
+
 admin_place_form:
+    capacite: "Capacity (people)"
+    manager: "Manager"
+    department: "Department"
     section_identity: "Identity"
     section_where: "Where and how many"
     section_admin: "Internal filing"

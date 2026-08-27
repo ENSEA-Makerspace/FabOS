@@ -77,10 +77,19 @@
                     {{ form_errors(form) }}
                     <div class="form-grid">
                         {{ form_row(form.name) }}
+                        {# 🔴 **S151 — `vars.help` s'imprimait BRUT, sans `|trans`.**
+                           Tant que l'aide était une phrase française en dur, ça ne se
+                           voyait pas ; le jour où R1 en a fait une clé, la page a
+                           affiché « admin_rfid_form.help_reader_token » — et c'est le
+                           balayage des pages rendues qui l'a montré, pas le lint.
+                           `form_help()` traduit ET pose l'`id` que `aria-describedby`
+                           vise déjà (le défaut de la paire C). ⚠️ Et il émet son propre
+                           `<p class="form-help">` : pas d'enveloppe de même classe
+                           autour, sinon on en a deux pour une phrase. #}
                         <div class="form-field">
                             {{ form_label(form.readerToken) }}
                             {{ form_widget(form.readerToken) }}
-                            <div class="form-help">{{ form.readerToken.vars.help }}</div>
+                            {{ form_help(form.readerToken) }}
                             <div class="form-errors">{{ form_errors(form.readerToken) }}</div>
                         </div>
                         {{ form_row(form.machine, {row_attr: {class: 'full'}}) }}
@@ -88,7 +97,7 @@
                             {{ form_widget(form.isActive) }}
                             <div>
                                 {{ form_label(form.isActive) }}
-                                <div class="form-help">{{ form.isActive.vars.help }}</div>
+                                {{ form_help(form.isActive) }}
                             </div>
                             <div class="form-errors">{{ form_errors(form.isActive) }}</div>
                         </div>

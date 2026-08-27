@@ -25,7 +25,7 @@ final class InstitutionAdminType extends AbstractType
                 ],
             ])
             ->add('url', UrlType::class, [
-                'label' => 'Lien',
+                'label' => 'admin_institution_form.url',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 500, maxMessage: 'Le lien ne doit pas dépasser {{ limit }} caractères.')],
             ])

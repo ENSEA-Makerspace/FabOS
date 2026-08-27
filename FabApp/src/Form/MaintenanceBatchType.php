@@ -27,7 +27,7 @@ final class MaintenanceBatchType extends AbstractType
     {
         $builder
             ->add('machines', EntityType::class, [
-                'label' => 'Machines concernées',
+                'label' => 'admin_maintenance_form.machines',
                 'class' => Machine::class,
                 'choice_label' => 'nom',
                 'multiple' => true,
@@ -41,7 +41,7 @@ final class MaintenanceBatchType extends AbstractType
                 'constraints' => [new Assert\Count(min: 1, minMessage: 'Sélectionnez au moins une machine.')],
             ])
             ->add('title', TextType::class, [
-                'label' => 'Intitulé de la tâche',
+                'label' => 'admin_maintenance_form.title',
                 'constraints' => [new Assert\NotBlank(message: 'L’intitulé est obligatoire.'), new Assert\Length(max: 180)],
             ])
             ->add('type', ChoiceType::class, [
@@ -49,23 +49,23 @@ final class MaintenanceBatchType extends AbstractType
                 'choices' => ['admin_maintenance_form.choice_preventive' => MaintenanceTask::TYPE_PREVENTIVE, 'admin_maintenance_form.choice_corrective' => MaintenanceTask::TYPE_CORRECTIVE],
             ])
             ->add('dueDate', DateType::class, [
-                'label' => 'Échéance (optionnelle)',
+                'label' => 'admin_maintenance_form.due_date',
                 'widget' => 'single_text',
                 'input' => 'datetime_immutable',
                 'required' => false,
             ])
             ->add('recurrenceDays', IntegerType::class, [
-                'label' => 'Récurrence : tous les N jours (optionnel)',
+                'label' => 'admin_maintenance_form.recurrence_days',
                 'required' => false,
                 'constraints' => [new Assert\Positive(message: 'La récurrence doit être un nombre de jours positif.')],
             ])
             ->add('link', UrlType::class, [
-                'label' => 'Lien (guide / wiki, optionnel)',
+                'label' => 'admin_maintenance_form.link',
                 'required' => false,
                 'default_protocol' => 'https',
                 'constraints' => [new Assert\Length(max: 500), new Assert\Url(message: 'URL invalide.')],
             ])
-            ->add('save', SubmitType::class, ['label' => 'Créer pour toutes les machines']);
+            ->add('save', SubmitType::class, ['label' => 'admin_maintenance_form.submit_batch']);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

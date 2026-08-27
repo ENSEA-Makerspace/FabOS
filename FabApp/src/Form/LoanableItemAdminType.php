@@ -79,7 +79,7 @@ final class LoanableItemAdminType extends AbstractType
                 'constraints' => [new Assert\Length(max: 2000)],
             ])
             ->add('quantity', IntegerType::class, [
-                'label' => 'Quantité',
+                'label' => 'admin_loanable_form.quantity',
                 'empty_data' => '1',
                 'row_attr' => ['class' => 'full'],
                 'help' => 'loans.item_help_quantity',
