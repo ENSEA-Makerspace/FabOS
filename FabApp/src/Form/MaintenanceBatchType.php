@@ -46,7 +46,7 @@ final class MaintenanceBatchType extends AbstractType
             ])
             ->add('type', ChoiceType::class, [
                 'label' => 'form.type',
-                'choices' => ['Préventive' => MaintenanceTask::TYPE_PREVENTIVE, 'Corrective' => MaintenanceTask::TYPE_CORRECTIVE],
+                'choices' => ['admin_maintenance_form.choice_preventive' => MaintenanceTask::TYPE_PREVENTIVE, 'admin_maintenance_form.choice_corrective' => MaintenanceTask::TYPE_CORRECTIVE],
             ])
             ->add('dueDate', DateType::class, [
                 'label' => 'Échéance (optionnelle)',

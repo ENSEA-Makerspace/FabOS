@@ -88,13 +88,13 @@ final class EventAdminType extends AbstractType
                 ],
             ])
             ->add('dateDebut', DateTimeType::class, [
-                'label' => 'Début',
+                'label' => 'admin_event_form.date_debut',
                 'widget' => 'single_text',
                 'input' => 'datetime_immutable',
                 'constraints' => [new Assert\NotNull(message: 'La date de début est obligatoire.')],
             ])
             ->add('dateFin', DateTimeType::class, [
-                'label' => 'Fin (optionnelle)',
+                'label' => 'admin_event_form.date_fin',
                 'widget' => 'single_text',
                 'input' => 'datetime_immutable',
                 'required' => false,
@@ -118,10 +118,10 @@ final class EventAdminType extends AbstractType
                     ->andWhere('c.archivedAt IS NULL')
                     ->orderBy('c.position', 'ASC')
                     ->addOrderBy('c.label', 'ASC'),
-                'help' => 'Comment cet événement est décrit : atelier, portes ouvertes… Purement descriptif.',
+                'help' => 'admin_event_form.help_category',
             ])
             ->add('formation', EntityType::class, [
-                'label' => 'Séance de la formation',
+                'label' => 'admin_event_form.formation',
                 'class' => Formation::class,
                 'choice_label' => 'titre',
                 'required' => false,
@@ -143,34 +143,34 @@ final class EventAdminType extends AbstractType
                     ->orderBy('f.titre', 'ASC'),
                 // 🔴 Says what the link does NOT do. Attending never certifies:
                 // a trainer validates, and that is a safety rule, not a preference.
-                'help' => 'Rattache cet événement à une formation : il apparaîtra dans ses prochaines séances. La présence ne valide aucun badge — un formateur le fait.',
+                'help' => 'admin_event_form.help_formation',
             ])
             ->add('venue', VenueChoiceType::class, [
                 'required' => false,
                 'placeholder' => 'venues.field.venue_none',
             ])
             ->add('lieu', TextType::class, [
-                'label' => 'Nom du lieu',
+                'label' => 'admin_event_form.lieu',
                 'row_attr' => ['class' => 'full'],
                 'required' => false,
-                'help' => 'Le nom courant de l\'endroit : « Grande salle », « Atelier bois »…',
+                'help' => 'admin_event_form.help_lieu',
                 'constraints' => [new Assert\Length(max: 180, maxMessage: 'Ce champ ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('locationMode', ChoiceType::class, [
-                'label' => 'Où se déroule l\'événement ?',
+                'label' => 'admin_event_form.location_mode',
                 'row_attr' => ['class' => 'full'],
                 'choices' => [
-                    'Au fablab' => Event::LOCATION_ONSITE,
-                    'Ailleurs (adresse spécifique)' => Event::LOCATION_OFFSITE,
+                    'admin_event_form.choice_onsite' => Event::LOCATION_ONSITE,
+                    'admin_event_form.choice_offsite' => Event::LOCATION_OFFSITE,
                 ],
                 'expanded' => true,
-                'help' => 'Au fablab, l\'adresse est reprise automatiquement des réglages du site.',
+                'help' => 'admin_event_form.help_location_mode',
             ])
             ->add('address', TextType::class, [
-                'label' => 'Adresse (si ailleurs)',
+                'label' => 'admin_event_form.address',
                 'row_attr' => ['class' => 'full'],
                 'required' => false,
-                'help' => 'Adresse postale complète. Un lien d\'itinéraire est généré automatiquement.',
+                'help' => 'admin_event_form.help_address',
                 'constraints' => [new Assert\Length(max: 500, maxMessage: 'L\'adresse ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('description', TextareaType::class, [
@@ -180,15 +180,15 @@ final class EventAdminType extends AbstractType
                 'constraints' => [new Assert\Length(max: 2000, maxMessage: 'La description ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('capacite', IntegerType::class, [
-                'label' => 'Nombre de places',
+                'label' => 'admin_event_form.capacite',
                 'required' => false,
-                'help' => 'Laissez vide pour un nombre de places illimité. Au-delà, les inscriptions passent en liste d\'attente.',
+                'help' => 'admin_event_form.help_capacite',
                 'constraints' => [new Assert\PositiveOrZero(message: 'Le nombre de places ne peut pas être négatif.')],
             ])
             ->add('guestsAllowed', CheckboxType::class, [
-                'label' => 'Ouvert aux personnes sans compte',
+                'label' => 'admin_event_form.guests_allowed',
                 'required' => false,
-                'help' => 'Décochez pour réserver cet événement aux membres connectés. Les invités déjà inscrits gardent leur place.',
+                'help' => 'admin_event_form.help_guests_allowed',
             ])
             ->add('save', SubmitType::class, ['label' => 'common.save']);
 
@@ -198,7 +198,7 @@ final class EventAdminType extends AbstractType
         if ($options['allow_repeat']) {
             $builder
                 ->add('repeatEvery', ChoiceType::class, [
-                    'label' => 'Répéter',
+                    'label' => 'admin_event_form.repeat_every',
                     'mapped' => false,
                     'required' => false,
                     // 🔴 **S151 — le câblage Stimulus descend du gabarit vers ici.**
@@ -218,17 +218,17 @@ final class EventAdminType extends AbstractType
                     'placeholder' => false,
                     'data' => EventSeries::NONE,
                     'choices' => [
-                        'Une seule fois' => EventSeries::NONE,
-                        'Toutes les semaines' => EventSeries::EVERY_WEEK,
-                        'Une semaine sur deux' => EventSeries::EVERY_TWO_WEEKS,
+                        'admin_event_form.choice_once' => EventSeries::NONE,
+                        'admin_event_form.choice_weekly' => EventSeries::EVERY_WEEK,
+                        'admin_event_form.choice_biweekly' => EventSeries::EVERY_TWO_WEEKS,
                     ],
                     // 🔴 Says what this does NOT create. The events are independent
                     // rows from the moment they exist: each one moves, fills up or is
                     // called off on its own, and editing this one will not touch them.
-                    'help' => 'Crée plusieurs événements d\'un coup. Ils sont ensuite indépendants : déplacer ou annuler l\'un ne touche pas les autres.',
+                    'help' => 'admin_event_form.help_repeat_every',
                 ])
                 ->add('repeatCount', IntegerType::class, [
-                    'label' => 'Nombre de séances',
+                    'label' => 'admin_event_form.repeat_count',
                     'mapped' => false,
                     'required' => false,
                     'data' => 1,
@@ -242,7 +242,7 @@ final class EventAdminType extends AbstractType
                     // ⚠️ The old help said "no effect if the event does not repeat" —
                     // a sentence explaining why a control is inert. The control is now
                     // simply not drawn until it can do something.
-                    'help' => 'Jusqu\'à 12 séances, générées d\'un coup.',
+                    'help' => 'admin_event_form.help_repeat_count',
                     'constraints' => [
                         new Assert\Range(
                             min: 1,

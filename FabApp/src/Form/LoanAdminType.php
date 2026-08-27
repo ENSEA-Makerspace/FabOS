@@ -52,10 +52,10 @@ final class LoanAdminType extends AbstractType
     {
         $builder
             ->add('item', EntityType::class, [
-                'label' => 'Objet emprunté',
+                'label' => 'admin_loan_form.item',
                 'class' => LoanableItem::class,
                 'choice_label' => 'name',
-                'placeholder' => '— Choisir un objet —',
+                'placeholder' => 'admin_loan_form.ph_item',
                 // ⚠️ S133 — an archived object is not offered for a NEW loan. Loans
                 // already out against it keep resolving; this is the only place the
                 // archive has to bite, because everything else is history.
@@ -65,53 +65,53 @@ final class LoanAdminType extends AbstractType
                 'constraints' => [new Assert\NotNull(message: 'Choisissez un objet.')],
             ])
             ->add('borrower', EntityType::class, [
-                'label' => 'Emprunteur inscrit (optionnel)',
+                'label' => 'admin_loan_form.borrower',
                 'class' => Utilisateur::class,
                 'choice_label' => fn (Utilisateur $u) => $u->getDisplayName() . ' (' . $u->getEmail() . ')',
-                'placeholder' => '— Emprunteur non inscrit —',
+                'placeholder' => 'admin_loan_form.ph_borrower',
                 'required' => false,
                 'query_builder' => static fn ($repo) => $repo->createQueryBuilder('u')->orderBy('u.firstName', 'ASC'),
             ])
             ->add('borrowerName', TextType::class, [
-                'label' => 'Nom (si non inscrit)',
+                'label' => 'admin_loan_form.borrower_name',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 180)],
             ])
             ->add('borrowerEmail', EmailType::class, [
-                'label' => 'Email (si non inscrit)',
+                'label' => 'admin_loan_form.borrower_email',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 180)],
             ])
             ->add('borrowerPhone', TextType::class, [
-                'label' => 'Téléphone (si non inscrit)',
+                'label' => 'admin_loan_form.borrower_phone',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 60)],
             ])
             ->add('dateTaken', DateTimeType::class, [
-                'label' => 'Date de prêt',
+                'label' => 'admin_loan_form.date_taken',
                 'widget' => 'single_text',
                 'input' => 'datetime_immutable',
                 'constraints' => [new Assert\NotNull()],
             ])
             ->add('expectedReturnDate', DateType::class, [
-                'label' => 'Retour prévu (optionnel)',
+                'label' => 'admin_loan_form.expected_return',
                 'widget' => 'single_text',
                 'input' => 'datetime_immutable',
                 'required' => false,
             ])
             ->add('conditionOut', TextareaType::class, [
                 'row_attr' => ['class' => 'full'],
-                'label' => 'État au départ',
+                'label' => 'admin_loan_form.condition_out',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 1000)],
             ])
             ->add('notes', TextareaType::class, [
                 'row_attr' => ['class' => 'full'],
-                'label' => 'Informations complémentaires',
+                'label' => 'admin_loan_form.notes',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 1000)],
             ])
-            ->add('save', SubmitType::class, ['label' => 'Enregistrer le prêt']);
+            ->add('save', SubmitType::class, ['label' => 'admin_loan_form.submit_new']);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

@@ -65,7 +65,7 @@ final class FormationAdminType extends AbstractType
                 'constraints' => [new Assert\Length(max: 3000, maxMessage: 'La description ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('image', TextType::class, [
-                'label' => 'Image',
+                'label' => 'admin_formation_form.image',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 255, maxMessage: "L'image ne doit pas dépasser {{ limit }} caractères.")],
             ])
@@ -80,17 +80,17 @@ final class FormationAdminType extends AbstractType
                 'constraints' => [new Assert\Range(notInRangeMessage: 'Le niveau doit être compris entre {{ min }} et {{ max }}.', min: 1, max: 3)],
             ])
             ->add('duree', TextType::class, [
-                'label' => 'Durée',
+                'label' => 'admin_formation_form.duree',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 100, maxMessage: 'La durée ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('formateur', TextType::class, [
-                'label' => 'Formateur',
+                'label' => 'admin_formation_form.formateur',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 150, maxMessage: 'Le formateur ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('placesTotales', IntegerType::class, [
-                'label' => 'Places totales',
+                'label' => 'admin_formation_form.places_totales',
                 'required' => false,
                 'constraints' => [
                     new Assert\PositiveOrZero(message: 'Le nombre de places doit être un entier positif.'),
@@ -99,7 +99,7 @@ final class FormationAdminType extends AbstractType
             ])
             ->add('objectifs', TextareaType::class, [
                 'row_attr' => ['class' => 'full'],
-                'label' => 'Objectifs',
+                'label' => 'admin_formation_form.objectifs',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 3000, maxMessage: 'Les objectifs ne doivent pas dépasser {{ limit }} caractères.')],
             ])
@@ -111,15 +111,15 @@ final class FormationAdminType extends AbstractType
             ])
             ->add('materielFourni', TextareaType::class, [
                 'row_attr' => ['class' => 'full'],
-                'label' => 'Matériel fourni',
+                'label' => 'admin_formation_form.materiel_fourni',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 3000, maxMessage: 'Le matériel fourni ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('badge', EntityType::class, [
-                'label' => 'Badge associé',
+                'label' => 'admin_formation_form.badge',
                 'class' => Badge::class,
                 'choice_label' => static fn (Badge $badge): string => sprintf('%s (#%d)', $badge->getNom(), $badge->getId()),
-                'placeholder' => 'Aucun badge',
+                'placeholder' => 'admin_formation_form.ph_badge',
                 'required' => false,
             ])
             ->add('save', SubmitType::class, ['label' => 'common.save']);

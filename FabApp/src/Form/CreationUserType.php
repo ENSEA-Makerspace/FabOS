@@ -32,10 +32,10 @@ final class CreationUserType extends AbstractType
                 'constraints' => [new Assert\Length(max: 2000, maxMessage: 'La description ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('imageUpload', FileType::class, [
-                'label' => 'Image obligatoire',
+                'label' => 'creation_user_form.image_upload',
                 'mapped' => false,
                 'required' => true,
-                'help' => 'PNG, JPG, JPEG ou WEBP. 5 Mo maximum. L’image sera optimisée automatiquement.',
+                'help' => 'creation_user_form.help_image_upload',
                 'attr' => ['accept' => 'image/png,image/jpeg,image/webp'],
                 'constraints' => [
                     new Assert\NotBlank(message: 'Ajoute une image de ta création.'),
@@ -49,10 +49,10 @@ final class CreationUserType extends AbstractType
                 ],
             ])
             ->add('printDurationFormatted', TextType::class, [
-                'label' => 'Temps d’impression',
+                'label' => 'creation_user_form.print_duration',
                 'mapped' => false,
                 'required' => false,
-                'help' => 'Format HH:MM. Exemples : 00:45 pour 45 minutes, 01:30 pour 1h30, 02:05 pour 2h05.',
+                'help' => 'creation_user_form.help_print_duration',
                 'attr' => [
                     'placeholder' => '01:30',
                     'inputmode' => 'numeric',
@@ -68,10 +68,10 @@ final class CreationUserType extends AbstractType
                 ],
             ])
             ->add('fileUpload', FileType::class, [
-                'label' => 'Fichier projet optionnel',
+                'label' => 'creation_user_form.file_upload',
                 'mapped' => false,
                 'required' => false,
-                'help' => 'STL, 3MF, OBJ, STEP, PDF, ZIP ou AFDESIGN. 20 Mo maximum.',
+                'help' => 'creation_user_form.help_file_upload',
                 'attr' => ['accept' => '.stl,.3mf,.obj,.step,.pdf,.zip,.afdesign'],
                 'constraints' => [new Assert\File(
                     maxSize: '20M',
@@ -80,15 +80,15 @@ final class CreationUserType extends AbstractType
                 )],
             ])
             ->add('externalUrl', UrlType::class, [
-                'label' => 'Lien externe optionnel',
+                'label' => 'creation_user_form.external_url',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 500, maxMessage: 'Le lien ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('tagsInput', TextType::class, [
-                'label' => 'Tags optionnels',
+                'label' => 'creation_user_form.tags',
                 'mapped' => false,
                 'required' => false,
-                'help' => 'Séparés par des virgules. Exemples : impression 3d, déco, cadeau.',
+                'help' => 'creation_user_form.help_tags',
                 'attr' => ['placeholder' => 'impression 3d, déco, cadeau'],
                 'constraints' => [new Assert\Length(max: 255, maxMessage: 'Les tags ne doivent pas dépasser {{ limit }} caractères.')],
             ])

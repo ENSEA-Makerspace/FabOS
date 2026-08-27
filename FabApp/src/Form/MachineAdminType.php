@@ -143,7 +143,7 @@ final class MachineAdminType extends AbstractType
                 'constraints' => [new Assert\Choice(choices: self::STATUSES, message: 'Statut invalide.')],
             ])
             ->add('granularite', TextType::class, [
-                'label' => 'Granularité',
+                'label' => 'admin_machine_form.granularite',
                 'required' => false,
                 'help' => 'admin_machine_form.help_granularite',
                 'constraints' => [
@@ -152,7 +152,7 @@ final class MachineAdminType extends AbstractType
                 ],
             ])
             ->add('limiteReservations', IntegerType::class, [
-                'label' => 'Limite réservations',
+                'label' => 'admin_machine_form.limite_reservations',
                 'help' => 'admin_machine_form.help_limite',
                 'constraints' => [
                     new Assert\PositiveOrZero(message: 'La limite de réservations doit être un entier positif.'),
@@ -162,7 +162,7 @@ final class MachineAdminType extends AbstractType
 
         if ($options['include_machine_token']) {
             $builder->add('machineToken', TextType::class, [
-                'label' => 'Token machine',
+                'label' => 'admin_machine_form.machine_token',
                 'empty_data' => '',
                 'row_attr' => ['class' => 'full'],
                 'help' => 'admin_machine_form.help_token',
@@ -178,14 +178,14 @@ final class MachineAdminType extends AbstractType
             // Ils ne sont pas décoratifs : `AdminController::machineModels()`
             // trie et regroupe tout l'écran « Modèles et marques » dessus.
             ->add('manufacturer', TextType::class, [
-                'label' => 'Marque',
+                'label' => 'admin_machine_form.manufacturer',
                 'required' => false,
                 'help' => 'admin_machine_form.help_manufacturer',
                 'constraints' => [new Assert\Length(max: 150)],
             ])
-            ->add('model', TextType::class, ['label' => 'Modèle', 'required' => false, 'constraints' => [new Assert\Length(max: 150)]])
+            ->add('model', TextType::class, ['label' => 'admin_machine_form.model', 'required' => false, 'constraints' => [new Assert\Length(max: 150)]])
             ->add('materiaux', TextareaType::class, [
-                'label' => 'Matériaux',
+                'label' => 'admin_machine_form.materiaux',
                 'mapped' => false,
                 'required' => false,
                 'data' => implode("\n", $options['materials']),
@@ -194,7 +194,7 @@ final class MachineAdminType extends AbstractType
                 'constraints' => [new Assert\Length(max: 2000, maxMessage: 'La liste des matériaux ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('caracteristiques', TextareaType::class, [
-                'label' => 'Caractéristiques',
+                'label' => 'admin_machine_form.caracteristiques',
                 'mapped' => false,
                 'required' => false,
                 'data' => implode("\n", $options['features']),
@@ -212,7 +212,7 @@ final class MachineAdminType extends AbstractType
                 'constraints' => [new Assert\Length(max: 2000, maxMessage: 'Les prérequis ne doivent pas dépasser {{ limit }} caractères.')],
             ])
             ->add('photo', TextType::class, [
-                'label' => 'Photo',
+                'label' => 'admin_machine_form.photo',
                 'required' => false,
                 'help' => 'admin_machine_form.help_photo',
                 'constraints' => [new Assert\Length(max: 255, maxMessage: 'La photo ne doit pas dépasser {{ limit }} caractères.')],
@@ -226,7 +226,7 @@ final class MachineAdminType extends AbstractType
                 'constraints' => [new Assert\Length(max: 50, maxMessage: "L'icône ne doit pas dépasser {{ limit }} caractères.")],
             ])
             ->add('popularite', IntegerType::class, [
-                'label' => 'Popularité',
+                'label' => 'admin_machine_form.popularite',
                 'mapped' => false,
                 'required' => false,
                 'data' => $options['popularity'],

@@ -23,41 +23,41 @@ final class MaintenanceTaskAdminType extends AbstractType
     {
         $builder
             ->add('machine', EntityType::class, [
-                'label' => 'Machine',
+                'label' => 'admin_maintenance_form.machine',
                 'class' => Machine::class,
                 'choice_label' => 'nom',
-                'placeholder' => '— Choisir une machine —',
+                'placeholder' => 'admin_maintenance_form.ph_machine',
                 'query_builder' => static fn ($repo) => $repo->createQueryBuilder('m')->orderBy('m.nom', 'ASC'),
                 'constraints' => [new Assert\NotNull(message: 'Choisissez une machine.')],
             ])
             ->add('title', TextType::class, [
-                'label' => 'Intitulé de la tâche',
+                'label' => 'admin_maintenance_form.title',
                 'empty_data' => '',
                 'constraints' => [new Assert\NotBlank(message: 'L’intitulé est obligatoire.'), new Assert\Length(max: 180)],
             ])
             ->add('type', ChoiceType::class, [
                 'label' => 'form.type',
-                'choices' => ['Préventive' => MaintenanceTask::TYPE_PREVENTIVE, 'Corrective' => MaintenanceTask::TYPE_CORRECTIVE],
+                'choices' => ['admin_maintenance_form.choice_preventive' => MaintenanceTask::TYPE_PREVENTIVE, 'admin_maintenance_form.choice_corrective' => MaintenanceTask::TYPE_CORRECTIVE],
             ])
             ->add('dueDate', DateType::class, [
-                'label' => 'Échéance (optionnelle)',
+                'label' => 'admin_maintenance_form.due_date',
                 'widget' => 'single_text',
                 'input' => 'datetime_immutable',
                 'required' => false,
             ])
             ->add('recurrenceDays', IntegerType::class, [
-                'label' => 'Récurrence : tous les N jours (optionnel)',
+                'label' => 'admin_maintenance_form.recurrence_days',
                 'required' => false,
                 'constraints' => [new Assert\Positive(message: 'La récurrence doit être un nombre de jours positif.')],
             ])
             ->add('link', UrlType::class, [
-                'label' => 'Lien (guide / wiki, optionnel)',
+                'label' => 'admin_maintenance_form.link',
                 'required' => false,
                 'default_protocol' => 'https',
                 'constraints' => [new Assert\Length(max: 500), new Assert\Url(message: 'URL invalide.')],
             ])
             ->add('notes', TextareaType::class, [
-                'label' => 'Notes (optionnel)',
+                'label' => 'admin_maintenance_form.notes',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 2000)],
             ])

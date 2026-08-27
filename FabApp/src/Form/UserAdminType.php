@@ -55,7 +55,7 @@ final class UserAdminType extends AbstractType
 
         $builder
             ->add('email', EmailType::class, [
-                'label' => 'Email',
+                'label' => 'admin_user_form.email',
                 'empty_data' => '',
                 'constraints' => [
                     new Assert\NotBlank(message: 'L’email est obligatoire.'),
@@ -64,7 +64,7 @@ final class UserAdminType extends AbstractType
                 ],
             ])
             ->add('username', TextType::class, [
-                'label' => 'Username',
+                'label' => 'admin_user_form.username',
                 'empty_data' => '',
                 'constraints' => [
                     new Assert\NotBlank(message: 'Le username est obligatoire.'),
@@ -72,7 +72,7 @@ final class UserAdminType extends AbstractType
                 ],
             ])
             ->add('firstName', TextType::class, [
-                'label' => 'Prénom',
+                'label' => 'admin_user_form.first_name',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 255, maxMessage: 'Le prénom ne doit pas dépasser {{ limit }} caractères.')],
             ])
@@ -82,7 +82,7 @@ final class UserAdminType extends AbstractType
                 'constraints' => [new Assert\Length(max: 255, maxMessage: 'Le nom ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('plainPassword', PasswordType::class, [
-                'label' => 'Mot de passe temporaire',
+                'label' => 'admin_user_form.plain_password',
                 'mapped' => false,
                 'empty_data' => '',
                 'constraints' => [
@@ -91,45 +91,45 @@ final class UserAdminType extends AbstractType
                 ],
             ])
             ->add('confirmPassword', PasswordType::class, [
-                'label' => 'Confirmation',
+                'label' => 'admin_user_form.confirm_password',
                 'mapped' => false,
                 'empty_data' => '',
                 'constraints' => [new Assert\NotBlank(message: 'La confirmation est obligatoire.')],
             ])
             ->add('role', ChoiceType::class, [
-                'label' => 'Rôle',
+                'label' => 'admin_user_form.role',
                 'mapped' => false,
                 'choices' => $options['role_choices'],
-                'placeholder' => 'Choisir un rôle',
+                'placeholder' => 'admin_user_form.ph_role',
                 'constraints' => [
                     new Assert\NotBlank(message: 'Le rôle est obligatoire.'),
                     new Assert\Choice(choices: array_values($options['role_choices']), message: 'Rôle invalide.'),
                 ],
             ])
             ->add('identifiantRfid', TextType::class, [
-                'label' => 'Identifiant RFID',
+                'label' => 'admin_user_form.rfid',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 255, maxMessage: 'L’identifiant RFID ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('numeroId', TextType::class, [
-                'label' => 'Numéro ID',
+                'label' => 'admin_user_form.numero_id',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 100, maxMessage: 'Le numéro ID ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('statut', ChoiceType::class, [
                 'label' => 'form.status',
                 'choices' => [
-                    'Actif' => 'actif',
-                    'Inactif' => 'inactif',
+                    'admin_user_form.choice_active' => 'actif',
+                    'admin_user_form.choice_inactive' => 'inactif',
                 ],
                 'constraints' => [new Assert\Choice(choices: ['actif', 'inactif'], message: 'Statut invalide.')],
             ])
             ->add('notificationEmail', CheckboxType::class, [
-                'label' => 'Notification email',
+                'label' => 'admin_user_form.notification_email',
                 'required' => false,
             ])
             ->add('notificationPush', CheckboxType::class, [
-                'label' => 'Notification push',
+                'label' => 'admin_user_form.notification_push',
                 'required' => false,
             ])
             // 'rappelReservation' used to sit here. It was writable from both this
@@ -138,11 +138,11 @@ final class UserAdminType extends AbstractType
             // USER_NOTIFICATION_OPTOUT, which the person owns themselves; the old
             // values were migrated across in Version20260729100000.
             ->add('theme', ChoiceType::class, [
-                'label' => 'Thème',
+                'label' => 'admin_user_form.theme',
                 'choices' => [
-                    'Système' => 'system',
-                    'Clair' => 'light',
-                    'Sombre' => 'dark',
+                    'admin_user_form.choice_system' => 'system',
+                    'admin_user_form.choice_light' => 'light',
+                    'admin_user_form.choice_dark' => 'dark',
                 ],
                 'constraints' => [new Assert\Choice(choices: ['system', 'light', 'dark'], message: 'Thème invalide.')],
             ])
@@ -150,11 +150,11 @@ final class UserAdminType extends AbstractType
             // controller from LocaleCatalog. The hardcoded pair that used to be here
             // meant an admin could not create a German, Spanish or Italian account.
             ->add('langue', ChoiceType::class, [
-                'label' => 'Langue',
+                'label' => 'admin_user_form.langue',
                 'choices' => array_flip($localeChoices),
                 'constraints' => [new Assert\Choice(choices: array_keys($localeChoices), message: 'Langue invalide.')],
             ])
-            ->add('save', SubmitType::class, ['label' => 'Créer l’utilisateur']);
+            ->add('save', SubmitType::class, ['label' => 'admin_user_form.submit_new']);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

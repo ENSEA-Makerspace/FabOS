@@ -61,22 +61,22 @@ final class CreationAdminType extends AbstractType
                 'constraints' => [new Assert\Length(max: 2000, maxMessage: 'La description ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('author', EntityType::class, [
-                'label' => 'Auteur utilisateur',
+                'label' => 'admin_creation_form.author',
                 'class' => Utilisateur::class,
                 'choice_label' => static fn (Utilisateur $user): string => $user->getDisplayName() . ' (' . $user->getEmail() . ')',
-                'placeholder' => 'Aucun compte lié',
+                'placeholder' => 'admin_creation_form.ph_author',
                 'required' => false,
             ])
             ->add('authorName', TextType::class, [
-                'label' => 'Nom auteur libre',
+                'label' => 'admin_creation_form.author_name',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 150, maxMessage: 'Le nom auteur ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('imageUpload', FileType::class, [
-                'label' => 'Image de la création',
+                'label' => 'admin_creation_form.image_upload',
                 'mapped' => false,
                 'required' => false,
-                'help' => 'Formats acceptés : PNG, JPG, JPEG, WEBP. Taille max : 5 Mo. L’image sera optimisée automatiquement.',
+                'help' => 'admin_creation_form.help_image_upload',
                 'attr' => ['accept' => 'image/png,image/jpeg,image/webp'],
                 'constraints' => [
                     new Assert\File(
@@ -89,10 +89,10 @@ final class CreationAdminType extends AbstractType
                 ],
             ])
             ->add('fileUpload', FileType::class, [
-                'label' => 'Fichier projet',
+                'label' => 'admin_creation_form.file_upload',
                 'mapped' => false,
                 'required' => false,
-                'help' => 'Formats acceptés : STL, 3MF, OBJ, STEP, PDF, ZIP, AFDESIGN. Taille max : 20 Mo.',
+                'help' => 'admin_creation_form.help_file_upload',
                 'attr' => ['accept' => '.stl,.3mf,.obj,.step,.pdf,.zip,.afdesign'],
                 'constraints' => [new Assert\File(
                     maxSize: '20M',
@@ -101,18 +101,18 @@ final class CreationAdminType extends AbstractType
                 )],
             ])
             ->add('externalUrl', UrlType::class, [
-                'label' => 'Lien externe',
+                'label' => 'admin_creation_form.external_url',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 500, maxMessage: 'Le lien ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('printDurationMinutes', IntegerType::class, [
-                'label' => 'Temps d’impression (minutes)',
+                'label' => 'admin_creation_form.print_duration',
                 'required' => false,
                 'constraints' => [new Assert\PositiveOrZero(message: 'Le temps d’impression doit être positif.')],
             ])
             ->add('isPublished', CheckboxType::class, [
                 'row_attr' => ['class' => 'checkbox'],
-                'label' => 'Publié',
+                'label' => 'admin_creation_form.is_published',
                 'required' => false,
             ])
             ->add('save', SubmitType::class, ['label' => 'common.save']);
