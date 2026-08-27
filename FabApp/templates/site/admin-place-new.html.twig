@@ -38,24 +38,10 @@
                    theme would restyle booking, registration and the wizard in the
                    same commit, and none of that is render-testable from here. #}
                 {% form_theme form 'form/admin_theme.html.twig' %}
-                {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
-                    {{ form_errors(form) }}
-                    <div class="form-grid">
-                        {{ form_row(form.nom) }}
-                        {{ form_row(form.venue) }}
-                        {{ form_row(form.localisation) }}
-                        {{ form_row(form.capacite) }}
-                        {# `full` comes from PlaceAdminType's row_attr, not from here —
-                           which field spans the grid is a fact about the form, and it
-                           was previously re-decided in both new and edit. #}
-                        {{ form_row(form.description, {row_attr: {class: 'full'}}) }}
-                    </div>
-
-                    <div class="form-actions">
-                        <a class="btn-link" href="{{ path('app_admin_places') }}">{{ 'common.cancel'|trans }}</a>
-                        <span class="btn-submit">{{ form_widget(form.save, {label: 'admin_places.submit_new'|trans}) }}</span>
-                    </div>
-                {{ form_end(form) }}
+                {% include 'site/_place_form.html.twig' with {
+                    form: form,
+                    submit_label: 'admin_places.submit_new'|trans,
+                } only %}
             </section>
         </div>
     </main>

@@ -40,33 +40,9 @@
                     <p>{{ 'admin_user_new.password_note'|trans }}</p>
                 </div>
 
-                {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
-                    {{ form_errors(form) }}
-                    <div class="form-grid">
-                        {% for field in [form.email, form.username, form.firstName, form.lastName, form.plainPassword, form.confirmPassword, form.role, form.identifiantRfid, form.numeroId, form.statut, form.theme, form.langue] %}
-                            <div class="form-field">
-                                {{ form_label(field) }}
-                                {{ form_widget(field) }}
-                                <div class="form-errors">{{ form_errors(field) }}</div>
-                            </div>
-                        {% endfor %}
-                        <div class="form-field check">
-                            {{ form_widget(form.notificationEmail) }}
-                            {{ form_label(form.notificationEmail) }}
-                            <div class="form-errors">{{ form_errors(form.notificationEmail) }}</div>
-                        </div>
-                        <div class="form-field check">
-                            {{ form_widget(form.notificationPush) }}
-                            {{ form_label(form.notificationPush) }}
-                            <div class="form-errors">{{ form_errors(form.notificationPush) }}</div>
-                        </div>
-                    </div>
-
-                    <div class="form-actions">
-                        <a class="btn-link" href="{{ path('app_admin_users') }}">{{ 'common.cancel'|trans }}</a>
-                        <span class="btn-submit">{{ form_widget(form.save) }}</span>
-                    </div>
-                {{ form_end(form) }}
+                {% include 'site/_user_form.html.twig' with {
+                    form: form,
+                } only %}
             </section>
         </div>
     </main>

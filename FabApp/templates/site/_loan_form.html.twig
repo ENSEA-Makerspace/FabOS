@@ -1,0 +1,20 @@
+{# LE FORMULAIRE LOAN FORM, UNE SEULE FOIS.
+
+   Le découpage vient de `LoanAdminType::SECTIONS` (S151, R3) : le prêt, qui
+   emprunte, puis l'état et les notes derrière un repli.
+   ⚠️ Les pleines largeurs viennent du `FormType` (`row_attr`), pas d'ici : la
+   boucle partagée appelle `form_row(form[name])` sans options. #}
+{% form_theme form 'form/admin_theme.html.twig' %}
+{{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
+    {{ form_errors(form) }}
+
+    {% include 'site/_form_sections.html.twig' with {
+        form: form,
+        sections: constant('App\\Form\\LoanAdminType::SECTIONS'),
+    } only %}
+
+    <div class="form-actions">
+        <a class="btn-link" href="{{ path('app_admin_loans') }}">{{ 'common.cancel'|trans }}</a>
+        <span class="btn-submit">{{ form_widget(form.save, {label: submit_label|default('common.save'|trans)}) }}</span>
+    </div>
+{{ form_end(form) }}

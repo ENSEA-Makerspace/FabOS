@@ -3310,6 +3310,27 @@ admin_machine_form:
     restore: "Remettre au parc"
     archive_note: "L'équipement sort des catalogues, des calendriers et des réservations. Son historique d'utilisation, lui, reste intact."
 
+admin_place_form:
+    section_identity: "Identité"
+    section_where: "Où et combien"
+    section_admin: "Classement interne"
+
+admin_loan_form:
+    section_loan: "Le prêt"
+    section_borrower: "Qui emprunte"
+    section_notes: "État et notes"
+
+admin_creation_form:
+    section_project: "Le projet"
+    section_author: "Qui l'a fait"
+    section_files: "Images, fichiers et liens"
+
+admin_user_form:
+    section_identity: "Identité"
+    section_access: "Accès et rôle"
+    section_badge: "Badge et identifiants"
+    section_prefs: "Préférences"
+
 admin_event_form:
     section_identity: "Identité"
     section_when: "Quand"
@@ -3318,6 +3339,10 @@ admin_event_form:
     section_link: "Rattachements"
 
 admin_formation_form:
+    section_identity: "Identité"
+    section_session: "La séance"
+    section_content: "Ce qu'on y apprend"
+    section_media: "Image et badge"
     archive: "Archiver la formation"
     restore: "Remettre au catalogue"
     archive_note: "La formation sort du catalogue et du choix des séances. Les progressions et les séances déjà rattachées restent."

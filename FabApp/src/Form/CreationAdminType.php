@@ -19,6 +19,30 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 final class CreationAdminType extends AbstractType
 {
+    /**
+     * L'ordre et le découpage de l'écran — motif `SECTIONS` (S151, R3), déroulé
+     * par `site/_form_sections.html.twig`. Une seule liste, dans le formulaire,
+     * au lieu d'une par gabarit qui rendait le même type.
+     *
+     * ⚠️ Le bloc « image actuelle » du gabarit n'est PAS un champ : il montre ce
+     * qui est déjà enregistré, et il reste dans le partiel, au-dessus des sections.
+     */
+    public const SECTIONS = [
+        [
+            'title' => 'admin_creation_form.section_project',
+            'fields' => ['title', 'description', 'isPublished'],
+        ],
+        [
+            'title' => 'admin_creation_form.section_author',
+            'fields' => ['author', 'authorName'],
+        ],
+        [
+            'title' => 'admin_creation_form.section_files',
+            'fold' => true,
+            'fields' => ['imageUpload', 'fileUpload', 'externalUrl', 'printDurationMinutes'],
+        ],
+    ];
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
@@ -31,6 +55,7 @@ final class CreationAdminType extends AbstractType
                 ],
             ])
             ->add('description', TextareaType::class, [
+                'row_attr' => ['class' => 'full'],
                 'label' => 'Description courte',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 2000, maxMessage: 'La description ne doit pas dépasser {{ limit }} caractères.')],
@@ -86,6 +111,7 @@ final class CreationAdminType extends AbstractType
                 'constraints' => [new Assert\PositiveOrZero(message: 'Le temps d’impression doit être positif.')],
             ])
             ->add('isPublished', CheckboxType::class, [
+                'row_attr' => ['class' => 'checkbox'],
                 'label' => 'Publié',
                 'required' => false,
             ])

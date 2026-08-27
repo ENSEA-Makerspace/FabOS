@@ -23,6 +23,31 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 final class LoanAdminType extends AbstractType
 {
+    /**
+     * L'ordre et le découpage de l'écran — motif `SECTIONS` (S151, R3), déroulé
+     * par `site/_form_sections.html.twig`. Une seule liste, dans le formulaire,
+     * au lieu d'une par gabarit qui rendait le même type.
+     *
+     * ⚠️ Les quatre champs « emprunteur » sont un seul choix à deux formes : un
+     * membre du lab (`borrower`), ou quelqu'un de passage qu'on décrit à la main.
+     * Ils vont donc ensemble, sous un titre qui pose la question.
+     */
+    public const SECTIONS = [
+        [
+            'title' => 'admin_loan_form.section_loan',
+            'fields' => ['item', 'dateTaken', 'expectedReturnDate'],
+        ],
+        [
+            'title' => 'admin_loan_form.section_borrower',
+            'fields' => ['borrower', 'borrowerName', 'borrowerEmail', 'borrowerPhone'],
+        ],
+        [
+            'title' => 'admin_loan_form.section_notes',
+            'fold' => true,
+            'fields' => ['conditionOut', 'notes'],
+        ],
+    ];
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
@@ -75,11 +100,13 @@ final class LoanAdminType extends AbstractType
                 'required' => false,
             ])
             ->add('conditionOut', TextareaType::class, [
+                'row_attr' => ['class' => 'full'],
                 'label' => 'État au départ',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 1000)],
             ])
             ->add('notes', TextareaType::class, [
+                'row_attr' => ['class' => 'full'],
                 'label' => 'Informations complémentaires',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 1000)],

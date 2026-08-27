@@ -1,0 +1,22 @@
+{# LE FORMULAIRE ESPACE, UNE SEULE FOIS — création et édition.
+
+   🔴 **S151, R3 — trois champs tombaient sous le bouton Enregistrer.**
+   `category`, `manager` et `department` sont déclarés dans `PlaceAdminType` et
+   n'étaient nommés dans aucun des deux gabarits : ils sortaient par `form_rest()`,
+   mesurés à y=995/1078/1162 alors que la rangée d'actions est à y=892. Et ils
+   avaient l'air normaux, parce que `form_rest()` passe par le thème. Le découpage
+   vient maintenant de `PlaceAdminType::SECTIONS` — une liste, pas deux. #}
+{% form_theme form 'form/admin_theme.html.twig' %}
+{{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
+    {{ form_errors(form) }}
+
+    {% include 'site/_form_sections.html.twig' with {
+        form: form,
+        sections: constant('App\\Form\\PlaceAdminType::SECTIONS'),
+    } only %}
+
+    <div class="form-actions">
+        <a class="btn-link" href="{{ path('app_admin_places') }}">{{ 'common.cancel'|trans }}</a>
+        <span class="btn-submit">{{ form_widget(form.save, {label: submit_label|default('common.save'|trans)}) }}</span>
+    </div>
+{{ form_end(form) }}

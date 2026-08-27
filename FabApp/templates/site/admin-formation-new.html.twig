@@ -39,31 +39,10 @@
                     <div class="form-warning">{{ 'admin_formation_new.no_badge_warning'|trans }}</div>
                 {% endif %}
 
-                {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
-                    <div class="form-errors">{{ form_errors(form) }}</div>
-                    <div class="form-grid">
-                        {% for field in [form.titre, form.image, form.categorie, form.niveau, form.duree, form.formateur, form.placesTotales, form.badge] %}
-                            <div class="form-field">
-                                {{ form_label(field) }}
-                                {{ form_widget(field) }}
-                                <div class="form-errors">{{ form_errors(field) }}</div>
-                            </div>
-                        {% endfor %}
-
-                        {% for field in [form.description, form.objectifs, form.prerequis, form.materielFourni] %}
-                            <div class="form-field full">
-                                {{ form_label(field) }}
-                                {{ form_widget(field) }}
-                                <div class="form-errors">{{ form_errors(field) }}</div>
-                            </div>
-                        {% endfor %}
-                    </div>
-
-                    <div class="form-actions">
-                        <a class="btn-link" href="{{ path('app_admin_formations') }}">{{ 'common.cancel'|trans }}</a>
-                        <span class="btn-submit">{{ form_widget(form.save, {label: 'admin_formation_new.submit'|trans}) }}</span>
-                    </div>
-                {{ form_end(form) }}
+                {% include 'site/_formation_form.html.twig' with {
+                    form: form,
+                    submit_label: 'admin_formation_new.submit'|trans,
+                } only %}
             </section>
         </div>
     </main>

@@ -1,0 +1,22 @@
+{# LE FORMULAIRE FORMATION FORM, UNE SEULE FOIS.
+
+   🔴 **S151, R3 — ce gabarit dessinait ses rangées à la main**, donc il sautait le
+   thème admin : son champ obligatoire n'était marqué nulle part (1 requis, 0
+   mention « requis », mesuré avant). Le découpage vient de
+   `FormationAdminType::SECTIONS`, et le thème remet la règle 5 en place.
+   ⚠️ Les pleines largeurs viennent du `FormType` (`row_attr`), pas d'ici : la
+   boucle partagée appelle `form_row(form[name])` sans options. #}
+{% form_theme form 'form/admin_theme.html.twig' %}
+{{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
+    {{ form_errors(form) }}
+
+    {% include 'site/_form_sections.html.twig' with {
+        form: form,
+        sections: constant('App\\Form\\FormationAdminType::SECTIONS'),
+    } only %}
+
+    <div class="form-actions">
+        <a class="btn-link" href="{{ path('app_admin_formations') }}">{{ 'common.cancel'|trans }}</a>
+        <span class="btn-submit">{{ form_widget(form.save, {label: submit_label|default('common.save'|trans)}) }}</span>
+    </div>
+{{ form_end(form) }}

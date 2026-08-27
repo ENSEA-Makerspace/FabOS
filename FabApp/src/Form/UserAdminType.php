@@ -16,6 +16,38 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 final class UserAdminType extends AbstractType
 {
+    /**
+     * L'ordre et le découpage de l'écran — motif `SECTIONS` (S151, R3), déroulé
+     * par `site/_form_sections.html.twig`. Une seule liste, dans le formulaire,
+     * au lieu d'une par gabarit qui rendait le même type.
+     *
+     * 🔴 **Ce gabarit dessinait ses rangées à la main** (`form_label` +
+     * `form_widget`), donc il sautait le thème : **5 champs obligatoires et 0
+     * mention « requis »** à l'écran, mesuré avant conversion. Et ses deux cases
+     * étaient écrites à la main aussi, ce qui saute `form_help()` — le thème a un
+     * bloc `checkbox_row` qui fait les deux correctement.
+     */
+    public const SECTIONS = [
+        [
+            'title' => 'admin_user_form.section_identity',
+            'fields' => ['firstName', 'lastName', 'email', 'username'],
+        ],
+        [
+            'title' => 'admin_user_form.section_access',
+            'fields' => ['plainPassword', 'confirmPassword', 'role', 'statut'],
+        ],
+        [
+            'title' => 'admin_user_form.section_badge',
+            'fold' => true,
+            'fields' => ['identifiantRfid', 'numeroId'],
+        ],
+        [
+            'title' => 'admin_user_form.section_prefs',
+            'fold' => true,
+            'fields' => ['notificationEmail', 'notificationPush', 'theme', 'langue'],
+        ],
+    ];
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         /** @var array<string, string> $localeChoices code => display name */

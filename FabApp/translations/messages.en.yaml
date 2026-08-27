@@ -3309,6 +3309,27 @@ admin_machine_form:
     restore: "Bring back"
     archive_note: "The equipment leaves the catalogues, the calendars and the booking pickers. Its usage history stays untouched."
 
+admin_place_form:
+    section_identity: "Identity"
+    section_where: "Where and how many"
+    section_admin: "Internal filing"
+
+admin_loan_form:
+    section_loan: "The loan"
+    section_borrower: "Who borrows"
+    section_notes: "Condition and notes"
+
+admin_creation_form:
+    section_project: "The project"
+    section_author: "Who made it"
+    section_files: "Images, files and links"
+
+admin_user_form:
+    section_identity: "Identity"
+    section_access: "Access and role"
+    section_badge: "Badge and identifiers"
+    section_prefs: "Preferences"
+
 admin_event_form:
     section_identity: "Identity"
     section_when: "When"
@@ -3317,6 +3338,10 @@ admin_event_form:
     section_link: "Links"
 
 admin_formation_form:
+    section_identity: "Identity"
+    section_session: "The session"
+    section_content: "What it teaches"
+    section_media: "Image and badge"
     archive: "Archive the training"
     restore: "Back to the catalogue"
     archive_note: "The training leaves the catalogue and the session picker. Progress records and sessions already attached stay."

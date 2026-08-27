@@ -20,34 +20,10 @@
             } only %}
             <div class="admin-panel-header"><h2>{{ creation.title }}</h2></div>
             {% form_theme form 'form/admin_theme.html.twig' %}
-            {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
-                {{ form_errors(form) }}
-                <div class="form-grid">
-                    <div class="form-field full">
-                        <div class="current-asset">
-                            {% include 'site/_creation_image.html.twig' with {creation: creation, alt: creation.title} only %}
-                            <div>
-                                <strong>{{ 'admin_form.current_image'|trans }}</strong><br>
-                                <span>{{ creation.imageFilename ?: 'admin_creations.no_image_saved'|trans }}</span><br>
-                                <span>{{ creation.fileFilename ? 'Fichier : ' ~ creation.fileFilename : 'admin_creations.no_project_file'|trans }}</span>
-                            </div>
-                        </div>
-                    </div>
-                    {{ form_row(form.title) }}
-                    {{ form_row(form.author) }}
-                    {{ form_row(form.authorName) }}
-                    {{ form_row(form.externalUrl) }}
-                    {{ form_row(form.printDurationMinutes) }}
-                    <div class="form-field">{{ form_label(form.imageUpload) }}{{ form_widget(form.imageUpload) }}<div class="form-help">{{ form_help(form.imageUpload) }}</div><div class="form-errors">{{ form_errors(form.imageUpload) }}</div></div>
-                    <div class="form-field">{{ form_label(form.fileUpload) }}{{ form_widget(form.fileUpload) }}<div class="form-help">{{ form_help(form.fileUpload) }}</div><div class="form-errors">{{ form_errors(form.fileUpload) }}</div></div>
-                    {{ form_row(form.description, {row_attr: {class: 'full'}}) }}
-                    {{ form_row(form.isPublished, {row_attr: {class: 'checkbox'}}) }}
-                </div>
-                <div class="form-actions">
-                    <a class="btn-link" href="{{ path('app_admin_creations') }}">{{ 'common.cancel'|trans }}</a>
-                    <span class="btn-submit">{{ form_widget(form.save, {label: 'common.save'|trans}) }}</span>
-                </div>
-            {{ form_end(form) }}
+            {% include 'site/_creation_form.html.twig' with {
+                form: form,
+                creation: creation,
+            } only %}
             {% include 'site/_admin_danger_zone.html.twig' with {
                     action: path('app_admin_creation_delete', {id: creation.id}),
                     token: 'delete_creation_' ~ creation.id,

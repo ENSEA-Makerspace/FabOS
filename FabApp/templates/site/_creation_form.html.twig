@@ -1,0 +1,42 @@
+{# LE FORMULAIRE PROJET, UNE SEULE FOIS — création et édition.
+
+   Le découpage vient de `CreationAdminType::SECTIONS` (S151, R3).
+
+   ⚠️ **Le bloc « image actuelle » n'est PAS un champ** : il montre ce qui est déjà
+   enregistré, donc il reste ici, au-dessus des sections. Les deux écrans le
+   rendaient déjà et le contrôleur passe `creation` dans les deux cas.
+
+   🔴 **Les deux téléversements étaient dessinés à la main**, avec un
+   `<div class="form-help">` AUTOUR de `form_help()` — qui émet déjà son propre
+   `<p class="form-help">`. Deux enveloppes imbriquées portant la même classe, pour
+   une seule phrase. `form_row()` les rend correctement, une fois.
+
+   ⚠️ Les pleines largeurs et la classe `checkbox` viennent du `FormType`
+   (`row_attr`), pas d'ici. #}
+{% form_theme form 'form/admin_theme.html.twig' %}
+{{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
+    {{ form_errors(form) }}
+
+    <div class="form-grid">
+        <div class="form-field full">
+            <div class="current-asset">
+                {% include 'site/_creation_image.html.twig' with {creation: creation, alt: creation.title} only %}
+                <div>
+                    <strong>{{ 'admin_form.current_image'|trans }}</strong><br>
+                    <span>{{ creation.imageFilename ?: 'admin_creations.no_image_saved'|trans }}</span><br>
+                    <span>{{ creation.fileFilename ? 'Fichier : ' ~ creation.fileFilename : 'admin_creations.no_project_file'|trans }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% include 'site/_form_sections.html.twig' with {
+        form: form,
+        sections: constant('App\\Form\\CreationAdminType::SECTIONS'),
+    } only %}
+
+    <div class="form-actions">
+        <a class="btn-link" href="{{ path('app_admin_creations') }}">{{ 'common.cancel'|trans }}</a>
+        <span class="btn-submit">{{ form_widget(form.save, {label: submit_label|default('common.save'|trans)}) }}</span>
+    </div>
+{{ form_end(form) }}

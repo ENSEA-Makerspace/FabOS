@@ -613,9 +613,45 @@ déjà pour `row_attr`.
   exactement le même défaut que `help_machines` sur les matériaux — la troisième
   fois qu'une liste écrite à la main coûte une phrase.
 
-🅿️ **Restent cinq formulaires d'entité** : `/admin/utilisateurs/new` (14),
-`/admin/formations/new` (12), `/admin/creations/new` (9), `/admin/loans/new` (9),
-`/admin/places/new` (8).
+### ✅ Les cinq derniers, convertis le 2026-08-27 — R3 est fini
+
+| écran | champs | à l'arrivée | repliés | **après le bouton** |
+|---|---|---|---|---|
+| `/admin/places/new` et `/{id}/edit` | 8 | **5** | 3 | **3 → 0** |
+| `/admin/loans/new` | 9 | **7** | 2 | 0 |
+| `/admin/creations/new` et `/{id}/edit` | 9 | **5** | 4 | 0 |
+| `/admin/formations/new` et `/{id}/edit` | 12 | **7** | 5 | 0 |
+| `/admin/utilisateurs/new` | 14 | **8** | 6 | 0 |
+
+🔴 **Et la conversion a découvert un défaut EN LIGNE, pas un défaut de forme.**
+`PlaceAdminType` déclare `category`, `manager` et `department` ; les deux gabarits
+d'espace n'en nommaient **aucun**. Ils sortaient par `form_rest()` — mesuré à
+**y=995, 1078 et 1162 alors que la rangée d'actions est à y=892**. Trois champs
+sous le bouton « Créer l'espace », sur les deux écrans, depuis toujours.
+⚠️ **Et ils avaient l'air normaux** : `form_rest()` passe par le thème, donc ils
+portaient leur `.form-field`, leur étiquette et leur bordure. Rien ne les
+distinguait sinon leur position. C'est le même défaut que sur les machines
+(`manufacturer` / `model`), et c'est la troisième fois qu'une liste de champs tenue
+à la main en perd.
+
+✅ **Deux écrans ne passaient pas du tout par le thème.** `admin-utilisateur-new` et
+`admin-formation-new` dessinaient leurs rangées à la main (`form_label` +
+`form_widget`), donc sans la règle 5 : **5 champs obligatoires et 0 mention
+« requis »** sur l'écran utilisateur, mesuré avant. Après : 8 mentions.
+
+⚠️ **Et ces 8 mentions pour 5 champs révèlent un défaut de la règle elle-même**,
+qui touche aussi des écrans déjà convertis (`/admin/places` : 2 mentions pour
+1 champ). Trois `<select>` — Statut, Thème, Langue — sont marqués « requis » sans
+porter l'attribut HTML : ils sont `required` au sens de Symfony mais n'ont **aucune
+option vide**, donc on ne peut pas les laisser vides. Le mot y est du bruit : il
+promet une contrainte que l'opérateur ne peut pas enfreindre. 🅿️ À corriger dans le
+thème, pas ici — la marque devrait suivre « ce champ peut être laissé vide », pas
+« ce champ est requis ».
+
+✅ **Et un nettoyage** : `admin-creation-new` enveloppait `form_help()` dans un
+`<div class="form-help">`, alors que `form_help()` émet déjà son propre
+`<p class="form-help">` — deux enveloppes de même classe pour une phrase, sur les
+deux champs de téléversement. `form_row()` les rend une fois.
 
 ### ⚠️ R4 — `/lab` : le point d'arrivée d'une entrée de menu ne mène nulle part
 Le menu « Fablab » propose **sept** destinations (Machines, Espaces, Matériaux,

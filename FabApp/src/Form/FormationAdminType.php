@@ -16,6 +16,37 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 final class FormationAdminType extends AbstractType
 {
+    /**
+     * L'ordre et le découpage de l'écran — motif `SECTIONS` (S151, R3), déroulé
+     * par `site/_form_sections.html.twig`. Une seule liste, dans le formulaire,
+     * au lieu d'une par gabarit qui rendait le même type.
+     *
+     * 🔴 **Ce gabarit dessinait ses rangées à la main** (`form_label` +
+     * `form_widget`), donc il sautait le thème : le champ obligatoire n'était
+     * marqué nulle part — 1 champ requis, **0 mention « requis »** à l'écran,
+     * mesuré avant conversion. La règle 5 de S149 existe depuis, dans le thème.
+     */
+    public const SECTIONS = [
+        [
+            'title' => 'admin_formation_form.section_identity',
+            'fields' => ['titre', 'description', 'categorie', 'niveau'],
+        ],
+        [
+            'title' => 'admin_formation_form.section_session',
+            'fields' => ['duree', 'formateur', 'placesTotales'],
+        ],
+        [
+            'title' => 'admin_formation_form.section_content',
+            'fold' => true,
+            'fields' => ['objectifs', 'prerequis', 'materielFourni'],
+        ],
+        [
+            'title' => 'admin_formation_form.section_media',
+            'fold' => true,
+            'fields' => ['image', 'badge'],
+        ],
+    ];
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
@@ -28,6 +59,7 @@ final class FormationAdminType extends AbstractType
                 ],
             ])
             ->add('description', TextareaType::class, [
+                'row_attr' => ['class' => 'full'],
                 'label' => 'Description',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 3000, maxMessage: 'La description ne doit pas dépasser {{ limit }} caractères.')],
@@ -66,16 +98,19 @@ final class FormationAdminType extends AbstractType
                 ],
             ])
             ->add('objectifs', TextareaType::class, [
+                'row_attr' => ['class' => 'full'],
                 'label' => 'Objectifs',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 3000, maxMessage: 'Les objectifs ne doivent pas dépasser {{ limit }} caractères.')],
             ])
             ->add('prerequis', TextareaType::class, [
+                'row_attr' => ['class' => 'full'],
                 'label' => 'Prérequis',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 3000, maxMessage: 'Les prérequis ne doivent pas dépasser {{ limit }} caractères.')],
             ])
             ->add('materielFourni', TextareaType::class, [
+                'row_attr' => ['class' => 'full'],
                 'label' => 'Matériel fourni',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 3000, maxMessage: 'Le matériel fourni ne doit pas dépasser {{ limit }} caractères.')],

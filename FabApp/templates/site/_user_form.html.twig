@@ -1,0 +1,22 @@
+{# LE FORMULAIRE USER FORM, UNE SEULE FOIS.
+
+   🔴 **S151, R3 — ce gabarit dessinait ses rangées à la main** : **5 champs
+   obligatoires et 0 mention « requis »** à l'écran, mesuré avant conversion. Et ses
+   deux cases étaient écrites à la main aussi (`form_widget` + `form_label`), ce qui
+   saute `form_help()` — le thème a un bloc `checkbox_row` qui fait les deux.
+   ⚠️ Les pleines largeurs viennent du `FormType` (`row_attr`), pas d'ici : la
+   boucle partagée appelle `form_row(form[name])` sans options. #}
+{% form_theme form 'form/admin_theme.html.twig' %}
+{{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
+    {{ form_errors(form) }}
+
+    {% include 'site/_form_sections.html.twig' with {
+        form: form,
+        sections: constant('App\\Form\\UserAdminType::SECTIONS'),
+    } only %}
+
+    <div class="form-actions">
+        <a class="btn-link" href="{{ path('app_admin_users') }}">{{ 'common.cancel'|trans }}</a>
+        <span class="btn-submit">{{ form_widget(form.save, {label: submit_label|default('common.save'|trans)}) }}</span>
+    </div>
+{{ form_end(form) }}

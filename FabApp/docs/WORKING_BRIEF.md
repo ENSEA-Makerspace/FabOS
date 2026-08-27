@@ -114,12 +114,21 @@ la sonde à JavaScript a prouvé qu'il marche toujours. Au passage, l'aide de la
 « Ouvert aux personnes sans compte » réapparaît : le gabarit la dessinait à la main
 et sautait `form_help()`.
 
-**Prochain travail** : 🅿️ **R3, les cinq formulaires d'entité restants** —
-`utilisateurs/new` (14), `formations/new` (12), `creations/new` (9), `loans/new`
-(9), `places/new` (8). ⚠️ **Pas** les quatre grilles de contrôles (`homepage` 35,
-`horaires` 31, `maintenance/batch`, `features`) : ce sont des matrices, les replier
-les cacherait sans les raccourcir. Puis **R1** (42 `FormType` aux libellés français
-en dur) et R4 → R9.
+✅ **R3 est FINI (2026-08-27)** : les six formulaires d'entité sont au motif
+`SECTIONS`. 🔴 La conversion a sorti un défaut en ligne : trois champs de
+`/admin/places` (Catégorie, Responsable, Département) tombaient **sous le bouton
+Enregistrer** sur les deux écrans, mesurés à y=995/1078/1162 contre y=892 pour la
+rangée d'actions — et ils avaient l'air normaux, parce que `form_rest()` passe par
+le thème. ✅ Et deux écrans ne passaient pas du tout par le thème : l'écran
+utilisateur avait **5 champs obligatoires et 0 mention « requis »**.
+⚠️ **Pas** les quatre grilles de contrôles (`homepage` 35, `horaires` 31,
+`maintenance/batch`, `features`) : ce sont des matrices, les replier les cacherait
+sans les raccourcir.
+
+**Prochain travail** : 🅿️ un petit reste de R3 — la mention « requis » s'affiche sur
+des `<select>` qui n'ont aucune option vide (Statut, Thème, Langue) : elle promet
+une contrainte qu'on ne peut pas enfreindre. À corriger dans le thème. Puis **R1**
+(42 `FormType` aux libellés français en dur) et R4 → R9.
 Puis **R1** (42 `FormType` aux libellés français en dur) et R4 → R9.
 
 ## État du dépôt
