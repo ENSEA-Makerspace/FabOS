@@ -281,6 +281,70 @@ reprendre telle quelle dans la sous-navigation.
 
 ---
 
+## Les quatre relecteurs — verdicts, et ce qui RESTE (2026-08-24)
+
+Quatre paires codeur + relecteur, un écran chacune. **Trois relecteurs sur quatre
+ont rendu NOT YET**, et les deux pires trouvailles étaient EN LIGNE.
+
+### 🔴 Corrigé et déployé
+
+| # | Ce que c'était | Qui l'a trouvé |
+|---|---|---|
+| 1 | **500 sur `/admin/usage-rights/{id}/edit`** — j'avais retiré `VenueRepository $venues` de la signature, deux appels y survivaient. `php -l` vert : une variable non définie n'est pas une erreur de syntaxe | relecteur A |
+| 2 | **Effacement silencieux d'un programme entier** — un onglet ouvert avant le déploiement poste l'ancien format texte, le nouveau lecteur écrivait `items: []` avec un flash vert | relecteur B |
+| 3 | **`[hidden]` perd contre toute règle d'auteur** — les champs de plage ne se cachaient jamais, et leur valeur était jetée en silence | relecteur A |
+| 4 | **`form_help` sans `id`** — `aria-describedby` pendait dans le vide, donc l'aide n'était annoncée à personne | relecteur C |
+| 5 | **Six aides affirmaient des choses fausses** sur le produit | relecteur D |
+| 6 | **Deux aides demandaient l'impossible** (taper `a \| b \| c` sous un tableau) | relecteur B |
+| 7 | `settings_consequence_gaps` jetait `%capabilities%` et affirmait le contraire de la vérité | relecteur C |
+
+### 🅿️ RESTE À FAIRE — rien de tout ceci n'est cassé, tout est écrit
+
+**Paire D — le motif CRUD est fini à un tiers.**
+- 🔴 `MachineAdminType::SECTIONS` et `MaterialAdminType::SECTIONS` sont du **code
+  mort** : seul `_loanable_item_form.html.twig` déroule la constante. Les gabarits
+  machine et matériau écrivent encore leur liste de champs à la main, donc pas de
+  titres de section, pas de replis. Les docblocks affirment le contraire.
+- 🔴 `manufacturer` et `model` ne sont dans **aucun** des deux gabarits machine :
+  ils tombent dans `form_rest()`, après Enregistrer, sans thème.
+- 🔴 `materials_form.help_machines` n'est **jamais rendue** : `_material_form`
+  dessine le champ à la main et n'appelle pas `form_help`.
+- ⚠️ `form_quality.py` devient **aveugle** au nouveau motif : il cherche
+  `form_row(form.x)` littéral et ne voit pas `form_row(form[name])` dans une
+  boucle. Adopter le motif sur 22 écrans mettrait la règle 1 hors mesure.
+
+**Paire C — la règle 4 sur `/admin/emails` est calculée et jamais affichée.**
+Trois horizons sont calculés dans le contrôleur, passés à la vue, et le gabarit
+n'en rend aucun. ⚠️ Quand on le câblera : l'horizon des prêts est un `setTime(0,0)`
+dans le fuseau serveur — rendu par `|lab_date()` il lira *02:00* en été. L'écrire
+comme une DATE, pas une heure.
+
+**Paire A — six points mineurs**, dont : `window_preset` et `day_of_week` portent
+le **même libellé** (`usage_rights.grant_window`) ; `array_filter()` sans callback
+laisse tomber une section nommée `0` ; la ligne de conséquence est incomplète à
+l'arrivée parce que `feature` n'a pas de défaut ; et quatre commentaires décrivent
+encore les trois préréglages alors qu'il n'en reste que deux.
+
+**Paire B — trois points**, dont : le compteur n'est que sur 4 cartes sur 9 ; le
+`<h2>` dans un `<summary>` peut sortir la page du plan de titres d'un lecteur
+d'écran ; et le tableau a **perdu une capacité** — coller huit étapes d'un coup et
+réordonner en déplaçant des lignes. Le codeur argumente l'échange ; c'est une
+décision d'opérateur, pas de codeur.
+
+### Ce que cette manche a prouvé sur la méthode
+
+🔴 **Aucun des six outils n'a vu les deux défauts les plus graves.** Une variable
+non définie n'est pas une erreur de syntaxe ; un `is_array` qui rejette l'ancien
+format est du code parfaitement valide. Ce sont deux lecteurs humains — enfin,
+deux agents qui LISENT — qui les ont trouvés. Les outils disent qu'un écran est
+cohérent, jamais qu'il est juste.
+
+⚠️ Et un relecteur a trouvé un défaut dans **l'outil qui le mesurait**
+(`form_quality.py` comptait deux fois un `<details>` imbriqué) en refusant de le
+corriger lui-même. C'est la bonne réponse : on ne répare pas sa propre balance.
+
+---
+
 ## 🅿️ La seconde moitié : ce qu'il faut mesurer au retour de l'accès
 
 À faire **dans un navigateur**, pas par `app:render` + grep.

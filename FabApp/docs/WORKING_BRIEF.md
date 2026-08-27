@@ -39,8 +39,15 @@ n'a pas pu être faite : CT 210 ne résout plus depuis le réseau de travail et 
 public répond **403 au proxy**. Les URLs, les parcours et les mesures à prendre sont
 écrits — il n'y a plus qu'à les regarder.
 
-**Prochain travail** : la passe navigateur de `S149-REVUE.md`, dès qu'un accès
-revient. Puis J-25, qui reste une décision opérateur.
+**Prochain travail, dans cet ordre** :
+1. 🔴 **La passe navigateur de `S149-REVUE.md`** — l'accès est revenu, elle est
+   enfin possible, et c'est la moitié qui manque pour prononcer un verdict. Six
+   écrans, six parcours à chronométrer, cinq mesures qui ne se lisent pas.
+2. 🅿️ **Les restes des quatre paires**, listés dans `S149-REVUE.md` § « Les quatre
+   relecteurs ». Le plus gros : le motif CRUD n'est appliqué qu'à **un** de ses
+   trois écrans (les constantes `SECTIONS` de machine et matériau sont du code
+   mort), et la règle 4 de `/admin/emails` est calculée sans être affichée.
+3. ⏭️ **J-25**, qui reste une décision opérateur : aucun membre ne peut réserver.
 
 ## État du dépôt
 
@@ -54,9 +61,18 @@ revient. Puis J-25, qui reste une décision opérateur.
 - ✅ **Déployé et vérifié par hachage sur CT 210 le 2026-08-24** : 154 fichiers
   identiques, `lint:twig` 209/0, `lint:yaml` 39/0, 19 pages rendues, **13 sondes
   d'écriture vertes**, service redémarré, site 200.
-  ⚠️ **SSH : le nom `proxmox.lab.dryades.org` ne résout pas partout.** Depuis un
-  réseau où il échoue, passer par l'IP : `ssh -i ~/.ssh/id_ovh -p 22 51.68.38.235`
-  (⚠️ `artemis.dryades.org` échoue la vérification de clé d'hôte ; l'IP marche).
+  🔴 **SSH : DEUX chemins, et selon le réseau un seul des deux marche.** Mesuré le
+  2026-08-24 sur deux réseaux, avec des résultats exactement inverses :
+
+  | | `proxmox.lab.dryades.org` | `51.68.38.235` (IP) |
+  |---|---|---|
+  | réseau A | 🔴 ne résout pas | ✅ marche |
+  | réseau B | ✅ marche (→ 192.168.100.1) | 🔴 expire |
+
+  ⚠️ **Donc : essayer les DEUX avant de conclure que l'accès est perdu.** Croire le
+  premier échec a coûté une demi-session — j'ai écrit une revue entière « sans
+  accès » alors que l'autre chemin répondait. ⚠️ `artemis.dryades.org` échoue la
+  vérification de clé d'hôte sur les deux réseaux ; ce n'est jamais le bon nom.
 - ⏭️ **À pousser** : `git push` sur la branche. Vérifier avec `git status -sb`
   plutôt que de croire cette ligne.
 
