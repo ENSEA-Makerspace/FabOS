@@ -584,7 +584,7 @@ Mesuré après : **19 des 20** écrans plafonnent à 720 px, les champs à deux 
 `/admin/places/new` pose ses `.form-field` en enfants **directs** du formulaire,
 sans grille. Écrire la règle et ne pas re-mesurer l'aurait laissé seul à 888 px.
 
-### 🅿️ R3 — le repli : deux écrans gagnés, et le vrai périmètre de ce qui reste
+### ✅ R3 — le repli (fini le 2026-08-27)
 Re-mesuré le 2026-08-27, avec un test de visibilité corrigé (⚠️ un champ dans un
 `<details>` fermé garde un rectangle non nul : il faut remonter les ancêtres, pas
 lire `getBoundingClientRect`) :
@@ -685,7 +685,15 @@ thème, pas ici — la marque devrait suivre « ce champ peut être laissé vide
 `<p class="form-help">` — deux enveloppes de même classe pour une phrase, sur les
 deux champs de téléversement. `form_row()` les rend une fois.
 
-### ⚠️ R4 — `/lab` : le point d'arrivée d'une entrée de menu ne mène nulle part
+### ✅ R4 — `/lab` (fait le 2026-08-27)
+Les sept destinations du menu s'affichent maintenant sur la page, lues depuis
+`NavBuilder::groupChildren()` — le menu réel, pas une seconde liste qui aurait
+divergé. `main` passe de 326 à 876 px.
+🔴 **Et un second défaut trouvé en regardant** : `.lab-page { padding: 0 0 48px }`,
+posée sur le `<main class="container lab-page">`, écrasait par ce RACCOURCI les
+gouttières horizontales de `.container` — tout le contenu touchait le bord gauche
+(main à x=0 sur 1270 px). Écrire les longhands qu'on veut, jamais le raccourci.
+
 Le menu « Fablab » propose **sept** destinations (Machines, Espaces, Matériaux,
 Prêts, Maintenance, Équipe, Formateurs). Sa page d'atterrissage `/lab`, celle
 qu'on obtient en **cliquant** au lieu de survoler, fait 326 px de haut, montre
@@ -705,12 +713,26 @@ un membre sans package lit le verdict de son package. La branche `_cell_state`
 n'apparaît que pour un membre qui a un package **et** une machine indisponible —
 c'est-à-dire personne, tant que J-25 n'est pas tranché.
 
-### ⚠️ R7 — quatre façons de dire « connectez-vous » sur un seul écran
+### ✅ R7 — quatre façons de dire « connectez-vous » (fait le 2026-08-27)
+Il en reste **deux** : le bouton, qui est le verbe, et la ligne d'état, qui ajoute
+les badges. Ce qui saute est le PANNEAU de droits d'usage — il explique les
+packages à quelqu'un qui n'a pas de compte, et son action était celle du bouton
+en dessous. Il reste pour tous les autres verdicts, où « votre package ne couvre
+pas ceci » est une information qu'on ne peut pas deviner.
+
 `/machines/5` en anonyme affiche « Connectez-vous pour consulter et utiliser vos
 droits d'usage », « Connexion requise », « Se connecter pour réserver » et
 « Connectez-vous pour créer une réservation et vérifier vos badges ».
 
-### ⚠️ R8 — le champ de recherche de l'en-tête fait 89 px à 375 px
+### ✅ R8 — le champ de recherche (fait le 2026-08-27)
+🔴 **La vraie trouvaille était ailleurs : `/recherche` n'avait AUCUN champ.** La
+page disait « Saisissez une recherche pour commencer » et n'offrait nulle part où
+le faire — le seul `<input>` de la page était celui de l'en-tête, à 89 px.
+`.advanced-search-box` et `.search-input-advanced` existaient dans `style.css` et
+n'étaient utilisées nulle part : la mise en forme avait été écrite puis jamais
+branchée. ⚠️ Son fond disait `--color-text-inverse` — corrigé en `--theme-surface`
+avant de la brancher, sinon on reposait une plaque blanche en sombre.
+
 Cinq caractères visibles.
 
 ### ⚠️ R9 — `/profil/password` : 500 px entre une étiquette et son champ

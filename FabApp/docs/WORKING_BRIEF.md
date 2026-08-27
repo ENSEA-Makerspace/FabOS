@@ -147,10 +147,14 @@ membre publiait son projet sur une page française quelle que soit sa langue.
 qu'on peut laisser vide. Vérifié sur neuf pages rendues, champ par champ :
 **0 désaccord** entre l'attribut HTML et la mention, contre 5 avant.
 
-**Prochain travail** : 🅿️ **R4 → R9** de la passe navigateur — `/lab` qui montre
-3 des 7 destinations de son menu, les deux mots pour le même état de machine, les
-quatre façons de dire « connectez-vous » sur `/machines/{id}`, le champ de
-recherche à 89 px sur mobile, les 500 px entre une étiquette et son champ sur
+✅ **R4, R7 et R8 faits le 2026-08-27.** `/lab` montre ses sept destinations (326 →
+876 px), `/machines/{id}` ne dit plus « connectez-vous » que deux fois au lieu de
+quatre, et 🔴 **`/recherche` a enfin un champ de recherche** — elle n'en avait
+aucun, le seul de la page était celui de l'en-tête à 89 px sur mobile.
+
+**Prochain travail** : 🅿️ **R5, R6, R9** — les deux mots pour le même état de
+machine (⚠️ décision de vocabulaire), la pastille « Indisponible » inatteignable
+(liée à J-25), et les 500 px entre une étiquette et son champ sur
 `/profil/password`. 🅿️ Et les **documents attachés à une machine**, qui demandent
 une migration.
 Puis **R1** (42 `FormType` aux libellés français en dur) et R4 → R9.
