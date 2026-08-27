@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}{{ package.id|default(false) ? 'usage_rights.edit'|trans : 'usage_rights.create'|trans }} · FabOS{% endblock %}
-{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260827-s152c' }}">{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260827-s152d' }}">{% endblock %}
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
     page_title: package.id|default(false) ? 'usage_rights.edit'|trans : 'usage_rights.create'|trans,

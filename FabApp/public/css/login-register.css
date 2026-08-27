@@ -1035,6 +1035,24 @@
     border-bottom: 1px solid var(--border-color);
 }
 
+/* 🔴 **S151, R9 — le motif « valeur + Modifier » ne va pas à un champ de SAISIE.**
+   `.setting-item` est un `space-between` : l'action part à droite quoi qu'elle
+   contienne. Avec une valeur et un bouton c'est juste — c'est le motif volé à
+   Fabman. Avec un `<input>`, ça met l'étiquette à x=32 et son champ à x=1021 :
+   **~500 px de vide entre un libellé et le champ qu'il nomme**, mesuré sur
+   `/profil/mot-de-passe`, où les trois champs sont des mots de passe.
+   Le remède n'est pas de rapprocher : c'est d'empiler. Une question et sa réponse
+   se lisent l'une sous l'autre dès que la réponse se tape.
+   ⚠️ La largeur est plafonnée : un champ de mot de passe large de toute la carte
+   ne se lit pas mieux, c'est la leçon de R2. */
+.setting-item--field {
+    display: block;
+}
+.setting-item--field .setting-action {
+    margin-top: var(--spacing-sm);
+    max-width: 22rem;
+}
+
 .setting-info h4 {
     font-size: var(--font-size-base);
     color: var(--color-text);

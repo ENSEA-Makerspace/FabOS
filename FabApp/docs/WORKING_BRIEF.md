@@ -152,11 +152,15 @@ qu'on peut laisser vide. Vérifié sur neuf pages rendues, champ par champ :
 quatre, et 🔴 **`/recherche` a enfin un champ de recherche** — elle n'en avait
 aucun, le seul de la page était celui de l'en-tête à 89 px sur mobile.
 
-**Prochain travail** : 🅿️ **R5, R6, R9** — les deux mots pour le même état de
-machine (⚠️ décision de vocabulaire), la pastille « Indisponible » inatteignable
-(liée à J-25), et les 500 px entre une étiquette et son champ sur
-`/profil/password`. 🅿️ Et les **documents attachés à une machine**, qui demandent
-une migration.
+✅ **R9 aussi** : sur `/profil/password`, l'écart entre une étiquette et son champ
+passe de ~500 px à **0** — le motif « valeur + Modifier » ne va pas à un champ de
+saisie, il fallait empiler.
+
+**Il ne reste que R5 et R6, et ce sont des décisions, pas du code** : les deux mots
+pour le même état de machine (« Hors service » dans la liste, « En maintenance » sur
+la fiche — deux faits différents, un seul objet), et la pastille « Indisponible »
+inatteignable tant que J-25 n'est pas tranché. 🅿️ Et les **documents attachés à une
+machine**, qui demandent une migration.
 Puis **R1** (42 `FormType` aux libellés français en dur) et R4 → R9.
 
 ## État du dépôt

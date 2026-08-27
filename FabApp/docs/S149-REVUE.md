@@ -735,7 +735,16 @@ avant de la brancher, sinon on reposait une plaque blanche en sombre.
 
 Cinq caractères visibles.
 
-### ⚠️ R9 — `/profil/password` : 500 px entre une étiquette et son champ
+### ✅ R9 — `/profil/password` (fait le 2026-08-27)
+
+Le motif « valeur + Modifier », volé à Fabman, ne va pas à un champ de SAISIE :
+`.setting-item` est un `space-between`, donc l'action part à droite quoi qu'elle
+contienne. Avec une valeur et un bouton c'est juste ; avec un `<input>`, ça mettait
+l'étiquette à x=32 et son champ à x=1021.
+Le remède n'est pas de rapprocher, c'est d'**empiler** : une question et sa réponse
+se lisent l'une sous l'autre dès que la réponse se tape. Mesuré après :
+**écart 0 px**, étiquette et champ au même bord, champ plafonné à 352 px — un champ
+de mot de passe large de toute la carte ne se lit pas mieux, c'est la leçon de R2.
 La ligne « réglage » met le libellé à x=32 et son champ à x=1021. Le motif vient
 de Fabman (« valeur + Change »), mais Fabman y met une valeur et un bouton, pas un
 champ de saisie. Et la page rendue en anglais affiche « Compte: Yanis Test ».
