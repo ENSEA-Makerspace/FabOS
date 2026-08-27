@@ -1122,6 +1122,70 @@
                     trois captures est en fin du fichier de référence. Reprendre leur mise en page ne
                     doit pas coûter ces trois-là.
                 </p>
+
+                <div class="dzf-verdict" style="margin: var(--spacing-lg) 0">
+                    <strong>Le spécimen ci-dessous utilise les VRAIES classes du catalogue</strong>
+                    (<code>.ml-grid</code>, <code>.ml-card</code>, <code>.ml-media</code>) — pas une
+                    maquette à part. La seule chose ajoutée est l'en-tête de mois.
+                </div>
+
+                <div style="max-width: 940px">
+                    {% for mois in [
+                        {nom: 'AOÛT 2026', n: 1, ev: [{j: '29/08', h: '14:00 – 18:00', t: 'Session Open Stub', id: 3}]},
+                        {nom: 'SEPTEMBRE 2026', n: 4, ev: [
+                            {j: '02/09', h: '18:00 – 22:00', t: 'Session Open Stub', id: 7},
+                            {j: '04/09', h: '18:00 – 22:00', t: 'Atelier découverte impression 3D', id: 12},
+                            {j: '12/09', h: '14:00 – 18:00', t: 'Portes ouvertes de rentrée', id: 20},
+                            {j: '18/09', h: '18:00 – 22:00', t: 'Formation découpe laser', id: 25}
+                        ]}
+                    ] %}
+                        <div class="form-section" style="display:flex;align-items:baseline;gap:var(--spacing-sm)">
+                            <h3 style="margin:0">{{ mois.nom }}</h3>
+                            <span style="color:var(--color-text-light);font-size:var(--font-size-sm)">{{ mois.n }} événement{{ mois.n > 1 ? 's' : '' }}</span>
+                        </div>
+                        <div class="ml-grid" style="--ml-card-min: 17rem; margin-bottom: var(--spacing-lg)">
+                            {% for e in mois.ev %}
+                                <article class="ml-card">
+                                    <div class="ml-card-head">
+                                        <strong style="color:var(--color-primary);font-size:var(--font-size-lg)">{{ e.j }}</strong>
+                                        <span class="ml-state ml-state-free">Entrée libre</span>
+                                    </div>
+                                    <div class="ml-media" style="--ml-media-ratio: 16/9">
+                                        {% include 'site/_event_placeholder.html.twig' with {seed: e.id} only %}
+                                    </div>
+                                    <div style="padding: var(--spacing-md)">
+                                        <div style="font-weight:700">{{ e.t }}</div>
+                                        <div style="color:var(--color-text-light);font-size:var(--font-size-sm);margin-top:2px">{{ e.h }}</div>
+                                    </div>
+                                </article>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <p>
+                    ✅ <strong>Le volume se lit sans lire.</strong> « 1 événement » puis
+                    « 4 événements », et la hauteur des deux blocs le dit avant même le compte.
+                    C'est ce que la liste à plat d'aujourd'hui ne fait pas : elle donne un total en
+                    tête et laisse deviner la répartition.
+                </p>
+                <p>
+                    🔴 <strong>Et voici la vraie question à trancher, qui n'est pas graphique.</strong>
+                    <code>/events</code> ne dessine pas ses cartes : il passe par
+                    <code>_catalogue.html.twig</code>, le même shell que six autres listes. Un en-tête
+                    de mois au milieu d'une <code>.ml-grid</code> veut dire soit une grille PAR mois
+                    — ce que fait le spécimen, et les cartes du dernier mois ne s'alignent alors plus
+                    sur celles du précédent — soit un <code>grid-column: 1 / -1</code> dans une grille
+                    unique, qui garde l'alignement mais demande au shell partagé une notion de
+                    « séparateur » qu'aucune des six autres listes n'a. <strong>C'est le choix, et il
+                    coûte plus cher que le dessin.</strong>
+                </p>
+                <p>
+                    ⚠️ Et il ne vaut que pour les événements : une machine, un matériau ou un objet
+                    prêtable n'a pas de date, donc rien à regrouper. Le regroupement est une propriété
+                    de l'objet, pas du catalogue — c'est exactement ce que montre la référence, où
+                    seules les listes datées sont regroupées.
+                </p>
             </div>
             </div>
             </div>
