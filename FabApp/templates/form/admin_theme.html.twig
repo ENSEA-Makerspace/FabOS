@@ -51,7 +51,29 @@
        l'absence de mention EST la mention. #}
     <div class="{{ _row_class }}"{% for k, v in row_attr|default({}) %}{% if k != 'class' %} {{ k }}="{{ v }}"{% endif %}{% endfor %}>
         {{- form_label(form) -}}
-        {%- if required and label is not same as(false) -%}<span class="form-required" aria-hidden="true">{{ 'common.required'|trans }}</span>{%- endif -%}
+        {#- 🔴 **S151 — « requis » ne se dit que d'un champ qu'on PEUT laisser vide.**
+            La règle 5 marquait tout champ `required` au sens de Symfony, et un
+            `<select>` sans option vide l'est toujours : Statut, Thème et Langue
+            portaient donc « requis » alors qu'ils arrivent avec une valeur et qu'on
+            ne peut pas la retirer. Mesuré sur `/admin/utilisateurs/new` : **8
+            mentions pour 5 champs réellement remplissables**, et sur
+            `/admin/places/new` 2 pour 1. Le mot y promettait une contrainte que
+            l'opérateur ne peut pas enfreindre — donc il n'apprenait rien et usait
+            celle des vrais champs obligatoires.
+            ⚠️ Le test est `placeholder` DÉFINI et `null` : c'est ce que rend un
+            `ChoiceType` sans option vide. Un champ qui n'est pas un choix n'a pas
+            de `placeholder` du tout, donc la condition le laisse passer ; un choix
+            AVEC placeholder (« Choisir un rôle ») peut être laissé vide et garde
+            sa mention.
+            ⚠️ **`and not expanded`, et ça vient d'une mesure, pas d'une intuition.**
+            Un `<select>` sans option vide a toujours une valeur ; des RADIOS sans
+            valeur par défaut n'en ont aucune de cochée, donc on peut très bien
+            soumettre sans choisir. Sans cette clause, `locationMode` de
+            `/admin/events/new` — « Où se déroule l'événement ? » — perdait sa
+            mention alors qu'il est le seul champ de cet écran qu'on peut vraiment
+            oublier. Le balayage des huit écrans convertis l'a isolé : sept étaient
+            cohérents, celui-là non. -#}
+        {%- if required and label is not same as(false) and not (placeholder is defined and placeholder is null and not expanded|default(false)) -%}<span class="form-required" aria-hidden="true">{{ 'common.required'|trans }}</span>{%- endif -%}
         {{- form_widget(form) -}}
         {# ⚠️ **S147, J-22 — le thème rend enfin l'aide d'un champ.** Il ne le
            faisait pas, et `/admin/settings` porte une phrase d'explication sous
