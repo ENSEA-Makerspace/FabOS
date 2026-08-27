@@ -19,7 +19,7 @@ final class CreationUserType extends AbstractType
     {
         $builder
             ->add('title', TextType::class, [
-                'label' => 'Titre',
+                'label' => 'form.title',
                 'empty_data' => '',
                 'constraints' => [
                     new Assert\NotBlank(message: 'Le titre est obligatoire.'),
@@ -27,7 +27,7 @@ final class CreationUserType extends AbstractType
                 ],
             ])
             ->add('description', TextareaType::class, [
-                'label' => 'Description courte',
+                'label' => 'form.short_description',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 2000, maxMessage: 'La description ne doit pas dépasser {{ limit }} caractères.')],
             ])

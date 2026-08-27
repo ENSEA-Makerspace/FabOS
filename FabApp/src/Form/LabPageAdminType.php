@@ -22,7 +22,7 @@ final class LabPageAdminType extends AbstractType
 
         $builder
             ->add('titre', TextType::class, [
-                'label' => 'Titre',
+                'label' => 'form.title',
                 'empty_data' => '',
                 'constraints' => [
                     new Assert\NotBlank(message: 'Le titre est obligatoire.'),
@@ -47,7 +47,7 @@ final class LabPageAdminType extends AbstractType
                     ->setParameter('self', $page instanceof LabPage ? ($page->getId() ?? 0) : 0)
                     ->orderBy('p.titre', 'ASC'),
             ])
-            ->add('save', SubmitType::class, ['label' => 'Enregistrer']);
+            ->add('save', SubmitType::class, ['label' => 'common.save']);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

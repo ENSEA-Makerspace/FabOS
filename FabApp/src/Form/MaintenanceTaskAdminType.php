@@ -36,7 +36,7 @@ final class MaintenanceTaskAdminType extends AbstractType
                 'constraints' => [new Assert\NotBlank(message: 'L’intitulé est obligatoire.'), new Assert\Length(max: 180)],
             ])
             ->add('type', ChoiceType::class, [
-                'label' => 'Type',
+                'label' => 'form.type',
                 'choices' => ['Préventive' => MaintenanceTask::TYPE_PREVENTIVE, 'Corrective' => MaintenanceTask::TYPE_CORRECTIVE],
             ])
             ->add('dueDate', DateType::class, [
@@ -61,7 +61,7 @@ final class MaintenanceTaskAdminType extends AbstractType
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 2000)],
             ])
-            ->add('save', SubmitType::class, ['label' => 'Enregistrer']);
+            ->add('save', SubmitType::class, ['label' => 'common.save']);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

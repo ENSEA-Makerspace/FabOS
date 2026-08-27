@@ -47,7 +47,7 @@ final class CreationAdminType extends AbstractType
     {
         $builder
             ->add('title', TextType::class, [
-                'label' => 'Titre',
+                'label' => 'form.title',
                 'empty_data' => '',
                 'constraints' => [
                     new Assert\NotBlank(message: 'Le titre est obligatoire.'),
@@ -56,7 +56,7 @@ final class CreationAdminType extends AbstractType
             ])
             ->add('description', TextareaType::class, [
                 'row_attr' => ['class' => 'full'],
-                'label' => 'Description courte',
+                'label' => 'form.short_description',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 2000, maxMessage: 'La description ne doit pas dépasser {{ limit }} caractères.')],
             ])
@@ -115,7 +115,7 @@ final class CreationAdminType extends AbstractType
                 'label' => 'Publié',
                 'required' => false,
             ])
-            ->add('save', SubmitType::class, ['label' => 'Enregistrer']);
+            ->add('save', SubmitType::class, ['label' => 'common.save']);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

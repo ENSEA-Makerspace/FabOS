@@ -17,7 +17,7 @@ final class InstitutionAdminType extends AbstractType
     {
         $builder
             ->add('nom', TextType::class, [
-                'label' => 'Nom',
+                'label' => 'form.name',
                 'empty_data' => '',
                 'constraints' => [
                     new Assert\NotBlank(message: 'Le nom est obligatoire.'),
@@ -29,7 +29,7 @@ final class InstitutionAdminType extends AbstractType
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 500, maxMessage: 'Le lien ne doit pas dépasser {{ limit }} caractères.')],
             ])
-            ->add('save', SubmitType::class, ['label' => 'Enregistrer']);
+            ->add('save', SubmitType::class, ['label' => 'common.save']);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

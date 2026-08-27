@@ -49,7 +49,7 @@ final class RfidReaderAdminType extends AbstractType
                 'help' => 'Si le lecteur est inactif, le worker refuse ses scans. Le lecteur reste visible dans l’admin et l’historique est conservé.',
                 'required' => false,
             ])
-            ->add('save', SubmitType::class, ['label' => 'Enregistrer']);
+            ->add('save', SubmitType::class, ['label' => 'common.save']);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

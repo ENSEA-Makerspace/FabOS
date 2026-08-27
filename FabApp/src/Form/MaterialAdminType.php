@@ -61,7 +61,7 @@ final class MaterialAdminType extends AbstractType
         // sont catégorie/couleur, rangement/rachat et image/emoji.
         $builder
             ->add('name', TextType::class, [
-                'label' => 'Nom',
+                'label' => 'form.name',
                 'empty_data' => '',
                 'row_attr' => ['class' => 'full'],
                 'constraints' => [
@@ -73,7 +73,7 @@ final class MaterialAdminType extends AbstractType
             // du champ, pas sa notice. « Catégorie (ex : filament, plaque,
             // résine) » sur une étiquette en gras, c'est la notice qui crie.
             ->add('category', TextType::class, [
-                'label' => 'Catégorie',
+                'label' => 'form.category',
                 'required' => false,
                 'help' => 'materials_form.help_category',
                 'constraints' => [new Assert\Length(max: 80)],
@@ -84,7 +84,7 @@ final class MaterialAdminType extends AbstractType
                 'constraints' => [new Assert\Length(max: 60)],
             ])
             ->add('description', TextareaType::class, [
-                'label' => 'Description',
+                'label' => 'form.description',
                 'required' => false,
                 'row_attr' => ['class' => 'full'],
                 'help' => 'materials_form.help_description',
@@ -121,7 +121,7 @@ final class MaterialAdminType extends AbstractType
                 'query_builder' => static fn ($repo) => $repo->createQueryBuilder('machine')->orderBy('machine.nom', 'ASC'),
             ])
             ->add('storageLocation', TextType::class, [
-                'label' => 'Emplacement de stockage',
+                'label' => 'form.storage_location',
                 'required' => false,
                 'help' => 'materials_form.help_storage',
                 'constraints' => [new Assert\Length(max: 180)],
@@ -137,14 +137,14 @@ final class MaterialAdminType extends AbstractType
             // `docs/FORM-DESIGN.md`, l'absence de mention EST la mention. Le
             // mot ne se met que sur les champs obligatoires.
             ->add('imageUrl', UrlType::class, [
-                'label' => 'URL de l’image',
+                'label' => 'form.image_url',
                 'required' => false,
                 'default_protocol' => 'https',
                 'help' => 'materials_form.help_image',
                 'constraints' => [new Assert\Length(max: 500), new Assert\Url(message: 'URL invalide.')],
             ])
             ->add('icon', TextType::class, [
-                'label' => 'Icône emoji',
+                'label' => 'form.emoji_icon',
                 'required' => false,
                 'help' => 'materials_form.help_icon',
                 'constraints' => [new Assert\Length(max: 16)],

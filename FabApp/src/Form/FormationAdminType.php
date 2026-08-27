@@ -51,7 +51,7 @@ final class FormationAdminType extends AbstractType
     {
         $builder
             ->add('titre', TextType::class, [
-                'label' => 'Titre',
+                'label' => 'form.title',
                 'empty_data' => '',
                 'constraints' => [
                     new Assert\NotBlank(message: 'Le titre est obligatoire.'),
@@ -60,7 +60,7 @@ final class FormationAdminType extends AbstractType
             ])
             ->add('description', TextareaType::class, [
                 'row_attr' => ['class' => 'full'],
-                'label' => 'Description',
+                'label' => 'form.description',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 3000, maxMessage: 'La description ne doit pas dépasser {{ limit }} caractères.')],
             ])
@@ -70,12 +70,12 @@ final class FormationAdminType extends AbstractType
                 'constraints' => [new Assert\Length(max: 255, maxMessage: "L'image ne doit pas dépasser {{ limit }} caractères.")],
             ])
             ->add('categorie', TextType::class, [
-                'label' => 'Catégorie',
+                'label' => 'form.category',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 100, maxMessage: 'La catégorie ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('niveau', IntegerType::class, [
-                'label' => 'Niveau',
+                'label' => 'form.level',
                 'required' => false,
                 'constraints' => [new Assert\Range(notInRangeMessage: 'Le niveau doit être compris entre {{ min }} et {{ max }}.', min: 1, max: 3)],
             ])
@@ -105,7 +105,7 @@ final class FormationAdminType extends AbstractType
             ])
             ->add('prerequis', TextareaType::class, [
                 'row_attr' => ['class' => 'full'],
-                'label' => 'Prérequis',
+                'label' => 'form.prerequisites',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 3000, maxMessage: 'Les prérequis ne doivent pas dépasser {{ limit }} caractères.')],
             ])
@@ -122,7 +122,7 @@ final class FormationAdminType extends AbstractType
                 'placeholder' => 'Aucun badge',
                 'required' => false,
             ])
-            ->add('save', SubmitType::class, ['label' => 'Enregistrer']);
+            ->add('save', SubmitType::class, ['label' => 'common.save']);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

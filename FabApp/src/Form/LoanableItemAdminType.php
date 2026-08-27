@@ -55,7 +55,7 @@ final class LoanableItemAdminType extends AbstractType
         // sont lieu/rangement et image/emoji.
         $builder
             ->add('name', TextType::class, [
-                'label' => 'Nom',
+                'label' => 'form.name',
                 'empty_data' => '',
                 'row_attr' => ['class' => 'full'],
                 'constraints' => [
@@ -66,13 +66,13 @@ final class LoanableItemAdminType extends AbstractType
             // ⚠️ L'exemple quitte le libellé pour l'aide : un libellé est le nom
             // du champ, pas sa notice.
             ->add('category', TextType::class, [
-                'label' => 'Catégorie',
+                'label' => 'form.category',
                 'required' => false,
                 'help' => 'loans.item_help_category',
                 'constraints' => [new Assert\Length(max: 80)],
             ])
             ->add('description', TextareaType::class, [
-                'label' => 'Description',
+                'label' => 'form.description',
                 'required' => false,
                 'row_attr' => ['class' => 'full'],
                 'help' => 'loans.item_help_description',
@@ -88,7 +88,7 @@ final class LoanableItemAdminType extends AbstractType
             // `VenueChoiceType` porte déjà son libellé ET son aide (`venues.help.venue`).
             ->add('venue', VenueChoiceType::class)
             ->add('storageLocation', TextType::class, [
-                'label' => 'Emplacement de stockage',
+                'label' => 'form.storage_location',
                 'required' => false,
                 'help' => 'loans.item_help_storage',
                 'constraints' => [new Assert\Length(max: 180)],
@@ -96,14 +96,14 @@ final class LoanableItemAdminType extends AbstractType
             // ⚠️ « (optionnel) » disparaît des libellés : règle 5 de
             // `docs/FORM-DESIGN.md`, l'absence de mention EST la mention.
             ->add('imageUrl', UrlType::class, [
-                'label' => 'URL de l’image',
+                'label' => 'form.image_url',
                 'required' => false,
                 'default_protocol' => 'https',
                 'help' => 'loans.item_help_image',
                 'constraints' => [new Assert\Length(max: 500), new Assert\Url(message: 'URL invalide.')],
             ])
             ->add('icon', TextType::class, [
-                'label' => 'Icône emoji',
+                'label' => 'form.emoji_icon',
                 'required' => false,
                 'help' => 'loans.item_help_icon',
                 'constraints' => [new Assert\Length(max: 16)],

@@ -77,7 +77,7 @@ final class UserAdminType extends AbstractType
                 'constraints' => [new Assert\Length(max: 255, maxMessage: 'Le prénom ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('lastName', TextType::class, [
-                'label' => 'Nom',
+                'label' => 'register.lastname',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 255, maxMessage: 'Le nom ne doit pas dépasser {{ limit }} caractères.')],
             ])
@@ -117,7 +117,7 @@ final class UserAdminType extends AbstractType
                 'constraints' => [new Assert\Length(max: 100, maxMessage: 'Le numéro ID ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('statut', ChoiceType::class, [
-                'label' => 'Statut',
+                'label' => 'form.status',
                 'choices' => [
                     'Actif' => 'actif',
                     'Inactif' => 'inactif',

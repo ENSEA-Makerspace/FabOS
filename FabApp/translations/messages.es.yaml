@@ -3308,6 +3308,25 @@ admin_machine_form:
     restore: "Devolver al parque"
     archive_note: "El equipo sale de los catálogos, los calendarios y las reservas. Su historial de uso permanece intacto."
 
+# Les libellés de champ qui reviennent d’un formulaire à l’autre (S151, R1).
+# ⚠️ Y mettre un mot SEULEMENT s’il veut dire la même chose partout : « Nom »
+# est générique, « Nom de famille » ne l’est pas — voir la note dans le commit.
+form:
+    name: "Nombre"
+    description: "Descripción"
+    title: "Título"
+    category: "Categoría"
+    type: "Tipo"
+    status: "Estado"
+    level: "Nivel"
+    location: "Ubicación"
+    prerequisites: "Requisitos previos"
+    icon: "Icono"
+    emoji_icon: "Icono emoji"
+    image_url: "URL de la imagen"
+    short_description: "Descripción corta"
+    storage_location: "Ubicación de almacenamiento"
+
 admin_place_form:
     section_identity: "Identidad"
     section_where: "Dónde y cuántos"

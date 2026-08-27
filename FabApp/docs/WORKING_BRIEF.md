@@ -78,6 +78,11 @@ fonctionnalité. Côté B, **deux alertes sur trois étaient des faux positifs**
 compteur manquait sur **deux** replis, pas cinq — trois n'ont rien à compter — et le
 `<h2>` dans un `<summary>` **reste bien un titre** dans l'arbre d'accessibilité.
 
+🔴 **Signalé le 2026-08-27 : `/prets/{id}` n'a pas de navigation.** Balayage de
+29 pages publiques : c'est la seule. `loan-item.html.twig` étend `base.html.twig`
+(la coquille nue) au lieu de `site/base_public.html.twig`. Correctif d'une ligne,
+détails et pièges dans `ROADMAP.md`.
+
 🅿️ **Nouveau, consigné le 2026-08-27 : une proposition d'écran « événements »**
 d'après trois captures de **Fabmanager** (⚠️ pas Fabman — seconde source, décrite
 dans `Stage/Drive/Images/Fabmanager UI/README.md`). Dates fortes, regroupement par

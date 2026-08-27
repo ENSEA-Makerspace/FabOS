@@ -23,7 +23,7 @@ final class BadgeAdminType extends AbstractType
 
         $builder
             ->add('nom', TextType::class, [
-                'label' => 'Nom',
+                'label' => 'form.name',
                 'empty_data' => '',
                 'constraints' => [
                     new Assert\NotBlank(message: 'Le nom est obligatoire.'),
@@ -31,12 +31,12 @@ final class BadgeAdminType extends AbstractType
                 ],
             ])
             ->add('description', TextareaType::class, [
-                'label' => 'Description',
+                'label' => 'form.description',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 2000, maxMessage: 'La description ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('icone', TextType::class, [
-                'label' => 'Icône',
+                'label' => 'form.icon',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 255, maxMessage: "L'icône ne doit pas dépasser {{ limit }} caractères.")],
             ])
@@ -59,7 +59,7 @@ final class BadgeAdminType extends AbstractType
                     ->setParameter('self', $badge instanceof Badge ? ($badge->getId() ?? 0) : 0)
                     ->orderBy('b.nom', 'ASC'),
             ])
-            ->add('save', SubmitType::class, ['label' => 'Enregistrer']);
+            ->add('save', SubmitType::class, ['label' => 'common.save']);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

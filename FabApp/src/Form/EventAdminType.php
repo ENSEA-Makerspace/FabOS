@@ -79,7 +79,7 @@ final class EventAdminType extends AbstractType
     {
         $builder
             ->add('titre', TextType::class, [
-                'label' => 'Titre',
+                'label' => 'form.title',
                 'row_attr' => ['class' => 'full'],
                 'empty_data' => '',
                 'constraints' => [
@@ -106,7 +106,7 @@ final class EventAdminType extends AbstractType
             // WHICH training, so it can neither list a training's real sessions nor
             // make an enrolment mean anything. Both optional; an event needs neither.
             ->add('category', EntityType::class, [
-                'label' => 'Catégorie',
+                'label' => 'form.category',
                 'class' => EventCategory::class,
                 'choice_label' => 'label',
                 'required' => false,
@@ -174,7 +174,7 @@ final class EventAdminType extends AbstractType
                 'constraints' => [new Assert\Length(max: 500, maxMessage: 'L\'adresse ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('description', TextareaType::class, [
-                'label' => 'Description',
+                'label' => 'form.description',
                 'row_attr' => ['class' => 'full'],
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 2000, maxMessage: 'La description ne doit pas dépasser {{ limit }} caractères.')],
@@ -190,7 +190,7 @@ final class EventAdminType extends AbstractType
                 'required' => false,
                 'help' => 'Décochez pour réserver cet événement aux membres connectés. Les invités déjà inscrits gardent leur place.',
             ])
-            ->add('save', SubmitType::class, ['label' => 'Enregistrer']);
+            ->add('save', SubmitType::class, ['label' => 'common.save']);
 
         // ⚠️ **Only when creating.** Editing an existing event must never silently
         // generate more of them, and the two fields would be a question with no

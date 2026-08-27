@@ -49,7 +49,7 @@ final class PlaceAdminType extends AbstractType
     {
         $builder
             ->add('nom', TextType::class, [
-                'label' => 'Nom',
+                'label' => 'form.name',
                 'empty_data' => '',
                 'constraints' => [
                     new Assert\NotBlank(message: 'Le nom est obligatoire.'),
@@ -58,7 +58,7 @@ final class PlaceAdminType extends AbstractType
             ])
             ->add('venue', VenueChoiceType::class)
             ->add('localisation', TextType::class, [
-                'label' => 'Localisation',
+                'label' => 'form.location',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 150, maxMessage: 'Ce champ ne doit pas dépasser {{ limit }} caractères.')],
             ])
@@ -67,11 +67,11 @@ final class PlaceAdminType extends AbstractType
                 'required' => false,
                 'constraints' => [new Assert\PositiveOrZero(message: 'La capacité doit être positive.')],
             ])
-            ->add('category', TextType::class, ['label' => 'Catégorie', 'required' => false, 'constraints' => [new Assert\Length(max: 120)]])
+            ->add('category', TextType::class, ['label' => 'form.category', 'required' => false, 'constraints' => [new Assert\Length(max: 120)]])
             ->add('manager', TextType::class, ['label' => 'Responsable', 'required' => false, 'constraints' => [new Assert\Length(max: 150)]])
             ->add('department', TextType::class, ['label' => 'Département', 'required' => false, 'constraints' => [new Assert\Length(max: 150)]])
             ->add('description', TextareaType::class, [
-                'label' => 'Description',
+                'label' => 'form.description',
                 // ⚠️ La pleine largeur vient d'ICI, pas du gabarit — les deux
                 // gabarits la re-décidaient chacun de leur côté, alors qu'un
                 // commentaire de l'un affirmait déjà que c'était un fait du
@@ -80,7 +80,7 @@ final class PlaceAdminType extends AbstractType
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 2000, maxMessage: 'La description ne doit pas dépasser {{ limit }} caractères.')],
             ])
-            ->add('save', SubmitType::class, ['label' => 'Enregistrer']);
+            ->add('save', SubmitType::class, ['label' => 'common.save']);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

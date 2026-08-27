@@ -88,7 +88,7 @@ final class MachineAdminType extends AbstractType
         // marque/modèle et photo/icône — tout le reste est pleine largeur.
         $builder
             ->add('nom', TextType::class, [
-                'label' => 'Nom',
+                'label' => 'form.name',
                 'empty_data' => '',
                 'row_attr' => ['class' => 'full'],
                 'constraints' => [
@@ -103,7 +103,7 @@ final class MachineAdminType extends AbstractType
             // without refusing anything outside it; the categories screen shows
             // whatever gets typed as "not adopted" and lets it be adopted.
             ->add('categorie', TextType::class, [
-                'label' => 'Catégorie',
+                'label' => 'form.category',
                 'mapped' => false,
                 'required' => false,
                 'data' => $options['category_label'],
@@ -112,7 +112,7 @@ final class MachineAdminType extends AbstractType
                 'constraints' => [new Assert\Length(max: 100, maxMessage: 'La catégorie ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('niveau', IntegerType::class, [
-                'label' => 'Niveau',
+                'label' => 'form.level',
                 'mapped' => false,
                 'required' => false,
                 'data' => $options['level_value'],
@@ -120,7 +120,7 @@ final class MachineAdminType extends AbstractType
                 'constraints' => [new Assert\Range(notInRangeMessage: 'Le niveau doit être compris entre {{ min }} et {{ max }}.', min: 1, max: 3)],
             ])
             ->add('description', TextareaType::class, [
-                'label' => 'Description',
+                'label' => 'form.description',
                 'required' => false,
                 'row_attr' => ['class' => 'full'],
                 'help' => 'admin_machine_form.help_description',
@@ -129,13 +129,13 @@ final class MachineAdminType extends AbstractType
             // `VenueChoiceType` porte déjà son libellé ET son aide (`venues.help.venue`).
             ->add('venue', VenueChoiceType::class)
             ->add('localisation', TextType::class, [
-                'label' => 'Localisation',
+                'label' => 'form.location',
                 'required' => false,
                 'help' => 'admin_machine_form.help_localisation',
                 'constraints' => [new Assert\Length(max: 255, maxMessage: 'La localisation ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('statut', ChoiceType::class, [
-                'label' => 'Statut',
+                'label' => 'form.status',
                 'choices' => array_combine(self::STATUSES, self::STATUSES),
                 'row_attr' => ['class' => 'full'],
                 'help' => 'admin_machine_form.help_statut',
@@ -203,7 +203,7 @@ final class MachineAdminType extends AbstractType
                 'constraints' => [new Assert\Length(max: 3000, maxMessage: 'La liste des caractéristiques ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('prerequis', TextareaType::class, [
-                'label' => 'Prérequis',
+                'label' => 'form.prerequisites',
                 'mapped' => false,
                 'required' => false,
                 'data' => $options['requirement_description'],
@@ -218,7 +218,7 @@ final class MachineAdminType extends AbstractType
                 'constraints' => [new Assert\Length(max: 255, maxMessage: 'La photo ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('icone', TextType::class, [
-                'label' => 'Icône',
+                'label' => 'form.icon',
                 'mapped' => false,
                 'required' => false,
                 'data' => $options['icon_slug'],
