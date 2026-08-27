@@ -122,34 +122,24 @@ masse d'événements · catégories comme entrées de menu. Ce sont des
 fonctionnalités, pas de la finition. ⚠️ Le tableau de bord « qui doit re-briller »
 est le seul des quatre qui touche J : il est dans **S148**.
 
-## 🔴 `/prets/{id}` n'a pas de navigation (opérateur, 2026-08-27)
+## ✅ `/prets/{id}` n'avait pas de navigation — corrigé le 2026-08-27
 
 **Signalé** : *« the whole menu disappears in that page! »* — https://fabos.dstei.fr/prets/1
 
-**Constaté, et la cause est trouvée.** Balayage de **29 pages publiques** : c'est la
-**seule** sans en-tête. ⚠️ Le pied de page, lui, est bien là — c'est la barre de
-navigation qui manque, pas toute la coquille.
+`loan-item.html.twig` étendait **`base.html.twig`**, la coquille nue : elle n'a ni
+bloc `header` ni `include` de `_header`, seulement un `{% block body %}` et un pied
+de page. Les 39 autres gabarits qui l'étendent sont des écrans admin ou staff, et
+eux reçoivent l'en-tête par `_admin_list.html.twig` ; celui-ci n'incluait rien.
+⚠️ Le pied de page était bien là — d'où « le menu disparaît » et non « la page est
+nue ». Balayage de 29 pages publiques : c'était **la seule**.
 
-`templates/site/loan-item.html.twig` étend **`base.html.twig`** — la coquille nue,
-qui n'émet qu'un `{% block body %}` — alors que toutes les autres pages publiques
-étendent `site/base_public.html.twig`. Les 39 autres gabarits qui étendent
-`base.html.twig` sont des écrans admin ou staff, et ceux-là reçoivent l'en-tête par
-`_admin_list.html.twig` (ligne 111 : `{% include 'site/_header.html.twig' %}`).
-`loan-item` n'inclut ni l'un ni l'autre : c'est le seul public de la liste, et il
-est le seul à ne rien inclure.
+Corrigé en une ligne — `{% extends 'site/base_public.html.twig' %}`, comme `/prets`.
+Les trois blocs utilisés (`title`, `stylesheets`, `body`) existent des deux côtés.
+Au passage, son cache-buster était resté sur `?v=20260816-s134`.
 
-**Le correctif** est d'une ligne — `{% extends 'site/base_public.html.twig' %}`,
-comme `/prets` — mais ⚠️ **à vérifier en le faisant** :
-- les noms de blocs doivent correspondre (`base_public` peut ne pas exposer les
-  mêmes) ;
-- la feuille `machines-list.css` que ce gabarit déclare doit continuer d'être émise,
-  sinon `.ml-page` / `.ml-wrap` et les quatre règles `.loan-item*` tombent ;
-- et **regarder la page rendue**, pas seulement le balisage : c'est une question de
-  coquille, donc de pixels.
-
-⚠️ Chercher au passage s'il reste d'autres routes publiques à paramètre non
-balayées ici — la sonde a couvert les 29 sans paramètre plus `/machines/7` et
-`/prets/1`.
+**Vérifié sur la page en ligne** : en-tête, navigation, recherche et bouton de
+connexion sont revenus, « Fablab » s'allume comme section active. Nouveau balayage,
+**31 pages publiques cette fois** (avec `/prets/2` et `/lab/3`) : **0 sans coquille**.
 
 ---
 

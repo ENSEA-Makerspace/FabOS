@@ -1,4 +1,4 @@
-{% extends 'base.html.twig' %}
+{% extends 'site/base_public.html.twig' %}
 
 {# THE CANONICAL PAGE FOR ONE LOAN OBJECT (S133).
 
@@ -7,8 +7,20 @@
    somewhere, and the two admin lists point here as well, so "the object" means
    one address whichever list you came from.
 
+   🔴 **S151 — cette page était la SEULE page publique sans barre de navigation.**
+   Elle étendait `base.html.twig`, la coquille nue : celle-ci n'a ni bloc `header`
+   ni `{% include 'site/_header.html.twig' %}`, seulement un `{% block body %}` et
+   un pied de page. Les 39 autres gabarits qui l'étendent sont des écrans admin ou
+   staff, et eux reçoivent l'en-tête par `_admin_list.html.twig` ; celui-ci
+   n'incluait rien. Un membre qui ouvrait un objet prêtable perdait le menu et
+   n'avait que le fil d'Ariane pour repartir.
+   ⚠️ **Le pied de page, lui, était bien là** — d'où « le menu disparaît » et non
+   « la page est nue ». Balayage de 29 pages publiques : c'était la seule.
+   ⚠️ Les trois blocs utilisés ici — `title`, `stylesheets`, `body` — existent des
+   deux côtés, donc le changement de parent n'en oriente aucun ailleurs.
+
    ⚠️ **No local `<style>`.** `_breadcrumb`, `_cell_state` and `_cell_meter` come
-   from `components.css`, which `base.html.twig` emits everywhere; `.ml-page` /
+   from `components.css`, which the shell emits everywhere; `.ml-page` /
    `.ml-wrap` and the four `.loan-item*` rules live in `machines-list.css`, linked
    below exactly as `/places` and `/materials` link it. ⚠️ **Not
    `.readonly-grid`** — that grid is defined in `admin.css`, which a public page
@@ -19,7 +31,7 @@
 {% block title %}{{ item.name }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260816-s134' }}">
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260827-s152' }}">
 {% endblock %}
 
 {% block body %}
