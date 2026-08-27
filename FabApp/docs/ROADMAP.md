@@ -436,7 +436,12 @@ d'entrées traduites · ⚠️ plafond d'entrées (le menu principal en a déjà
   valeur dans les deux pour un tiers des lignes. Vérifié sur les 137 lignes de
   l'historique complet (`?days=0`) : **0 énumération brute**.
 - **Quiz et validations physiques n'ont aucune UI de création.**
-- Les deux écrans RFID montrent les mêmes deux boutons deux fois.
+- ✅ **« Les deux écrans RFID montrent les mêmes deux boutons deux fois » — RÉFUTÉ**
+  le 2026-08-27, et c'était déjà à moitié réfuté (`feedback-fabos-verify-pixels` :
+  « un seul le faisait »). Compté sur les deux pages rendues :
+  `/admin/rfid-readers` porte « Cancel », « Close » et « Delete permanently », tous
+  distincts et venant de sa modale ; `/admin/access-rfid-logs` porte un seul
+  « Confirm ». **Aucun doublon.** Rien à corriger — l'item est clos par la mesure.
 
 ## Travaux transversaux conservés
 
