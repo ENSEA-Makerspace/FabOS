@@ -143,10 +143,16 @@ littéraux à 9**, et les 9 sont des exemples de format (`01:30`, `#9E1B56`,
 entièrement anglaises. ⚠️ Dont `/creations/new`, qui n'est pas un écran admin : un
 membre publiait son projet sur une page française quelle que soit sa langue.
 
-**Prochain travail** : 🅿️ un petit reste de R3 — la mention « requis » s'affiche sur
-des `<select>` qui n'ont aucune option vide (Statut, Thème, Langue) : elle promet
-une contrainte qu'on ne peut pas enfreindre. À corriger dans le thème. Puis **R1**
-(42 `FormType` aux libellés français en dur) et R4 → R9.
+✅ **Et le petit reste de R3 est fait** : « requis » ne se dit plus que d'un champ
+qu'on peut laisser vide. Vérifié sur neuf pages rendues, champ par champ :
+**0 désaccord** entre l'attribut HTML et la mention, contre 5 avant.
+
+**Prochain travail** : 🅿️ **R4 → R9** de la passe navigateur — `/lab` qui montre
+3 des 7 destinations de son menu, les deux mots pour le même état de machine, les
+quatre façons de dire « connectez-vous » sur `/machines/{id}`, le champ de
+recherche à 89 px sur mobile, les 500 px entre une étiquette et son champ sur
+`/profil/password`. 🅿️ Et les **documents attachés à une machine**, qui demandent
+une migration.
 Puis **R1** (42 `FormType` aux libellés français en dur) et R4 → R9.
 
 ## État du dépôt
