@@ -122,6 +122,69 @@ masse d'événements · catégories comme entrées de menu. Ce sont des
 fonctionnalités, pas de la finition. ⚠️ Le tableau de bord « qui doit re-briller »
 est le seul des quatre qui touche J : il est dans **S148**.
 
+## 🅿️ Une proposition d'écran « événements », d'après Fabmanager (opérateur, 2026-08-27)
+
+**Source** : trois captures de Fabmanager (instance Technistub) décrites dans
+`Stage/Drive/Images/Fabmanager UI/README.md` — événements, formations, machines.
+⚠️ **Fabmanager, pas Fabman** : c'est une seconde source, distincte des 73 captures
+qui ont donné le barème de qualité de formulaire.
+
+**La demande** : une **page d'exemple** d'une version améliorée de nos événements.
+Donc une proposition à regarder, pas un remplacement à déployer — elle passe par
+`/admin/design` en propositions comparables, comme le format de liste
+([[feedback-fabos-design-review-loop]]), et la revue designer est **une fois par
+phase**.
+
+### Ce que l'opérateur retient de la référence
+
+1. ✅ **Les dates sont visibles**, et fortes : « Le 28/08/2026 » en rouge et en gras
+   est l'élément le plus lourd de la carte, l'horaire juste dessous en plus petit.
+2. ✅ **Le regroupement par mois donne le VOLUME d'un coup d'œil** — « AOÛT, 2026 »
+   avec une carte, « SEPTEMBRE, 2026 » avec neuf : on voit que la rentrée est
+   chargée sans lire une seule ligne. Une liste à plat ne le dit pas.
+3. ✅ **Le logo en remplacement d'affiche est malin** — la moitié image d'une carte
+   sans photo est remplie par le logo du lab, pas par un vide ni une icône générique.
+
+### Le point neuf : plusieurs logos de remplacement, tirés au sort
+
+⚠️ **Le défaut de la référence est justement là** : toutes les cartes portent le
+même logo, donc quinze cartes identiques. Le remède devient le symptôme.
+
+**Ce qui est demandé :**
+- pouvoir **enregistrer un OU PLUSIEURS logos** de remplacement, affectés
+  **aléatoirement** aux événements sans affiche ;
+- **six images par défaut livrées avec FabOS**, un pseudo-logo décliné en
+  **variations de couleurs proches du thème par défaut** ;
+- **une variante claire et une variante sombre**, pour suivre la préférence
+  d'affichage du membre.
+
+**Ce qu'il faut trancher avant de dessiner :**
+- 🔴 **« Aléatoire » doit être STABLE.** Un tirage à chaque rendu fait changer
+  l'image d'un événement à chaque rechargement, et deux membres ne voient pas la
+  même page. Le tirage doit être une fonction de l'id de l'événement
+  (`id % nombre_de_logos`), pas de `rand()`.
+- ⚠️ **Clair/sombre : deux fichiers, ou un SVG qui suit `currentColor` ?** Le second
+  est la façon dont le jeu d'icônes est déjà fait (`_icon.html.twig`) et il n'a
+  besoin d'aucune préférence à lire. À comparer avant de produire douze PNG.
+  ⚠️ Rappel : `--color-text-inverse` vaut `#FFFFFF` et **n'est jamais redéfini en
+  sombre** — une image qui s'appuie dessus reste blanche sur fond sombre.
+- ⚠️ **Où vivent les logos téléversés** : `public/uploads/<famille>/`, motif de
+  `AdminController` ~3282, et la même question que pour les documents machine —
+  supprimer la ligne n'efface pas le fichier.
+- ⚠️ **Nos cartes disent déjà des choses que la référence ne dit pas** : garder
+  l'état, le prochain créneau et les compteurs. La comparaison des trois captures
+  (fin du README de référence) montre que Fabmanager ne les a pas.
+
+### Ce qu'on ne copie PAS
+
+- Le pied de carte à deux verbes (« Réserver · Consulter ») vient des écrans
+  **formations et machines** de Fabmanager, pas de celui des événements. Il vaut
+  d'être discuté pour NOS cartes machine — l'opérateur avait justement signalé
+  « je n'ai que le bouton Voir » — mais c'est un autre sujet, à ne pas glisser dans
+  celui-ci.
+
+---
+
 ## 🅿️ Documents attachés à une machine — AVANT le commerce (opérateur, 2026-08-27)
 
 **Demande, mot pour mot** : *« before commerce, let's add on the machine pages files

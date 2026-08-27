@@ -78,7 +78,14 @@ fonctionnalité. Côté B, **deux alertes sur trois étaient des faux positifs**
 compteur manquait sur **deux** replis, pas cinq — trois n'ont rien à compter — et le
 `<h2>` dans un `<summary>` **reste bien un titre** dans l'arbre d'accessibilité.
 
-🅿️ **Nouveau, consigné le 2026-08-27 : les documents attachés à une machine**
+🅿️ **Nouveau, consigné le 2026-08-27 : une proposition d'écran « événements »**
+d'après trois captures de **Fabmanager** (⚠️ pas Fabman — seconde source, décrite
+dans `Stage/Drive/Images/Fabmanager UI/README.md`). Dates fortes, regroupement par
+mois qui montre le volume, et **plusieurs logos de remplacement tirés au sort** —
+six livrés par défaut, clair et sombre. C'est une **proposition à regarder**, donc
+elle passe par `/admin/design`. Découpage et points à trancher dans `ROADMAP.md`.
+
+🅿️ **Aussi consigné le 2026-08-27 : les documents attachés à une machine**
 (guide d'usage, fiche de sécurité…), à faire **avant la Phase H**. Découpage,
 motif d'upload à réutiliser et pièges connus : `ROADMAP.md` § « Documents attachés
 à une machine ». ⚠️ Une migration, donc l'opérateur devra la passer.
