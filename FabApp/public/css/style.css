@@ -967,10 +967,17 @@ img, svg {
     margin-bottom: var(--spacing-xl);
 }
 
+/* 🔴 **S151 — `--color-text-inverse` était le fond, et c'est le piège connu.**
+   Ce jeton vaut `#FFFFFF` et **n'est jamais redéfini en sombre** : la boîte
+   serait restée une plaque blanche sur fond sombre. C'est exactement le défaut
+   que `/recherche` a déjà eu une fois (« les résultats rendent mal en sombre »,
+   S139c). Ces deux classes n'étaient utilisées NULLE PART jusqu'à ce que S151 y
+   branche le champ de recherche de la page — les corriger d'abord évitait de
+   rebrancher une plaque blanche. */
 .advanced-search-box {
     display: flex;
     gap: var(--spacing-md);
-    background: var(--color-text-inverse);
+    background: var(--theme-surface);
     padding: var(--spacing-sm);
     border-radius: var(--border-radius);
     box-shadow: var(--shadow);
@@ -998,7 +1005,7 @@ img, svg {
     border: 2px solid var(--border-color);
     border-radius: var(--border-radius);
     font-size: var(--font-size-base);
-    background: var(--color-text-inverse);
+    background: var(--theme-surface);
     cursor: pointer;
     min-width: 180px;
 }

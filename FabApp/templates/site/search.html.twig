@@ -57,6 +57,31 @@
                     </p>
                 </div>
 
+                {# 🔴 **S151 — la page de recherche n'avait AUCUN champ de recherche.**
+                   Elle disait « Saisissez une recherche pour commencer » et n'offrait
+                   nulle part où le faire : le seul `<input>` de la page entière était
+                   celui de l'en-tête — mesuré à **89 px de large à 375 px**, soit cinq
+                   caractères visibles. Chercher sur mobile était donc à peu près
+                   impossible, et c'est la seule page où l'on vient exprès pour ça.
+
+                   ⚠️ **`.advanced-search-box` et `.search-input-advanced` existaient
+                   déjà dans `style.css` et n'étaient utilisées NULLE PART** — la mise
+                   en forme avait été écrite puis jamais branchée. On la branche plutôt
+                   que d'en écrire une seconde.
+                   ⚠️ Son fond disait `--color-text-inverse`, qui vaut `#FFFFFF` et
+                   n'est jamais redéfini en sombre : corrigé en `--theme-surface` dans
+                   le même passage, sinon on rebranchait une plaque blanche.
+
+                   ⚠️ `autofocus` seulement quand la requête est vide : sur une page de
+                   résultats, voler le focus ferait sauter la lecture au champ. #}
+                <form class="advanced-search-box" method="get" action="{{ path('app_recherche') }}" role="search">
+                    <label class="sr-only" for="search-page-q">{{ 'search.title'|trans }}</label>
+                    <input class="search-input-advanced" id="search-page-q" type="search" name="q"
+                           value="{{ query|default('') }}" placeholder="{{ 'common.search_placeholder'|trans }}"
+                           {{ query is empty ? 'autofocus' : '' }}>
+                    <button class="btn btn-primary" type="submit">{{ 'common.search'|trans }}</button>
+                </form>
+
                 <div class="search-results-container">
                     {% if query is empty %}
                         <div class="results-by-category">
