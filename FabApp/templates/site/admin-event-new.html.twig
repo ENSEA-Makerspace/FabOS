@@ -35,50 +35,10 @@
                 </div>
 
                 {% form_theme form 'form/admin_theme.html.twig' %}
-                {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate', 'data-controller': 'conditional-field'}}) }}
-                    {{ form_errors(form) }}
-                    <div class="form-grid">
-                        {{ form_row(form.titre, {row_attr: {class: 'full'}}) }}
-                        {{ form_row(form.dateDebut) }}
-                        {{ form_row(form.dateFin) }}
-                        {{ form_row(form.venue) }}
-                        {{ form_row(form.lieu, {row_attr: {class: 'full'}}) }}
-                        {{ form_row(form.locationMode) }}
-                        {{ form_row(form.address) }}
-                        {{ form_row(form.capacite) }}
-                        {#- 🔴 **A field added to `EventAdminType` draws NOTHING until it is
-                            named here.** This form renders row by row, so S146f's category and
-                            formation fields shipped invisible. There is no `form_rest()` to
-                            catch them: it would also re-render `save`, which the actions row
-                            below places deliberately. -#}
-                        {{ form_row(form.category) }}
-                        {{ form_row(form.formation) }}
-                        {#- The series controls exist only on creation — editing an event
-                            must never silently generate more of them.
-                            ⚠️ "Nombre de séances" appears only once a repeat is chosen:
-                            asking for it beside "Une seule fois" is a field that cannot
-                            do anything. Without JavaScript both stay visible and the
-                            form works exactly as before. -#}
-                        {{ form_row(form.repeatEvery, {attr: {
-                            'data-conditional-field-target': 'source',
-                            'data-action': 'change->conditional-field#apply',
-                        }}) }}
-                        {{ form_row(form.repeatCount, {row_attr: {
-                            'data-conditional-field-target': 'dependent',
-                            'data-conditional-field-show-when': 'week two_weeks',
-                        }}) }}
-                        <div class="form-field check">
-                            {{ form_widget(form.guestsAllowed) }}
-                            {{ form_label(form.guestsAllowed) }}
-                        </div>
-                        {{ form_row(form.description, {row_attr: {class: 'full'}}) }}
-                    </div>
-
-                    <div class="form-actions">
-                        <a class="btn-link" href="{{ path('app_admin_events') }}">{{ 'common.cancel'|trans }}</a>
-                        <span class="btn-submit">{{ form_widget(form.save, {label: 'admin_events.submit_new'|trans}) }}</span>
-                    </div>
-                {{ form_end(form) }}
+                {% include 'site/_event_form.html.twig' with {
+                    form: form,
+                    submit_label: 'admin_events.submit_new'|trans,
+                } only %}
             </section>
         </div>
     </main>

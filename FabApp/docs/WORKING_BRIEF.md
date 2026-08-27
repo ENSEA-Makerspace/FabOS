@@ -95,12 +95,19 @@ de l'`importmap` dans le dossier servi localement (les chemins sont racine-relat
 dans du JSON, et les assets n'ont pas de CORS). Prouvé sur `/admin/events/new` :
 `repeatCount` se montre quand on met `repeatEvery` sur « chaque semaine ».
 
-**Prochain travail** : 🅿️ **R3** — le repli. Deux écrans gagnés par la paire D
-(machines 26 → 18 à l'arrivée, matériaux 20 → 18). Ce qui reste vraiment, c'est
-**six formulaires d'entité** (`events/new` 15, `utilisateurs/new` 14,
-`formations/new` 12, `creations/new`, `loans/new`, `places/new`) — et **pas** les
-quatre grilles de contrôles (`homepage` 35, `horaires` 31, `maintenance/batch`,
-`features`), qui sont des matrices : les replier les cacherait sans les raccourcir.
+✅ **R3 commencé : `/admin/events/new` converti** (15 → **11 champs à l'arrivée**,
+4 repliés, 3 titres de section, et une seule liste pour les deux écrans au lieu de
+deux qui divergeaient). Le câblage Stimulus a dû descendre dans le `FormType` — et
+la sonde à JavaScript a prouvé qu'il marche toujours. Au passage, l'aide de la case
+« Ouvert aux personnes sans compte » réapparaît : le gabarit la dessinait à la main
+et sautait `form_help()`.
+
+**Prochain travail** : 🅿️ **R3, les cinq formulaires d'entité restants** —
+`utilisateurs/new` (14), `formations/new` (12), `creations/new` (9), `loans/new`
+(9), `places/new` (8). ⚠️ **Pas** les quatre grilles de contrôles (`homepage` 35,
+`horaires` 31, `maintenance/batch`, `features`) : ce sont des matrices, les replier
+les cacherait sans les raccourcir. Puis **R1** (42 `FormType` aux libellés français
+en dur) et R4 → R9.
 Puis **R1** (42 `FormType` aux libellés français en dur) et R4 → R9.
 
 ## État du dépôt

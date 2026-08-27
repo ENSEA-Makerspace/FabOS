@@ -1,0 +1,32 @@
+{# LE FORMULAIRE ÉVÉNEMENT, UNE SEULE FOIS — création et édition.
+
+   🔴 **S151, R3 — les deux gabarits tenaient chacun leur liste de 15 champs**, et
+   celui de la création portait déjà l'avertissement écrit par quelqu'un qui s'était
+   fait avoir : « un champ ajouté au `FormType` ne dessine RIEN tant qu'il n'est pas
+   nommé ici » — c'est ainsi que `category` et `formation` sont sortis invisibles en
+   S146f. Le découpage vient maintenant de `EventAdminType::SECTIONS`.
+
+   ⚠️ **Le `data-controller` reste sur le `<form>`** : c'est la portée du contrôleur
+   Stimulus, pas une propriété d'un champ. Ce qui a déménagé dans le `FormType`, ce
+   sont les DEUX ATTRIBUTS qui disent quel champ pilote quel autre — `repeatEvery`
+   porte sa `source`, `repeatCount` porte son `dependent` sur sa rangée. Sans ce
+   déplacement, la boucle partagée (`form_row(form[name])`, sans options) les aurait
+   silencieusement effacés et « Nombre de séances » serait redevenu un champ toujours
+   visible, à côté de « Une seule fois ».
+
+   ⚠️ Sans JavaScript, les deux restent visibles et le formulaire se comporte
+   exactement comme avant — le contrôleur CACHE, il ne désactive rien. #}
+{% form_theme form 'form/admin_theme.html.twig' %}
+{{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate', 'data-controller': 'conditional-field'}}) }}
+    {{ form_errors(form) }}
+
+    {% include 'site/_form_sections.html.twig' with {
+        form: form,
+        sections: constant('App\\Form\\EventAdminType::SECTIONS'),
+    } only %}
+
+    <div class="form-actions">
+        <a class="btn-link" href="{{ path('app_admin_events') }}">{{ 'common.cancel'|trans }}</a>
+        <span class="btn-submit">{{ form_widget(form.save, {label: submit_label|default('common.save'|trans)}) }}</span>
+    </div>
+{{ form_end(form) }}

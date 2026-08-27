@@ -25,11 +25,62 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 final class EventAdminType extends AbstractType
 {
+    /**
+     * L'ordre et le découpage de l'écran, déclarés ici — motif `SECTIONS`
+     * (S151, R3), déroulé par `site/_form_sections.html.twig`.
+     *
+     * 🔴 **Cet écran posait ses 15 champs à plat**, et ses deux gabarits (création
+     * et édition) tenaient chacun leur liste — donc « un champ ajouté ici ne
+     * dessine RIEN tant qu'il n'est pas nommé là-bas », ce que le gabarit
+     * documentait déjà comme un défaut vécu : les champs `category` et `formation`
+     * de S146f sont sortis invisibles.
+     *
+     * ⚠️ **Ce qui est replié n'est pas ce qui est rare, c'est ce qui a un défaut
+     * SENSÉ.** Un événement sans places déclarées est illimité, un événement est
+     * ouvert aux invités, et il n'appartient ni à une catégorie ni à une formation.
+     * Les quatre champs correspondants ne posent donc aucune question à qui crée un
+     * atelier ordinaire. Le titre, les dates et le lieu, si.
+     *
+     * ⚠️ **`repeatEvery` / `repeatCount` n'existent qu'à la création** — le gabarit
+     * teste la présence de chaque nom, c'est ce qui permet à une seule liste de
+     * servir les deux écrans.
+     */
+    public const SECTIONS = [
+        [
+            'title' => 'admin_event_form.section_identity',
+            'fields' => ['titre', 'description'],
+        ],
+        [
+            'title' => 'admin_event_form.section_when',
+            'fields' => ['dateDebut', 'dateFin', 'repeatEvery', 'repeatCount'],
+        ],
+        [
+            'title' => 'admin_event_form.section_where',
+            'fields' => ['locationMode', 'venue', 'lieu', 'address'],
+        ],
+        [
+            // Repli : les deux défauts — places illimitées, invités bienvenus —
+            // sont le cas courant. Le titre dit ce qu'on trouve dedans, sinon
+            // replier revient à cacher.
+            'title' => 'admin_event_form.section_registration',
+            'fold' => true,
+            'fields' => ['capacite', 'guestsAllowed'],
+        ],
+        [
+            // Repli : deux rattachements facultatifs, et un événement n'en a
+            // besoin d'aucun.
+            'title' => 'admin_event_form.section_link',
+            'fold' => true,
+            'fields' => ['category', 'formation'],
+        ],
+    ];
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
             ->add('titre', TextType::class, [
                 'label' => 'Titre',
+                'row_attr' => ['class' => 'full'],
                 'empty_data' => '',
                 'constraints' => [
                     new Assert\NotBlank(message: 'Le titre est obligatoire.'),
@@ -100,12 +151,14 @@ final class EventAdminType extends AbstractType
             ])
             ->add('lieu', TextType::class, [
                 'label' => 'Nom du lieu',
+                'row_attr' => ['class' => 'full'],
                 'required' => false,
                 'help' => 'Le nom courant de l\'endroit : « Grande salle », « Atelier bois »…',
                 'constraints' => [new Assert\Length(max: 180, maxMessage: 'Ce champ ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('locationMode', ChoiceType::class, [
                 'label' => 'Où se déroule l\'événement ?',
+                'row_attr' => ['class' => 'full'],
                 'choices' => [
                     'Au fablab' => Event::LOCATION_ONSITE,
                     'Ailleurs (adresse spécifique)' => Event::LOCATION_OFFSITE,
@@ -115,12 +168,14 @@ final class EventAdminType extends AbstractType
             ])
             ->add('address', TextType::class, [
                 'label' => 'Adresse (si ailleurs)',
+                'row_attr' => ['class' => 'full'],
                 'required' => false,
                 'help' => 'Adresse postale complète. Un lien d\'itinéraire est généré automatiquement.',
                 'constraints' => [new Assert\Length(max: 500, maxMessage: 'L\'adresse ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('description', TextareaType::class, [
                 'label' => 'Description',
+                'row_attr' => ['class' => 'full'],
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 2000, maxMessage: 'La description ne doit pas dépasser {{ limit }} caractères.')],
             ])
@@ -146,6 +201,17 @@ final class EventAdminType extends AbstractType
                     'label' => 'Répéter',
                     'mapped' => false,
                     'required' => false,
+                    // 🔴 **S151 — le câblage Stimulus descend du gabarit vers ici.**
+                    // La boucle partagée appelle `form_row(form[name])` sans options :
+                    // un `data-action` écrit dans le gabarit disparaîtrait à la
+                    // conversion, et avec lui le masquage de `repeatCount`. Ce n'est
+                    // pas une perte : quel champ pilote quel autre est un fait sur le
+                    // FORMULAIRE, pas sur la page qui le dessine — c'est la même règle
+                    // que pour `row_attr`, écrite dans le thème admin.
+                    'attr' => [
+                        'data-conditional-field-target' => 'source',
+                        'data-action' => 'change->conditional-field#apply',
+                    ],
                     // ⚠️ No blank option: `NONE` already IS "once only", and a blank
                     // above it would be a second way to say the same thing — and the
                     // one the browser preselects.
@@ -166,6 +232,13 @@ final class EventAdminType extends AbstractType
                     'mapped' => false,
                     'required' => false,
                     'data' => 1,
+                    // ⚠️ Sur la RANGÉE, pas sur le widget : c'est l'étiquette et
+                    // l'aide qui doivent disparaître avec le champ. Le thème recopie
+                    // les clés de `row_attr` autres que `class` sur l'enveloppe.
+                    'row_attr' => [
+                        'data-conditional-field-target' => 'dependent',
+                        'data-conditional-field-show-when' => 'week two_weeks',
+                    ],
                     // ⚠️ The old help said "no effect if the event does not repeat" —
                     // a sentence explaining why a control is inert. The control is now
                     // simply not drawn until it can do something.

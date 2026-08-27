@@ -579,10 +579,43 @@ encore à plat, il faut séparer deux familles :
   raccourcit pas, ça la cache. Les compter comme « à replier » gonflerait le
   travail de quatre écrans qui n'ont pas ce défaut.
 
-🔴 **Et la conversion de `/admin/events/new` demande de déplacer du câblage
-Stimulus dans le `FormType`** (`repeatEvery` → `repeatCount`), parce que la boucle
-partagée appelle `form_row(form[name])` sans options. C'est faisable — et depuis
-aujourd'hui c'est aussi **vérifiable** : voir la note de méthode ci-dessous.
+✅ **`/admin/events/new` converti le 2026-08-27** — le premier des six.
+
+| | avant | après |
+|---|---|---|
+| champs à l'arrivée | **15** | **11** (10 à l'écran : `repeatCount` est masqué par Stimulus tant qu'on ne répète pas) |
+| repliés | 0 | 4, derrière « Places et inscriptions » et « Rattachements » |
+| titres de section | 0 | 3 visibles — Identité · Quand · Où |
+| listes de champs à tenir | 2 (création + édition, divergentes) | 0 |
+
+🔴 **Le câblage Stimulus a dû descendre du gabarit dans le `FormType`**, parce que
+la boucle partagée appelle `form_row(form[name])` **sans options** : un
+`data-action` écrit dans le gabarit aurait disparu à la conversion, et « Nombre de
+séances » serait redevenu un champ toujours visible à côté de « Une seule fois ».
+`repeatEvery` porte sa `source` dans `attr`, `repeatCount` son `dependent` dans
+`row_attr` — **sur la rangée**, pour que l'étiquette et l'aide disparaissent avec le
+champ. Ce n'est pas une perte : quel champ pilote quel autre est un fait sur le
+formulaire, pas sur la page qui le dessine — la règle que le thème admin écrivait
+déjà pour `row_attr`.
+
+**Et c'est prouvé, pas supposé** (sonde à JavaScript, voir la note de méthode) :
+`repeatCount` arrive en `display: none` ; on met `repeatEvery` sur « week », on émet
+`change` ; il passe à `display: block`, **avec son étiquette et son aide**.
+
+✅ **Deux gains que la conversion a payés au passage :**
+- l'écran d'édition rend **13 champs et aucun contrôle de répétition** — le test
+  `name in _fields` fait qu'une seule liste sert les deux écrans, ce qui supprime
+  la divergence qui avait déjà rendu `category` et `formation` invisibles en S146f ;
+- **l'aide de « Ouvert aux personnes sans compte » réapparaît.** Le gabarit dessinait
+  cette case à la main (`{{ form_widget }}` + `{{ form_label }}`) et sautait donc
+  `form_help()` : « Décochez pour réserver cet événement aux membres connectés. Les
+  invités déjà inscrits gardent leur place » n'était affichée nulle part. C'est
+  exactement le même défaut que `help_machines` sur les matériaux — la troisième
+  fois qu'une liste écrite à la main coûte une phrase.
+
+🅿️ **Restent cinq formulaires d'entité** : `/admin/utilisateurs/new` (14),
+`/admin/formations/new` (12), `/admin/creations/new` (9), `/admin/loans/new` (9),
+`/admin/places/new` (8).
 
 ### ⚠️ R4 — `/lab` : le point d'arrivée d'une entrée de menu ne mène nulle part
 Le menu « Fablab » propose **sept** destinations (Machines, Espaces, Matériaux,
