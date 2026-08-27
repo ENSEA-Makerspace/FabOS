@@ -145,6 +145,26 @@ connexion sont revenus, « Fablab » s'allume comme section active. Nouveau bala
 
 ## 🅿️ Une proposition d'écran « événements », d'après Fabmanager (opérateur, 2026-08-27)
 
+✅ **La première moitié est faite et regardable : `/admin/design#evenements`.**
+Les **six affiches de remplacement** y sont rendues, chacune avec sa géométrie —
+pas seulement sa couleur, parce qu'à luminosité égale six teintes seraient la même
+image. Elles vivent dans `templates/site/_event_placeholder.html.twig`.
+- 🔴 **Le tirage est stable** : `id % 6`, jamais `random()`. Un tirage par rendu
+  ferait changer l'affiche à chaque rechargement et deux membres ne verraient pas
+  la même page.
+- ✅ **La question « dark/light » s'annule** : en DESSINANT au lieu de téléverser,
+  `var(--color-primary)` et `var(--tone-primary-soft)` suivent le thème du membre.
+  Mesuré sur la page rendue — fond `srgb 0.223 0.133 0.223` en sombre,
+  `srgb 0.954 0.893 0.920` en clair, **un seul fichier**. Pas douze PNG, pas de
+  préférence à lire.
+🅿️ **Ce qui reste de cette moitié** : téléverser SES propres logos pour qu'ils
+entrent dans le tirage. Ça demande une table, donc une migration, donc l'opérateur
+— et ça se décide après avoir jugé les six.
+🅿️ **Et la seconde moitié** — le regroupement par mois — est décrite dans la même
+section mais pas encore construite.
+
+
+
 **Source** : trois captures de Fabmanager (instance Technistub) décrites dans
 `Stage/Drive/Images/Fabmanager UI/README.md` — événements, formations, machines.
 ⚠️ **Fabmanager, pas Fabman** : c'est une seconde source, distincte des 73 captures

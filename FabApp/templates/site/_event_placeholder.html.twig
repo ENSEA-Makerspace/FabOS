@@ -1,0 +1,67 @@
+{# L'AFFICHE DE REMPLACEMENT D'UN ÉVÉNEMENT — six variantes, tirées de façon STABLE.
+
+   🅿️ **Proposition (S151), pas encore posée sur `/events`.** Elle répond à la
+   demande du 2026-08-27 : « permettre de sauvegarder un ou plusieurs logos
+   affectés aléatoirement en placeholder », « six images par défaut dans des
+   variations de couleurs proches du thème », « gérer les images dark/light ».
+
+   ⚠️ **Le défaut de la référence Fabmanager est ce qu'on corrige ici.** Là-bas
+   toutes les cartes portent le MÊME logo, donc quinze cartes identiques : le
+   remède devient le symptôme. Six variantes suffisent à ce qu'une grille de neuf
+   événements n'ait jamais deux voisines pareilles.
+
+   🔴 **Le tirage est STABLE, et ce n'est pas un détail.** `seed % 6`, où `seed`
+   est l'id de l'événement — jamais `random()`. Un tirage à chaque rendu ferait
+   changer l'affiche à chaque rechargement, et deux membres devant la même page
+   ne verraient pas la même chose. Un même événement garde donc son motif pour
+   toujours, ce qui le rend reconnaissable dans une liste.
+
+   ✅ **Un seul fichier, pas douze : c'est du SVG en jetons de thème.** La demande
+   parlait de « gérer les images dark/light » ; en dessinant plutôt qu'en
+   téléversant, la question disparaît — `var(--color-primary)` et
+   `var(--theme-surface)` suivent déjà le thème du membre, sans lire aucune
+   préférence et sans doubler chaque fichier. C'est la même réponse que le jeu
+   d'icônes de `_icon.html.twig` (S148, J-7).
+   ⚠️ Rappel de pourquoi `--theme-surface` et pas `--color-text-inverse` :
+   ce dernier vaut `#FFFFFF` et **n'est jamais redéfini en sombre**.
+
+   ⚠️ **Les six ne se distinguent pas que par la couleur.** Chacune a sa GÉOMÉTRIE :
+   à luminosité égale, ou pour qui ne distingue pas le rouge du vert, deux
+   variantes qui ne différeraient que par la teinte seraient la même image.
+
+   Usage :
+
+     {% include 'site/_event_placeholder.html.twig' with {seed: event.id} only %}
+
+   `label` est optionnel : passé, il devient le texte alternatif ; absent, l'image
+   est décorative et sort de l'arbre d'accessibilité (`aria-hidden`), ce qui est
+   correct — une affiche inventée ne DIT rien de l'événement. #}
+{% set _v = (seed|default(0)) % 6 %}
+<svg class="ev-ph ev-ph--{{ _v }}" viewBox="0 0 120 80" preserveAspectRatio="xMidYMid slice"
+     {% if label is defined and label %}role="img" aria-label="{{ label }}"{% else %}aria-hidden="true" focusable="false"{% endif %}>
+    <rect width="120" height="80" fill="var(--tone-primary-soft, #fff7fb)"/>
+    {% if _v == 0 %}
+        <circle cx="60" cy="40" r="19" fill="none" stroke="var(--color-primary)" stroke-width="5" opacity=".55"/>
+        <circle cx="60" cy="40" r="7" fill="var(--color-primary)" opacity=".75"/>
+    {% elseif _v == 1 %}
+        <rect x="34" y="20" width="52" height="40" rx="5" fill="none" stroke="var(--color-primary)" stroke-width="5" opacity=".5"/>
+        <path d="M34 46 L52 32 L70 46 L86 36" fill="none" stroke="var(--color-primary)" stroke-width="5" stroke-linecap="round" opacity=".8"/>
+    {% elseif _v == 2 %}
+        <path d="M60 17 L83 57 H37 Z" fill="none" stroke="var(--color-primary)" stroke-width="5" stroke-linejoin="round" opacity=".55"/>
+        <circle cx="60" cy="47" r="5" fill="var(--color-primary)" opacity=".8"/>
+    {% elseif _v == 3 %}
+        <g stroke="var(--color-primary)" stroke-width="5" stroke-linecap="round" opacity=".55">
+            <path d="M30 26 H90"/><path d="M30 40 H74"/><path d="M30 54 H58"/>
+        </g>
+        <circle cx="86" cy="54" r="7" fill="var(--color-primary)" opacity=".8"/>
+    {% elseif _v == 4 %}
+        <g fill="var(--color-primary)" opacity=".5">
+            <circle cx="42" cy="28" r="7"/><circle cx="60" cy="28" r="7"/><circle cx="78" cy="28" r="7"/>
+            <circle cx="42" cy="52" r="7"/><circle cx="78" cy="52" r="7"/>
+        </g>
+        <circle cx="60" cy="52" r="10" fill="var(--color-primary)" opacity=".85"/>
+    {% else %}
+        <path d="M26 58 L46 30 L60 48 L74 22 L94 58" fill="none" stroke="var(--color-primary)"
+              stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity=".65"/>
+    {% endif %}
+</svg>

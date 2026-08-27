@@ -1046,6 +1046,83 @@
                     collant, donc sans lui le titre de la carte atterrit dessous après la
                     redirection.
                 </p>
+
+            <div class="dz-sec" id="evenements">
+                <h3>🅿️ Proposition — la liste des événements</h3>
+                <p>
+                    🅿️ <strong>Ceci est une PROPOSITION, pas le composant.</strong> Contrairement aux
+                    sections au-dessus, rien de ce qui suit n'est en ligne : c'est la page d'exemple
+                    demandée le 2026-08-27, d'après trois captures de <em>Fabmanager</em> décrites dans
+                    <code>Stage/Drive/Images/Fabmanager UI/README.md</code>. ⚠️ Fabmanager, pas Fabman.
+                </p>
+
+                <div class="dzf-verdict" style="margin-bottom: var(--spacing-lg)">
+                    <strong>Deux idées à juger séparément :</strong> le regroupement par mois, qui
+                    montre le VOLUME sans qu'on lise une ligne — et l'affiche de remplacement, qui
+                    remplit une carte sans photo.
+                </div>
+
+                <h4 style="margin-top: var(--spacing-lg)">1. Les six affiches de remplacement</h4>
+                <p>
+                    La référence remplit la moitié image de chaque carte avec le logo du lab. C'est
+                    malin — et c'est aussi son défaut : <strong>toutes les cartes portent le même
+                    logo</strong>, donc quinze cartes identiques. Le remède devient le symptôme.
+                    Six variantes suffisent à ce qu'une grille de neuf n'ait jamais deux voisines
+                    pareilles.
+                </p>
+                <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:var(--spacing-md);max-width:720px">
+                    {% for i in 0..5 %}
+                        <figure style="margin:0">
+                            <div style="border:1px solid var(--border-color);border-radius:var(--border-radius);overflow:hidden;aspect-ratio:3/2">
+                                {% include 'site/_event_placeholder.html.twig' with {seed: i} only %}
+                            </div>
+                            <figcaption style="font-size:var(--font-size-xs);color:var(--color-text-light);margin-top:4px">variante {{ i }}</figcaption>
+                        </figure>
+                    {% endfor %}
+                </div>
+                <p style="margin-top: var(--spacing-md)">
+                    🔴 <strong>Le tirage est stable, et c'est la décision technique qui compte ici.</strong>
+                    <code>id % 6</code>, jamais <code>random()</code> : un tirage à chaque rendu ferait
+                    changer l'affiche à chaque rechargement, et deux membres devant la même page ne
+                    verraient pas la même chose. Un événement garde donc son motif pour toujours, ce
+                    qui le rend reconnaissable dans une liste.
+                </p>
+                <p>
+                    ✅ <strong>Un fichier, pas douze — la question « dark/light » s'annule.</strong>
+                    La demande parlait de gérer les deux thèmes. En DESSINANT plutôt qu'en téléversant,
+                    <code>var(--color-primary)</code> et <code>var(--tone-primary-soft)</code> suivent
+                    déjà le thème du membre : rien à lire, rien à doubler. Basculez le thème de cette
+                    page pour le vérifier — les six suivent. C'est la réponse qu'avait déjà donnée le
+                    jeu d'icônes en S148.
+                </p>
+                <p>
+                    ⚠️ <strong>Elles ne se distinguent pas que par la couleur, mais par la géométrie.</strong>
+                    À luminosité égale — ou pour qui ne distingue pas le rouge du vert — six variantes
+                    qui ne différeraient que par la teinte seraient la même image.
+                </p>
+                <p>
+                    🅿️ <strong>Ce que ça ne fait pas encore</strong>, et qui est l'autre moitié de la
+                    demande : téléverser SES propres logos pour qu'ils entrent dans le tirage. Ça
+                    demande une table, donc une migration, donc l'opérateur — et ça se décidera après
+                    avoir jugé les six ci-dessus.
+                </p>
+
+                <h4 style="margin-top: var(--spacing-xl)">2. Le regroupement par mois</h4>
+                <p>
+                    Ce que l'opérateur retient de la référence : <em>« j'aime bien le fait que les
+                    dates sont visibles et que les mois aident à visuellement voir la quantité
+                    d'événements dans le mois »</em>. Un en-tête de mois, puis ses cartes : « AOÛT »
+                    avec une carte et « SEPTEMBRE » avec neuf disent que la rentrée est chargée sans
+                    qu'on lise un seul titre. La date est l'élément le plus lourd de la carte,
+                    l'horaire vient dessous en plus petit.
+                </p>
+                <p>
+                    ⚠️ <strong>Ce que nos cartes disent déjà et que la référence ne dit pas</strong> :
+                    l'état, le prochain créneau, et le compte en tête de liste. La comparaison des
+                    trois captures est en fin du fichier de référence. Reprendre leur mise en page ne
+                    doit pas coûter ces trois-là.
+                </p>
+            </div>
             </div>
             </div>
     {% endblock %}
