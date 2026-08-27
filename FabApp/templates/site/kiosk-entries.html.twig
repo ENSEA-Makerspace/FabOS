@@ -6,7 +6,7 @@
     <meta http-equiv="refresh" content="15">
     <title>{{ venue_label() }} — {{ 'kiosk.entries_title'|trans }}</title>
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
-    <link rel="stylesheet" href="{{ asset('css/kiosk.css') ~ '?v=20260824-s150' }}">
+    <link rel="stylesheet" href="{{ asset('css/kiosk.css') ~ '?v=20260827-s151' }}">
     <style>        body { min-height: 100vh; padding: 3vh 4vw; }
         .entries { display: flex; flex-direction: column; gap: 1.4vh; }
         .entry { display: flex; align-items: center; gap: 2vw; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 1.6vh 2vw; }
@@ -14,6 +14,9 @@
         .entry__avatar { width: 5.5vw; height: 5.5vw; min-width: 56px; min-height: 56px; border-radius: 50%; object-fit: cover; background: var(--k-surface-solid); }
         .entry__name { font-size: 2.6vw; font-weight: 700; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .entry__time { font-size: 2.4vw; font-weight: 800; color: var(--k-ink-soft); font-variant-numeric: tabular-nums; }
+        /* Le jour d'un passage qui n'est pas d'aujourd'hui : plus petit et plus pâle
+           que l'heure, pour qu'il se lise sans voler la ligne. */
+        .entry__day { font-size: 1.5vw; font-weight: 700; color: var(--k-dim); margin-right: .6vw; }
         .kiosk-empty { font-size: 2.5vw; color: var(--k-muted); text-align: center; margin-top: 10vh; }
     </style>
     {# AssetMapper (Stimulus seul, Turbo desactive). Cette page est autonome : elle ne
@@ -32,7 +35,21 @@
                 <span class="entry__dot dot-{{ color }}"></span>
                 {% include 'site/_user_avatar.html.twig' with {user: entry.user, size: 64, class: 'entry__avatar', alt: entry.user.displayName} only %}
                 <span class="entry__name">{{ entry.user.displayName }}</span>
-                <span class="entry__time">{{ entry.createdAt|lab_date('H:i') }}</span>
+                {# 🔴 **S151 — cet écran n'affichait que `H:i`, sans date.** Le dernier
+                   passage du journal RFID datait du 10 juillet ; le mur les annonçait
+                   « 10:41 », donc de ce matin, pendant que l'écran voisin
+                   `/kiosk/stats` affichait « 0 passage aujourd'hui ». Deux murs côte à
+                   côte qui se contredisent. Un passage du jour garde l'heure seule —
+                   c'est l'usage normal ; un passage plus ancien porte son jour.
+                   ⚠️ `lab_date` des DEUX côtés : comparer un horodatage UTC à une date
+                   locale change de résultat entre 00:00 et 02:00 (voir
+                   [[feedback-fabos-timezone-hazard]]). #}
+                <span class="entry__time">
+                    {%- if entry.createdAt|lab_date('Y-m-d') != 'now'|lab_date('Y-m-d') -%}
+                        <span class="entry__day">{{ entry.createdAt|lab_date('d/m') }}</span>
+                    {%- endif -%}
+                    {{ entry.createdAt|lab_date('H:i') }}
+                </span>
             </div>
         {% else %}
             <div class="kiosk-empty">{{ 'kiosk.entries_empty'|trans }}</div>

@@ -77,3 +77,23 @@ body {
 
 /* ⚠️ Une surface de carte revient sur les trois écrans qui listent quelque chose. */
 .k-card { background: var(--k-surface); border: 1px solid var(--k-line); }
+
+/* ===================================================================
+   L'ICÔNE SUR UN MUR (S151, passe navigateur)
+
+   🔴 **`.ic` n'a pas de taille ici, et sur un écran de mur ça se voit en grand.**
+   La règle `.ic { width: 1em; height: 1em }` vit dans `components.css` (S148, J-7)
+   — que les gabarits kiosque ne chargent pas : ils sont autonomes et ne prennent
+   que cette feuille. Un SVG sans dimension intrinsèque s'étire à la largeur de son
+   parent. Mesuré à 1920 × 1080 sur la boîte :
+     • `/kiosk/events`  → l'épingle de lieu rendue **1665 × 1665 px**, la carte de
+       l'événement à la une haute de **1982 px** dans un écran de 1080, donc
+       **902 px coupés** par le `overflow:hidden` du body : le lieu, le nombre de
+       places et les deux événements suivants étaient dans le DOM et invisibles ;
+     • `/kiosk/machine/{id}` → épingle **289 × 289 px**, page 1115 px pour 1080.
+
+   ⚠️ La même valeur que `components.css`, volontairement : l'icône doit suivre la
+   taille du texte à côté d'elle, et ici ce texte est en `vw`. Une taille en `vw`
+   écrite ici la découplerait de sa ligne.
+   =================================================================== */
+.ic { width: 1em; height: 1em; flex: 0 0 auto; vertical-align: -0.125em; }

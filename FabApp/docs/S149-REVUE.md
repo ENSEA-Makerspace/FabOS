@@ -1,34 +1,32 @@
 # S149 — revue d'utilisabilité de fin de Phase J
 
-**2026-08-24.** Mandat « designer d'Apple », comme S147 : le nombre de clics avant
-et après, l'évidence du chemin, les frappes — surtout en cas d'erreur — et tout
-champ demandé sans être indispensable.
+**2026-08-24, conclue le 2026-08-27.** Mandat « designer d'Apple », comme S147 :
+le nombre de clics avant et après, l'évidence du chemin, les frappes — surtout en
+cas d'erreur — et tout champ demandé sans être indispensable.
 
 ---
 
-## 🔴 Ce que cette revue NE peut pas conclure
+## ✅ Cette revue est conclue
 
-**Elle ne dit pas que le produit est de première classe, et elle ne peut pas le
-dire.** L'accès à CT 210 est tombé en cours de session (le tailnet ne résout plus)
-et le site public répond **403 au proxy** depuis ce réseau. Aucune page n'a donc
-été rendue ni mesurée.
+Elle s'est faite en **deux moitiés**, à trois jours d'écart parce que l'accès était
+tombé entre les deux.
 
-Ce document est la **moitié statique** d'une revue en deux moitiés. Elle ne
-contient que ce qu'une lecture TRANCHE :
+| moitié | date | ce qu'elle tranche | résultat |
+|---|---|---|---|
+| **statique** | 2026-08-24 | ce qu'une lecture prouve : `for`/`id`, la table des routes, `disabled`, la parité des cinq catalogues, les motifs ICU | **16 défauts**, tous corrigés |
+| **navigateur** | 2026-08-27 | ce qu'aucune lecture ne prouve : géométrie, contraste, mode sombre, 375 px, focus clavier, clics réels | **6 défauts**, tous corrigés et déployés |
 
-| Question | Tranchée par |
-|---|---|
-| une étiquette est-elle associée à son champ ? | les règles HTML — `for`/`id`, enveloppe, `aria-*` |
-| ce lien mène-t-il quelque part ? | la table des routes |
-| ce bouton fait-il quelque chose ? | l'attribut `disabled`, sans condition |
-| cette page est-elle atteignable ? | les références `path()` sur les 227 routes |
-| les cinq langues sont-elles complètes ? | la parité des catalogues |
-| ce motif de pluriel tient-il ? | le validateur ICU |
+🔴 **Ce que la seconde moitié a démontré sur la première.** Trois des six défauts
+qu'elle a trouvés vivaient dans du balisage parfaitement correct : un en-tête HTTP
+manquant, trois jetons CSS jamais définis, et un libellé juste dans les cinq
+catalogues mais faux à l'écran. La parité, le lint et les 227 routes étaient verts
+à chaque fois. **Le verdict d'une revue statique n'est pas « c'est propre » : c'est
+« rien de ce que je sais lire n'est faux ».**
 
-🔴 **Rien de ce qui suit ne remplace la passe navigateur.** La leçon est écrite
-dans `feedback-fabos-verify-pixels` et elle a coûté deux sessions : le balisage
-correct ne prouve pas qu'on voit quelque chose. Contraste, géométrie, mode sombre,
-mobile, focus clavier, nombre de clics réel : **non mesurés**.
+⚠️ Et le pire coût n'était pas un défaut : la session du 24 a conclu « site
+injoignable, 403 au proxy » et écrit une revue entière sans accès. Le 403 **était**
+le défaut N1 ci-dessous. Voir [[project-fabos-deployment]] : essayer les deux
+chemins SSH, et ne pas prendre un échec pour une panne d'infrastructure.
 
 ---
 
@@ -345,48 +343,251 @@ corriger lui-même. C'est la bonne réponse : on ne répare pas sa propre balanc
 
 ---
 
-## 🅿️ La seconde moitié : ce qu'il faut mesurer au retour de l'accès
+## ✅ La seconde moitié : la passe navigateur, faite le 2026-08-27
 
-À faire **dans un navigateur**, pas par `app:render` + grep.
+L'accès est revenu (`proxmox.lab.dryades.org` répond ; l'IP `51.68.38.235` expire —
+c'est bien deux chemins, et un seul marche par réseau). Le site public répond 200
+dans le volet.
 
-### Les quatre corrections de cette session, à regarder
+**Ce que la moitié visible a coûté à croire l'ancien diagnostic :** le « 403 au
+proxy » de la session précédente n'était PAS un problème d'accès. C'était le
+défaut N1 ci-dessous. On a écrit « injoignable » là où le produit était cassé.
 
-| URL | Ce qu'on vérifie |
+### Méthode — ce qui a rendu la passe rapide
+
+Deux outils valent d'être réutilisés :
+1. **Un `<iframe>` de 375 px (ou 1280) piloté en JavaScript.** Il charge les pages
+   l'une après l'autre sans navigation, avec son propre viewport, donc les media
+   queries s'appliquent. 27 pages publiques mesurées en un appel.
+2. **La recette « admin sans authentification »** de
+   [[feedback-fabos-verify-pixels]], en lot : `app:render` des 59 pages admin sur
+   CT 210, `tar` + `base64` pour les rapatrier, réécriture des URLs d'actifs vers
+   `https://fabos.dstei.fr/`, `python3 -m http.server`, et le même iframe dessus.
+
+⚠️ **Le volet navigateur rend des styles calculés PÉRIMÉS d'un appel de retard.**
+Un lot « focus chaque contrôle et lis son contour » a rendu les valeurs décalées
+d'un élément et m'a fait conclure « aucun focus visible nulle part ». La mesure
+juste demande soit un vrai `Tab` au clavier, soit deux appels séparés.
+
+---
+
+### 🔴 N1 — toute redirection de connexion partait en `http://`, et le filtre de
+l'école la bloquait  ✅ **corrigé et vérifié en ligne**
+
+`GET https://fabos.dstei.fr/profil` répondait `302 Location:
+http://fabos.dstei.fr/login` — schéma perdu. Suivi jusqu'au bout : **403**. Dans
+le navigateur, sur le réseau de l'école, on obtenait la page FortiGuard
+**« Web Page Blocked ! »**.
+
+Donc **un membre déconnecté qui clique n'importe quel lien protégé, ou dont la
+session expire, n'atteignait jamais le formulaire de connexion.**
+
+Cause : `config/packages/framework.yaml` ne déclarait aucun `trusted_proxies`,
+donc Symfony ignorait `X-Forwarded-Proto` et fabriquait des URLs absolues en http.
+Correctif : `trusted_proxies: '192.168.100.20'` — l'adresse du proxy telle que
+l'app la voit dans le journal de `fabos.service` — plus les `trusted_headers`.
+⚠️ **Pas `REMOTE_ADDR`** : le `:8000` est joignable sur le LAN, donc `REMOTE_ADDR`
+laisserait n'importe quelle machine du réseau forger l'en-tête.
+
+Vérifié après redémarrage : `Location: https://fabos.dstei.fr/login`.
+
+### 🔴 N2 — trois jetons CSS utilisés partout et définis nulle part ✅ **corrigé**
+
+`--spacing-3xl` (2 usages), `--font-size-xs` (21), `--font-size-md` (13, défini
+seulement dans `calendar-fix.css` que la plupart des pages ne chargent pas). Une
+`var()` sans repli et sans définition rend la déclaration **invalide**.
+
+Conséquence mesurée à l'écran sur `/forgot-password` :
+`.auth-card { padding: var(--spacing-3xl) }` valait **0 px**, le champ e-mail
+touchait le bord de la carte (410 → 860 dans une carte 409 → 861), et 21 pastilles
+rendaient à la taille héritée.
+
+⚠️ **Et ce n'est PAS une régression de S149.** Le `<style>` en ligne d'origine de
+`forgot-password` écrivait déjà `var(--spacing-3xl)` : la carte n'a jamais eu son
+rembourrage. Le déplacement des 31 règles a fidèlement transporté le défaut. La
+moitié statique avait raison de dire « la carte n'avait ni surface ni ombre » ;
+elle ne pouvait pas voir qu'après correction il manquait encore le rembourrage.
+
+Correctif dans `style.css` : `--spacing-3xl: 64px` (40 px sous 576 px),
+`--font-size-xs: 12px`, `--font-size-md: var(--font-size-base)`.
+Après : rembourrage **64 px**, le champ à **65 px** du bord.
+Re-balayage de 27 pages : **0 jeton manquant**.
+
+### 🔴 N3 — le bouton « Se connecter » de `/login` disait « Envoyer le lien » ✅ **corrigé**
+
+`login.submit` valait « Envoyer le lien » / « Send the link » / « Link senden » /
+« Enviar el enlace » / « Invia il link » — dans les **cinq** langues. C'est le
+bouton principal de la page de connexion. La clé est aussi réutilisée comme lien
+« retour à la connexion » par **sept** gabarits (`reset-password`,
+`forgot-password`, `leaderboard`, `person-booking` ×2, `machine-detail`,
+`_calendar_booking`), où elle rendait « Vous avez déjà un compte ? Envoyer le lien ».
+
+⚠️ **Aucun contrôle statique ne pouvait le voir** : la clé existe, la parité des
+cinq catalogues est complète, le lint passe. Il fallait regarder le bouton.
+Corrigé en « Se connecter » / « Sign in » / « Anmelden » / « Iniciar sesión » /
+« Accedi ». `forgot.submit` reste « Envoyer le lien » — c'est son vrai bouton.
+
+### 🔴 N4 — `/forgot-password` se contredisait ✅ **corrigé**
+
+Le sous-titre disait « Contactez un administrateur du FabLab : il peut
+réinitialiser votre mot de passe depuis la console d'administration » — dans les
+cinq langues — alors que la page porte juste en dessous le formulaire libre-service
+que S134g lui a donné. Texte d'avant la fonctionnalité. Réécrit dans les cinq langues.
+
+### 🔴 N5 — les écrans de mur : une icône sans taille, mesurée à 1665 px ✅ **corrigé**
+
+`kiosk.css` (79 lignes) ne définissait pas `.ic`, et les gabarits kiosque sont
+autonomes : ils ne chargent pas `components.css`, où vit `.ic { width: 1em }`
+(S148, J-7). Un SVG sans dimension intrinsèque s'étire à la largeur de son parent.
+Mesuré à 1920 × 1080 :
+
+| écran | avant | après |
+|---|---|---|
+| `/kiosk/events` — épingle de lieu | **1665 × 1665 px** | 35 × 35 px |
+| `/kiosk/events` — carte à la une | **1982 px de haut** pour 1080, soit **902 px coupés** | 310 px |
+| `/kiosk/machine/{id}` — épingle | **289 × 289 px**, page 1115 px | 33 × 33 px, page 1080 px |
+
+Le lieu, « 12 places » et les deux événements suivants étaient dans le DOM et
+**invisibles sur le mur**. C'est exactement la faute que J-7 avait corrigée une
+fois — elle rejoue partout où la feuille qui porte le correctif n'est pas chargée.
+
+✅ `/kiosk/entries` et `/kiosk/stats` étaient propres à 1920 × 1080.
+
+### 🔴 N6 — « Derniers passages » annonçait des passages du 10 juillet ✅ **corrigé**
+
+`/kiosk/entries` n'affichait que `H:i`, sans date. Le dernier passage du journal
+RFID date du **2026-07-10** (vérifié en base). Le mur les annonçait « 10:41 »,
+donc de ce matin, pendant que l'écran voisin `/kiosk/stats` affichait
+**« 0 PASSAGES AUJOURD'HUI »**. Deux murs côte à côte qui se contredisent.
+Un passage qui n'est pas du jour porte maintenant son jour (« 10/07 10:41 »).
+
+⚠️ Reste ouvert : `KioskController::stats()` enveloppe chaque compte dans
+`catch(\Throwable) → return 0`. Une requête cassée s'affiche comme un zéro sur le
+mur, et rien ne le dit.
+
+---
+
+## Ce qui a été mesuré et qui est PROPRE
+
+| Mesure | Résultat |
 |---|---|
-| `/reset-password` | la carte a bien une surface, une ombre, un centrage |
-| `/forgot-password` | rien n'a bougé (les 31 règles ont changé de fichier) |
-| `/profil/mot-de-passe` | plus de gouttière vide à gauche des trois champs |
-| `/kiosk/events`, `/kiosk/machine/{id}`, `/kiosk/entries`, `/kiosk/stats` | les 4 écrans de mur après le passage aux jetons `--k-*` |
-| `/register` | la phrase d'acceptation dans les cinq langues |
-| `/machines/{id}` (machine indisponible) | la pastille remplace bien le bouton mort |
+| débordement horizontal à 375 px | **0** sur 27 pages publiques (`scrollWidth` 365 partout) |
+| débordement horizontal à 1280 px | **0** sur les 59 pages admin |
+| contrôles `disabled` | **0** sur les 59 pages admin |
+| contraste des pastilles d'état, thème clair | Occupée **6,70** · Libre **5,02** · Hors service **6,47** |
+| contraste des pastilles d'état, thème sombre | **8,35** · **10,72** · **7,93** |
+| jetons CSS manquants après correction | **0** sur 27 pages |
+| carte d'authentification | 452 px, centrée, surface, ombre `0 10px 20px rgba(0,0,0,.15)`, rayon 8, rembourrage 64 |
+| balayage des routes après déploiement | **106 pages**, 0 échec réel (`/.well-known/fabos` rend `{"status":"unconfigured"}` en 503 volontairement, `/login/oidc/callback` exige des paramètres) |
 
-### Les parcours à chronométrer en clics
+**`/profil/password` — les trois champs ne sont pas anonymes.** Chacun porte
+`aria-labelledby` + `aria-describedby` vers son `<h4>` et son `<p>`. La correction
+S149 tient. ⚠️ Mon premier sondage cherchait `label[for]` et les a comptés fautifs :
+**faux positif, réfuté avant d'être compté** — la règle de
+[[feedback-fabos-verify-pixels]] a servi une fois de plus.
 
-1. Anonyme → réserver une machine : `/` → `/machines` → `/machines/{id}` → créneau
-2. Membre → s'inscrire à un événement : `/` → `/events` → `/events/{id}` → inscription
-3. Membre → retrouver ses réservations et en annuler une
-4. Membre verrouillé dehors → `/login` → `/forgot-password` → e-mail → `/reset-password`
-5. Opérateur → créer une machine et la rendre réservable
-6. Opérateur → ouvrir un accès exceptionnel à un membre
+**`/register` — la phrase d'acceptation est complète dans les cinq langues**, et
+les deux liens pointent bien sur `/conditions-utilisation` et `/confidentialite`,
+dans une couleur distincte du texte.
 
-### Les mesures qui ne se lisent pas
+**L'éditeur de packages — le repli marche.** 5 `<details>`, **tous repliés à
+l'arrivée** (52 px de haut chacun), et les quatre éditeurs portent `open` quand
+leur formulaire vient d'être refusé (`refusedEditor`). La question « se
+rouvrent-ils sur un refus » est répondue : oui.
 
-- contraste réel des pastilles d'état sur les deux thèmes ;
-- 375 px : rien ne déborde, aucun défilement horizontal ;
-- focus clavier visible sur **chaque** contrôle du parcours 1 ;
-- les quatre écrans kiosque à leur taille réelle (tout est en `vw`/`vh`) ;
-- J-25 : un membre non-admin peut-il enfin réserver ? *(décision opérateur, pas du code)*
-- **la largeur des cartes de formulaire** : Fabman tient son plus gros formulaire
-  dans ~350 pt ; les nôtres s'étirent-ils à la largeur de l'écran ? (mesurer
-  `admin-event-new`, `_material_form`, `admin-usage-package-form`)
-- **le repli des packages** : les quatre `<details>` s'ouvrent-ils bien, et se
-  rouvrent-ils sur un refus ?
+---
+
+## 🅿️ Ce que la passe a trouvé et qui RESTE — décisions, pas des bugs
+
+### 🔴 R1 — les libellés des formulaires admin sont du français en dur
+Rendu de `/admin/events/new` **en anglais** : « Titre », « Début »,
+« Fin (optionnelle) », « Nom du lieu », « Où se déroule l'événement ? » — **15 des
+16 étiquettes en français**. `/admin/materials/new` : 20 sur 20.
+Compté dans `src/Form/` : **148 libellés littéraux contre 117 clés de catalogue**,
+sur **42 classes `FormType`**. `debug:translation` ne lit pas ce PHP, donc rien ne
+le signale. `/admin/usage-rights/new` montre que le contraire se fait très bien.
+
+### 🔴 R2 — la largeur des cartes de formulaire : 888 px là où Fabman tient en ~350 pt
+**22 formulaires admin** ont leur champ le plus large à 888 px, c'est-à-dire toute
+la largeur du panneau. Aucun n'a de largeur maximale. C'est la mesure que la
+section « qualité des formulaires » attendait.
+
+### 🔴 R3 — le repli n'existe que sur 4 pages admin sur 59
+Champs visibles **à l'arrivée**, mesurés dans le navigateur :
+`/admin/homepage` **35** · `/admin/horaires` **31** · `/admin/machines/new` **26**
+· `/admin/materials/new` **20** · `/admin/maintenance/batch` 16 ·
+`/admin/events/new` 15 · `/admin/utilisateurs/new` 14 · `/admin/features` 14.
+Aucun `<details>` sur ces huit écrans.
+
+### ⚠️ R4 — `/lab` : le point d'arrivée d'une entrée de menu ne mène nulle part
+Le menu « Fablab » propose **sept** destinations (Machines, Espaces, Matériaux,
+Prêts, Maintenance, Équipe, Formateurs). Sa page d'atterrissage `/lab`, celle
+qu'on obtient en **cliquant** au lieu de survoler, fait 326 px de haut, montre
+**trois** liens (`/lab/3`, `/lab/4`, `/lab/5`) et **ne mentionne pas Machines**.
+Un visiteur qui clique perd le menu.
+
+### ⚠️ R5 — deux mots pour le même état de machine
+La liste dit « Hors service » (`machines.state_down`), la fiche dit
+« En maintenance » (`machines.st_maintenance`) — même machine (id 7), deux mots.
+Ce sont deux faits différents (réservabilité vs statut) ; pour un membre c'est une
+machine et deux vocabulaires.
+
+### ⚠️ R6 — la pastille « Indisponible » de S149 est inatteignable
+`machine-detail.html.twig` teste `usageRight.allowed` **avant** l'indisponibilité.
+Un anonyme sur une machine en maintenance lit donc « Se connecter pour réserver » ;
+un membre sans package lit le verdict de son package. La branche `_cell_state`
+n'apparaît que pour un membre qui a un package **et** une machine indisponible —
+c'est-à-dire personne, tant que J-25 n'est pas tranché.
+
+### ⚠️ R7 — quatre façons de dire « connectez-vous » sur un seul écran
+`/machines/5` en anonyme affiche « Connectez-vous pour consulter et utiliser vos
+droits d'usage », « Connexion requise », « Se connecter pour réserver » et
+« Connectez-vous pour créer une réservation et vérifier vos badges ».
+
+### ⚠️ R8 — le champ de recherche de l'en-tête fait 89 px à 375 px
+Cinq caractères visibles.
+
+### ⚠️ R9 — `/profil/password` : 500 px entre une étiquette et son champ
+La ligne « réglage » met le libellé à x=32 et son champ à x=1021. Le motif vient
+de Fabman (« valeur + Change »), mais Fabman y met une valeur et un bouton, pas un
+champ de saisie. Et la page rendue en anglais affiche « Compte: Yanis Test ».
+
+---
+
+## Les parcours en clics
+
+Marchés **dans le navigateur**, en anonyme :
+
+1. **Anonyme → réserver une machine.** Accueil → (survol) Fablab → Machines (1) →
+   la fiche (2) → « Se connecter pour réserver » (3) → `/login`. ✅ `use_referer:
+   true` ramène ensuite sur la fiche, donc **3 clics jusqu'au mur d'authentification
+   et rien à re-trouver après**. ⚠️ Si le visiteur **clique** « Fablab » au lieu de
+   le survoler, il atterrit sur `/lab` (R4) et doit repartir par le pied de page.
+2. **Membre → s'inscrire à un événement.** Accueil → Au programme → l'événement →
+   inscription : **3 clics** jusqu'au bouton, mur d'authentification identique.
+
+⚠️ **Non marchés, et il faut le dire :** les parcours 3 à 6 (annuler une
+réservation, le tour complet mot de passe oublié, et les deux parcours opérateur)
+demandent un compte. Ils ne sont pas comptés ici — les compter sur le code serait
+exactement l'erreur que cette moitié existe pour éviter.
 
 ---
 
 ## Verdict
 
-**Non prononçable en l'état.** La moitié lisible est propre et 16 défauts réels en
-sont sortis — dont trois qui touchaient des pages qu'un membre rencontre au pire
-moment : l'inscription, le mot de passe oublié, le changement de mot de passe.
-La moitié visible n'a pas été regardée une seule fois.
+**La Phase J tient sur ce qui se voit, une fois ces six défauts corrigés.**
+
+La passe navigateur a sorti **six défauts réels, tous corrigés et déployés**, dont
+deux qui cassaient l'usage pour de bon : personne ne pouvait atteindre le
+formulaire de connexion depuis le réseau de l'école, et le mur des événements
+cachait 902 px de son contenu. Aucun des deux n'était visible dans le balisage —
+le premier était un en-tête HTTP, le second une règle CSS absente d'une feuille.
+
+Ce qui reste (R1 → R9) est **du travail identifié, chiffré, et rien n'y est
+cassé** : des formulaires trop larges et trop longs, des libellés admin qui ne se
+traduisent pas, un vocabulaire à unifier. Ce sont des décisions de design, pas des
+correctifs en attente.
+
+🔴 **La seule chose qui empêche encore un membre d'utiliser le produit reste
+J-25**, et c'est une décision opérateur : aucun membre ne peut réserver tant
+qu'aucun package n'est attribué.

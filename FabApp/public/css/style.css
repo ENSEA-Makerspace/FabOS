@@ -98,11 +98,26 @@
     --spacing-lg: 24px;
     --spacing-xl: 32px;
     --spacing-2xl: 48px;
+    /* 🔴 **S151 — `--spacing-3xl` était utilisé et défini nulle part.** Deux règles
+       de `login-register.css` s'en servaient : `.auth-section { padding: var(--spacing-3xl) 0 }`
+       et `.auth-card { padding: var(--spacing-3xl) }`. Une `var()` sans repli et sans
+       définition rend la déclaration invalide — mesuré à l'écran sur /forgot-password :
+       le rembourrage de la carte valait **0 px** et le champ e-mail touchait le bord.
+       Le barème continue en doublant l'écart précédent (32 → 48 → 64). */
+    --spacing-3xl: 64px;
     
     /* Typographie */
     --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    /* 🔴 **S151 — `--font-size-xs` et `--font-size-md` manquaient aussi.** 21 usages du
+       premier (pastilles, étiquettes de niveau, textes de progression) et 13 du second
+       rendaient donc à la taille HÉRITÉE. `--font-size-md` n'existait que dans
+       `calendar-fix.css`, que la plupart des pages ne chargent pas : il garde ici la
+       même valeur, l'alias de 16px, pour que ce fichier ne devienne pas une seconde
+       source de vérité. */
+    --font-size-xs: 12px;
     --font-size-sm: 14px;
     --font-size-base: 16px;
+    --font-size-md: var(--font-size-base);
     --font-size-lg: 18px;
     --font-size-xl: 20px;
     --font-size-2xl: 24px;
@@ -2353,6 +2368,8 @@ img, svg {
         --spacing-lg: 16px;
         --spacing-xl: 24px;
         --spacing-2xl: 32px;
+        /* S151 : le barème descend d'un cran sous 576 px, `3xl` suit. */
+        --spacing-3xl: 40px;
     }
     
     .hero-buttons {

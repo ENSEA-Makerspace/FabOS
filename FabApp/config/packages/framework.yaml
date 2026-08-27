@@ -5,6 +5,17 @@ framework:
     # Note that the session will be started ONLY if you read or write from it.
     session: true
 
+    # 🔴 **S151, passe navigateur — sans ceci, toute redirection part en `http://`.**
+    # Mesuré sur la boîte : `GET https://fabos.dstei.fr/profil` répondait
+    # `302 Location: http://fabos.dstei.fr/login`, et sur le réseau de l'école le
+    # filtre FortiGuard bloque le http : un membre déconnecté n'atteignait JAMAIS le
+    # formulaire de connexion, il voyait « Web Page Blocked ».
+    # 192.168.100.20 est l'adresse du proxy (NPM, CT 200) telle que l'app la voit
+    # dans le journal de `fabos.service` — et pas `REMOTE_ADDR`, qui ferait
+    # confiance à n'importe qui sur le LAN puisque le :8000 y est joignable.
+    trusted_proxies: '192.168.100.20'
+    trusted_headers: ['x-forwarded-for', 'x-forwarded-host', 'x-forwarded-proto', 'x-forwarded-port', 'x-forwarded-prefix']
+
     #esi: true
     #fragments: true
 
