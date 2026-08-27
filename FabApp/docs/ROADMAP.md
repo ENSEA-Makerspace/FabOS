@@ -160,8 +160,16 @@ image. Elles vivent dans `templates/site/_event_placeholder.html.twig`.
 🅿️ **Ce qui reste de cette moitié** : téléverser SES propres logos pour qu'ils
 entrent dans le tirage. Ça demande une table, donc une migration, donc l'opérateur
 — et ça se décide après avoir jugé les six.
-🅿️ **Et la seconde moitié** — le regroupement par mois — est décrite dans la même
-section mais pas encore construite.
+✅ **La seconde moitié aussi** — le regroupement par mois est un spécimen dans la
+même section, rendu avec les VRAIES classes du catalogue. « AOÛT · 1 événement »
+puis « SEPTEMBRE · 4 » : la hauteur des blocs dit le volume avant le compte.
+🔴 **La question à trancher n'est pas graphique** : `/events` passe par
+`_catalogue.html.twig`, partagé avec six autres listes. Un en-tête de mois veut
+dire soit une grille PAR mois (le spécimen — et les cartes du dernier mois ne
+s'alignent plus sur le précédent), soit un `grid-column: 1 / -1` dans une grille
+unique, qui garde l'alignement mais demande au shell une notion de « séparateur »
+qu'aucune autre liste n'a. ⚠️ Et le regroupement ne vaut que pour les objets
+DATÉS : une machine n'a rien à regrouper.
 
 
 

@@ -83,7 +83,14 @@ compteur manquait sur **deux** replis, pas cinq — trois n'ont rien à compter 
 `site/base_public.html.twig` — la seule page publique dans ce cas, sur 29 balayées.
 Vérifié en ligne, et re-balayage de 31 pages : 0 sans coquille.
 
-🅿️ **Nouveau, consigné le 2026-08-27 : une proposition d'écran « événements »**
+✅ **La proposition d'écran « événements » est REGARDABLE : `/admin/design#evenements`.**
+Six affiches de remplacement tirées de façon stable (`id % 6`), et le regroupement
+par mois en spécimen. ✅ La question « dark/light » s'annule : en dessinant plutôt
+qu'en téléversant, un seul fichier suit les deux thèmes (mesuré). 🅿️ Restent deux
+décisions : téléverser SES logos (une table, donc une migration), et le choix entre
+« une grille par mois » et « un séparateur dans la grille partagée ».
+
+🅿️ **Consigné le 2026-08-27 : une proposition d'écran « événements »**
 d'après trois captures de **Fabmanager** (⚠️ pas Fabman — seconde source, décrite
 dans `Stage/Drive/Images/Fabmanager UI/README.md`). Dates fortes, regroupement par
 mois qui montre le volume, et **plusieurs logos de remplacement tirés au sort** —
