@@ -124,6 +124,35 @@ final class NavBuilder
      *
      * @return list<array{label: string, translate: bool, route: string, params: array<string, mixed>, child: bool}>
      */
+    /**
+     * Les enfants du groupe d'en-tête qui atterrit sur `$route`.
+     *
+     * 🔴 **S151, R4 — `/lab` montrait TROIS des sept destinations de son menu.**
+     * Le menu « Fablab » propose Machines, Espaces, Matériaux, Prêts, Maintenance,
+     * Équipe et Formateurs ; sa page d'atterrissage ne listait que les pages
+     * personnalisées du lab, soit trois liens sur 326 px de haut, et **ne mentionnait
+     * pas Machines**. Un visiteur qui CLIQUE l'entrée au lieu de la survoler perdait
+     * le menu.
+     *
+     * ⚠️ **Une seule source, pas une seconde liste.** Le gabarit aurait pu écrire les
+     * sept liens à la main ; ils auraient divergé au premier ajout, et une
+     * fonctionnalité désactivée serait restée offerte — `item()` filtre déjà par
+     * `feature` et par rôle. On relit donc le menu réel plutôt que de le recopier :
+     * ce que la page propose ne peut pas différer de ce que le menu propose.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function groupChildren(string $route): array
+    {
+        foreach ($this->header() as $node) {
+            if (($node['kind'] ?? null) === 'group' && ($node['route'] ?? null) === $route) {
+                return $node['items'];
+            }
+        }
+
+        return [];
+    }
+
     public function footer(): array
     {
         $items = [

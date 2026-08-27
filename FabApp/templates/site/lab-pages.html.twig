@@ -4,7 +4,13 @@
 
 {% block page_styles %}
     <style>
-        .lab-page { padding: 0 0 48px; }
+        /* 🔴 **S151 — le raccourci `padding` écrasait celui de `.container`.**
+           `.lab-page` est posée SUR le `<main class="container lab-page">`, et
+           `padding: 0 0 48px` remet les gouttières horizontales à zéro : tout le
+           contenu de la page touchait le bord gauche de la fenêtre (mesuré : main
+           à x=0 sur 1270 px, alors que `.container` donne 24 px de chaque côté).
+           Écrire les deux côtés qu'on veut vraiment changer, pas le raccourci. */
+        .lab-page { padding-top: 0; padding-bottom: 48px; }
         .lab-catalog-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -14,18 +20,29 @@
         .lab-catalog-card {
             display: block;
             padding: 20px; border-radius: 14px;
-            background: rgba(158, 27, 86, 0.05); border: 1px solid rgba(158, 27, 86, 0.12);
+            background: var(--tone-primary-soft); border: 1px solid var(--border-color);
             transition: transform .15s ease, box-shadow .15s ease;
         }
-        .lab-catalog-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(158, 27, 86, 0.15); }
+        .lab-catalog-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
         .lab-catalog-card-link { display: block; text-decoration: none; color: inherit; }
         .lab-catalog-card h2 { font-size: 18px; margin: 0 0 8px; }
         .lab-catalog-card p { font-size: 14px; color: var(--color-text-light); margin: 0; }
         .lab-catalog-children { list-style: none; margin: 10px 0 0; padding: 0; }
         .lab-catalog-children li { margin-top: 4px; }
-        .lab-catalog-children a { font-size: 13px; color: #9E1B56; text-decoration: none; }
+        .lab-catalog-children a { font-size: 13px; color: var(--color-primary-text); text-decoration: none; }
         .lab-catalog-children a:hover { text-decoration: underline; }
         .lab-empty { text-align: center; color: var(--color-text-light); padding: 40px 0; }
+        /* Les destinations du menu : une grille plus dense que les pages
+           éditoriales, parce qu'un lien de navigation n'a pas de résumé à porter. */
+        .lab-dest-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-top: 20px; }
+        .lab-dest {
+            display: block; padding: 14px 16px; border-radius: 12px;
+            background: var(--theme-surface); border: 1px solid var(--border-color);
+            text-decoration: none; color: var(--color-text); font-weight: 600;
+            transition: border-color .15s ease, transform .15s ease;
+        }
+        .lab-dest:hover { border-color: var(--color-primary); transform: translateY(-2px); }
+        .lab-section-title { margin: 32px 0 0; font-size: var(--font-size-lg); }
     </style>
 {% endblock %}
 
@@ -35,6 +52,30 @@
         <p>{{ 'lab.subtitle'|trans }}</p>
     </section>
     <main id="main-content" tabindex="-1" class="container lab-page">
+        {# 🔴 **S151, R4 — cette page montrait TROIS des sept destinations de son menu.**
+           Le menu « Fablab » propose Machines, Espaces, Matériaux, Prêts, Maintenance,
+           Équipe et Formateurs ; la page ne listait que les pages éditoriales du lab —
+           trois liens sur 326 px de haut — et **ne mentionnait pas Machines**. Un
+           visiteur qui CLIQUE l'entrée au lieu de la survoler perdait le menu et devait
+           repartir par le pied de page.
+
+           ⚠️ **La liste vient du menu réel** (`NavBuilder::groupChildren`), pas d'une
+           seconde liste écrite ici : elle aurait divergé au premier ajout, et une
+           fonctionnalité désactivée serait restée offerte — `item()` filtre déjà par
+           `feature` et par rôle.
+           ⚠️ Les entrées `app_lab_page` sont retirées : ce sont les pages éditoriales,
+           qui ont déjà leur grille juste en dessous avec leur résumé. Les lister deux
+           fois ferait de la page un doublon d'elle-même. #}
+        {% set _dest = menuDestinations|default([])|filter(d => d.route != 'app_lab_page') %}
+        {% if _dest is not empty %}
+            <h2 class="lab-section-title">{{ 'lab.explore'|trans }}</h2>
+            <div class="lab-dest-grid">
+                {% for d in _dest %}
+                    <a class="lab-dest" href="{{ path(d.route, d.params) }}">{{ d.translate ? d.label|trans : d.label }}</a>
+                {% endfor %}
+            </div>
+            <h2 class="lab-section-title">{{ 'lab.pages'|trans }}</h2>
+        {% endif %}
         {% if topLevelPages is empty %}
             <p class="lab-empty">{{ 'lab.no_pages'|trans }}</p>
         {% else %}

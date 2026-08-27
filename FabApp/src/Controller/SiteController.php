@@ -19,6 +19,7 @@ use App\Repository\EventRegistrationRepository;
 use App\Repository\EventCategoryRepository;
 use App\Repository\EventRepository;
 use App\Repository\FormationRepository;
+use App\Nav\NavBuilder;
 use App\Repository\LabPageRepository;
 use App\Repository\LogUtilisationRepository;
 use App\Repository\PlaceRepository;
@@ -1707,10 +1708,15 @@ final class SiteController extends AbstractController
     }
 
     #[Route('/lab', name: 'app_lab_pages', methods: ['GET'])]
-    public function labPages(LabPageRepository $labPages): Response
+    public function labPages(LabPageRepository $labPages, NavBuilder $nav): Response
     {
         return $this->render('site/lab-pages.html.twig', [
             'topLevelPages' => $labPages->findTopLevelLive(),
+            // 🔴 **S151, R4 — la page ne montrait que les pages du lab.** Le menu
+            // « Fablab » propose sept destinations ; celle-ci en listait trois, et
+            // pas Machines. On relit le menu réel plutôt que d'écrire une seconde
+            // liste qui divergerait — voir `NavBuilder::groupChildren()`.
+            'menuDestinations' => $nav->groupChildren('app_lab_pages'),
         ]);
     }
 
