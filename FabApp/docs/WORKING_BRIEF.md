@@ -84,9 +84,24 @@ compteur manquait sur **deux** replis, pas cinq — trois n'ont rien à compter 
    `textarea` d'avant avait : coller huit étapes d'un coup, et réordonner en
    déplaçant des lignes. Le codeur argumente l'échange ; le choix est le vôtre.
 
-**Prochain travail** : 🅿️ **R1 → R9** de la passe navigateur (`S149-REVUE.md`), si
-on veut viser « première classe » — 42 `FormType` aux libellés français en dur,
-22 formulaires larges de 888 px, le repli absent de 55 des 59 pages admin.
+✅ **R2 fait le 2026-08-27 : la largeur des formulaires admin.** 22 écrans
+rendaient leur champ le plus large à 888 px ; `.admin-edit-form` porte maintenant
+`--form-measure: 720px`, ce qui donne **351 px par colonne** — la mesure de Fabman.
+19 des 20 écrans mesurés plafonnent, et les deux tableaux gardent leurs 888 px
+parce que ce sont les MEUBLES du formulaire qui sont bornés, pas le formulaire.
+
+✅ **Et la sonde admin exécute enfin le JavaScript** : en miroitant les 14 fichiers
+de l'`importmap` dans le dossier servi localement (les chemins sont racine-relatifs
+dans du JSON, et les assets n'ont pas de CORS). Prouvé sur `/admin/events/new` :
+`repeatCount` se montre quand on met `repeatEvery` sur « chaque semaine ».
+
+**Prochain travail** : 🅿️ **R3** — le repli. Deux écrans gagnés par la paire D
+(machines 26 → 18 à l'arrivée, matériaux 20 → 18). Ce qui reste vraiment, c'est
+**six formulaires d'entité** (`events/new` 15, `utilisateurs/new` 14,
+`formations/new` 12, `creations/new`, `loans/new`, `places/new`) — et **pas** les
+quatre grilles de contrôles (`homepage` 35, `horaires` 31, `maintenance/batch`,
+`features`), qui sont des matrices : les replier les cacherait sans les raccourcir.
+Puis **R1** (42 `FormType` aux libellés français en dur) et R4 → R9.
 
 ## État du dépôt
 

@@ -527,17 +527,62 @@ Compté dans `src/Form/` : **148 libellés littéraux contre 117 clés de catalo
 sur **42 classes `FormType`**. `debug:translation` ne lit pas ce PHP, donc rien ne
 le signale. `/admin/usage-rights/new` montre que le contraire se fait très bien.
 
-### 🔴 R2 — la largeur des cartes de formulaire : 888 px là où Fabman tient en ~350 pt
-**22 formulaires admin** ont leur champ le plus large à 888 px, c'est-à-dire toute
-la largeur du panneau. Aucun n'a de largeur maximale. C'est la mesure que la
-section « qualité des formulaires » attendait.
+### ✅ R2 — la largeur des cartes de formulaire (fait le 2026-08-27)
+**22 formulaires admin** rendaient leur champ le plus large à 888 px — toute la
+largeur du panneau — parce que `.form-grid` s'étirait et que `.form-field input`
+est à `width: 100%`. Aucun n'avait de largeur maximale.
 
-### 🔴 R3 — le repli n'existe que sur 4 pages admin sur 59
-Champs visibles **à l'arrivée**, mesurés dans le navigateur :
-`/admin/homepage` **35** · `/admin/horaires` **31** · `/admin/machines/new` **26**
-· `/admin/materials/new` **20** · `/admin/maintenance/batch` 16 ·
-`/admin/events/new` 15 · `/admin/utilisateurs/new` 14 · `/admin/features` 14.
-Aucun `<details>` sur ces huit écrans.
+`.admin-edit-form` porte maintenant `--form-measure: 720px`, appliqué à ses
+meubles : la grille, les titres de section, les replis, la rangée d'actions et les
+`.form-field` posés en enfants directs. 720 moins la gouttière de 18 px donne
+**351 px par colonne** — la mesure de Fabman, retrouvée par le calcul et pas par
+approximation.
+
+⚠️ **Ce sont les meubles qui sont bornés, pas le formulaire**, et c'est ce qui rend
+la règle sûre : un tableau dans un `<form>` — la semaine d'horaires, le programme,
+la maintenance en lot — n'a aucune de ces classes. Vérifié AVANT d'écrire la règle :
+sur les 20 formulaires les plus lourds, **aucune `.form-grid` ne contient de
+tableau**, et les deux tableaux qui existent sont en dehors.
+
+Mesuré après : **19 des 20** écrans plafonnent à 720 px, les champs à deux colonnes
+à 351 px, et les deux tableaux gardent leurs **888 px**. Le vingtième est
+`/admin/settings`, qui n'est pas un `.admin-edit-form` mais une page de réglages en
+`settings-card` — une autre famille, hors du périmètre de R2.
+⚠️ Le balayage a aussi montré l'écran que la première version de la règle ratait :
+`/admin/places/new` pose ses `.form-field` en enfants **directs** du formulaire,
+sans grille. Écrire la règle et ne pas re-mesurer l'aurait laissé seul à 888 px.
+
+### 🅿️ R3 — le repli : deux écrans gagnés, et le vrai périmètre de ce qui reste
+Re-mesuré le 2026-08-27, avec un test de visibilité corrigé (⚠️ un champ dans un
+`<details>` fermé garde un rectangle non nul : il faut remonter les ancêtres, pas
+lire `getBoundingClientRect`) :
+
+| écran | champs | à l'arrivée | repliés |
+|---|---|---|---|
+| `/admin/machines/new` | 26 | **18** | 8 |
+| `/admin/materials/new` | 20 | **18** | 2 |
+| `/admin/loanable-items/new` | 8 | 6 | 2 |
+| `/admin/settings` | 11 | 9 | 2 |
+
+Les deux premiers viennent de la paire D : appliquer le motif `SECTIONS` a replié
+huit champs sur les machines sans qu'on l'écrive écran par écran.
+
+**Ce qui reste vraiment à replier — et ce qui n'a rien à y faire.** Sur les écrans
+encore à plat, il faut séparer deux familles :
+- des **formulaires d'entité** : `/admin/events/new` (15), `/admin/utilisateurs/new`
+  (14), `/admin/formations/new` (12), `/admin/creations/new` (9),
+  `/admin/loans/new` (9), `/admin/places/new` (8). Ceux-là veulent le motif
+  `SECTIONS`, comme machine et matériau.
+- des **grilles de contrôles**, qui n'en veulent pas : `/admin/homepage` (35),
+  `/admin/horaires` (31), `/admin/maintenance/batch` (16), `/admin/features` (14)
+  sont des tableaux ou des matrices d'interrupteurs. Replier une matrice ne la
+  raccourcit pas, ça la cache. Les compter comme « à replier » gonflerait le
+  travail de quatre écrans qui n'ont pas ce défaut.
+
+🔴 **Et la conversion de `/admin/events/new` demande de déplacer du câblage
+Stimulus dans le `FormType`** (`repeatEvery` → `repeatCount`), parce que la boucle
+partagée appelle `form_row(form[name])` sans options. C'est faisable — et depuis
+aujourd'hui c'est aussi **vérifiable** : voir la note de méthode ci-dessous.
 
 ### ⚠️ R4 — `/lab` : le point d'arrivée d'une entrée de menu ne mène nulle part
 Le menu « Fablab » propose **sept** destinations (Machines, Espaces, Matériaux,
@@ -571,6 +616,30 @@ Cinq caractères visibles.
 La ligne « réglage » met le libellé à x=32 et son champ à x=1021. Le motif vient
 de Fabman (« valeur + Change »), mais Fabman y met une valeur et un bouton, pas un
 champ de saisie. Et la page rendue en anglais affiche « Compte: Yanis Test ».
+
+---
+
+## ✅ La sonde admin exécute maintenant le JavaScript (2026-08-27)
+
+La recette « admin sans authentification » rendait les pixels mais pas le
+comportement : `window.Stimulus` était `false` dans la copie locale. La cause est
+dans l'`importmap`, qui liste des chemins **racine-relatifs** (`/assets/app-…js`)
+à l'intérieur d'un `<script type="importmap">` — que la réécriture `href="/` et
+`src="/` ne touche pas, parce que ce sont des valeurs JSON.
+
+Servir ces modules depuis `https://fabos.dstei.fr` ne marche pas non plus : les
+assets ne portent **aucun en-tête `Access-Control-Allow-Origin`**, et un module ES
+d'une autre origine est bloqué. La réponse qui marche est de **miroiter** les
+14 fichiers de l'`importmap` dans le dossier servi localement — même origine, plus
+de CORS.
+
+Prouvé sur `/admin/events/new` : `repeatCount` arrive avec `display: none` parce que
+`repeatEvery` vaut `none` ; on met le `<select>` sur `week`, on émet `change`, et le
+champ passe à `display: block`. C'est le contrôleur `conditional-field` qui tourne
+pour de vrai, pas un attribut qu'on lit.
+
+⚠️ **Lire le résultat dans un appel SÉPARÉ** — le volet rend des styles calculés
+périmés d'un appel de retard.
 
 ---
 

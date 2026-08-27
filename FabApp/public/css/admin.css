@@ -47,6 +47,41 @@
 .admin-edit-panel-header h2 { margin: 0 0 6px; font-size: 22px; }
 .admin-edit-panel-header p { margin: 0; color: #6b7280; }
 .admin-edit-form { padding: 24px; }
+
+/* ===================================================================
+   LA MESURE D'UN FORMULAIRE (S151, R2)
+
+   🔴 **Aucun formulaire admin n'avait de largeur maximale.** Mesuré dans le
+   navigateur sur les 59 pages : **22 formulaires** rendaient leur champ le plus
+   large à **888 px** — toute la largeur du panneau — parce que `.form-grid`
+   s'étirait et que `.form-field input` est à `width: 100%`. Un champ « Nom » de
+   888 px n'aide personne à le lire ; Fabman tient son plus GROS formulaire dans
+   ~350 pt par colonne, et c'est cette mesure-là qu'on reprend.
+
+   720 px n'est pas un chiffre rond posé au hasard : moins la gouttière de 18 px,
+   il donne exactement **351 px par colonne** sur la grille à deux colonnes.
+
+   ⚠️ **Ce sont les MEUBLES du formulaire qui sont bornés, pas le formulaire.**
+   Un tableau à l'intérieur d'un `<form>` — la semaine d'horaires, le programme
+   d'une formation, les lignes de la maintenance en lot — a besoin de toute la
+   largeur, et il n'a aucune de ces classes : il n'est pas touché. Vérifié avant
+   d'écrire la règle : sur les 20 formulaires les plus lourds, **aucune
+   `.form-grid` ne contient de tableau**, et les deux tableaux qui existent sont
+   en dehors.
+
+   ⚠️ `max-width` et non `width` : sous 720 px de place, la grille reprend son
+   comportement fluide et le point de rupture à une colonne continue de marcher.
+   =================================================================== */
+.admin-edit-form { --form-measure: 720px; }
+.admin-edit-form .form-grid,
+.admin-edit-form .form-section,
+.admin-edit-form .form-actions,
+.admin-edit-form > details,
+/* ⚠️ `/admin/places/new` pose ses `.form-field` en enfants DIRECTS du formulaire,
+   sans grille : sans cette ligne il restait le seul écran à 888 px après la
+   correction, et le balayage l'a montré. */
+.admin-edit-form > .form-field { max-width: var(--form-measure); }
+
 .form-grid { display: grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap: 18px; }
 .form-field.full { grid-column: 1 / -1; }
 /* ⚠️ **S149, règle 5 — le mot « requis », gris et discret, après l'étiquette.**
