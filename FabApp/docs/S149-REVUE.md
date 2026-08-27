@@ -303,11 +303,20 @@ ont rendu NOT YET**, et les deux pires trouvailles étaient EN LIGNE.
 Tout ce qui suit était écrit ici comme « reste à faire » ; c'est corrigé, déployé
 et mesuré à l'écran. Voir la section « Paire D » plus bas.
 
-**Paire C — la règle 4 sur `/admin/emails` est calculée et jamais affichée.**
-Trois horizons sont calculés dans le contrôleur, passés à la vue, et le gabarit
-n'en rend aucun. ⚠️ Quand on le câblera : l'horizon des prêts est un `setTime(0,0)`
-dans le fuseau serveur — rendu par `|lab_date()` il lira *02:00* en été. L'écrire
-comme une DATE, pas une heure.
+**Paire C — ✅ FAIT le 2026-08-27 : la règle 4 sur `/admin/emails`.**
+Les trois horizons étaient calculés, passés à la vue, et le gabarit n'en rendait
+aucun — pendant que son commentaire d'en-tête décrivait la ligne de conséquence
+comme si elle existait. Elles s'affichent maintenant sous chaque délai :
+« La prochaine passe rappellera les réservations qui commencent d'ici le 28/08 à
+15:18 », « … les prêts à rendre jusqu'au 29/08/2026 inclus ».
+⚠️ **L'horizon des prêts est rendu comme une DATE**, pas une heure : il vaut
+`setTime(0,0)` en UTC, donc avec une heure il aurait affiché *02:00* en été — une
+heure que personne n'a choisie. Le scanner compare des dates ; la phrase aussi.
+⚠️ **Et la phrase suit l'état du FORMULAIRE**, comme les délais : un rappel décoché
+affiche « Ce rappel est désactivé : la prochaine passe n'enverra rien » plutôt que
+de continuer à annoncer un envoi. 🅿️ Cette branche-là n'est pas exercée sur les
+données de la boîte — les cinq rappels y sont actifs ; c'est la seule affirmation
+de cette section qui repose sur la lecture du gabarit et pas sur un rendu.
 
 **Paire A — six points mineurs**, dont : `window_preset` et `day_of_week` portent
 le **même libellé** (`usage_rights.grant_window`) ; `array_filter()` sans callback

@@ -65,12 +65,17 @@ corrigeant, et plus grave : **une liste de cases à cocher n'était ni nommée n
 décrite** — zéro `aria-describedby` sur la page. Détail dans `S149-REVUE.md`
 § « Paire D ».
 
+✅ **Paire C faite le 2026-08-27 : la règle 4 sur `/admin/emails`.** Les trois
+horizons étaient calculés et jamais rendus ; ils s'affichent sous chaque délai, et
+celui des prêts comme une DATE (il vaut `setTime(0,0)` en UTC — avec une heure il
+aurait lu *02:00*).
+
 **Prochain travail, dans cet ordre** :
 1. 🔴 **J-25**, qui reste une décision opérateur : aucun membre ne peut réserver.
-2. 🅿️ **Paire C** — la règle 4 de `/admin/emails` : trois horizons calculés,
-   passés à la vue, et le gabarit n'en rend aucun. ⚠️ L'horizon des prêts est un
-   `setTime(0,0)` : l'écrire comme une DATE, jamais une heure.
-3. 🅿️ **Paires A et B**, puis **R1 → R9** de la passe navigateur.
+2. 🅿️ **Paires A et B** (`S149-REVUE.md` § « Les quatre relecteurs ») : six points
+   mineurs côté A, trois côté B — dont une capacité perdue sur le tableau des
+   étapes, qui est une décision d'opérateur, pas de codeur.
+3. 🅿️ **R1 → R9** de la passe navigateur, si on veut viser « première classe ».
 
 ## État du dépôt
 

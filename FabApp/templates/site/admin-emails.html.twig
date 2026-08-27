@@ -165,14 +165,54 @@
                 <p class="settings-hint">{{ 'admin_emails.reminders_help'|trans|raw }}</p>
                 {{ form_start(remindersForm) }}
                     {% form_theme remindersForm 'form/admin_theme.html.twig' %}
+                    {# 🔴 **S151 — la règle 4 était CALCULÉE et jamais affichée.** Le
+                       contrôleur produisait `bookingHorizon`, `eventHorizon` et
+                       `loanHorizon` avec l'arithmétique exacte des scanners, les
+                       passait à la vue, et le gabarit n'en rendait aucun : le
+                       commentaire d'en-tête décrivait une ligne de conséquence qui
+                       n'existait nulle part. Trois horizons calculés pour rien.
+
+                       ⚠️ **La phrase suit l'état du FORMULAIRE, pas celui de la
+                       base** — comme les délais eux-mêmes. Un rappel qu'on vient de
+                       décocher ne doit pas continuer d'annoncer ce qu'il enverra ;
+                       sinon la ligne de conséquence affirme, avec autorité, le
+                       contraire de ce que l'enregistrement va faire.
+
+                       🔴 **Et l'horizon des prêts est une DATE, jamais une heure.**
+                       Il vaut `setTime(0, 0)` dans le fuseau serveur, qui est UTC :
+                       rendu avec une heure il afficherait *02:00* en été, une heure
+                       que personne n'a choisie et qui ne veut rien dire. Les prêts
+                       se comparent en dates — le scanner aussi.
+                       `|lab_date` partout : c'est un horodatage machine. #}
                     {{ form_row(remindersForm.reminder_booking) }}
                     {{ form_row(remindersForm.reminder_booking_lead_hours) }}
+                    <p class="form-help">
+                        {%- if remindersForm.reminder_booking.vars.data -%}
+                            {{ 'admin_emails.consequence_booking'|trans({'%date%': bookingHorizon|lab_date('d/m'), '%time%': bookingHorizon|lab_date('H:i')}) }}
+                        {%- else -%}
+                            {{ 'admin_emails.consequence_off'|trans }}
+                        {%- endif -%}
+                    </p>
 
                     {{ form_row(remindersForm.reminder_event) }}
                     {{ form_row(remindersForm.reminder_event_lead_hours) }}
+                    <p class="form-help">
+                        {%- if remindersForm.reminder_event.vars.data -%}
+                            {{ 'admin_emails.consequence_event'|trans({'%date%': eventHorizon|lab_date('d/m'), '%time%': eventHorizon|lab_date('H:i')}) }}
+                        {%- else -%}
+                            {{ 'admin_emails.consequence_off'|trans }}
+                        {%- endif -%}
+                    </p>
 
                     {{ form_row(remindersForm.reminder_loan_due) }}
                     {{ form_row(remindersForm.reminder_loan_lead_days) }}
+                    <p class="form-help">
+                        {%- if remindersForm.reminder_loan_due.vars.data -%}
+                            {{ 'admin_emails.consequence_loan'|trans({'%date%': loanHorizon|lab_date('d/m/Y')}) }}
+                        {%- else -%}
+                            {{ 'admin_emails.consequence_off'|trans }}
+                        {%- endif -%}
+                    </p>
 
                     {{ form_row(remindersForm.reminder_loan_overdue) }}
                     {{ form_row(remindersForm.reminder_maintenance_overdue) }}
