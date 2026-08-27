@@ -425,9 +425,16 @@ d'entrées traduites · ⚠️ plafond d'entrées (le menu principal en a déjà
 - **`/admin/homepage` porte six colonnes** (bloc + quatre audiences + ordre). C'est
   une matrice d'audiences, pas une liste. Le plafond de cinq ne lui répond peut-être
   pas. Non tranché.
-- **Logs RFID** : les cellules `status` / `reason` / `color` impriment encore les
-  mots stockés. À résoudre avec le patron `Machine::getStatusKey()`, pas d'une
-  seconde façon.
+- ✅ **Logs RFID** — clos le 2026-08-27, et deux des trois l'étaient déjà :
+  `status` a été traité en S141f (`_rfid_result`), la couleur de LED en J-6. Il
+  restait `reason`, qui imprimait `BADGE_MATCH`, `REQUIRED_BADGE_MISSING`,
+  `TRAINING_OK`, `TRAINING_REQUIRED`, `RFID_NOT_FOUND` — des mots de firmware.
+  ⚠️ Et deux valeurs héritées manquaient à la table de `_rfid_result` : `AUTHORIZED`
+  (16 lignes) et `NO_TRAINING` (12) tombaient dans le repli qui humanise, donc
+  s'affichaient « authorized » à côté de « Autorisé » sur la ligne voisine.
+  ⚠️ `reason` est aussi MASQUÉ quand il redit le statut : le service écrit la même
+  valeur dans les deux pour un tiers des lignes. Vérifié sur les 137 lignes de
+  l'historique complet (`?days=0`) : **0 énumération brute**.
 - **Quiz et validations physiques n'ont aucune UI de création.**
 - Les deux écrans RFID montrent les mêmes deux boutons deux fois.
 

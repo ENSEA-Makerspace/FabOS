@@ -25,11 +25,24 @@
    member is a different fact from what the server decided, but "green" beside a
    green dot is the dot said twice.
 #}
+{# 🔴 **S151 — deux valeurs héritées manquaient à cette table, et 28 lignes sur
+   130 tombaient donc dans le repli.** `AUTHORIZED` (16 lignes) et `NO_TRAINING`
+   (12) sont l'ancienne génération en MAJUSCULES : elles s'affichaient
+   « authorized » et « no training », lisibles mais jamais traduites, et
+   « authorized » à côté de « Autorisé » sur la ligne voisine. Le repli humanise,
+   il ne remplace pas le vocabulaire.
+   ⚠️ **Et ce commentaire est ICI, pas dans le hash.** Un `{# … #}` entre deux clés
+   d'un littéral de hash est une erreur de syntaxe Twig — piège déjà documenté deux
+   fois dans ce dépôt, et dans lequel je viens de retomber. `lint:twig` l'a
+   attrapé avant le redémarrage ; c'est exactement ce à quoi il sert. #}
 {% set _labels = {
     'authorized': 'rfid_logs.status_authorized',
     'no_badge_required': 'rfid_logs.status_no_badge_required',
     'missing_badge': 'rfid_logs.status_missing_badge',
     'REQUIRED_BADGE_MISSING': 'rfid_logs.status_missing_badge',
+    'AUTHORIZED': 'rfid_logs.status_authorized',
+    'NO_TRAINING': 'rfid_logs.status_no_training',
+    'TRAINING_REQUIRED': 'rfid_logs.status_no_training',
     'unknown_rfid': 'rfid_logs.status_unknown_rfid',
     'unknown_machine': 'rfid_logs.status_unknown_machine',
     'invalid_payload': 'rfid_logs.status_invalid_payload',

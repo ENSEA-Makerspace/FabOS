@@ -119,8 +119,38 @@
                                 <details class="log-detail">
                                     <summary>{{ 'rfid_logs.col_detail'|trans }}</summary>
                                     <dl>
-                                        {% if log.reason|default('') %}
-                                            <dt>{{ 'rfid_logs.detail_reason'|trans }}</dt><dd>{{ log.reason }}</dd>
+                                        {# 🔴 **S151 — `reason` imprimait l'énumération brute.**
+                                           En base : `BADGE_MATCH`, `REQUIRED_BADGE_MISSING`,
+                                           `TRAINING_OK`, `TRAINING_REQUIRED`, `RFID_NOT_FOUND` —
+                                           des mots de firmware, affichés tels quels à un
+                                           opérateur. C'est le dernier des trois que le reste daté
+                                           signalait ; `status` et la couleur de LED ont été
+                                           traités en S141f et J-6.
+
+                                           ⚠️ **Et il est masqué quand il redit le statut.** Le
+                                           service écrit la MÊME valeur dans `status` et dans
+                                           `reason` pour un tiers des lignes (`authorized` /
+                                           `authorized`, `reader_inactive` / `reader_inactive`) :
+                                           l'afficher, c'est ouvrir un repli pour y lire ce qui est
+                                           déjà écrit dans la colonne d'à côté. La comparaison est
+                                           insensible à la casse, parce que les deux générations de
+                                           vocabulaire cohabitent dans la table.
+
+                                           ⚠️ Le repli humanise plutôt que de rendre une clé : une
+                                           ligne écrite par un firmware que personne n'a mis à jour
+                                           doit se lire en mots, pas en `rfid_logs.reason_QUOI`. #}
+                                        {% set _reasons = {
+                                            'BADGE_MATCH': 'rfid_logs.status_authorized',
+                                            'TRAINING_OK': 'rfid_logs.status_authorized',
+                                            'REQUIRED_BADGE_MISSING': 'rfid_logs.status_missing_badge',
+                                            'TRAINING_REQUIRED': 'rfid_logs.status_no_training',
+                                            'RFID_NOT_FOUND': 'rfid_logs.status_unknown_rfid',
+                                        } %}
+                                        {% set _reason = log.reason|default('') %}
+                                        {% if _reason and _reason|lower != (log.status|default(''))|lower %}
+                                            {% set _rk = _reasons[_reason]|default('') %}
+                                            <dt>{{ 'rfid_logs.detail_reason'|trans }}</dt>
+                                            <dd>{{ _rk ? _rk|trans : _reason|lower|replace({'_': ' '}) }}</dd>
                                         {% endif %}
                                         {% if log.message|default('') %}
                                             <dt>{{ 'rfid_logs.detail_message'|trans }}</dt><dd>{{ log.message }}</dd>
