@@ -96,14 +96,31 @@
                             <div class="meta-item">{{ 'machine.concurrent_reservations'|trans({'count': machine.limiteReservations}) }}</div>
                             <div class="meta-item">{{ 'machine.popularity'|trans }} {% for i in 1..5 %}{{ i <= popularity ? '★' : '☆' }}{% endfor %}</div>
                         </div>
-                        {% if usageRight.enforced and not usageRight.allowed %}
+                        {# 🔴 **S151, R7 — cet écran disait QUATRE fois « connectez-vous ».**
+                           Compté sur `/machines/5` en anonyme : la pastille « Connexion
+                           requise », la phrase « Connectez-vous pour consulter et utiliser
+                           vos droits d'usage », le bouton « Se connecter pour réserver »,
+                           et la ligne « Connectez-vous pour créer une réservation et
+                           vérifier vos badges ». Quatre formulations pour une seule
+                           information, sur une seule vue.
+
+                           ⚠️ **Ce qui saute est le PANNEAU, pas le bouton.** Le panneau de
+                           droits d'usage explique une mécanique — les packages — à
+                           quelqu'un qui n'a pas encore de compte : il ne peut rien en
+                           faire, et son action « Connexion » est celle du bouton juste
+                           en dessous, en moins direct. Pour tous les AUTRES verdicts il
+                           reste : « votre package ne couvre pas ceci » est une
+                           information qu'un membre connecté ne peut pas deviner.
+
+                           Il reste donc deux phrases en anonyme : le bouton, qui est le
+                           verbe, et la ligne d'état, qui ajoute les badges — ce que le
+                           bouton ne dit pas. #}
+                        {% if usageRight.enforced and not usageRight.allowed and usageRight.reason != 'signin_required' %}
                             {% include 'site/_usage_right_state.html.twig' with {
                                 capability: usageRight.capability,
                                 verdict: usageRight,
                                 compact: true,
-                                action: usageRight.reason == 'signin_required'
-                                    ? {label: 'nav.login'|trans, url: path('app_login')}
-                                    : {label: 'usage_rights.my_rights'|trans, url: path('app_profile') ~ '#usage-rights'}
+                                action: {label: 'usage_rights.my_rights'|trans, url: path('app_profile') ~ '#usage-rights'}
                             } only %}
                         {% endif %}
                         <div class="machine-detail-actions">
