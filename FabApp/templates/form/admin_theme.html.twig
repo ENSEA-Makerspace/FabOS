@@ -27,6 +27,8 @@
    render the same type.
 #}
 
+{% use 'form_div_layout.html.twig' %}
+
 {% block form_row %}
     {# `form-field` is always present; anything the FormType adds via `row_attr`
        is appended, so `.full` and friends keep working. #}
@@ -65,6 +67,25 @@
     </div>
 {% endblock %}
 
+{% block form_label %}
+    {#- 🔴 **S151 — l'étiquette porte un `id`, et c'est pour les GROUPES.** Un
+        `<label>` sans `for` ne nomme rien : c'est ce que produit une liste de cases
+        à cocher, faute d'un contrôle unique à viser. `choice_widget_expanded`
+        ci-dessous la vise par `aria-labelledby="{{ id }}_label"`.
+
+        ⚠️ **Et l'`id` se pose ICI, pas dans `form_row`.** Une première version le
+        passait depuis `form_row` : `/admin/maintenance/batch` dessine son groupe à
+        la main, sans `form_row`, et sa référence `aria-labelledby` pendait donc
+        dans le vide — le défaut même qu'on répare, recréé deux écrans plus loin.
+        Mesuré : une référence cassée sur cinq écrans rendus. Dans ce bloc, tout
+        appel à `form_label` la pose, d'où qu'il vienne.
+
+        ⚠️ Un `id` sur une étiquette qui a déjà un `for` ne change rien pour les
+        autres champs, et `label_attr.id` explicite gagne toujours. -#}
+    {%- set label_attr = label_attr|merge({'id': label_attr.id|default(id ~ '_label')}) -%}
+    {{- parent() -}}
+{% endblock %}
+
 {% block form_help %}
     {#- 🔴 **L'`id` n'est pas décoratif : sans lui, l'aide n'est ANNONCÉE À PERSONNE.**
         Symfony pose `aria-describedby="{{ id }}_help"` sur le champ dès que `help`
@@ -91,5 +112,41 @@
         {{- form_label(form) -}}
         {{- form_help(form) -}}
         <div class="form-errors">{{- form_errors(form) -}}</div>
+    </div>
+{% endblock %}
+
+{% block choice_widget_expanded %}
+    {#- 🔴 **S151 — une liste de cases à cocher n'était NI nommée NI décrite.**
+        Symfony pose `aria-describedby` sur un widget simple, pas sur le conteneur
+        d'un `expanded` + `multiple` : sur `/admin/materials/new`, la page entière
+        comptait **zéro** `aria-describedby`. L'étiquette « Machines qui acceptent
+        ce matériau » est un `<label>` sans `for` — donc elle ne nomme rien — et
+        l'aide « il apparaîtra sur leur fiche » n'était annoncée à personne.
+        C'est le même défaut que la paire C avait trouvé sur `form_help`, une
+        marche plus loin : l'`id` existait enfin, et plus rien ne le visait.
+
+        ⚠️ `role="group"` et pas `<fieldset>` : le conteneur est déjà dans une
+        enveloppe `.form-field` qui porte la grille, et `<fieldset>` traîne des
+        styles par défaut que `.choice-grid` devrait rattraper. Le rôle donne la
+        même sémantique sans toucher au dessin.
+
+        ⚠️ L'ordre widget-puis-étiquette est celui du thème par défaut de Symfony,
+        et `.choice-grid input { margin-right: 7px }` en dépend. -#}
+    <div {{ block('widget_container_attributes') }} role="group"
+        {%- if label is not same as(false) %} aria-labelledby="{{ id }}_label"{% endif %}
+        {%- if help is not empty %} aria-describedby="{{ id }}_help"{% endif %}>
+        {#- 🔴 **Chaque choix est UN élément de grille, et c'est le fond du sujet.**
+            `.choice-grid` est une grille : le thème de Symfony rend la case et son
+            étiquette en FRÈRES, donc sans cette enveloppe elles tombent dans deux
+            cellules différentes — mesuré à l'écran, la case d'« Uranus » à 200 px de
+            son nom. L'ancien balisage y échappait par accident : le gabarit posait
+            `.choice-grid` sur un div PARENT du conteneur, la grille n'avait donc
+            qu'un seul enfant et ne rangeait rien du tout. -#}
+        {%- for child in form -%}
+            <span class="choice-item">
+                {{- form_widget(child) -}}
+                {{- form_label(child, null, {translation_domain: choice_translation_domain}) -}}
+            </span>
+        {%- endfor -%}
     </div>
 {% endblock %}

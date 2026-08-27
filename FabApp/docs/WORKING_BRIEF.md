@@ -40,7 +40,10 @@ en a sorti **6 de plus, tous corrigés et déployés**. Deux cassaient l'usage :
 1. 🔴 **Toute redirection vers `/login` partait en `http://`**, et le filtre
    FortiGuard de l'école bloque le http — un membre déconnecté n'atteignait
    **jamais** le formulaire de connexion. `trusted_proxies` manquait.
-   ⚠️ C'était aussi le « 403 au proxy » qu'on avait pris pour une panne d'accès.
+   ⚠️ À ne pas confondre avec le « 403 au proxy » : celui-là est la **liste
+   blanche NPM** sur `fabos.dstei.fr` (LAN, tailnet, l'école, une IP fixe, puis
+   `deny all`). Le site est privé par construction — hors de ces réseaux, tout
+   répond 403, y compris le volet navigateur. Réglage voulu, pas une panne.
 2. 🔴 **Le mur `/kiosk/events` cachait 902 px de son contenu** : `.ic` n'a pas de
    taille dans `kiosk.css`, l'épingle de lieu rendait **1665 × 1665 px**.
 
@@ -54,12 +57,20 @@ revue) est du travail identifié et chiffré, rien n'y est cassé : 42 `FormType
 des libellés français en dur, 22 formulaires larges de 888 px, le repli absent de
 55 des 59 pages admin.
 
+✅ **Paire D faite le 2026-08-27 : le motif CRUD sur ses trois écrans.** Les
+constantes `SECTIONS` de machine et de matériau étaient du code mort ; les deux
+gabarits machine perdaient `manufacturer` et `model` après le bouton Enregistrer.
+Un partiel unique déroule maintenant la constante pour les trois types. Trouvé en
+corrigeant, et plus grave : **une liste de cases à cocher n'était ni nommée ni
+décrite** — zéro `aria-describedby` sur la page. Détail dans `S149-REVUE.md`
+§ « Paire D ».
+
 **Prochain travail, dans cet ordre** :
 1. 🔴 **J-25**, qui reste une décision opérateur : aucun membre ne peut réserver.
-2. 🅿️ **Les restes des quatre paires**, dans `S149-REVUE.md` § « Les quatre
-   relecteurs » — le motif CRUD appliqué à un seul de ses trois écrans, et la
-   règle 4 de `/admin/emails` calculée sans être affichée.
-3. 🅿️ **R1 → R9** de la passe navigateur, si on veut viser « première classe ».
+2. 🅿️ **Paire C** — la règle 4 de `/admin/emails` : trois horizons calculés,
+   passés à la vue, et le gabarit n'en rend aucun. ⚠️ L'horizon des prêts est un
+   `setTime(0,0)` : l'écrire comme une DATE, jamais une heure.
+3. 🅿️ **Paires A et B**, puis **R1 → R9** de la passe navigateur.
 
 ## État du dépôt
 
@@ -67,14 +78,14 @@ des libellés français en dur, 22 formulaires larges de 888 px, le repli absent
   `origin/main`** — la fusion vers `main` n'a pas eu lieu et reste une décision de
   l'opérateur.
 - Déployé et vérifié par hachage sur CT 210, services redémarrés, site 200.
-- Cache-buster CSS courant : `?v=20260827-s151`.
+- Cache-buster CSS courant : `?v=20260827-s151b`.
 - **Aucune migration en attente.**
 - 🔴 **L'agent ne peut ni migrer, ni `git push`** : donner la ligne à l'opérateur.
-- ✅ **Déployé et vérifié par hachage sur CT 210 le 2026-08-27** : **112 fichiers
-  identiques**, `lint:twig` 209/0, `lint:yaml` 39/0 + config 24/0, `php -l` sur
-  `src` et `migrations` propre, **balayage de 106 pages sans échec**, service
-  redémarré, site 200, et la redirection de `/profil` vérifiée en **https**.
-  (Avant : 2026-08-24, 154 fichiers, 19 pages, 13 sondes d'écriture vertes.)
+- ✅ **Déployé et vérifié par hachage sur CT 210 le 2026-08-27**, deux fois :
+  la passe navigateur (112 fichiers, balayage de 106 pages) puis la paire D
+  (**115 fichiers identiques**, `lint:twig` 211/0, `lint:yaml` 39/0, `php -l`
+  propre, **balayage de 171 pages sans échec**, service redémarré).
+  La redirection de `/profil` est vérifiée en **https**.
   🔴 **SSH : DEUX chemins, et selon le réseau un seul des deux marche.** Mesuré le
   2026-08-24 sur deux réseaux, avec des résultats exactement inverses :
 

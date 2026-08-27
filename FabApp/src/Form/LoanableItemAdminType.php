@@ -108,7 +108,10 @@ final class LoanableItemAdminType extends AbstractType
                 'help' => 'loans.item_help_icon',
                 'constraints' => [new Assert\Length(max: 16)],
             ])
-            ->add('save', SubmitType::class, ['label' => 'Enregistrer']);
+            // ⚠️ S151 — `common.save` et non « Enregistrer » : ce bouton est le seul
+            // de l'écran, et il était le dernier libellé français en dur d'un
+            // formulaire qui déroule maintenant ses sections traduites.
+            ->add('save', SubmitType::class, ['label' => 'common.save']);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

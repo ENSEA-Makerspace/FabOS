@@ -1,0 +1,53 @@
+{# LE MOTIF « SECTIONS », UNE SEULE FOIS.
+
+   Déroule la constante `SECTIONS` d'un `FormType` : un titre, ses champs dans
+   l'ordre, `fold: true` pour ce qui passe derrière un `<details>`.
+
+   🔴 **S151 — ce bloc était écrit dans `_loanable_item_form`, et nulle part
+   ailleurs.** `MachineAdminType::SECTIONS` et `MaterialAdminType::SECTIONS`
+   existaient, étaient complètes, traduites dans les cinq langues — et **mortes** :
+   les deux gabarits machine et le gabarit matériau tenaient encore leur liste de
+   champs à la main. Un motif appliqué à un écran sur trois n'est pas un motif,
+   c'est une exception. Trois copies du même `{% for %}` en auraient été une autre.
+
+   Usage :
+
+     {% include 'site/_form_sections.html.twig' with {
+         form: form,
+         sections: constant('App\\Form\\MachineAdminType::SECTIONS'),
+     } only %}
+
+   ⚠️ **`name in _fields` n'est pas de la coquetterie** : un champ peut ne pas
+   exister sur un des deux écrans (`machineToken` n'est qu'à la création), et
+   `form['absent']` lève plutôt que de rendre vide.
+
+   🔴 **Un repli DOIT se rouvrir sur un refus** (règle 1). L'ouverture est calculée
+   depuis les erreurs des champs REPLIÉS eux-mêmes — `vars.errors` existe toujours
+   sur une vue de champ, contrairement à un drapeau que le contrôleur oublierait de
+   passer et qui vaudrait silencieusement `null` en prod, faute de
+   `strict_variables`. Un opérateur ne peut donc pas se retrouver devant un
+   formulaire refusé sans voir pourquoi.
+
+   ⚠️ **Ce partiel ne pose pas le thème, et il n'a pas à le faire.**
+   `{% form_theme form '…' %}` n'est pas lexical : il appelle `setTheme()` sur la
+   VUE, qui est le même objet des deux côtés d'un `include`. Le thème posé par le
+   gabarit appelant s'applique donc ici. Ce qui suit en dépend : sans
+   `form/admin_theme.html.twig`, `form_row()` rend l'enveloppe par défaut de
+   Symfony et non `.form-field`. #}
+{% set _fields = form|keys %}
+{% for section in sections %}
+    {% if section.fold|default(false) %}
+        {% set _refused %}{% for name in section.fields %}{% if name in _fields and form[name].vars.errors|length %}!{% endif %}{% endfor %}{% endset %}
+        <details class="settings-danger settings-danger--neutral"{{ _refused|trim ? ' open' : '' }}>
+            <summary>{{ section.title|trans }}</summary>
+            <div class="form-grid">
+                {% for name in section.fields %}{% if name in _fields %}{{ form_row(form[name]) }}{% endif %}{% endfor %}
+            </div>
+        </details>
+    {% else %}
+        <div class="form-section"><h3>{{ section.title|trans }}</h3></div>
+        <div class="form-grid">
+            {% for name in section.fields %}{% if name in _fields %}{{ form_row(form[name]) }}{% endif %}{% endfor %}
+        </div>
+    {% endif %}
+{% endfor %}

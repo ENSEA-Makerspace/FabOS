@@ -24,9 +24,10 @@ catalogues mais faux à l'écran. La parité, le lint et les 227 routes étaient
 « rien de ce que je sais lire n'est faux ».**
 
 ⚠️ Et le pire coût n'était pas un défaut : la session du 24 a conclu « site
-injoignable, 403 au proxy » et écrit une revue entière sans accès. Le 403 **était**
-le défaut N1 ci-dessous. Voir [[project-fabos-deployment]] : essayer les deux
-chemins SSH, et ne pas prendre un échec pour une panne d'infrastructure.
+injoignable, 403 au proxy » et écrit une revue entière sans accès, alors que les
+deux moitiés du problème étaient franchissables. Voir [[project-fabos-deployment]] :
+essayer les DEUX chemins SSH, et — pour le site public — vérifier depuis quel réseau
+on sort avant de conclure à une panne.
 
 ---
 
@@ -298,18 +299,9 @@ ont rendu NOT YET**, et les deux pires trouvailles étaient EN LIGNE.
 
 ### 🅿️ RESTE À FAIRE — rien de tout ceci n'est cassé, tout est écrit
 
-**Paire D — le motif CRUD est fini à un tiers.**
-- 🔴 `MachineAdminType::SECTIONS` et `MaterialAdminType::SECTIONS` sont du **code
-  mort** : seul `_loanable_item_form.html.twig` déroule la constante. Les gabarits
-  machine et matériau écrivent encore leur liste de champs à la main, donc pas de
-  titres de section, pas de replis. Les docblocks affirment le contraire.
-- 🔴 `manufacturer` et `model` ne sont dans **aucun** des deux gabarits machine :
-  ils tombent dans `form_rest()`, après Enregistrer, sans thème.
-- 🔴 `materials_form.help_machines` n'est **jamais rendue** : `_material_form`
-  dessine le champ à la main et n'appelle pas `form_help`.
-- ⚠️ `form_quality.py` devient **aveugle** au nouveau motif : il cherche
-  `form_row(form.x)` littéral et ne voit pas `form_row(form[name])` dans une
-  boucle. Adopter le motif sur 22 écrans mettrait la règle 1 hors mesure.
+**Paire D — ✅ FAIT le 2026-08-27 : le motif CRUD sur ses trois écrans.**
+Tout ce qui suit était écrit ici comme « reste à faire » ; c'est corrigé, déployé
+et mesuré à l'écran. Voir la section « Paire D » plus bas.
 
 **Paire C — la règle 4 sur `/admin/emails` est calculée et jamais affichée.**
 Trois horizons sont calculés dans le contrôleur, passés à la vue, et le gabarit
@@ -349,9 +341,30 @@ L'accès est revenu (`proxmox.lab.dryades.org` répond ; l'IP `51.68.38.235` exp
 c'est bien deux chemins, et un seul marche par réseau). Le site public répond 200
 dans le volet.
 
-**Ce que la moitié visible a coûté à croire l'ancien diagnostic :** le « 403 au
-proxy » de la session précédente n'était PAS un problème d'accès. C'était le
-défaut N1 ci-dessous. On a écrit « injoignable » là où le produit était cassé.
+🔴 **Le « 403 au proxy » : la vraie cause, et une attribution à défaire.**
+Ce n'est **pas** le défaut N1 ci-dessous, contrairement à ce que cette revue a
+d'abord écrit. `fabos.dstei.fr` porte une **liste blanche NPM** — mesurée dans
+`/opt/npm/data/nginx/proxy_host/5.conf` :
+
+    allow 192.168.100.0/24;   # le LAN
+    allow 100.64.0.0/10;      # le tailnet
+    allow 82.64.192.225/32;
+    allow 193.51.46.24;       # l'école
+    deny all;
+
+Le site est donc **privé par construction**, et un `403 Forbidden` d'openresty
+signifie « ton IP de sortie n'est pas dans la liste », pas « le service est tombé ».
+Vécu deux fois dans la même session : les mesures du matin passaient depuis
+`193.51.46.24`, et l'après-midi, réseau changé, la sortie est devenue
+`78.240.77.69` — tout est passé en 403 d'un coup, y compris le volet navigateur.
+Le journal qui tranche en une ligne :
+`/opt/npm/data/logs/proxy-host-5_error.log` → *access forbidden by rule, client: …*
+
+⚠️ **Deux pannes distinctes se ressemblaient**, et c'est ce qui a fait tenir le
+mauvais diagnostic : le 403 de la liste blanche, et le 302 en `http://` du défaut
+N1 — qui, lui, ramenait le membre sur une URL que le filtre de l'école bloque. Les
+deux se présentent comme « le site répond 403 ». Le second est corrigé et vérifié ;
+le premier est un réglage voulu, et il appartient à l'opérateur.
 
 ### Méthode — ce qui a rendu la passe rapide
 
@@ -381,6 +394,10 @@ le navigateur, sur le réseau de l'école, on obtenait la page FortiGuard
 
 Donc **un membre déconnecté qui clique n'importe quel lien protégé, ou dont la
 session expire, n'atteignait jamais le formulaire de connexion.**
+
+⚠️ **Ce défaut est réel et indépendant de la liste blanche ci-dessus** : il a été
+prouvé par l'en-tête `Location` lui-même, depuis une IP autorisée, avant et après
+correction.
 
 Cause : `config/packages/framework.yaml` ne déclarait aucun `trusted_proxies`,
 donc Symfony ignorait `X-Forwarded-Proto` et fabriquait des URLs absolues en http.
@@ -570,6 +587,86 @@ Marchés **dans le navigateur**, en anonyme :
 réservation, le tour complet mot de passe oublié, et les deux parcours opérateur)
 demandent un compte. Ils ne sont pas comptés ici — les compter sur le code serait
 exactement l'erreur que cette moitié existe pour éviter.
+
+---
+
+---
+
+## ✅ Paire D — le motif CRUD, appliqué à ses trois écrans (2026-08-27)
+
+Le reste de la paire D disait : « le motif est fini à un tiers ». Il l'était.
+`MachineAdminType::SECTIONS` et `MaterialAdminType::SECTIONS` existaient, couvraient
+tous leurs champs, leurs titres étaient traduits dans les cinq langues — et
+**personne ne les lisait**. Seul `_loanable_item_form.html.twig` déroulait la
+sienne. Un motif appliqué à un écran sur trois n'est pas un motif, c'est une
+exception.
+
+### Ce que la liste à la main coûtait, mesuré
+
+| | avant | après |
+|---|---|---|
+| `manufacturer` et `model` sur la fiche machine | dans **aucun** des deux gabarits : rendus par `form_rest()`, **après le bouton Enregistrer**, sans thème | dans la section « Ce que le public voit », repliée |
+| titres de section sur `/admin/machines/new` | **0** | 4, plus 2 replis |
+| ce que les replis cachent à l'arrivée | — | **1046 px** sur 2037 (formulaire mesuré replis fermés puis ouverts) |
+| `materials_form.help_machines` | **jamais rendue** — le champ était dessiné à la main, sans `form_help` | affichée, et référencée |
+| les deux listes machine | divergeaient déjà (`machineToken` d'un seul côté) | une seule liste, en PHP |
+
+### Un défaut trouvé en corrigeant, plus grave que celui qu'on corrigeait
+
+🔴 **Une liste de cases à cocher n'était NI nommée NI décrite.** En vérifiant que
+l'aide du champ « machines » s'affichait enfin, la page entière comptait **zéro**
+`aria-describedby` : Symfony pose la référence sur un widget simple, pas sur le
+conteneur d'un `expanded` + `multiple`. Et son `<label>` n'a pas de `for` — faute
+d'un contrôle unique à viser — donc il ne nommait rien non plus. C'est le défaut de
+la paire C (`form_help` sans `id`) une marche plus loin : l'`id` existait enfin, et
+plus rien ne le visait. Le thème pose maintenant `role="group"`,
+`aria-labelledby` et `aria-describedby` sur le conteneur, et `form_label` émet son
+`id`. Vérifié sur 8 écrans admin rendus : **0 référence `aria-*` cassée**.
+
+⚠️ **Et deux fautes commises en chemin, corrigées avant d'aller plus loin** — les
+deux visibles seulement à l'écran :
+1. L'`id` de l'étiquette était passé depuis `form_row`. `/admin/maintenance/batch`
+   dessine son groupe **sans** `form_row` : sa référence `aria-labelledby` pendait
+   donc dans le vide. Le défaut qu'on réparait, recréé deux écrans plus loin.
+   L'`id` se pose maintenant dans le bloc `form_label`, d'où que vienne l'appel.
+2. Poser `.choice-grid` sur le conteneur du groupe a **cassé la mise en page** :
+   la case et son nom sont des FRÈRES, donc dans une grille ce sont deux cellules
+   — la case d'« Uranus » s'est retrouvée à 200 px de son nom. L'ancien balisage y
+   échappait par accident (la classe était sur un div PARENT, la grille n'avait
+   qu'un enfant et ne rangeait rien). Chaque choix est maintenant une cellule,
+   `.choice-item` ; mesuré : 7 px entre la case et son nom, 4 colonnes.
+
+### L'outil qui mesure la règle 1 était sur le point de devenir aveugle
+
+⚠️ `form_quality.py` comptait les `form_row(` **littéraux**. Le motif en écrit un
+seul, `form_row(form[name])`, dans une boucle — et les trois écrans convertis
+l'appellent depuis un partiel. L'outil aurait annoncé **1 champ** pour un écran qui
+en montre onze, et **0 repli** pour un écran qui en a deux : la règle 1 serait
+passée de mesurée à décorative au moment précis où on l'applique enfin. Il lit
+maintenant la constante `SECTIONS` à la source. Chiffres après conversion :
+
+| écran | visible | total | replié |
+|---|---|---|---|
+| `_machine_form` | 11 | 19 | 8 |
+| `_material_form` | 8 | 10 | 2 |
+| `_loanable_item_form` | 6 | 8 | 2 |
+
+### Ce qui a été touché
+
+- **`_form_sections.html.twig`** — la boucle, une seule fois, pour les trois types.
+- **`_machine_form.html.twig`** — un formulaire machine au lieu de deux listes.
+  `admin-machine-new` passe de 100 à 52 lignes, `admin-machine-edit` de 113 à 64.
+- **`_material_form`**, **`_loanable_item_form`** — délèguent au partiel.
+- **`admin_theme.html.twig`** — `form_label` émet son `id` ; nouveau bloc
+  `choice_widget_expanded` (rôle, nom, description, une cellule par choix).
+- **`MaterialAdminType`**, **`MaintenanceBatchType`** — `.choice-grid` posée par
+  `attr` sur le widget, plus par le gabarit.
+- **Les trois `SubmitType`** portent `common.save` au lieu du littéral
+  « Enregistrer » — trois libellés de moins sur les 148 de R1.
+- **`admin.css`** — une règle, `.choice-item`.
+
+Déployé et vérifié : 115 fichiers identiques par hachage, `lint:twig` 211/0,
+`lint:yaml` 39/0, `php -l` propre, **balayage de 171 pages sans échec**.
 
 ---
 

@@ -32,6 +32,11 @@ final class MaintenanceBatchType extends AbstractType
                 'choice_label' => 'nom',
                 'multiple' => true,
                 'expanded' => true,
+                // ⚠️ S151 — `.choice-grid` sur le widget, comme sur le matériau :
+                // le gabarit dessinait l'enveloppe à la main pour poser la classe,
+                // ce qui laissait le groupe sans nom accessible.
+                'attr' => ['class' => 'choice-grid'],
+                'row_attr' => ['class' => 'full'],
                 'query_builder' => static fn ($repo) => $repo->createQueryBuilder('m')->orderBy('m.nom', 'ASC'),
                 'constraints' => [new Assert\Count(min: 1, minMessage: 'Sélectionnez au moins une machine.')],
             ])

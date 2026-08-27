@@ -10,33 +10,14 @@
        où deux champs n'étaient dans aucune des deux listes et sortaient par
        `form_rest()` APRÈS le bouton « Enregistrer ».
 
-       ⚠️ **`name in _fields` n'est pas de la coquetterie** : un champ peut ne
-       pas exister sur un des deux écrans (un jeton visible à la création
-       seulement), et `form['absent']` lève plutôt que de rendre vide.
-
-       🔴 **Un repli DOIT se rouvrir sur un refus** (règle 1). L'ouverture est
-       calculée depuis les erreurs des champs REPLIÉS eux-mêmes — `vars.errors`
-       existe toujours sur une vue de champ, contrairement à un drapeau que le
-       contrôleur oublierait de passer et qui vaudrait silencieusement `null`
-       en prod, faute de `strict_variables`. Un opérateur ne peut donc pas se
-       retrouver devant un formulaire refusé sans voir pourquoi. #}
-    {% set _fields = form|keys %}
-    {% for section in constant('App\\Form\\LoanableItemAdminType::SECTIONS') %}
-        {% if section.fold|default(false) %}
-            {% set _refused %}{% for name in section.fields %}{% if name in _fields and form[name].vars.errors|length %}!{% endif %}{% endfor %}{% endset %}
-            <details class="settings-danger settings-danger--neutral"{{ _refused|trim ? ' open' : '' }}>
-                <summary>{{ section.title|trans }}</summary>
-                <div class="form-grid">
-                    {% for name in section.fields %}{% if name in _fields %}{{ form_row(form[name]) }}{% endif %}{% endfor %}
-                </div>
-            </details>
-        {% else %}
-            <div class="form-section"><h3>{{ section.title|trans }}</h3></div>
-            <div class="form-grid">
-                {% for name in section.fields %}{% if name in _fields %}{{ form_row(form[name]) }}{% endif %}{% endfor %}
-            </div>
-        {% endif %}
-    {% endfor %}
+       ⚠️ **S151 — la boucle elle-même vit dans `_form_sections.html.twig`.** Elle
+       était écrite ici et nulle part ailleurs, alors que trois `FormType` portent
+       une constante `SECTIONS`. Les commentaires sur le repli qui se rouvre et sur
+       `name in _fields` ont suivi la boucle. #}
+    {% include 'site/_form_sections.html.twig' with {
+        form: form,
+        sections: constant('App\\Form\\LoanableItemAdminType::SECTIONS'),
+    } only %}
 
     <div class="form-actions">
         <a class="btn-link" href="{{ path('app_admin_loanable_items') }}">{{ 'common.cancel'|trans }}</a>

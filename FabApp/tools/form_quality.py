@@ -30,6 +30,47 @@ def type_fields():
 
 FIELDS = type_fields()
 
+# 🔴 **S151 — le motif `SECTIONS` rendait cet outil AVEUGLE.** Trois gabarits
+# (machine, matériau, objet prêtable) ne listent plus leurs champs : ils incluent
+# `_form_sections.html.twig` avec la constante `SECTIONS` de leur `FormType`, qui
+# déroule un seul `form_row(form[name])` en boucle. Compter les `form_row(`
+# littéraux donnait donc **1 champ** pour un écran qui en montre vingt, et zéro
+# repli pour un écran qui en a deux. La règle 1 serait passée de mesurée à
+# décorative au moment précis où on l'applique enfin.
+#
+# On lit donc la constante à la source. Ce n'est pas du PHP interprété : la
+# constante est une liste littérale de `title` / `fold` / `fields`, et une regex
+# suffit — mais elle est la SEULE source, donc si le format change, l'outil se
+# tait plutôt que de mentir (compte 0 et laisse le décompte littéral).
+SECTIONS_CACHE = {}
+def sections_of(cls):
+    """(visibles, repliés) déclarés par la constante SECTIONS d'un FormType."""
+    if cls in SECTIONS_CACHE:
+        return SECTIONS_CACHE[cls]
+    hits = glob.glob('src/Form/**/%s.php' % cls, recursive=True)
+    vis = fold = 0
+    if hits:
+        php = open(hits[0], encoding='utf-8').read()
+        m = re.search(r'const\s+SECTIONS\s*=\s*\[(.*?)\n    \];', php, re.S)
+        if m:
+            for blk in re.finditer(r'\[(.*?)\]\s*,?\s*(?=\[|$)', m.group(1), re.S):
+                b = blk.group(1)
+                fm = re.search(r"'fields'\s*=>\s*\[(.*?)\]", b, re.S)
+                if not fm:
+                    continue
+                n = len(re.findall(r"'[^']+'", fm.group(1)))
+                if re.search(r"'fold'\s*=>\s*true", b):
+                    fold += n
+                else:
+                    vis += n
+    SECTIONS_CACHE[cls] = (vis, fold)
+    return SECTIONS_CACHE[cls]
+
+INCLUDE_SECTIONS = re.compile(
+    r"include\s+'site/_form_sections\.html\.twig'.*?constant\(\s*'App\\\\Form\\\\(?:[A-Za-z]+\\\\)*([A-Za-z]+)::SECTIONS'",
+    re.S)
+
+
 rows = []
 for p in sorted(glob.glob('templates/site/*.twig')):
     raw = open(p, encoding='utf-8').read()
@@ -47,6 +88,14 @@ for p in sorted(glob.glob('templates/site/*.twig')):
     if n_forms == 0:
         continue
     n_rows = len(re.findall(r'form_row\(', src))
+    # les champs déroulés par le partiel partagé, section par section
+    sec_visible = sec_folded = 0
+    for m in INCLUDE_SECTIONS.finditer(src):
+        v, f = sections_of(m.group(1))
+        sec_visible += v
+        sec_folded += f
+        n_rows -= 0  # le `form_row(form[name])` du partiel n'est pas dans CE fichier
+    n_rows += sec_visible + sec_folded
     n_raw = len(re.findall(r'<(?:input|select|textarea)\b', src)) - len(re.findall(r'type="hidden"', src))
     total = n_rows + max(0, n_raw)
     # ce qui est REPLIÉ derrière un <details>
@@ -73,6 +122,7 @@ for p in sorted(glob.glob('templates/site/*.twig')):
         body = src[m.start():j]
         hidden += len(re.findall(r'form_row\(', body))
         hidden += len(re.findall(r'<(?:input|select|textarea)\b', body)) - len(re.findall(r'type="hidden"', body))
+    hidden += sec_folded
     visible = total - max(0, hidden)
     n_required = len(re.findall(r'\brequired\b', src))
     rows.append((visible, total, max(0, hidden), n_forms, n_required, short))

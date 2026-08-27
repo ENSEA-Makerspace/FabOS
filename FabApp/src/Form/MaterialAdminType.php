@@ -97,8 +97,16 @@ final class MaterialAdminType extends AbstractType
                 'help' => 'materials_form.help_specs',
                 'constraints' => [new Assert\Length(max: 2000)],
             ])
-            // ⚠️ Reste rendu à la main par le gabarit : les cases cochables
-            // veulent leur `.choice-grid`, que `form_row()` ne pose pas.
+            // 🔴 **S151 — c'est `attr`, pas le gabarit, qui pose `.choice-grid`.**
+            // Ce champ était « rendu à la main par le gabarit parce que les cases
+            // cochables veulent leur `.choice-grid` » — et le rendre à la main
+            // sautait `form_help()`, donc `materials_form.help_machines` n'était
+            // affichée NULLE PART : la seule phrase qui dit que le matériau
+            // apparaîtra sur la fiche des machines cochées.
+            // Un `expanded` + `multiple` rend un conteneur `<div>` qui reçoit
+            // `attr` (`widget_container_attributes`) : la classe atterrit au bon
+            // endroit et `form_row()` redevient utilisable, avec son aide, son
+            // `aria-describedby` et son bloc d'erreurs.
             ->add('machines', EntityType::class, [
                 'label' => 'Machines qui acceptent ce matériau',
                 'class' => Machine::class,
@@ -108,6 +116,7 @@ final class MaterialAdminType extends AbstractType
                 'required' => false,
                 'by_reference' => false,
                 'row_attr' => ['class' => 'full'],
+                'attr' => ['class' => 'choice-grid'],
                 'help' => 'materials_form.help_machines',
                 'query_builder' => static fn ($repo) => $repo->createQueryBuilder('machine')->orderBy('machine.nom', 'ASC'),
             ])
@@ -140,7 +149,10 @@ final class MaterialAdminType extends AbstractType
                 'help' => 'materials_form.help_icon',
                 'constraints' => [new Assert\Length(max: 16)],
             ])
-            ->add('save', SubmitType::class, ['label' => 'Enregistrer']);
+            // ⚠️ S151 — `common.save` et non « Enregistrer » : ce bouton est le seul
+            // de l'écran, et il était le dernier libellé français en dur d'un
+            // formulaire qui déroule maintenant ses sections traduites.
+            ->add('save', SubmitType::class, ['label' => 'common.save']);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

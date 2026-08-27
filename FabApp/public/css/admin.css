@@ -209,6 +209,11 @@
 .choice-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px 14px; }
 .choice-grid input { width: auto; margin-right: 7px; }
 .choice-grid label { font-weight: 400; display: inline-flex; align-items: center; margin-bottom: 0; }
+/* ⚠️ **S151 — un choix = une cellule.** Le thème rend la case et son étiquette en
+   frères ; dans une grille, deux frères sont deux cellules et le nom se retrouve
+   à des centaines de pixels de sa case. `.choice-item` les tient ensemble. L'écart
+   case/nom reste celui de `.choice-grid input` au-dessus, pas un `gap` de plus. */
+.choice-item { display: inline-flex; align-items: center; min-width: 0; }
 
 /* ---- List pages, both skeletons ---- */
 /* ⚠️ `.admin-header` and `.admin-header-content` were deleted in S143b: the

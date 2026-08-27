@@ -1,0 +1,62 @@
+{# LE FORMULAIRE MACHINE, UNE SEULE FOIS — création et édition.
+
+   🔴 **S151 — les deux gabarits tenaient chacun leur liste de champs, et les deux
+   listes étaient fausses.** `MachineAdminType::SECTIONS` existait, couvrait les
+   18 champs, ses cinq titres étaient traduits dans les cinq langues, et **personne
+   ne la lisait**. Conséquences mesurées :
+     • `manufacturer` et `model` n'étaient dans AUCUNE des deux listes : ils
+       sortaient par `form_rest()`, c'est-à-dire **après le bouton Enregistrer et
+       sans thème** ;
+     • aucun titre de section, aucun repli — 16 champs à plat à l'arrivée sur
+       `/admin/machines/new` (mesuré à 26 contrôles dans la passe navigateur) ;
+     • les deux listes divergeaient déjà (`machineToken` d'un côté seulement),
+       ce qui est exactement la divergence que le motif existe pour empêcher.
+
+   ⚠️ Deux choses ne sont PAS des champs du `FormType` et restent ici : le
+   `<datalist>` du catalogue de catégories, et les badges requis — qui sont un
+   `requiredBadges[]` posté à côté du formulaire, lu par le contrôleur. Ils gardent
+   leur place, mais sous un titre de section comme le reste, pas flottants. #}
+{% form_theme form 'form/admin_theme.html.twig' %}
+{{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
+    {{ form_errors(form) }}
+
+    {# ⚠️ S133 — le catalogue de catégories, proposé sans être imposé.
+       `form.categorie` porte `list="machine-category-options"` ; voici la liste.
+       Les catégories archivées en sont absentes, ce qui est exactement ce
+       qu'archiver une catégorie veut dire : elle cesse d'être proposée, et les
+       machines qui la portent la gardent. #}
+    <datalist id="machine-category-options">
+        {% for label in categoryChoices|default([]) %}<option value="{{ label }}">{% endfor %}
+    </datalist>
+
+    {% include 'site/_form_sections.html.twig' with {
+        form: form,
+        sections: constant('App\\Form\\MachineAdminType::SECTIONS'),
+    } only %}
+
+    <div class="form-section"><h3>{{ 'admin_machine_edit.badges_label'|trans }}</h3></div>
+    <div class="form-grid">
+        <div class="form-field full">
+            {% if availableBadges is empty %}
+                <p class="empty-state">{{ 'admin_machine_edit.badges_empty'|trans }}</p>
+            {% else %}
+                <div class="badge-checkbox-grid">
+                    {% for badge in availableBadges %}
+                        <label class="badge-checkbox">
+                            <input type="checkbox" name="requiredBadges[]" value="{{ badge.id }}" {{ badge.id in selectedBadgeIds ? 'checked' : '' }}>
+                            <span>
+                                <span class="badge-checkbox-title">{{ badge.nom }}</span>
+                                <span class="badge-checkbox-meta">{{ badge.description ?: 'machine.badge_required_desc'|trans }}</span>
+                            </span>
+                        </label>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <a class="btn-link" href="{{ path('app_admin_machines') }}">{{ 'common.cancel'|trans }}</a>
+        <span class="btn-submit">{{ form_widget(form.save, {label: submit_label|default('common.save'|trans)}) }}</span>
+    </div>
+{{ form_end(form) }}

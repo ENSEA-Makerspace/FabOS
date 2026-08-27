@@ -234,7 +234,10 @@ final class MachineAdminType extends AbstractType
                 'help' => 'admin_machine_form.help_popularite',
                 'constraints' => [new Assert\Range(notInRangeMessage: 'La popularité doit être comprise entre {{ min }} et {{ max }}.', min: 0, max: 5)],
             ])
-            ->add('save', SubmitType::class, ['label' => 'Enregistrer']);
+            // ⚠️ S151 — `common.save` et non « Enregistrer » : ce bouton est le seul
+            // de l'écran, et il était le dernier libellé français en dur d'un
+            // formulaire qui déroule maintenant ses sections traduites.
+            ->add('save', SubmitType::class, ['label' => 'common.save']);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

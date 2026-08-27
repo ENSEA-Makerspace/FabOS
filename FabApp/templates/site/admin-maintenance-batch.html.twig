@@ -13,8 +13,8 @@
 {% block title %}{{ 'maintenance.batch_browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260827-s151' }}">
-    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260827-s151' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260827-s151b' }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260827-s151b' }}">
 {% endblock %}
 
 {% block body %}
@@ -34,7 +34,10 @@
                 {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
                     {{ form_errors(form) }}
                     <div class="form-grid">
-                        <div class="form-field full">{{ form_label(form.machines) }}<div class="choice-grid">{{ form_widget(form.machines) }}</div><div class="form-errors">{{ form_errors(form.machines) }}</div></div>
+                        {# ⚠️ S151 — `form_row` et plus l'enveloppe à la main : la classe
+                           `.choice-grid` vient du `FormType` (`attr`), et le thème donne
+                           au groupe son `role`, son nom et sa description. #}
+                        {{ form_row(form.machines) }}
                         {{ form_row(form.title, {row_attr: {class: 'full'}}) }}
                         {{ form_row(form.type) }}
                         {{ form_row(form.dueDate) }}
