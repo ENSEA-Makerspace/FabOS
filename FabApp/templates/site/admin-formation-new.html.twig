@@ -41,6 +41,7 @@
 
                 {% include 'site/_formation_form.html.twig' with {
                     form: form,
+                    categoryChoices: categoryChoices|default([]),
                     submit_label: 'admin_formation_new.submit'|trans,
                 } only %}
             </section>

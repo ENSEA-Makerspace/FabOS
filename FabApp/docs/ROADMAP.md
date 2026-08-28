@@ -445,7 +445,21 @@ d'entrées traduites · ⚠️ plafond d'entrées (le menu principal en a déjà
   ⚠️ `reason` est aussi MASQUÉ quand il redit le statut : le service écrit la même
   valeur dans les deux pour un tiers des lignes. Vérifié sur les 137 lignes de
   l'historique complet (`?days=0`) : **0 énumération brute**.
-- **Quiz et validations physiques n'ont aucune UI de création.**
+- ⚠️ **« Quiz et validations physiques n'ont aucune UI de création » — À MOITIÉ
+  RÉFUTÉ, mesuré le 2026-08-27.** Les quiz en ont une :
+  `/admin/formations/{id}/quizzes/new` et `/edit` rendent un formulaire complet
+  (titre, type, note de passage, section rattachée, texte des questions). Les
+  validations physiques ne sont pas un objet à part : c'est une `FORMATION` dont la
+  `categorie` vaut exactement `Validation physique` — 7 lignes en base, plus 53 en
+  `Quiz interne`.
+  🔴 **Le vrai défaut n'était pas l'absence d'écran, c'était le SILENCE d'une faute
+  de frappe** : le champ est du texte libre, et rien ne disait que ces deux chaînes
+  retirent la formation du catalogue public. Une coquille créait une formation
+  ORDINAIRE et publique là où on croyait poser un échafaudage. ✅ Corrigé : le champ
+  porte maintenant une liste des catégories déjà employées (les deux spéciales
+  incluses, volontairement) et une aide qui dit ce qu'elles font.
+  🅿️ Ce qui resterait, si on le veut : un écran dédié pour créer une étape du
+  parcours guidé. Ce n'est plus un manque bloquant, c'est du confort.
 - ✅ **« Les deux écrans RFID montrent les mêmes deux boutons deux fois » — RÉFUTÉ**
   le 2026-08-27, et c'était déjà à moitié réfuté (`feedback-fabos-verify-pixels` :
   « un seul le faisait »). Compté sur les deux pages rendues :

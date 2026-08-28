@@ -19,6 +19,54 @@ class FormationRepository extends ServiceEntityRepository
         parent::__construct($registry, Formation::class);
     }
 
+    /**
+     * Les catégories déjà employées, pour la liste proposée sous le champ (S151).
+     *
+     * 🔴 **Deux d'entre elles ont un sens caché.** `QuizCatalogService::INTERNAL_CATEGORY`
+     * (« Quiz interne ») et `TrainingQualificationService::PHYSICAL_CATEGORY`
+     * (« Validation physique ») font sortir la formation du catalogue public :
+     * `findVisible()` les exclut, et `/formations/{id}` répond 404 pour elles.
+     * Le champ étant du TEXTE LIBRE, une faute de frappe créait en silence une
+     * formation ordinaire et publique là où l'opérateur croyait poser un
+     * échafaudage — rien à l'écran ne le disait.
+     *
+     * ⚠️ **Elles sont incluses volontairement.** Les cacher rendrait les deux
+     * seules valeurs qu'il ne faut pas rater les seules qu'on ne propose pas ; le
+     * risque n'est pas qu'on les choisisse, c'est qu'on les écrive de travers.
+     * ⚠️ Et ce n'est pas un `ChoiceType` : une catégorie reste libre, la liste
+     * propose sans imposer — même raison que pour les machines en S133.
+     *
+     * @return list<string>
+     */
+    public function usedCategories(): array
+    {
+        $rows = $this->createQueryBuilder('f')
+            ->select('DISTINCT f.categorie')
+            ->andWhere('f.categorie IS NOT NULL')
+            ->andWhere("TRIM(f.categorie) <> ''")
+            ->orderBy('f.categorie', 'ASC')
+            ->getQuery()
+            ->getScalarResult();
+
+        $labels = array_values(array_unique(array_map(
+            static fn (array $row): string => trim((string) $row['categorie']),
+            $rows,
+        )));
+
+        // Les deux échafaudages sont proposés même si aucune ligne ne les porte
+        // encore : c'est la première fois qu'on en crée un que la faute de frappe
+        // coûte le plus cher.
+        foreach ([QuizCatalogService::INTERNAL_CATEGORY, TrainingQualificationService::PHYSICAL_CATEGORY] as $special) {
+            if (!in_array($special, $labels, true)) {
+                $labels[] = $special;
+            }
+        }
+
+        sort($labels);
+
+        return $labels;
+    }
+
     public function findVisibleByBadge(Badge $badge): ?Formation
     {
         return $this->createQueryBuilder('formation')

@@ -974,11 +974,22 @@ final class AdminController extends AbstractController
         return $this->render('site/admin-formation-new.html.twig', [
             'formation' => $formation,
             'form' => $form,
+            // 🔴 **S151 — la catégorie d'une formation est du texte libre, et DEUX
+            // valeurs y ont un sens caché.** « Quiz interne » (53 lignes) et
+            // « Validation physique » (7) font sortir la formation du catalogue
+            // public : ce sont les échafaudages du parcours guidé, et
+            // `/formations/{id}` répond 404 pour elles. Une faute de frappe créait
+            // donc, en silence, une formation ORDINAIRE et publique là où
+            // l'opérateur croyait poser un échafaudage.
+            // ⚠️ Une liste des catégories DÉJÀ UTILISÉES, comme les machines en ont
+            // une depuis S133 — pas un `ChoiceType` : une catégorie reste du texte
+            // libre, la liste propose sans imposer.
+            'categoryChoices' => $formations->usedCategories(),
         ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
     }
 
     #[Route('/formations/{id}/edit', name: 'app_admin_formation_edit', requirements: ['id' => '\\d+'], methods: ['GET', 'POST'])]
-    public function editFormation(Formation $formation, Request $request, EntityManagerInterface $entityManager): Response
+    public function editFormation(Formation $formation, Request $request, EntityManagerInterface $entityManager, FormationRepository $formations): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
@@ -995,6 +1006,7 @@ final class AdminController extends AbstractController
         return $this->render('site/admin-formation-edit.html.twig', [
             'formation' => $formation,
             'form' => $form,
+            'categoryChoices' => $formations->usedCategories(),
         ]);
     }
 

@@ -72,6 +72,10 @@ final class FormationAdminType extends AbstractType
             ->add('categorie', TextType::class, [
                 'label' => 'form.category',
                 'required' => false,
+                // ⚠️ La liste est proposée, pas imposée — `list` et non un
+                // `ChoiceType` : une catégorie neuve doit rester possible.
+                'attr' => ['list' => 'formation-category-options'],
+                'help' => 'admin_formation_form.help_categorie',
                 'constraints' => [new Assert\Length(max: 100, maxMessage: 'La catégorie ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('niveau', IntegerType::class, [

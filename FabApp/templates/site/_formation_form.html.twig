@@ -10,6 +10,16 @@
 {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
     {{ form_errors(form) }}
 
+    {# ⚠️ Le catalogue des catégories déjà employées, proposé sans être imposé —
+       `form.categorie` porte `list="formation-category-options"`. Il inclut
+       volontairement « Quiz interne » et « Validation physique », les deux valeurs
+       qui retirent la formation du catalogue public : le risque n'est pas qu'on les
+       choisisse, c'est qu'on les écrive de travers, et une faute de frappe créait en
+       silence une formation publique là où on croyait poser un échafaudage. #}
+    <datalist id="formation-category-options">
+        {% for label in categoryChoices|default([]) %}<option value="{{ label }}">{% endfor %}
+    </datalist>
+
     {% include 'site/_form_sections.html.twig' with {
         form: form,
         sections: constant('App\\Form\\FormationAdminType::SECTIONS'),

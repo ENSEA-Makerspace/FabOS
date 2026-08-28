@@ -45,6 +45,7 @@
 
                 {% include 'site/_formation_form.html.twig' with {
                     form: form,
+                    categoryChoices: categoryChoices|default([]),
                 } only %}
                 <form method="post" action="{{ path('app_admin_formation_archive', {id: formation.id}) }}" class="admin-archive-action">
                     <input type="hidden" name="_token" value="{{ csrf_token('archive_formation_' ~ formation.id) }}">
