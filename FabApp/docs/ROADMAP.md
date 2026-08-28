@@ -415,6 +415,16 @@ d'entrées traduites · ⚠️ plafond d'entrées (le menu principal en a déjà
   page ; une seule surface accentuée réservée à cet écran. **À montrer en
   propositions comparables dans `/admin/design` avant de construire** — c'est le
   protocole qui a marché pour le format de liste (quatre tours).
+  ✅ **Premier tour posé le 2026-08-27 : `/admin/design#tableau-de-bord`.** Quatre
+  cadres, la même donnée dans tous — la référence d'aujourd'hui, puis A (la bande
+  respire et porte un FAIT, « Ouvert jusqu'à 17:30 »), B (les trois premiers
+  chiffres deviennent la figure de la page, sans aucune surface colorée), C (une
+  seule surface teintée sur tout l'écran, réservée aux chiffres).
+  ⚠️ **Aucune ne réintroduit ce qui avait été retiré** : rien ne sort de la carte, et
+  pas une couleur littérale — `color-mix` sur `--color-primary` pour A,
+  `--tone-primary-soft` pour C, `--color-primary-text` pour B. Vérifié en clair : le
+  gros chiffre de B mesure **7,65:1** sur sa carte.
+  🅿️ **Il manque l'avis de l'opérateur pour trancher** — c'est tout ce qui manque.
 - ✅ **`/events` sans paramètre rend 0 carte** — corrigé le 2026-08-27, et dans le
   shell partagé plutôt que sur la page : `_catalogue.html.twig` offrait toujours
   « Réinitialiser » vers `path(route)`, or pour `/events` la page sans paramètre EST

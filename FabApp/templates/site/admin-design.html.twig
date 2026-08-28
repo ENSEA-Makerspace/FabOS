@@ -1187,6 +1187,140 @@
                     seules les listes datées sont regroupées.
                 </p>
             </div>
+
+            <div class="dz-sec" id="tableau-de-bord">
+                <h3>🅿️ Propositions — rendre le tableau de bord distinctif</h3>
+                <p>
+                    🅿️ <strong>Trois propositions à comparer, rien n'est en ligne.</strong> La demande
+                    est de l'opérateur, le 2026-08-16 : <em>« the old homepage looked more "special",
+                    we'll find a way to make it pop again later »</em>. ⚠️ <strong>Ce n'est pas une
+                    régression à annuler</strong> — le bandeau pleine largeur et les couleurs en dur
+                    d'avant sont partis pour de bonnes raisons (S143b : sept tuiles portaient leur
+                    couleur DEUX fois, en `rgba()` en ligne et en `stroke="#hex"`, que le thème ne
+                    pouvait pas atteindre). Il s'agit de retrouver du caractère <em>sans</em> les
+                    reprendre.
+                </p>
+                <div class="dzf-verdict" style="margin-bottom: var(--spacing-lg)">
+                    <strong>Une variable par proposition</strong>, et la même donnée dans les quatre
+                    cadres : les chiffres réels du tableau de bord de la boîte. Ce qui change d'un
+                    cadre à l'autre est le SEUL point à juger.
+                </div>
+
+                <style>
+                    .dzd { border: 1px solid var(--border-color); border-radius: var(--border-radius); overflow: hidden; margin-bottom: var(--spacing-lg); }
+                    .dzd-label { padding: 6px 12px; font-size: var(--font-size-xs); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--color-text-light); background: var(--surface-ground); border-bottom: 1px solid var(--border-color); }
+                    .dzd-body { padding: var(--spacing-lg); background: var(--theme-surface); }
+                    .dzd-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--spacing-md); }
+                    .dzd-tile { background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: var(--spacing-md); display: flex; align-items: center; gap: var(--spacing-sm); }
+                    .dzd-n { font-size: 22px; font-weight: 800; line-height: 1; }
+                    .dzd-k { font-size: var(--font-size-xs); color: var(--color-text-light); }
+                    /* A — la bande respire, et elle porte un fait */
+                    .dzd-a-band { background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 62%, #000)); color: #fff; border-radius: var(--border-radius); padding: 26px var(--spacing-lg); display: flex; align-items: baseline; justify-content: space-between; gap: var(--spacing-lg); margin-bottom: var(--spacing-lg); }
+                    .dzd-a-band h4 { margin: 0; font-size: 24px; }
+                    .dzd-a-band p { margin: 4px 0 0; opacity: .85; font-size: var(--font-size-sm); }
+                    .dzd-a-fact { text-align: right; font-size: var(--font-size-sm); opacity: .9; }
+                    .dzd-a-fact b { display: block; font-size: 20px; }
+                    /* B — les chiffres SONT la page */
+                    .dzd-b-lead { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--spacing-lg); margin-bottom: var(--spacing-lg); }
+                    .dzd-b-big { font-size: 52px; font-weight: 800; line-height: .95; color: var(--color-primary-text); }
+                    .dzd-b-k { font-size: var(--font-size-sm); color: var(--color-text-light); margin-top: 4px; }
+                    .dzd-b-rest { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--spacing-md); border-top: 1px solid var(--border-color); padding-top: var(--spacing-md); }
+                    .dzd-b-small b { font-size: 18px; }
+                    /* C — une seule surface accentuée */
+                    .dzd-c-panel { background: var(--tone-primary-soft); border: 1px solid color-mix(in srgb, var(--color-primary) 22%, transparent); border-radius: var(--border-radius); padding: var(--spacing-lg); }
+                    .dzd-c-panel .dzd-tile { background: transparent; border: 0; padding: var(--spacing-sm) 0; }
+                    .dzd-c-title { margin: 0 0 var(--spacing-md); font-size: var(--font-size-md); color: var(--color-text); }
+                </style>
+
+                {% set _stats = [
+                    {n: '9', k: 'Membres'}, {n: '11', k: 'Machines'}, {n: '8', k: 'Formations'}, {n: '44', k: 'Réservations'},
+                    {n: '136', k: 'Passages RFID'}, {n: '8', k: 'Badges'}, {n: '3', k: 'Formations validées'}
+                ] %}
+
+                <div class="dzd">
+                    <div class="dzd-label">Aujourd'hui — la référence</div>
+                    <div class="dzd-body">
+                        <div style="background: var(--color-primary); color:#fff; border-radius: var(--border-radius); padding: var(--spacing-md) var(--spacing-lg); margin-bottom: var(--spacing-lg)">
+                            <h4 style="margin:0;font-size:18px">Bienvenue, Yanis</h4>
+                            <p style="margin:2px 0 0;font-size:var(--font-size-sm);opacity:.85">Pilotez votre fablab depuis ce tableau de bord</p>
+                        </div>
+                        <div class="dzd-grid">
+                            {% for s in _stats %}<div class="dzd-tile"><span class="dzd-n">{{ s.n }}</span><span class="dzd-k">{{ s.k }}</span></div>{% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dzd">
+                    <div class="dzd-label">A — la bande respire, et elle dit quelque chose</div>
+                    <div class="dzd-body">
+                        <div class="dzd-a-band">
+                            <div>
+                                <h4>Bienvenue, Yanis</h4>
+                                <p>Pilotez votre fablab depuis ce tableau de bord</p>
+                            </div>
+                            <div class="dzd-a-fact"><b>Ouvert</b>jusqu'à 17:30</div>
+                        </div>
+                        <div class="dzd-grid">
+                            {% for s in _stats %}<div class="dzd-tile"><span class="dzd-n">{{ s.n }}</span><span class="dzd-k">{{ s.k }}</span></div>{% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dzd">
+                    <div class="dzd-label">B — les chiffres sont la figure de la page</div>
+                    <div class="dzd-body">
+                        <p style="margin:0 0 var(--spacing-lg);color:var(--color-text-light);font-size:var(--font-size-sm)">Bienvenue, Yanis</p>
+                        <div class="dzd-b-lead">
+                            {% for s in _stats|slice(0, 3) %}
+                                <div><div class="dzd-b-big">{{ s.n }}</div><div class="dzd-b-k">{{ s.k }}</div></div>
+                            {% endfor %}
+                        </div>
+                        <div class="dzd-b-rest">
+                            {% for s in _stats|slice(3, 4) %}
+                                <div class="dzd-b-small"><b>{{ s.n }}</b> <span class="dzd-k">{{ s.k }}</span></div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dzd">
+                    <div class="dzd-label">C — une seule surface accentuée sur tout l'écran</div>
+                    <div class="dzd-body">
+                        <p style="margin:0 0 var(--spacing-lg);color:var(--color-text-light);font-size:var(--font-size-sm)">Bienvenue, Yanis</p>
+                        <div class="dzd-c-panel">
+                            <h4 class="dzd-c-title">Le fablab aujourd'hui</h4>
+                            <div class="dzd-grid">
+                                {% for s in _stats %}<div class="dzd-tile"><span class="dzd-n">{{ s.n }}</span><span class="dzd-k">{{ s.k }}</span></div>{% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <p>
+                    <strong>Ce que chacune parie.</strong>
+                    <strong>A</strong> garde la bande — donc l'accueil reste ce qu'on voit d'abord — mais
+                    lui donne de l'air et un FAIT à porter (« Ouvert jusqu'à 17:30 ») : une bande qui ne
+                    dit que bonjour est un bandeau, une bande qui dit l'état du lab est une information.
+                    <strong>B</strong> renonce à la bande et fait des trois premiers chiffres la figure
+                    de la page : c'est le pari le plus fort et le seul qui « pop » sans surface colorée.
+                    <strong>C</strong> ne garde qu'une seule surface teintée sur tout l'écran, réservée
+                    aux chiffres : l'accent redevient rare, donc il compte.
+                </p>
+                <p>
+                    ⚠️ <strong>Aucune des trois ne réintroduit ce qui avait été retiré</strong> : pas de
+                    bandeau pleine largeur — tout reste dans la carte — et pas une seule couleur
+                    littérale. Le dégradé de A est un `color-mix` sur `--color-primary`, la teinte de C
+                    est `--tone-primary-soft`, et le gros chiffre de B est `--color-primary-text`, le
+                    jeton qui vaut l'accent en clair et un mélange blanc en sombre — parce que le
+                    magenta de marque en PREMIER PLAN mesure ~1,97:1 sur un panneau sombre.
+                </p>
+                <p>
+                    🅿️ <strong>Ce qu'il manque pour trancher, et que je ne peux pas fournir :</strong>
+                    l'avis de l'opérateur. Le protocole est celui qui a marché pour le format de liste
+                    — des propositions comparables, une variable à la fois, quatre tours. Ces trois-ci
+                    sont le premier tour.
+                </p>
+            </div>
             </div>
             </div>
     {% endblock %}
