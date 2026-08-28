@@ -24,6 +24,7 @@ use App\Repository\LabPageRepository;
 use App\Repository\LogUtilisationRepository;
 use App\Repository\PlaceRepository;
 use App\Repository\MachineFavoriteRepository;
+use App\Repository\MachineDocumentRepository;
 use App\Repository\MachineRepository;
 use App\Repository\LoanRepository;
 use App\Repository\MaintenanceTaskRepository;
@@ -843,6 +844,10 @@ final class SiteController extends AbstractController
         UsageRightsService $usageRights,
         TranslatorInterface $translator,
         CalendarPayload $calendarPayload,
+        // ⚠️ Ajouté AVANT `$id`, qui porte un défaut : glisser un paramètre requis
+        // après lui aggraverait la dépréciation « optional parameter declared
+        // before required parameter » que cette signature traîne déjà.
+        MachineDocumentRepository $machineDocuments,
         ?int $id = null,
         ReservableResolver $reservables,
     ): Response
@@ -891,6 +896,8 @@ final class SiteController extends AbstractController
         $calendarAccess = $this->buildCalendarResourceAccess([$machine], [], $machineAccess, $usageRights, $translator, $reservables);
 
         return $this->render('site/machine-detail.html.twig', [
+            // Les documents attachés (S152) — l'onglet n'existe que s'il y en a.
+            'machineDocuments' => $machineDocuments->forMachine($machine),
             'machine' => $machine,
             'nextSlot' => $nextSlot,
             'requiredBadgeRows' => $requiredBadgeRows,

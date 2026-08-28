@@ -86,6 +86,7 @@ use App\Repository\LogUtilisationRepository;
 use App\Repository\LoanableItemRepository;
 use App\Repository\LoanRepository;
 use App\Repository\MachineCategoryRepository;
+use App\Repository\MachineDocumentRepository;
 use App\Repository\MachineRepository;
 use App\Repository\MaintenanceTaskRepository;
 use App\Repository\MaterialRepository;
@@ -805,7 +806,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/machines/{id}/edit', name: 'app_admin_machine_edit', requirements: ['id' => '\\d+'], methods: ['GET', 'POST'])]
-    public function editMachine(Machine $machine, Request $request, EntityManagerInterface $entityManager, BadgeRepository $badges, MachineCategoryRepository $categories): Response
+    public function editMachine(Machine $machine, Request $request, EntityManagerInterface $entityManager, BadgeRepository $badges, MachineCategoryRepository $categories, MachineDocumentRepository $machineDocuments): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
@@ -841,6 +842,9 @@ final class AdminController extends AbstractController
         }
 
         return $this->render('site/admin-machine-edit.html.twig', [
+            // Les documents attachés (S152). ⚠️ Passés au gabarit, pas au
+            // `FormType` : ils ont leur propre formulaire et leur propre route.
+            'machineDocuments' => $machineDocuments->forMachine($machine),
             'machine' => $machine,
             'form' => $form,
             'categoryChoices' => array_map(

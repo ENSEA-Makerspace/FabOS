@@ -6,9 +6,9 @@
 
 {% block stylesheets %}
     {# S146b — this page draws the calendar now. #}
-    <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=20260827-s152d' }}">
-    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260827-s152d' }}">
-    <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260827-s152d' }}">
+    <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=20260828-s152e' }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260828-s152e' }}">
+    <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260828-s152e' }}">
 {% endblock %}
 
 {% block page_styles %}
@@ -200,9 +200,51 @@
                        already is — one navigation removed from the most frequent journey.
                        Quiz and Historique are still pages of their own and stay links. #}
                     <button class="detail-tab" data-tab="calendrier">{{ 'nav.calendar'|trans }}</button>
+                    {# ⚠️ **L'onglet n'apparaît QUE s'il y a des documents.** Un onglet
+                       vide est une promesse qui ne tient pas : on l'ouvre, il n'y a
+                       rien, et on a payé un clic pour l'apprendre. La plupart des
+                       machines n'auront jamais de document. #}
+                    {% if machineDocuments|default([])|length %}
+                        <button class="detail-tab" data-tab="documents">{{ 'machine_documents.heading'|trans }}</button>
+                    {% endif %}
                     <a class="detail-tab" href="{{ path('app_machine_quiz', {id: machine.id}) }}">{{ 'machine.tab_quiz'|trans }}</a>
                     <a class="detail-tab" href="{{ path('app_machine_history', {id: machine.id}) }}">{{ 'machine.tab_history'|trans }}</a>
                 </div>
+
+                {% if machineDocuments|default([])|length %}
+                    {# 🔴 **S152 — les documents attachés à une machine.** Demandés par
+                       l'opérateur le 2026-08-27 : guide d'usage, fiche de sécurité.
+
+                       ⚠️ **Ils sont PUBLICS**, et la fiche ne prétend pas le contraire :
+                       les fichiers vivent sous `public/uploads/`, donc leur adresse
+                       suffit. C'est le bon défaut pour une fiche de sécurité — elle se
+                       lit AVANT d'être formé, pas après — et l'écran d'admin prévient
+                       en toutes lettres de ne rien y mettre d'interne.
+
+                       ⚠️ Le lien passe par la route de téléchargement plutôt que par
+                       l'URL du fichier : elle rend le nom que l'opérateur a téléversé
+                       au lieu de `machine-7-a1b2c3.pdf`. #}
+                    <div class="detail-tab-content" id="documents">
+                        <div class="detail-tab-grid">
+                            <div class="detail-card full-width">
+                                <h3 class="detail-card-title">{{ 'machine_documents.heading'|trans }}</h3>
+                                <div class="detail-card-content">
+                                    <ul class="machine-doc-list">
+                                        {% for doc in machineDocuments %}
+                                            <li class="machine-doc">
+                                                <span class="machine-doc-kind" aria-hidden="true">{{ doc.kind|upper }}</span>
+                                                <a class="machine-doc-link" href="{{ path('app_machine_document_download', {id: machine.id, documentId: doc.id}) }}">
+                                                    <span class="machine-doc-label">{{ doc.label }}</span>
+                                                    <span class="machine-doc-meta">{{ doc.kind|upper }} · {{ (doc.sizeBytes / 1048576)|number_format(1) }} Mo</span>
+                                                </a>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
 
                 <div class="detail-tab-content active" id="overview">
                     <div class="detail-tab-grid">

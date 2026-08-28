@@ -3390,6 +3390,26 @@ admin_institution_form:
 admin_loanable_form:
     quantity: "Quantità"
 
+machine_documents:
+    heading: "Documenti"
+    admin_heading: "Documenti allegati"
+    admin_hint: "Guida d’uso, scheda di sicurezza, planimetria… ⚠️ Questi file sono PUBBLICI: il loro indirizzo basta per leggerli, anche senza account. Non metteteci nulla di interno."
+    label: "Titolo"
+    label_help: "Ciò che il membro legge nell’elenco. Se vuoto, si usa il nome del file."
+    file: "File"
+    file_help: "PDF, immagine, documento, foglio di calcolo o ZIP. Massimo 20 MB."
+    add: "Aggiungi il documento"
+    delete: "Rimuovi"
+    empty: "Nessun documento per questa macchina."
+    public_empty: "Nessun documento pubblicato per questa macchina."
+    flash_added: "Documento aggiunto."
+    flash_deleted: "Documento rimosso."
+    flash_no_file: "Scegliete un file da aggiungere."
+    flash_too_big: "File troppo grande: massimo 20 MB."
+    flash_bad_type: "Tipo di file non accettato. PDF, immagine, documento, foglio di calcolo o ZIP."
+    flash_move_failed: "Il file non è stato salvato."
+    flash_not_found: "Documento non trovato."
+
 admin_place_form:
     capacite: "Capienza (persone)"
     manager: "Responsabile"

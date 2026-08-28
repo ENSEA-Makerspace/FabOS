@@ -13,8 +13,8 @@
 {% block title %}{{ 'admin_machine_edit.browser_title'|trans({'%machine%': machine.nom}) }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260827-s152d' }}">
-    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260827-s152d' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260828-s152e' }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260828-s152e' }}">
 {% endblock %}
 
 {% block body %}
@@ -51,6 +51,11 @@
                     availableBadges: availableBadges,
                     selectedBadgeIds: selectedBadgeIds,
                 } only %}
+                {% include 'site/_machine_documents_admin.html.twig' with {
+                    machine: machine,
+                    documents: machineDocuments|default([]),
+                } only %}
+
                 <form method="post" action="{{ path('app_admin_machine_archive', {id: machine.id}) }}" class="admin-archive-action">
                     <input type="hidden" name="_token" value="{{ csrf_token('archive_machine_' ~ machine.id) }}">
                     {% if machine.archived %}<input type="hidden" name="restore" value="1">{% endif %}

@@ -642,3 +642,57 @@ a.cell-chip:hover, a.cell-chip:focus-visible {
 .color-dot--red { background: var(--color-danger, #A3231C); }
 .color-dot--purple { background: var(--color-primary, #9E1B56); }
 .color-dot--unknown { background: var(--border-color, #9aa3af); }
+
+/* ===================================================================
+   LES DOCUMENTS D'UNE MACHINE (S152)
+
+   Un guide d'usage, une fiche de sécurité : une liste de fichiers, côté admin
+   comme côté public. Les deux partagent la même ligne — une étiquette de type,
+   un nom, un poids — parce que c'est le même objet vu de deux places.
+
+   ⚠️ **Dans `components.css` et non dans un `<style>` de page** : la liste est
+   rendue par deux gabarits, et une règle locale à l'un aurait laissé l'autre nu.
+   C'est le piège de la cascade partagée, trois fois trouvé et écrit dans
+   `/admin/design#recherche`.
+
+   ⚠️ Aucune couleur littérale : l'étiquette de type prend l'accent du portail par
+   `--color-primary-text`, le jeton qui vaut l'accent en clair et un mélange blanc
+   en sombre — le magenta de marque en premier plan mesure ~1,97:1 sur un panneau
+   sombre.
+   =================================================================== */
+.machine-doc-list,
+.admin-doc-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--spacing-sm); }
+
+.machine-doc,
+.admin-doc-row {
+    display: flex; align-items: center; gap: var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--border-color); border-radius: var(--border-radius);
+    background: var(--theme-surface);
+}
+
+/* L'étiquette de type — « PDF », « IMAGE ». Une pastille, pas une icône : le mot
+   se lit sans légende et survit à n'importe quel jeu d'icônes. */
+.machine-doc-kind,
+.admin-doc-kind {
+    flex: 0 0 auto; min-width: 3.4rem; text-align: center;
+    font-size: var(--font-size-xs); font-weight: 700; letter-spacing: .04em;
+    color: var(--color-primary-text);
+    background: color-mix(in srgb, currentColor 12%, transparent);
+    border-radius: var(--border-radius-sm, 6px);
+    padding: 4px 6px;
+}
+
+.machine-doc-link { display: flex; flex-direction: column; text-decoration: none; color: inherit; flex: 1 1 auto; min-width: 0; }
+.machine-doc-link:hover .machine-doc-label { text-decoration: underline; }
+.machine-doc-label { font-weight: 600; }
+.machine-doc-meta,
+.admin-doc-name small { display: block; font-size: var(--font-size-sm); color: var(--color-text-light); }
+
+.admin-doc-name { flex: 1 1 auto; min-width: 0; }
+/* ⚠️ `min-width: 0` sur les deux : sans lui, un nom de fichier long refuse de se
+   réduire et pousse le bouton « Retirer » hors de la carte — le défaut mesuré sur
+   les cartes machine en 2026-08-02, et qui rendait un bouton invisible. */
+.admin-doc-row form { flex: 0 0 auto; }
+.admin-doc-block { margin-top: var(--spacing-xl); }
+.admin-doc-add { margin-top: var(--spacing-lg); }

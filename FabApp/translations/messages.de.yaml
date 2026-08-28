@@ -3390,6 +3390,26 @@ admin_institution_form:
 admin_loanable_form:
     quantity: "Menge"
 
+machine_documents:
+    heading: "Dokumente"
+    admin_heading: "Angehängte Dokumente"
+    admin_hint: "Bedienungsanleitung, Sicherheitsdatenblatt, Plan… ⚠️ Diese Dateien sind ÖFFENTLICH: Ihre Adresse genügt zum Lesen, ganz ohne Konto. Nichts Internes hier ablegen."
+    label: "Titel"
+    label_help: "Was das Mitglied in der Liste liest. Leer gelassen, wird der Dateiname übernommen."
+    file: "Datei"
+    file_help: "PDF, Bild, Dokument, Tabelle oder ZIP. Maximal 20 MB."
+    add: "Dokument hinzufügen"
+    delete: "Entfernen"
+    empty: "Kein Dokument für diese Maschine."
+    public_empty: "Kein Dokument für diese Maschine veröffentlicht."
+    flash_added: "Dokument hinzugefügt."
+    flash_deleted: "Dokument entfernt."
+    flash_no_file: "Wählen Sie eine Datei aus."
+    flash_too_big: "Datei zu groß: maximal 20 MB."
+    flash_bad_type: "Dateityp nicht zulässig. PDF, Bild, Dokument, Tabelle oder ZIP."
+    flash_move_failed: "Die Datei konnte nicht gespeichert werden."
+    flash_not_found: "Dokument nicht gefunden."
+
 admin_place_form:
     capacite: "Kapazität (Personen)"
     manager: "Verantwortlich"

@@ -1,0 +1,62 @@
+{# LES DOCUMENTS D'UNE MACHINE, CÔTÉ ADMIN (S152).
+
+   ⚠️ **Un bloc à côté du formulaire, pas un champ dedans.** Le formulaire machine
+   est passé au motif `SECTIONS` en S151 : sa liste de champs vient du `FormType`,
+   et un téléversement qui poste sur SA PROPRE route n'en fait pas partie. C'est la
+   même place que les badges requis, pour la même raison.
+
+   🔴 **Le formulaire d'ajout est un `<form>` À PART, et il doit l'être.** Imbriquer
+   un formulaire dans un autre est interdit en HTML — le navigateur ferme le premier
+   et le bouton « Enregistrer » de la machine se met à poster ici. D'où ce bloc placé
+   APRÈS `_machine_form`, jamais dedans.
+
+   ⚠️ Chaque suppression a son propre `<form>` pour la même raison, et toutes
+   partagent le jeton `machine_documents_{id}` : c'est un seul écran, une seule
+   autorisation. #}
+<section class="admin-doc-block">
+    <div class="form-section"><h3>{{ 'machine_documents.admin_heading'|trans }}</h3></div>
+    <p class="form-help">{{ 'machine_documents.admin_hint'|trans }}</p>
+
+    {% if documents is empty %}
+        <p class="empty-state">{{ 'machine_documents.empty'|trans }}</p>
+    {% else %}
+        <ul class="admin-doc-list">
+            {% for doc in documents %}
+                <li class="admin-doc-row">
+                    <span class="admin-doc-kind" aria-hidden="true">{{ doc.kind|upper }}</span>
+                    <span class="admin-doc-name">
+                        <a href="{{ path('app_machine_document_download', {id: machine.id, documentId: doc.id}) }}">{{ doc.label }}</a>
+                        {# ⚠️ La taille en Mo à une décimale : « 2,3 Mo » se lit, « 2411724 octets » se déchiffre. #}
+                        <small>{{ doc.originalName }} · {{ (doc.sizeBytes / 1048576)|number_format(1) }} Mo</small>
+                    </span>
+                    <form method="post" action="{{ path('app_admin_machine_document_delete', {id: machine.id, documentId: doc.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('machine_documents_' ~ machine.id) }}">
+                        <button class="btn-link btn-danger-admin" type="submit"
+                                data-controller="confirm" data-confirm-message-value="{{ 'machine_documents.delete'|trans }} — {{ doc.label }} ?">
+                            {{ 'machine_documents.delete'|trans }}
+                        </button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <form class="admin-doc-add" method="post" action="{{ path('app_admin_machine_document_add', {id: machine.id}) }}" enctype="multipart/form-data">
+        <input type="hidden" name="_token" value="{{ csrf_token('machine_documents_' ~ machine.id) }}">
+        <div class="form-grid">
+            <div class="form-field">
+                <label for="machine-doc-label">{{ 'machine_documents.label'|trans }}</label>
+                <input class="form-input" type="text" id="machine-doc-label" name="label" maxlength="180">
+                <p class="form-help">{{ 'machine_documents.label_help'|trans }}</p>
+            </div>
+            <div class="form-field">
+                <label for="machine-doc-file">{{ 'machine_documents.file'|trans }}</label>
+                <input class="form-input" type="file" id="machine-doc-file" name="document" required>
+                <p class="form-help">{{ 'machine_documents.file_help'|trans }}</p>
+            </div>
+        </div>
+        <div class="form-actions">
+            <span class="btn-submit"><button type="submit">{{ 'machine_documents.add'|trans }}</button></span>
+        </div>
+    </form>
+</section>

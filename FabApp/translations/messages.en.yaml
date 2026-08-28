@@ -3391,6 +3391,26 @@ admin_institution_form:
 admin_loanable_form:
     quantity: "Quantity"
 
+machine_documents:
+    heading: "Documents"
+    admin_heading: "Attached documents"
+    admin_hint: "Usage guide, safety sheet, layout… ⚠️ These files are PUBLIC: their address is enough to read them, with no account. Put nothing internal here."
+    label: "Title"
+    label_help: "What the member reads in the list. Left empty, the file name is used."
+    file: "File"
+    file_help: "PDF, image, document, spreadsheet or ZIP. 20 MB maximum."
+    add: "Add the document"
+    delete: "Remove"
+    empty: "No document for this machine."
+    public_empty: "No document published for this machine."
+    flash_added: "Document added."
+    flash_deleted: "Document removed."
+    flash_no_file: "Choose a file to add."
+    flash_too_big: "File too large: 20 MB maximum."
+    flash_bad_type: "File type not accepted. PDF, image, document, spreadsheet or ZIP."
+    flash_move_failed: "The file could not be saved."
+    flash_not_found: "Document not found."
+
 admin_place_form:
     capacite: "Capacity (people)"
     manager: "Manager"
