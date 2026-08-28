@@ -90,6 +90,11 @@ qu'en téléversant, un seul fichier suit les deux thèmes (mesuré). 🅿️ Re
 décisions : téléverser SES logos (une table, donc une migration), et le choix entre
 « une grille par mois » et « un séparateur dans la grille partagée ».
 
+✅ **Les documents attachés à une machine sont EN LIGNE (2026-08-28).** Bloc admin
+sur `/admin/machines/{id}/edit`, onglet « Documents » sur la fiche publique.
+🔴 **Ces fichiers sont publics** — leur adresse suffit à les lire. 🅿️ Il reste à y
+déposer les vrais documents, ce qui est votre part.
+
 🅿️ **Consigné le 2026-08-27 : une proposition d'écran « événements »**
 d'après trois captures de **Fabmanager** (⚠️ pas Fabman — seconde source, décrite
 dans `Stage/Drive/Images/Fabmanager UI/README.md`). Dates fortes, regroupement par

@@ -234,52 +234,44 @@ même logo, donc quinze cartes identiques. Le remède devient le symptôme.
 
 ---
 
-## 🅿️ Documents attachés à une machine — AVANT le commerce (opérateur, 2026-08-27)
+## ✅ Documents attachés à une machine — FAIT le 2026-08-28
 
-**Demande, mot pour mot** : *« before commerce, let's add on the machine pages files
-to download related to each machine, example: usage guide, safety sheet, etc. Of
-course the admin edit page should allow for these files to be downloaded or deleted
-and on the consultation "public" there should be a nice place to see them and consult
-or download them. Style should be consistent with design guidelines and reuse
-existing code as much as possible. »*
+**Demandé** : *« add on the machine pages files to download related to each
+machine, example: usage guide, safety sheet, etc. »*
 
-**Position** : à faire **avant la Phase H**, donc après la fin de J. Ce n'est pas de
-la finition, c'est une fonctionnalité — elle a son propre découpage.
+Un bloc « Documents attachés » sur `/admin/machines/{id}/edit` — téléverser,
+retirer — et un onglet « Documents » sur la fiche publique, dans la barre qui
+existait déjà. Migration `Version20260828100000` passée par l'opérateur le
+2026-08-28 à 08:32, **avant** le déploiement du code qui lit la table.
 
-**Ce que ça demande, dans l'ordre :**
-1. **Une entité** `MACHINE_DOCUMENT` : machine, libellé, nom de fichier stocké, nom
-   d'origine, type MIME, taille, position, `uploadedAt`. ⚠️ **Migration à faire
-   passer par l'opérateur** (l'agent ne peut pas migrer) et à déployer AVANT le code
-   qui lit la table — voir [[feedback-fabos-migration-hazard]].
-2. **Le téléversement admin**, sur `/admin/machines/{id}/edit`. ⚠️ **Réutiliser le
-   motif existant, ne pas en inventer un second** : `AdminController` ~3282 (pages du
-   lab) fait déjà `UploadedFile` → `guessExtension()` → `move()` vers
-   `public/uploads/<famille>/`. Donc `public/uploads/machine-documents/`.
-   ⚠️ Le formulaire machine est passé au motif `SECTIONS` (S151) : les documents
-   ne sont **pas** un champ du `FormType` — ce sera un bloc à côté, comme les badges
-   requis, avec son propre jeton CSRF et sa propre route de suppression.
-3. **La fiche publique** `/machines/{id}` : la page a déjà une barre d'onglets
-   (`overview` · `calendrier` · quiz · historique). Un onglet « Documents » y entre
-   naturellement, ou un bloc dans `overview` si la liste est courte. À trancher en
-   **propositions comparables dans `/admin/design`** — c'est le protocole
-   ([[feedback-fabos-design-review-loop]]), et la revue designer est une fois par
-   phase.
-4. **Les droits** : un document est-il public, ou réservé aux membres qui ont le
-   badge de la machine ? Une fiche de sécurité se lit AVANT d'être formé, donc
-   probablement public — mais c'est une décision opérateur, pas de codeur.
+🔴 **Ces fichiers sont PUBLICS.** Ils vivent sous `public/uploads/`, donc leur
+adresse suffit. C'est le bon défaut pour une fiche de sécurité — elle se lit AVANT
+d'être formé — et l'écran d'admin prévient en toutes lettres de ne rien y mettre
+d'interne. 🅿️ **Le jour où un document devra être réservé aux membres, il faudra
+le sortir de `public/`** : un contrôle d'accès devant un fichier que le serveur web
+sert directement ne contrôle rien.
 
-**Pièges déjà connus, à ne pas redécouvrir :**
-- 🔴 **Ne pas générer le contenu.** L'opérateur a les vrais documents ; on construit
-  le contenant et on lui demande les fichiers après ([[feedback-infra-execution-style]]).
-- ⚠️ **Supprimer la ligne n'efface pas le fichier** — `services.yaml` porte déjà la
-  remarque pour les avatars. Décider explicitement si `unlink()` accompagne la
-  suppression, et l'écrire.
-- ⚠️ **Un PDF n'est pas une image** : pas d'`exif_read_data()`, pas de miniature.
-  Prévoir une icône par type et une taille lisible (« PDF · 2,3 Mo »).
-- ⚠️ **Le type MIME se vérifie côté serveur**, pas sur l'extension : un `.pdf`
-  renommé reste ce qu'il est. Contrainte `Assert\File` avec `mimeTypes`.
-- ⚠️ Cinq langues pour chaque libellé neuf, et le scanner ne lit pas le PHP des
-  `FormType` ([[feedback-fabos-i18n-traps]]).
+**Les décisions prises, pour ne pas les re-litiger :**
+- le type est **constaté** (`getMimeType()`, finfo), jamais annoncé — liste blanche
+  de douze types ;
+- le nom sur le disque est construit à partir du type constaté, jamais du nom
+  envoyé (qui peut contenir des `../`), mais `originalName` est rendu au
+  téléchargement ;
+- **supprimer efface aussi le fichier**, contrairement aux avatars : l'octet est
+  public, le laisser laisserait une fiche retirée toujours lisible ;
+- l'onglet public n'apparaît que s'il y a des documents ;
+- le formulaire d'ajout est un `<form>` à part, APRÈS `_machine_form` — imbriquer
+  des formulaires est interdit en HTML.
+
+⚠️ **Le piège qui a mordu au premier déploiement** : `naming_strategy: underscore`
+dans `doctrine.yaml` faisait chercher `stored_name` là où la table dit
+`storedName`. L'entité déclare ses noms de colonnes explicitement.
+
+✅ Sonde d'écriture `app:s152:document-probe` verte. ⚠️ Elle ne couvre pas le
+téléversement HTTP lui-même (validation de type, déplacement du fichier), qui
+demande un vrai POST authentifié.
+
+🅿️ **Reste à faire, et c'est à l'opérateur** : y déposer les vrais documents.
 
 ---
 
