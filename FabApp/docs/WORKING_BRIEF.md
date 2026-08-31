@@ -1,4 +1,4 @@
-# Où on en est — 2026-08-27
+# Où on en est — 2026-08-31
 
 **Lire ceci en premier.** Une page. Le reste se lit à la demande :
 
@@ -16,29 +16,25 @@
 
 ## Position
 
-🔴 **Phase S153 ouverte le 2026-08-28 — c'est là qu'on reprend.** Quatre chantiers,
-détaillés dans `ROADMAP.md` § « Phase S153 ». Trois soldent une proposition déjà
-dessinée et validée par l'opérateur ; le quatrième est neuf.
+✅ **Phase S153 livrée le 2026-08-31.** Les quatre chantiers sont faits — la
+saisie des packages (le compilateur, la case « sans limite d'horaires », la
+sonde), le regroupement par mois de `/events`, les six affiches de remplacement
+sur les vraies cartes, la bande du tableau de bord qui porte un fait. Les trois
+propositions ont été **supprimées** du guide de style, avec la sous-page et sa
+route. Détail → `history/phase-S153-saisie.md`.
 
-1. 🔴 **La saisie des packages** — le chantier neuf. Proposition visible et
-   cliquable sur **`/admin/design/packages`**. Un formulaire, quatre lignes de
-   restriction + une d'extension, qui se lit comme une phrase. Tout est sur
-   « aucune restriction » à l'arrivée. Reste à écrire : le compilateur (quatre
-   lignes → grants/fenêtres/quotas) et la case « sans limite d'horaires ».
-2. ✅ **Le regroupement par mois sur `/events`** — confirmé par l'opérateur, et
-   **pas coûteux** : `{% block cards %}` est dans la grille, `/events` le surcharge
-   déjà, le shell partagé n'est pas touché.
-3. **Les six affiches de remplacement** sur les vraies cartes d'événement —
-   `_event_placeholder.html.twig` existe déjà. Tirage **stable** (`id % 6`).
-4. **Le tableau de bord, proposition A** — la bande porte un fait, pas un bonjour.
-
-🔴 **RÈGLE DE LA PHASE, donnée par l'opérateur : une proposition implémentée se
-SUPPRIME.** Page, route, lien, section. Le raisonnement va dans `HISTORY.md` et le
-commit, jamais dans un écran. Chaque chantier de S153 porte sa ligne « à la
-livraison, retirer… ».
+🔴 **Une décision opérateur est SORTIE de cette phase, et elle est neuve :**
+`USAGE_PACKAGE.fullAccess` veut désormais dire « aucune restriction, horaires
+compris », et il est lu par les **deux** modèles de droits — il ne l'était que
+par la v1. Sur la boîte, « Accès complet » porte déjà ce bit : ses porteurs
+gagnent la réservation hors grille hebdomadaire (jamais hors d'une fermeture
+datée). C'est le cas n°1 de la liste de l'opérateur, mais c'est un
+**élargissement d'accès** — à confirmer package par package.
 
 **Deux décisions opérateur toujours en attente :**
-- 🔴🔴 **J-25** — aucun membre ne peut réserver (voir plus bas).
+- 🔴🔴 **J-25** — aucun membre ne peut réserver (voir plus bas). ⚠️ À réexaminer
+  à la lumière de ce qui précède : un package `fullAccess` sans grants
+  n'autorisait rien sous la v2, ce qui est exactement cette forme de panne.
 - ⚠️ **R5** de la passe navigateur — deux mots pour le même état de machine.
 
 **Phase J : close sur ce qui se voit.** La revue de sortie `S149-REVUE.md` est
@@ -50,7 +46,7 @@ conclue, R1 → R9 sont faits sauf R5/R6 qui sont des décisions.
   `origin/main`** — la fusion vers `main` n'a pas eu lieu et reste une décision de
   l'opérateur.
 - Déployé et vérifié par hachage sur CT 210, services redémarrés, site 200.
-- Cache-buster CSS courant : `?v=20260827-s151b`.
+- Cache-buster CSS courant : `?v=20260831-s153b`.
 - **Aucune migration en attente.**
 - 🔴 **L'agent ne peut ni migrer, ni `git push`** : donner la ligne à l'opérateur.
 - ✅ **Déployé et vérifié par hachage sur CT 210 le 2026-08-27**, deux fois :

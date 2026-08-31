@@ -415,7 +415,25 @@ final class ReservationService
         // the resource can only ever narrow the answer, never widen it.
         $openingHoursError = $this->schedule->refusalFor($venueId, $start, $end, $type->value, $id);
         if ($openingHoursError !== null) {
-            return BookingResult::refused('FABLAB_CLOSED', $openingHoursError, 400);
+            // 🔴 **S153 — « sans limite d'horaires », et ce qu'elle ne lève PAS.**
+            // Un package sans aucune restriction (`USAGE_PACKAGE.fullAccess`)
+            // dispense son porteur de la GRILLE HEBDOMADAIRE, et de rien d'autre.
+            // Les deux gardes ci-dessous ne sont pas des précautions, ce sont les
+            // deux moitiés de la règle :
+            //  - une **fermeture datée** — un jour férié, des travaux, la
+            //    fermeture annuelle — reste opposable à tout le monde. C'est le
+            //    jour où l'opérateur a écrit une ligne exprès, et le seul où le
+            //    lab peut être physiquement inaccessible ;
+            //  - une réservation qui **traverse deux jours** est refusée par la
+            //    même méthode, pour une raison qui n'a rien à voir avec les
+            //    horaires. La laisser passer ici en ferait une exemption pour un
+            //    bug de saisie.
+            $exempt = $start->format('Y-m-d') === $end->format('Y-m-d')
+                && !$this->schedule->hasDatedRulesOn($venueId, $start)
+                && $this->usageRights->liftsOpeningHours($user, $now);
+            if (!$exempt) {
+                return BookingResult::refused('FABLAB_CLOSED', $openingHoursError, 400);
+            }
         }
 
         // Resolved here but spent after the flush: a pass must not be consumed by

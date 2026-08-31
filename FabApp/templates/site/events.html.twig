@@ -33,7 +33,7 @@
 #}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260816-s134' }}">
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260831-s153b' }}">
 {% endblock %}
 
 {% block body %}
@@ -66,8 +66,45 @@
     card_min: '29rem',
 } %}
     {% block cards %}
+        {#
+           ⚠️ **S153 — le regroupement par mois, et pourquoi il ne coûte rien.**
+           Ce bloc est À L'INTÉRIEUR de `<div class="ml-grid">` : un en-tête de
+           mois émis ici est donc un ÉLÉMENT DE GRILLE, et `grid-column: 1 / -1`
+           lui fait prendre la rangée entière sans que la grille soit coupée en
+           deux. Les cartes du mois suivant restent alignées sur celles du
+           précédent — ce qu'une grille par mois aurait perdu — et le shell
+           partagé par les six autres listes n'est pas touché d'une ligne.
+
+           ⚠️ **Et il ne vaut que pour des objets DATÉS.** Une machine, un
+           matériau, un objet prêtable n'ont rien à regrouper. C'est pour ça que
+           ça vit dans la surcharge de `/events` et pas dans le shell : une
+           notion de « séparateur » dans `_catalogue.html.twig` serait un
+           paramètre que six listes sur sept ne passeraient jamais.
+        #}
+        {#- Le compte par mois, en une passe préalable : l'en-tête annonce
+            « 4 événements » avant ses quatre cartes, et on ne peut pas compter
+            en avançant. La clé est le libellé lui-même — c'est aussi ce qui
+            regroupe, donc les deux ne peuvent pas diverger. -#}
+        {% set monthCounts = {} %}
+        {% for card in cards %}
+            {% set monthKey = card.event.dateDebut|loc_date('MMMM yyyy') %}
+            {% set monthCounts = monthCounts|merge({(monthKey): (monthCounts[monthKey]|default(0)) + 1}) %}
+        {% endfor %}
+        {% set currentMonth = null %}
         {% for card in cards %}
             {% set event = card.event %}
+            {% set monthKey = event.dateDebut|loc_date('MMMM yyyy') %}
+            {#- ⚠️ `and monthKey` : `dateDebut` est NULLABLE, et `|loc_date` rend
+                alors une chaîne vide — un en-tête sans mois au-dessus de la
+                carte. Un événement sans date n'ouvre pas de groupe, il reste
+                dans celui en cours. -#}
+            {% if monthKey and monthKey != currentMonth %}
+                {% set currentMonth = monthKey %}
+                <div class="ml-month">
+                    <h2>{{ monthKey }}</h2>
+                    <span>{{ monthCounts[monthKey] }} {{ monthCounts[monthKey] > 1 ? 'events.unit_plural'|trans : 'events.unit'|trans }}</span>
+                </div>
+            {% endif %}
             {#
                ⚠️ The card names a SIGNAL and the card file picks the colour —
                never a class name from here. Which signal, and why:
@@ -148,6 +185,7 @@
                 icon_slug: eventCategory and eventCategory.iconSlug ? eventCategory.iconSlug : 'evenement',
                 photo: card.photo,
                 media_ratio: '4 / 3',
+                placeholder_seed: event.id,
             } only %}
         {% endfor %}
     {% endblock %}

@@ -277,105 +277,27 @@ demande un vrai POST authentifié.
 
 # Phase S153 — la saisie, et les propositions qu'on solde
 
-**Ouverte le 2026-08-28, avant la Phase H.** Quatre chantiers. Trois soldent une
-proposition déjà dessinée ; le quatrième est neuf.
+✅ **LIVRÉE le 2026-08-31.** Les quatre chantiers sont faits et les trois
+propositions supprimées du guide de style. Le détail vit dans
+`history/phase-S153-saisie.md` — il n'a plus rien à faire ici.
 
-🔴 **RÈGLE DE LA PHASE — une proposition implémentée se SUPPRIME.** Page, route,
-lien, section : tout part. Le raisonnement reste dans `HISTORY.md` et dans le
-commit, jamais dans un écran. C'est déjà la pratique du dépôt : les propositions
-du format de liste ont été retirées en S130e/S140 et `/admin/design#filtres` le
-dit. Une maquette laissée en place devient, six mois plus tard, une chose qu'on
-prend pour un composant.
+🅿️ **Ce qui en RESTE à faire, et c'est de l'opérateur :**
 
----
+- 🔴 **confirmer, package par package, ce que `fullAccess` autorise désormais.**
+  La colonne dit maintenant « aucune restriction, horaires compris », et elle est
+  lue par les DEUX modèles de droits. Sur la boîte, « Accès complet » la portait
+  déjà : ses porteurs gagnent donc la réservation hors grille hebdomadaire. C'est
+  le cas n°1 de la liste de l'opérateur (« Staff — aucune restriction »), mais
+  c'est un élargissement d'accès et il se confirme, il ne se suppose pas.
+- téléverser SES propres logos pour qu'ils entrent dans le tirage des six
+  affiches. Ça demande une table, donc une migration.
 
-## 1. La saisie des packages — le chantier neuf
-
-**Proposition** : `/admin/design/packages` (sous-page, pas une section du guide).
-
-Un formulaire, quatre lignes de restriction plus une d'extension, qui se lit
-comme une phrase : *« ce package donne accès à tout, tout le temps, partout, sans
-limite »*. Tout est sur « aucune restriction » à l'arrivée ; décocher révèle le
-détail sur place, en **CSS pur** (`:has()`), donc sans dépendre d'un contrôleur.
-
-**Ce qui le justifie, mesuré** : les 2 packages existants portent 21 grants, et
-**les 21 ont section, lieu, ressource et catégorie VIDES**. 0 fenêtre, 0 quota.
-« Tout autoriser » a coûté 14 créations de grant alors que `fullAccess` existait
-et était déjà à `1` sur ce package — deux vérités pour un fait.
-
-**À écrire** :
-- le **compilateur** : quatre lignes → grants + fenêtres + quotas. ⚠️ *Tout coché
-  ≡ tout* doit se normaliser en `fullAccess` **sans grants**, sinon on recrée
-  l'incohérence actuelle ;
-- la **case « sans limite d'horaires »** : elle réutilise `fullAccess` — **aucune
-  migration** — et son effet est un `if` à l'endroit où la réservation refuse
-  `FABLAB_CLOSED`. 🔴 Elle ne lève que **la grille hebdomadaire**, jamais une
-  **fermeture datée** : le résolveur les distingue déjà (`closureReasonFor`), et
-  lever les deux ouvrirait le lab pendant des travaux ;
-- la **sonde d'écriture** : réserver un créneau hors horaires avec et sans le
-  package, avant/après.
-
-**Restent à trancher par l'opérateur** : l'ordre des quatre lignes ; la ligne
-horaires en 5ᵉ axe ou à part ; et si les 14 features doivent être groupées
-(réserver / apprendre / gérer) dès qu'on décoche « tout ».
-
-🅿️ **À la livraison** : supprimer la page, la route `app_admin_package_form_vision`,
-le lien dans `/admin/design#packages`, et la section `#packages` elle-même.
-
----
-
-## 2. Le regroupement par mois sur `/events` — confirmé par l'opérateur
-
-**Proposition** : `/admin/design#evenements`, seconde moitié.
-
-✅ **Et ce n'est PAS coûteux, contrairement à ce que j'avais écrit d'abord.**
-`{% block cards %}` est **à l'intérieur** de `<div class="ml-grid">` dans
-`_catalogue.html.twig`, et `/events` surcharge déjà ce bloc. Il peut donc émettre
-ses en-têtes de mois comme éléments de grille en `grid-column: 1 / -1`, **sans
-toucher au shell partagé par les sept listes**. La couture existe.
-
-⚠️ Le regroupement ne vaut que pour les objets **datés** : une machine n'a rien à
-regrouper. Il reste donc une surcharge de `/events`, pas une option du shell.
-
-🅿️ **À la livraison** : retirer le spécimen « regroupement par mois » de
-`#evenements`.
-
----
-
-## 3. Les six affiches de remplacement — les poser sur les vraies cartes
-
-**Proposition** : `/admin/design#evenements`, première moitié. Le partiel
-`_event_placeholder.html.twig` **existe déjà** et est utilisé par la proposition.
-
-À faire : l'appeler depuis la carte d'événement réelle quand l'événement n'a pas
-d'affiche, avec `seed: event.id`. 🔴 Le tirage doit rester **stable** — `id % 6`,
-jamais `random()` : sinon l'image change à chaque rechargement et deux membres ne
-voient pas la même page.
-
-🅿️ **Reste en dehors de cette phase** : téléverser SES propres logos pour qu'ils
-entrent dans le tirage. Ça demande une table, donc une migration.
-
-🅿️ **À la livraison** : retirer la planche des six de `#evenements` — le partiel,
-lui, reste, puisqu'il devient le composant.
-
----
-
-## 4. Le tableau de bord — proposition A
-
-**Proposition** : `/admin/design#tableau-de-bord`, cadre **A**, choisi par
-l'opérateur. La bande respire et porte un FAIT (« Ouvert jusqu'à 17:30 ») au lieu
-de ne dire que bonjour.
-
-⚠️ **Ne pas réintroduire ce qui avait été retiré** : rien ne sort de la carte, et
-pas une couleur littérale — le dégradé est un `color-mix` sur `--color-primary`.
-⚠️ Le fait affiché doit venir du **résolveur d'horaires**, pas d'une chaîne écrite
-dans le gabarit : une bande qui affirme « Ouvert » un jour de fermeture est pire
-que pas de bande.
-
-🅿️ **À la livraison** : retirer la section `#tableau-de-bord` **entière** — les
-quatre cadres, y compris la référence et les variantes B et C non retenues.
-
----
+🅿️ **Demandé par l'opérateur le 2026-08-31, à faire APRÈS cette phase : filtrer la
+liste des utilisateurs par droit d'usage (package).** `/admin/utilisateurs` a déjà
+la mécanique de raffinement du shell de liste ; ce qui manque est la jointure sur
+`USAGE_RIGHT_ASSIGNMENT` — et ⚠️ elle a **deux** chemins, l'attribution personnelle
+et celle par groupe, comme partout ailleurs dans ce modèle. Un filtre qui n'en voit
+qu'un afficherait « personne » pour un package donné à une équipe entière.
 
 ---
 

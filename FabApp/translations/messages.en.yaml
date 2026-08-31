@@ -1524,6 +1524,26 @@ adm:
     view: "View"
 
 usage_rights:
+    spec_heading: "What this package allows"
+    spec_sentence: "This package gives access to <b>everything</b>, <b>at any time</b>, <b>everywhere</b>, <b>without limit</b>."
+    spec_axis_what: "gives access to"
+    spec_axis_when: "when"
+    spec_axis_where: "where"
+    spec_axis_how_much: "how much"
+    spec_axis_hours: "opening hours"
+    spec_features_all: "everything"
+    spec_features_hint: "The likeliest restriction is \"everything but one\"."
+    spec_days_all: "at any time"
+    spec_days_hint: "A window never opens the lab outside its hours: closing is checked before rights are."
+    spec_venues_all: "everywhere"
+    spec_categories_all: "every category"
+    spec_categories_summary: "Also restrict to a machine category"
+    spec_quota_all: "without limit"
+    spec_quota_hours: "at most, in hours"
+    spec_hours_exempt: "no opening-hours limit (staff)"
+    spec_hours_hint: "Unticked by default, unlike the other four: this one adds a power instead of removing one. It lifts the weekly grid only, never a dated closure."
+    spec_saved: "The package's rights have been saved."
+    spec_unavailable: "This package holds rights this form cannot express — a \"manage\" action, a section, one precise resource, or two different weeks. Edit it below, grant by grant."
     settings_consequence_gaps: "These rights would still cover nobody: %capabilities%."
     settings_consequence_ready: "Ready to switch on: the required packages and members exist."
     grant_consequence: "This grant will allow: %summary%"
@@ -2169,6 +2189,10 @@ rfid_delete:
 
 # Tableau de bord admin — S134c.
 admin_dashboard:
+    fact_open: "Open"
+    fact_open_until: "until %time%"
+    fact_closed: "Closed"
+    fact_closed_until: "reopens at %time%"
     setup_needed: "This install has not been configured yet."
     setup_hint: "A few answers — the venue name, the public URL, the language — and the rest follows."
     welcome: "Welcome, %name%"

@@ -3014,7 +3014,16 @@ html[data-theme="dark"] body :is(
  * magenta in dark and `rgba(255,255,255,.82)` in light. Legible either way at
  * ~6:1, which is exactly why it would have shipped: it does not look broken, it
  * looks like a different design depending on the theme. */
-:not(.admin-hero-note) {
+:not(.admin-hero-note):not(.admin-hero-fact):not(.admin-hero-fact-value):not(.admin-hero-fact-note) {
+    /* 🔴 **S153 — mesuré, et ça change la lecture de cette règle.** Le commentaire
+       ci-dessus la décrit comme « elle matche `p` tout nu » ; le commentaire
+       lui-même vaut un blanc, si bien que la règle est en réalité un
+       DESCENDANT : `:is(p, …) :not(…)` peint tout ce qui vit dans un `<p>`.
+       C'est pourquoi le `<b>` du fait de la bande rendait #d4c8d2 sur le
+       dégradé magenta pendant que son `<p>` parent était blanc — l'exclusion
+       posée sur le parent ne pouvait pas l'atteindre. Les deux enfants du fait
+       sortent donc de la couverture ici, à la source, plutôt qu'en répondant
+       par un `!important` plus fort. */
     color: var(--color-text-light);
 }
 
@@ -3392,7 +3401,12 @@ html[data-theme="dark"] body :is(
  * the accent gradient — and that band lives inside a `.admin-panel`, so the
  * blanket was turning it grey on magenta. Excluded here rather than answered
  * with a local `!important`, which is the whole point of the S134i fix. */
-:is(p, span, small, li, .module-body, .module-meta, .time-label, .formation-suivi-description, .progress-text, .progress-details, .admin-stat-info p, .quick-action-text p, .admin-meta, .admin-help-box p, .badge-database-note):not(.status-badge):not(.ml-state):not(.ml-dot):not(.pill):not(.cell-meter-value):not(.cell-empty):not(.cell-chip):not(.admin-hero-note) {
+:is(p, span, small, li, .module-body, .module-meta, .time-label, .formation-suivi-description, .progress-text, .progress-details, .admin-stat-info p, .quick-action-text p, .admin-meta, .admin-help-box p, .badge-database-note):not(.status-badge):not(.ml-state):not(.ml-dot):not(.pill):not(.cell-meter-value):not(.cell-empty):not(.cell-chip):not(.admin-hero-note):not(.admin-hero-fact):not(.admin-hero-fact-value):not(.admin-hero-fact-note) {
+    /* ⚠️ S153 — `.admin-hero-fact` sort de la couverture pour EXACTEMENT la
+       raison écrite au-dessus pour `.admin-hero-note` : c'est le fait que porte
+       la bande du tableau de bord, blanc sur le dégradé accent, et la bande vit
+       dans un `.admin-panel`. Sans cette exclusion il serait gris sur magenta —
+       lisible, donc invisible à la relecture, donc livré. */
     color: var(--color-text-light) !important;
 }
 

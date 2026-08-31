@@ -7,6 +7,9 @@ use App\Feature\SiteFeatureService;
 use App\Repository\UtilisateurRepository;
 use App\Repository\VenueRepository;
 use App\UsageRights\UsagePackageRepository;
+use App\UsageRights\PackageSpec;
+use App\UsageRights\PackageSpecCompiler;
+use App\Form\UsageRights\PackageSpecType;
 use App\UsageRights\UsageCapabilityRegistry;
 use App\UsageRights\AudienceResolver;
 use App\UsageRights\UsageRightsShadow;
@@ -173,7 +176,7 @@ final class UsageRightsAdminController extends AbstractController
     }
 
     #[Route('/{id<\d+>}/edit', name: 'app_admin_usage_rights_edit', methods: ['GET', 'POST'])]
-    public function edit(int $id, Request $request, UsagePackageRepository $packages, SiteFeatureService $features, UsageCapabilityRegistry $capabilities, UtilisateurRepository $users, SiteSettingService $settings, VenueRepository $venues, AudienceResolver $audiences, MachineRepository $machines, PlaceRepository $places, MachineCategoryRepository $categories, UsageAllowanceRepository $allowances): Response
+    public function edit(int $id, Request $request, UsagePackageRepository $packages, SiteFeatureService $features, UsageCapabilityRegistry $capabilities, UtilisateurRepository $users, SiteSettingService $settings, VenueRepository $venues, AudienceResolver $audiences, MachineRepository $machines, PlaceRepository $places, MachineCategoryRepository $categories, UsageAllowanceRepository $allowances, PackageSpecCompiler $compiler): Response
     {
         $package = $packages->find($id);
         if ($package === null) {
@@ -468,6 +471,89 @@ final class UsageRightsAdminController extends AbstractController
             'lab_timezone' => $settings->getTimezone(),
         ]);
 
+        // ⚠️ **LA SAISIE (S153), et elle passe AVANT l'éditeur détaillé.**
+        // Quatre lignes de restriction plus une d'extension, qui se lisent comme
+        // une phrase, et un compilateur qui les écrit dans les cinq tables. La
+        // mesure qui la justifie : 21 grants sur les deux packages existants, et
+        // les 21 sans lieu, sans ressource, sans catégorie, sans fenêtre.
+        //
+        // 🔴 **`decompile()` peut refuser, et son refus est la garde.** Un package
+        // que ces cinq lignes ne savent pas exprimer — un grant `Manage`, une
+        // section, une machine précise, deux semaines différentes — ne doit PAS
+        // s'ouvrir dans un formulaire qui, à la première soumission, écraserait ce
+        // qu'il n'a pas su afficher. Dans ce cas la carte ne s'affiche pas, elle
+        // dit pourquoi, et l'éditeur détaillé reste le chemin.
+        $spec = $compiler->decompile($id, $package['fullAccess'], $package['features']);
+        $specForm = null;
+        if ($spec !== null) {
+            // ⚠️ **Quand un axe est sur « aucune restriction », sa liste arrive
+            // TOUTE COCHÉE.** Elle est masquée, donc invisible — mais elle est ce
+            // qu'on découvre en décochant, et la restriction qu'on écrit alors
+            // est presque toujours « tout sauf un ». Une liste vide obligerait à
+            // recocher ce qu'on ne voulait pas retirer : le coût du cas courant
+            // payé pour rien. C'est la case qui décide côté serveur, donc ces
+            // valeurs ne changent rien tant qu'elle est cochée.
+            $specForm = $this->createForm(PackageSpecType::class, [
+                'features_all' => $spec->featuresAll,
+                'features' => $spec->featuresAll ? array_values($featureChoices) : $spec->features,
+                'days_all' => $spec->daysAll,
+                'days' => $spec->daysAll ? array_values($dayChoices) : array_map('strval', $spec->days),
+                'start_time' => $spec->startTime,
+                'end_time' => $spec->endTime,
+                'venues_all' => $spec->venuesAll,
+                'venues' => $spec->venuesAll ? array_values($venueChoices) : array_map('strval', $spec->venues),
+                'categories_all' => $spec->categoriesAll,
+                'categories' => $spec->categoriesAll ? array_values($categoryChoices) : $spec->categories,
+                'quota_unlimited' => $spec->quotaUnlimited,
+                'quota_hours' => $spec->quotaHours,
+                'quota_period' => $spec->quotaPeriod,
+                'hours_exempt' => $spec->hoursExempt,
+            ], [
+                'package_key' => (string) $id,
+                'feature_choices' => $featureChoices,
+                'day_choices' => $dayChoices,
+                'venue_choices' => $venueChoices,
+                'category_choices' => $categoryChoices,
+                'period_choices' => $periodChoices,
+            ]);
+
+            $specForm->handleRequest($request);
+            if ($specForm->isSubmitted() && $specForm->isValid()) {
+                $data = $specForm->getData();
+                try {
+                    // 🔴 **C'est la CASE qui décide, jamais la liste.** Les listes
+                    // sont masquées par du CSS (`:has()`), pas désactivées : elles
+                    // postent leur contenu même repliées. Déduire l'intention de la
+                    // liste rendrait « tout » impossible à exprimer dès qu'une case
+                    // de détail est restée cochée — le bug exact que le préréglage
+                    // de plage a supprimé en S149.
+                    $compiler->compile($id, $package['name'], $package['description'], $package['active'], new PackageSpec(
+                        featuresAll: (bool) ($data['features_all'] ?? false),
+                        features: array_map('strval', (array) ($data['features'] ?? [])),
+                        daysAll: (bool) ($data['days_all'] ?? false),
+                        days: array_map('intval', (array) ($data['days'] ?? [])),
+                        startTime: (string) ($data['start_time'] ?? ''),
+                        endTime: (string) ($data['end_time'] ?? ''),
+                        venuesAll: (bool) ($data['venues_all'] ?? false),
+                        venues: array_map('intval', (array) ($data['venues'] ?? [])),
+                        categoriesAll: (bool) ($data['categories_all'] ?? false),
+                        categories: array_map('strval', (array) ($data['categories'] ?? [])),
+                        quotaUnlimited: (bool) ($data['quota_unlimited'] ?? false),
+                        quotaHours: (float) ($data['quota_hours'] ?? 0),
+                        quotaPeriod: (string) ($data['quota_period'] ?? 'week'),
+                        hoursExempt: (bool) ($data['hours_exempt'] ?? false),
+                    ));
+                    $this->addFlash('success', $this->translator->trans('usage_rights.spec_saved'));
+
+                    return $this->redirectToRoute('app_admin_usage_rights_edit', ['id' => $id]);
+                } catch (\Throwable $e) {
+                    // On REND, on ne redirige pas : la saisie refusée reste à
+                    // l'écran, comme l'éditeur de grants depuis S149.
+                    $this->addFlash('error', $e->getMessage());
+                }
+            }
+        }
+
         // ⚠️ **The grants editor (S134b).** Until this existed a package could only
         // carry its v1 feature list, so the three dimensions grants v2 adds —
         // action, location, section — were reachable by SQL and by nothing else.
@@ -732,7 +818,13 @@ final class UsageRightsAdminController extends AbstractController
             'grantConsequence' => $grantConsequence,
             'grantScope' => $grantScope,
             'grantScopeOpen' => $grantScopeOpen,
+            // ⚠️ Drapeau EXPLICITE plutôt qu'un `is null` lu dans le gabarit :
+            // `prod` n'a pas `strict_variables`, donc une variable absente y
+            // serait silencieusement `null` et la carte disparaîtrait sans que
+            // rien ne le dise. Piège n°7 de la reprise.
+            'specFits' => $spec !== null,
         ], [
+            'specForm' => $specForm,
             'grantForm' => $grantForm,
             'allowanceForm' => $allowanceForm,
             'assignForm' => $assignForm,
@@ -781,23 +873,20 @@ final class UsageRightsAdminController extends AbstractController
         $detailsForm->handleRequest($request);
         if ($detailsForm->isSubmitted() && $detailsForm->isValid()) {
             $data = $detailsForm->getData();
-            $selected = array_values(array_intersect(array_map('strval', (array) $request->request->all('features')), array_keys($available)));
-            // A disabled site feature is suspended, not silently erased when
-            // an operator edits the package description. Explicitly unticking
-            // it while enabled remains the removal path.
-            foreach (($package['features'] ?? []) as $existing) {
-                if (isset($available[$existing]) && !isset($enabled[$existing]) && !in_array($existing, $selected, true)) {
-                    $selected[] = $existing;
-                }
-            }
             try {
+                // 🔴 **S153 — cette carte n'écrit plus QUE l'identité.** Ce que
+                // le package autorise appartient à la saisie et à elle seule ;
+                // `fullAccess` et les lignes de feature repassent donc à `save()`
+                // inchangés. Les laisser se relire d'une matrice ici, c'était
+                // deux écritures pour un même fait — et renommer un package
+                // aurait pu, en silence, changer ce qu'il autorise.
                 $id = $packages->save(
                     $package['id'] ?? null,
                     (string) $data['name'],
                     (string) $data['description'],
                     (bool) $data['active'],
-                    (bool) $data['full_access'],
-                    $selected,
+                    (bool) ($package['fullAccess'] ?? false),
+                    array_values(array_intersect(array_map('strval', $package['features'] ?? []), array_keys($available))),
                 );
                 $this->addFlash('success', $this->translator->trans('usage_rights.package_saved'));
 
@@ -815,6 +904,11 @@ final class UsageRightsAdminController extends AbstractController
             // ⚠️ Grants belong to a saved package, so a package being CREATED has
             // none and shows no editor — there is no id to hang them on yet. The
             // form redirects to the edit screen on save, which is where they are.
+            // ⚠️ La saisie n'existe que pour un package ENREGISTRÉ : elle écrit
+            // des grants, et un package en cours de création n'a pas encore d'id
+            // à quoi les accrocher. `new()` enregistre puis redirige ici.
+            'specForm' => ($extraForms['specForm'] ?? null)?->createView(),
+            'specFits' => $resources['specFits'] ?? false,
             'grantForm' => $extraForms['grantForm']?->createView(),
             'allowanceForm' => $extraForms['allowanceForm']?->createView(),
             'assignForm' => $extraForms['assignForm']?->createView(),

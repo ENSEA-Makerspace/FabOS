@@ -496,6 +496,53 @@
 .usage-assignment span { display: grid; gap: 3px; }
 .usage-assignment small { color: var(--color-text-light); line-height: 1.35; }
 .usage-assignments { border-top: 1px solid var(--border-color); }
+
+/* --- LA SAISIE D'UN PACKAGE (S153) -------------------------------------------
+   Quatre lignes de restriction plus une d'extension, qui se lisent comme une
+   phrase. Les règles vivent ICI, dans la feuille partagée de l'admin, et pas
+   dans un `<style>` de page : la proposition en avait un parce qu'elle était une
+   proposition, et le déménagement fait partie de la livraison.
+
+   🔴 **La révélation est du CSS, pas du JavaScript.** `:has()` lit l'état de la
+   case et ouvre le détail sur place ; un contrôleur Stimulus devrait tourner
+   pour que le formulaire soit utilisable, alors qu'ici il l'est déjà.
+   ⚠️ **Et il CACHE, il ne désactive pas** : une liste repliée poste quand même
+   son contenu. C'est la case qui décide, côté serveur. */
+.pkg-spec { padding: 18px 24px 24px; }
+.pkg-spec-sentence {
+    font-size: var(--font-size-lg); line-height: 1.6; margin: 0 0 var(--spacing-lg);
+    padding-bottom: var(--spacing-md); border-bottom: 1px solid var(--border-color);
+}
+.pkg-spec-sentence b { color: var(--color-primary-text); }
+
+.pkg-axis { padding: var(--spacing-md) 0; border-bottom: 1px solid var(--border-color); }
+.pkg-axis:last-of-type { border-bottom: 0; }
+.pkg-axis-head { display: flex; align-items: baseline; gap: var(--spacing-md); flex-wrap: wrap; }
+.pkg-axis-key { flex: 0 0 8rem; color: var(--color-text-light); font-size: var(--font-size-sm); }
+.pkg-axis-head label { font-weight: 600; }
+
+.pkg-detail { display: none; margin: var(--spacing-md) 0 0 8rem; }
+.pkg-axis:has(.pkg-axis-head input[type="checkbox"]:not(:checked)) .pkg-detail { display: block; }
+/* ⚠️ La cinquième ligne est l'INVERSE des quatre autres : elle ajoute un
+   pouvoir, elle ne se révèle donc que si les quatre autres sont ouvertes. Un bit
+   ne sait pas dire « tout sauf le jeudi », et le serveur refuse la combinaison —
+   le CSS évite d'avoir à la proposer. */
+.pkg-axis-exempt { display: none; }
+.pkg-spec:not(:has(.pkg-axis:not(.pkg-axis-exempt) .pkg-axis-head input[type="checkbox"]:not(:checked))) .pkg-axis-exempt { display: block; }
+
+/* Les listes rendues par `expanded: true` sont des `<div>` de cases : la règle
+   les remet en ligne, comme la phrase le demande. */
+.pkg-detail > div, .pkg-detail-cat > div { display: flex; flex-wrap: wrap; gap: .4rem 1.2rem; }
+.pkg-detail label, .pkg-detail-cat label { display: inline-flex; align-items: center; gap: .4rem; font-weight: 400; }
+.pkg-hint { color: var(--color-text-light); font-size: var(--font-size-sm); margin: .4rem 0 0; }
+.pkg-hint input, .pkg-hint select { border: 1px solid var(--border-color); background: var(--theme-input); color: var(--color-text); border-radius: 8px; padding: 4px 8px; font: inherit; }
+.pkg-adv { margin-top: var(--spacing-md); }
+.pkg-adv summary { cursor: pointer; color: var(--color-text-light); font-size: var(--font-size-sm); }
+.pkg-detail-cat { margin-top: .5rem; }
+@media (max-width: 720px) {
+    .pkg-axis-key { flex-basis: 100%; }
+    .pkg-detail { margin-left: 0; }
+}
 .usage-assignment-form { padding: 18px 24px; display: grid; grid-template-columns: minmax(220px, 1fr) minmax(150px, .55fr) minmax(150px, .55fr) auto; gap: 10px; align-items: center; border-bottom: 1px solid var(--border-color); }
 .usage-assignment-form .btn-link { white-space: nowrap; margin: 0; }
 .usage-assignment-list { display: grid; }
@@ -1554,6 +1601,32 @@ html[data-theme="dark"] .form-field.afp-select > label.afp-k {
     color: #fff;
 }
 .admin-hero h1 { margin: 0; font-size: 1.35rem; color: #fff; }
+
+/* --- La bande qui porte un fait (S153, proposition A) ------------------------
+   ⚠️ **Une variante, pas une seconde bande.** Le dégradé, la couleur et les
+   règles de `.admin-hero` restent la seule source ; `.admin-hero-roomy` n'ajoute
+   que l'air, et il n'est posé que sur la bande qui a effectivement un fait à
+   porter. Les vingt-six pages de formulaire sont au pixel près celles d'avant.
+   ⚠️ `align-items: baseline` plutôt que `center` : le titre et le fait sont deux
+   textes, et c'est leur ligne de base qui doit s'aligner, pas leurs boîtes de
+   hauteurs différentes. */
+.admin-hero-roomy { padding: 1.5rem 24px; align-items: baseline; }
+.admin-hero-roomy h1 { font-size: 1.6rem; }
+/* ⚠️ `--color-text-inverse` vaut `#FFFFFF` et n'est JAMAIS redéfini en sombre :
+   sur une bande qui est accent dans les deux thèmes, le littéral est le jeton.
+   Et le fait est exclu de la couverture `!important` de `style.css` par la même
+   voie que `.admin-hero-note` — voir la note au-dessus d'elle. */
+.admin-hero-fact {
+    margin: 0 0 0 auto; text-align: right; flex-shrink: 0;
+    font-size: var(--font-size-sm); color: rgba(255, 255, 255, .88);
+}
+.admin-hero-fact-value { display: block; font-size: 1.25rem; color: #fff; font-weight: var(--font-weight-bold); }
+/* Sous 640px la bande passe déjà à la ligne (`flex-wrap`) : le fait revient à
+   gauche avec le reste plutôt que de rester collé à un bord qu'il ne partage
+   plus avec rien. */
+@media (max-width: 640px) {
+    .admin-hero-fact { margin-left: 0; text-align: left; }
+}
 .admin-hero-text { display: grid; gap: 2px; min-width: 0; }
 
 /* ⚠️ The subtitle is white-on-accent, and `style.css` repaints every `<p>`

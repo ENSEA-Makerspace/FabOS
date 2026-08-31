@@ -282,6 +282,28 @@ final class ScheduleResolver
      * they misread the page. "Closed — public holiday" ends the question, and it
      * is the only part of an exception a member ever sees.
      */
+    /**
+     * Cette date porte-t-elle une RÈGLE DATÉE — une fermeture exceptionnelle ou
+     * une ouverture spéciale — plutôt que la seule grille hebdomadaire ?
+     *
+     * 🔴 **S153, et c'est une question d'autorisation, pas d'affichage.** Le
+     * package « sans limite d'horaires » lève la grille hebdomadaire et RIEN
+     * d'autre : lever aussi une fermeture datée ouvrirait le lab pendant des
+     * travaux, un jour férié ou une fermeture annuelle — exactement les jours
+     * où l'opérateur a pris la peine de l'écrire. Le résolveur distingue déjà
+     * les deux depuis S134d ; ceci ne fait que rendre la distinction lisible du
+     * dehors.
+     *
+     * ⚠️ Vrai aussi pour une ouverture SPÉCIALE, pas seulement pour une
+     * fermeture. Une date qui dit « ouvert 09:00–12:00 seulement » est une
+     * décision datée au même titre : une exemption qui la traverserait rendrait
+     * la ligne décorative.
+     */
+    public function hasDatedRulesOn(?int $venueId, \DateTimeInterface $date): bool
+    {
+        return $this->exceptionsFor($venueId, $date) !== [];
+    }
+
     public function closureReasonFor(?int $venueId, \DateTimeInterface $date): ?string
     {
         if ($this->openIntervalsFor($venueId, $date) !== []) {

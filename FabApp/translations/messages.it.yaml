@@ -1524,6 +1524,26 @@ adm:
     view: "Vedi"
 
 usage_rights:
+    spec_heading: "Che cosa permette questo pacchetto"
+    spec_sentence: "Questo pacchetto dà accesso a <b>tutto</b>, <b>sempre</b>, <b>ovunque</b>, <b>senza limiti</b>."
+    spec_axis_what: "dà accesso a"
+    spec_axis_when: "quando"
+    spec_axis_where: "dove"
+    spec_axis_how_much: "quanto"
+    spec_axis_hours: "orari"
+    spec_features_all: "tutto"
+    spec_features_hint: "La restrizione più probabile è «tutto tranne uno»."
+    spec_days_all: "sempre"
+    spec_days_hint: "Una fascia non apre mai il lab fuori dai suoi orari: la chiusura è verificata prima dei diritti."
+    spec_venues_all: "ovunque"
+    spec_categories_all: "tutte le categorie"
+    spec_categories_summary: "Limitare anche a una categoria di macchine"
+    spec_quota_all: "senza limiti"
+    spec_quota_hours: "al massimo, in ore"
+    spec_hours_exempt: "senza limite di orario (staff)"
+    spec_hours_hint: "Non spuntata di default, a differenza delle altre quattro: questa aggiunge un potere invece di toglierlo. Solleva solo la griglia settimanale, mai una chiusura datata."
+    spec_saved: "I diritti del pacchetto sono stati salvati."
+    spec_unavailable: "Questo pacchetto porta diritti che questo modulo non sa esprimere — un'azione «gestire», una sezione, una risorsa precisa o due settimane diverse. Si modifica più sotto, diritto per diritto."
     settings_consequence_gaps: "Questi diritti non coprirebbero ancora nessuno: %capabilities%."
     settings_consequence_ready: "Pronto per l’attivazione: i pacchetti e i membri necessari esistono."
     grant_consequence: "Questo grant consentirà: %summary%"
@@ -2168,6 +2188,10 @@ rfid_delete:
 
 # Tableau de bord admin — S134c.
 admin_dashboard:
+    fact_open: "Aperto"
+    fact_open_until: "fino alle %time%"
+    fact_closed: "Chiuso"
+    fact_closed_until: "riapre alle %time%"
     setup_needed: "Questa installazione non è ancora configurata."
     setup_hint: "Poche risposte — il nome della sede, l'URL pubblico, la lingua — e il resto segue."
     welcome: "Benvenuto, %name%"

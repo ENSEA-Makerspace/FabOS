@@ -87,6 +87,14 @@ d `Event.formation` + génération de N séances · e s'inscrire à une séance 
 à la formation, sans qualifier · f catégories d'événement éditables · g plage de
 dates sur les fermetures.
 
+**S153 — la saisie, et les propositions qu'on solde (2026-08-28/31).** Un package
+se décrit en quatre lignes plus une, et un compilateur écrit les cinq tables ; la
+normalisation « aucune restriction ≡ `fullAccess` » a demandé que la v2 lise enfin
+cette colonne. Le regroupement par mois de `/events`, les six affiches de
+remplacement sur les vraies cartes, la bande du tableau de bord qui porte un fait.
+Trois propositions supprimées du guide de style. Détail →
+`history/phase-S153-saisie.md`.
+
 **Phase J — boutonner (en cours).** S147 la revue : 146 pages rendues et mesurées
 + passe navigateur → 25 défauts J-1…J-25. Corrigés à ce jour : J-1, J-11, J-12,
 J-13, J-20, J-21, J-24, et J-22 pour 5 formulaires sur 6. Détail →

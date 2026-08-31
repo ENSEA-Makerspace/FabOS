@@ -1524,6 +1524,26 @@ adm:
     view: "Ver"
 
 usage_rights:
+    spec_heading: "Lo que permite este paquete"
+    spec_sentence: "Este paquete da acceso a <b>todo</b>, <b>en todo momento</b>, <b>en todas partes</b>, <b>sin límite</b>."
+    spec_axis_what: "da acceso a"
+    spec_axis_when: "cuándo"
+    spec_axis_where: "dónde"
+    spec_axis_how_much: "cuánto"
+    spec_axis_hours: "horarios"
+    spec_features_all: "todo"
+    spec_features_hint: "La restricción más probable es «todo menos uno»."
+    spec_days_all: "en todo momento"
+    spec_days_hint: "Una franja nunca abre el lab fuera de su horario: el cierre se comprueba antes que los derechos."
+    spec_venues_all: "en todas partes"
+    spec_categories_all: "todas las categorías"
+    spec_categories_summary: "Restringir también a una categoría de máquinas"
+    spec_quota_all: "sin límite"
+    spec_quota_hours: "como máximo, en horas"
+    spec_hours_exempt: "sin límite de horario (personal)"
+    spec_hours_hint: "Desmarcada por defecto, al contrario que las otras cuatro: esta añade un poder en lugar de quitarlo. Solo levanta la rejilla semanal, nunca un cierre con fecha."
+    spec_saved: "Los derechos del paquete se han guardado."
+    spec_unavailable: "Este paquete tiene derechos que este formulario no sabe expresar — una acción «gestionar», una sección, un recurso concreto o dos semanas distintas. Se edita más abajo, derecho a derecho."
     settings_consequence_gaps: "Estos derechos todavía no cubrirían a nadie: %capabilities%."
     settings_consequence_ready: "Listo para activar: existen los paquetes y los miembros necesarios."
     grant_consequence: "Este grant permitirá: %summary%"
@@ -2168,6 +2188,10 @@ rfid_delete:
 
 # Tableau de bord admin — S134c.
 admin_dashboard:
+    fact_open: "Abierto"
+    fact_open_until: "hasta las %time%"
+    fact_closed: "Cerrado"
+    fact_closed_until: "reabre a las %time%"
     setup_needed: "Esta instalación aún no está configurada."
     setup_hint: "Unas pocas respuestas — el nombre del sitio, la URL pública, el idioma — y el resto sigue."
     welcome: "Bienvenido, %name%"

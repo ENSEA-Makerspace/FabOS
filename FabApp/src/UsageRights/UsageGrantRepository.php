@@ -91,13 +91,89 @@ final class UsageGrantRepository
             }
         }
 
-        return array_map(static fn (array $row): array => [
+        $paths = array_map(static fn (array $row): array => [
             'package' => (string) $row['package'],
             'source' => (string) $row['source'],
             'sourceLabel' => (string) $row['sourceLabel'],
             'action' => (string) $row['action'],
             'section' => $row['section'] !== null ? (string) $row['section'] : null,
             'venue' => $row['venue'] !== null ? (string) $row['venue'] : null,
+        ], $rows);
+
+        // 🔴 **S153 — un package `fullAccess` couvre tout, ici aussi.**
+        // La colonne dit « ce package ne connaît aucune restriction », et la v1
+        // la lit ainsi depuis toujours (`p.fullAccess = 1 OR f.featureKey IS NOT
+        // NULL`). La v2, elle, ne lisait que `USAGE_PACKAGE_GRANT` : un package
+        // marqué « accès complet » et sans grants autorisait TOUT sous la v1 et
+        // RIEN sous la v2 — deux modèles, deux réponses opposées pour la même
+        // ligne, et le basculement d'un chokepoint la faisait changer de camp
+        // sans qu'aucun écran ne l'annonce.
+        // ⚠️ **Sans filtre de fenêtre, et c'est le sens même de la colonne** :
+        // « aucune restriction » comprend l'heure. Le compilateur ne l'écrit que
+        // lorsque les quatre axes sont sur « aucune restriction », donc il n'y a
+        // rien à intersecter.
+        // ⚠️ Ajouté APRÈS le filtre de fenêtres, jamais avant : ces chemins-là
+        // n'ont pas de `grantId` à filtrer.
+        foreach ($this->fullAccessPackages($user, $scope) as $row) {
+            $paths[] = [
+                'package' => (string) $row['package'],
+                'source' => (string) $row['source'],
+                'sourceLabel' => (string) $row['sourceLabel'],
+                'action' => $action->value,
+                'section' => null,
+                'venue' => null,
+            ];
+        }
+
+        return $paths;
+    }
+
+    /**
+     * Les packages « aucune restriction » que cette personne détient à l'instant
+     * demandé (S153).
+     *
+     * ⚠️ Même forme d'attribution que `grantRows()` — la personne ET ses groupes
+     * — parce que c'est la même question posée d'un autre côté de la jointure.
+     *
+     * @return list<array{package:string,source:string,sourceLabel:string}>
+     */
+    private function fullAccessPackages(?Utilisateur $user, UsageScope $scope): array
+    {
+        $keys = $this->audiences->keysFor($user);
+
+        try {
+            $rows = $this->db->fetchAllAssociative(
+                <<<'SQL'
+                SELECT DISTINCT p.name AS package,
+                       CASE WHEN a.userId IS NOT NULL THEN 'direct' ELSE 'group' END AS source,
+                       COALESCE(ug.label, '') AS sourceLabel
+                FROM USAGE_RIGHT_ASSIGNMENT a
+                INNER JOIN USAGE_PACKAGE p ON p.id = a.packageId AND p.active = 1 AND p.fullAccess = 1
+                LEFT JOIN USER_GROUP ug ON ug.id = a.groupId
+                WHERE a.revokedAt IS NULL
+                  AND (a.validFrom IS NULL OR a.validFrom <= :moment)
+                  AND (a.validUntil IS NULL OR a.validUntil > :moment)
+                  AND (
+                        (:userId IS NOT NULL AND a.userId = :userId)
+                     OR (a.groupId IS NOT NULL AND ug.groupKey IN (:keys))
+                  )
+                SQL,
+                [
+                    'moment' => $scope->at()->format('Y-m-d H:i:s'),
+                    'userId' => $user?->getId(),
+                    'keys' => $keys === [] ? [''] : $keys,
+                ],
+                ['keys' => \Doctrine\DBAL\ArrayParameterType::STRING],
+            );
+        } catch (\Throwable) {
+            // Même repli que `grantRows()` : pas de chemin, donc pas d'élargissement.
+            return [];
+        }
+
+        return array_map(static fn (array $row): array => [
+            'package' => (string) $row['package'],
+            'source' => (string) $row['source'],
+            'sourceLabel' => (string) $row['sourceLabel'],
         ], $rows);
     }
 

@@ -155,10 +155,18 @@ final class AdminController extends AbstractController
         ProgressionRepository $progressions,
         LogUtilisationRepository $usageLogs,
         FirstRun $firstRun,
+        ScheduleResolver $schedule,
+        LabClock $clock,
     ): Response {
         $recentActivities = $this->buildRecentActivities($rfidLogs, $reservations, $progressions, $usageLogs);
 
         return $this->render('site/admin-dashboard.html.twig', [
+            // ⚠️ **S153 — la bande porte un FAIT, et il vient du résolveur.**
+            // Une bande qui ne dit que bonjour est un bandeau ; une bande qui dit
+            // l'état du lab est une information. Le fait est donc calculé, jamais
+            // écrit dans le gabarit : une bande qui affirme « Ouvert » un jour de
+            // fermeture est pire que pas de bande du tout.
+            'openState' => $this->openState($schedule, $clock),
             // The only thing that ever points at the wizard. Nothing redirects.
             'showFirstRun' => $firstRun->isFresh(),
             'dashboardStats' => [
@@ -172,6 +180,52 @@ final class AdminController extends AbstractController
             ],
             'recentActivities' => $recentActivities,
         ]);
+    }
+
+    /**
+     * L'état du lab maintenant, en trois valeurs, pour la bande du tableau de bord.
+     *
+     * 🔴 **`isOpenAt()` et non l'enveloppe** : à 12:30 dans un lab qui ferme le
+     * midi, l'enveloppe dit « ouvert » et la porte est fermée. C'est la même
+     * leçon que S134d, et la raison pour laquelle on parcourt les INTERVALLES
+     * plutôt que `openMinutesFor()`.
+     *
+     * ⚠️ **`null` comme lieu, comme partout ailleurs** : c'est le lieu par
+     * défaut. L'admin n'a pas de sélecteur de lieu sur cette page, et agréger
+     * plusieurs lieux ne donne aucune réponse unique — voir la même note dans
+     * `SiteController::machines()`.
+     *
+     * ⚠️ La raison n'existe que pour une fermeture DATÉE : `closureReasonFor()`
+     * rend `null` un jour ouvré, y compris pendant la pause de midi. « Fermé »
+     * seul y est donc la bonne phrase, et l'heure de réouverture la complète.
+     *
+     * @return array{open: bool, until: ?string, from: ?string, reason: ?string}
+     */
+    private function openState(ScheduleResolver $schedule, LabClock $clock): array
+    {
+        $now = $clock->now();
+        $minute = ((int) $now->format('H')) * 60 + (int) $now->format('i');
+        $intervals = $schedule->openIntervalsFor(null, $now);
+
+        $clockOf = static fn (int $minutes): string => sprintf('%02d:%02d', intdiv($minutes, 60), $minutes % 60);
+
+        foreach ($intervals as $interval) {
+            if ($minute >= $interval['start'] && $minute < $interval['end']) {
+                return ['open' => true, 'until' => $clockOf($interval['end']), 'from' => null, 'reason' => null];
+            }
+            // Trié et fusionné par le résolveur : le premier intervalle qui
+            // commence après maintenant EST la prochaine ouverture du jour.
+            if ($minute < $interval['start']) {
+                return ['open' => false, 'until' => null, 'from' => $clockOf($interval['start']), 'reason' => null];
+            }
+        }
+
+        return [
+            'open' => false,
+            'until' => null,
+            'from' => null,
+            'reason' => $schedule->closureReasonFor(null, $now),
+        ];
     }
 
     #[Route('/homepage', name: 'app_admin_homepage', methods: ['GET', 'POST'])]
@@ -2285,26 +2339,6 @@ final class AdminController extends AbstractController
     }
 
     /** Current-domain map: a venue is the physical booking scope. */
-    /**
-     * La saisie des packages — proposition (S153).
-     *
-     * ⚠️ **Sous-page et non section du guide de style**, pour la même raison que
-     * `structure` et `droits-quotas` : le guide décrit ce qui EST, une proposition
-     * décrit ce qui pourrait être. Les mélanger sur une page, c'est laisser un
-     * lecteur croire qu'une maquette est un composant.
-     *
-     * 🅿️ **À SUPPRIMER une fois la forme implémentée** — page, route et lien.
-     * C'est ce qui a été fait pour les propositions du format de liste (S130e,
-     * S140), dont le raisonnement vit dans `HISTORY.md` et pas dans l'écran.
-     */
-    #[Route('/design/packages', name: 'app_admin_package_form_vision', methods: ['GET'])]
-    public function packageFormVision(): Response
-    {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
-
-        return $this->render('site/admin-package-form-vision.html.twig');
-    }
-
     #[Route('/design/structure', name: 'app_admin_structure_vision', methods: ['GET'])]
     public function structureVision(
         MachineRepository $machines,

@@ -17,6 +17,11 @@ final class UsagePackageRepository
     public function __construct(
         private readonly Connection $db,
         private readonly UsageGrantSchema $schema,
+        // S153 — `hasUnrestrictedAccess()` doit voir les attributions par GROUPE
+        // autant que les personnelles ; c'est ce résolveur qui dit à quels
+        // groupes une personne appartient, et il est déjà la source unique de
+        // cette réponse pour `UsageGrantRepository`.
+        private readonly AudienceResolver $audiences,
     ) {
     }
 
@@ -97,7 +102,14 @@ final class UsagePackageRepository
                     'name' => $name, 'description' => $description, 'active' => $active ? 1 : 0, 'fullAccess' => $fullAccess ? 1 : 0,
                     'updatedAt' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
                 ], ['id' => $id]);
-                if ($updated !== 1) {
+                // 🔴 **`affected_rows` n'est pas « la ligne existe »** (S153).
+                // MySQL rend 0 quand l'UPDATE ne CHANGE rien — mêmes nom,
+                // description, actif, et un `updatedAt` identique à la seconde
+                // près. Enregistrer deux fois dans la même seconde levait donc
+                // « Package introuvable » sur un package parfaitement présent,
+                // ce que la sonde a attrapé au premier essai. La question posée
+                // est l'existence, alors c'est elle qu'on pose.
+                if ($updated !== 1 && !$this->db->fetchOne('SELECT 1 FROM USAGE_PACKAGE WHERE id = :id', ['id' => $id])) {
                     throw new \InvalidArgumentException('Package introuvable.');
                 }
                 $this->db->delete('USAGE_PACKAGE_FEATURE', ['packageId' => $id]);
@@ -621,6 +633,123 @@ final class UsagePackageRepository
             'DELETE FROM USAGE_PACKAGE_GRANT WHERE id = :id AND packageId = :package',
             ['id' => $grantId, 'package' => $packageId],
         );
+    }
+
+    /**
+     * Réécrire d'un coup TOUS les grants d'un package, fenêtres comprises (S153).
+     *
+     * 🔴 **C'est le point d'écriture du compilateur, et il remplace au lieu
+     * d'ajouter — parce que la SAISIE décrit le package entier.** L'éditeur
+     * grant-par-grant ajoute ; un formulaire qui dit « ce package donne accès à
+     * X, le jeudi » doit produire exactement ça, sinon décocher une case ne
+     * retirerait jamais rien et l'écran mentirait dans le sens le plus
+     * dangereux : celui qui laisse un droit en place.
+     *
+     * ⚠️ **Transactionnel, et les fenêtres partent avec leurs grants** — la
+     * contrainte `FK_USAGE_GRANT_WINDOW_GRANT` est `ON DELETE CASCADE`. Un
+     * remplacement à moitié écrit serait un package qui n'autorise plus rien.
+     *
+     * ⚠️ **Les fenêtres ne sont écrites que si la table répond.** Sur une
+     * installation qui a le code sans la migration, le grant est écrit sans sa
+     * restriction horaire : plus large que demandé, jamais plus étroit. C'est la
+     * direction de repli de tout ce fichier — voir `UsageGrantSchema`.
+     *
+     * @param list<array{featureKey:string,action:UsageGrantAction,venueId:?int,sectionKey:?string,reservableType:?string,reservableId:?int,categoryLabel:?string,categoryId:?int,windows:list<GrantWindow>}> $grants
+     */
+    public function replaceGrants(int $packageId, array $grants): void
+    {
+        $scoped = $this->schema->hasScopeColumns();
+        $categoryScoped = $scoped && $this->schema->hasCategoryIdColumn();
+        $windowed = $this->schema->hasWindowTable();
+
+        $this->db->transactional(function () use ($packageId, $grants, $scoped, $categoryScoped, $windowed): void {
+            $this->db->delete('USAGE_PACKAGE_GRANT', ['packageId' => $packageId]);
+            foreach ($grants as $grant) {
+                $now = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
+                $this->db->insert('USAGE_PACKAGE_GRANT', array_merge([
+                    'packageId' => $packageId,
+                    'featureKey' => $grant['featureKey'],
+                    'sectionKey' => $grant['sectionKey'],
+                    'action' => $grant['action']->value,
+                    'venueId' => $grant['venueId'],
+                    'createdAt' => $now,
+                ], $scoped ? [
+                    'reservableType' => $grant['reservableType'],
+                    'reservableId' => $grant['reservableId'],
+                    'categoryLabel' => $grant['categoryLabel'],
+                ] : [], $categoryScoped ? ['categoryId' => $grant['categoryId']] : []));
+
+                if (!$windowed) {
+                    continue;
+                }
+                $grantId = (int) $this->db->lastInsertId();
+                foreach ($grant['windows'] as $window) {
+                    if (!$window->isValid()) {
+                        throw new \InvalidArgumentException('Créneau invalide : la fin doit être après le début, dans la même journée.');
+                    }
+                    $this->db->insert('USAGE_GRANT_WINDOW', [
+                        'grantId' => $grantId,
+                        'dayOfWeek' => $window->dayOfWeek,
+                        'startMinute' => $window->startMinute,
+                        'endMinute' => $window->endMinute,
+                        'createdAt' => $now,
+                    ]);
+                }
+            }
+        });
+    }
+
+    /**
+     * Cette personne détient-elle, à cet instant, un package SANS AUCUNE
+     * RESTRICTION ? (S153)
+     *
+     * 🔴 **C'est ce qui porte la case « sans limite d'horaires ».** Elle
+     * réutilise `USAGE_PACKAGE.fullAccess` — donc aucune migration — et la
+     * colonne y gagne son sens complet : *ce package ne connaît aucune
+     * restriction*, ni de feature, ni de lieu, ni d'heure. Le compilateur ne
+     * l'écrit QUE quand les quatre axes sont sur « aucune restriction » : un
+     * seul bit ne peut pas dire « tout sauf le jeudi », et le formulaire n'offre
+     * la case que dans ce cas.
+     *
+     * ⚠️ **Les deux sources d'attribution, comme partout ailleurs** : la
+     * personne, et les groupes dont elle fait partie. `grantingPackages()` ne
+     * regarde que `a.userId` et c'est une limite connue de la v1 ; ici la
+     * question décide d'un accès hors horaires, donc elle se pose comme
+     * `UsageGrantRepository::grantRows()` la pose.
+     */
+    public function hasUnrestrictedAccess(?Utilisateur $user, \DateTimeImmutable $at): bool
+    {
+        if (!$user instanceof Utilisateur) {
+            return false;
+        }
+
+        $keys = $this->audiences->keysFor($user);
+
+        try {
+            return (bool) $this->db->fetchOne(
+                'SELECT 1 FROM USAGE_RIGHT_ASSIGNMENT a
+                 INNER JOIN USAGE_PACKAGE p ON p.id = a.packageId AND p.active = 1 AND p.fullAccess = 1
+                 LEFT JOIN USER_GROUP ug ON ug.id = a.groupId
+                 WHERE a.revokedAt IS NULL
+                   AND (a.validFrom IS NULL OR a.validFrom <= :moment)
+                   AND (a.validUntil IS NULL OR a.validUntil > :moment)
+                   AND (
+                         (:userId IS NOT NULL AND a.userId = :userId)
+                      OR (a.groupId IS NOT NULL AND ug.groupKey IN (:keys))
+                   )
+                 LIMIT 1',
+                [
+                    'moment' => $at->format('Y-m-d H:i:s'),
+                    'userId' => $user->getId(),
+                    'keys' => $keys === [] ? [''] : $keys,
+                ],
+                ['keys' => \Doctrine\DBAL\ArrayParameterType::STRING],
+            );
+        } catch (\Throwable) {
+            // ⚠️ Le repli est le comportement d'AVANT : pas d'exemption. Une
+            // requête qui échoue ne doit jamais ouvrir le lab.
+            return false;
+        }
     }
 
     /** @param list<ShadowUsageGrant> $grants */

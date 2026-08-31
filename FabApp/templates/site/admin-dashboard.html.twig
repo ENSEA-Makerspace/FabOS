@@ -13,8 +13,8 @@
 {% block title %}{{ 'admin_dashboard.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260828-s152e' }}">
-    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260828-s152e' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260831-s153b' }}">
+    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260831-s153b' }}">
     <style>
         /* Styles spécifiques à l'admin */
 
@@ -292,9 +292,22 @@
                    card like every other card now, and the band inside it is the
                    same `_admin_form_head` the twenty-six form pages use. #}
                 <section class="admin-panel admin-list-card admin-form-card">
+                    {#- ⚠️ **S153 — la bande respire et porte un fait** (proposition A,
+                        choisie par l'opérateur). Le fait vient de `openState`, donc du
+                        résolveur d'horaires : jamais une phrase écrite ici. Une bande
+                        qui affirme « Ouvert » un jour de fermeture est pire que pas de
+                        bande.
+                        ⚠️ `openState.open` et non `openState.open|default(...)` : le
+                        piège n°1 de la reprise, `false|default(x)` vaut `x`. -#}
                     {% include 'site/_admin_form_head.html.twig' with {
                         title: 'admin_dashboard.welcome'|trans({'%name%': app.user ? (app.user.firstName ?: app.user.username) : ''}),
                         subtitle: 'admin_dashboard.subtitle'|trans,
+                        fact: openState.open ? 'admin_dashboard.fact_open'|trans : 'admin_dashboard.fact_closed'|trans,
+                        fact_note: openState.open
+                            ? 'admin_dashboard.fact_open_until'|trans({'%time%': openState.until})
+                            : (openState.from
+                                ? 'admin_dashboard.fact_closed_until'|trans({'%time%': openState.from})
+                                : openState.reason),
                     } only %}
                     {% if showFirstRun|default(false) %}
                         {# Shown only on an install that has neither been configured nor

@@ -233,6 +233,30 @@ final class UsageRightsService
      * another class is how two callers end up disagreeing about which feature a
      * space is under.
      */
+    /**
+     * Cette personne a-t-elle un package qui lève la GRILLE HEBDOMADAIRE des
+     * horaires ? (S153)
+     *
+     * 🔴 **Elle ne lève QUE la grille.** Jamais une fermeture datée : le
+     * résolveur les distingue (`hasDatedRulesOn()`), et lever les deux ouvrirait
+     * le lab pendant des travaux, un jour férié, une fermeture annuelle —
+     * exactement les jours où l'opérateur a pris la peine d'écrire une ligne.
+     * C'est l'appelant qui doit poser cette seconde question ; voir
+     * `ReservationService`.
+     *
+     * ⚠️ **Ce n'est pas une question de droits d'usage au sens de `verdict()`**
+     * et elle ne passe donc pas par `isEnforced()` : l'exemption n'AUTORISE rien
+     * qu'un package ne couvrirait pas déjà, elle retire un obstacle d'horaires à
+     * quelqu'un à qui on a délibérément attribué un package « sans aucune
+     * restriction ». La faire dépendre du drapeau global d'application la
+     * rendrait muette sur toutes les installations d'aujourd'hui, où il est
+     * éteint — donc morte à la livraison.
+     */
+    public function liftsOpeningHours(?Utilisateur $user, \DateTimeImmutable $at): bool
+    {
+        return $this->packages->hasUnrestrictedAccess($user, $at);
+    }
+
     public function featureKeyForReservable(ReservableType $type): ?string
     {
         return $this->registry->featureForReservable($type)?->key;

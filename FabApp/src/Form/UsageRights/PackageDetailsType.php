@@ -14,12 +14,16 @@ use Symfony\Component\Validator\Constraints as Assert;
 /**
  * `/admin/usage-rights/{id}/edit`, la carte « le package lui-même » (S147, J-22).
  *
- * ⚠️ **La MATRICE de fonctionnalités reste du balisage, à l'intérieur du
- * formulaire.** `_usage_rights_matrix.html.twig` est un partial PARTAGÉ — la
- * prévisualisation d'un droit s'en sert ailleurs — et ses cases postent
- * `features[]`. L'absorber dans ce type le casserait pour ses autres appelants
- * pour ne gagner qu'une uniformité de façade. Même choix que le jeton iCal de
- * `/admin/settings` : ce qui n'est pas une liste de champs reste ce qu'il est.
+ * 🔴 **S153 — ce formulaire ne décrit plus QUE l'identité du package.** La
+ * matrice de fonctionnalités et la case « accès complet » en sont parties : ce
+ * que le package autorise se saisit maintenant en un seul endroit, la carte
+ * « Ce que ce package autorise », et `PackageSpecCompiler` l'écrit dans les cinq
+ * tables. Les laisser ici aurait été garder deux écritures pour un même fait —
+ * exactement les « deux vérités » que la mesure a trouvées en base, un package
+ * portant `fullAccess = 1` ET quatorze grants.
+ *
+ * ⚠️ Sauvegarder l'identité ne touche donc plus ni `fullAccess` ni les lignes de
+ * feature : le contrôleur repasse à `save()` ce que le package portait déjà.
  *
  * ⚠️ `row_attr` garde `.usage-form-field`, la classe de cet écran : le thème
  * impose l'ordre libellé / contrôle / aide / erreurs, pas une apparence.
@@ -50,15 +54,6 @@ final class PackageDetailsType extends AbstractType
                 'label' => 'usage_rights.active',
                 // `.usage-check` est la ligne case-puis-libellé de cet écran ;
                 // le thème rend déjà les deux dans cet ordre.
-                'row_attr' => ['class' => 'usage-check'],
-                'required' => false,
-            ])
-            ->add('full_access', CheckboxType::class, [
-                'label' => 'usage_rights.full_access',
-                // ⚠️ La phrase sous la case était un `<p class="usage-hint">`
-                // dans le gabarit. C'est l'aide d'un champ : depuis que le thème
-                // rend `form_help()`, elle appartient au type.
-                'help' => 'usage_rights.full_access_hint',
                 'row_attr' => ['class' => 'usage-check'],
                 'required' => false,
             ]);

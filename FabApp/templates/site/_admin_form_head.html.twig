@@ -29,12 +29,38 @@
                  Omitted renders nothing rather than an empty line.
      back_href   where the one outward control goes
      back_label  its words
+
+     fact        ⚠️ **S153 — le FAIT que porte la bande**, deux mots au plus
+                 (« Ouvert »), et `fact_note` la ligne qui le précise
+                 (« jusqu'à 17:30 »). Absents, la bande est exactement celle des
+                 vingt-six autres pages : la proposition A ne change rien pour
+                 qui ne passe rien.
+     fact_note   ⚠️ **Les deux enfants portent une CLASSE, et ce n'est pas
+                 décoratif.** Mesuré au navigateur : une couverture sombre de
+                 `style.css` repeint tout ce qui vit DANS un `<p>` en
+                 `--color-text-light`, sans `!important` mais à (0,2,2) — donc
+                 le `<b>` rendait #d4c8d2 sur le dégradé magenta pendant que le
+                 `<p>`, lui, était blanc. Les deux classes existent pour sortir
+                 de cette couverture à la source, comme `.admin-hero-note`.
+                 ⚠️ Elle ne doit JAMAIS être une chaîne écrite dans un gabarit.
+                 Une bande qui affirme « Ouvert » un jour de fermeture est pire
+                 que pas de bande ; le fait se calcule dans le contrôleur, à
+                 partir du résolveur d'horaires.
 #}
-<header class="admin-hero">
+<header class="admin-hero{{ fact|default('') ? ' admin-hero-roomy' : '' }}">
     <div class="admin-hero-text">
         <h1>{{ title }}</h1>
         {% if subtitle|default('') %}<p class="admin-hero-note">{{ subtitle }}</p>{% endif %}
     </div>
+    {% if fact|default('') %}
+        {#- ⚠️ `margin-left: auto` sur le fait, jamais deux marges automatiques :
+            deux se partageraient l'espace et écarteraient les deux blocs du
+            centre. Même règle que la recherche dans `_admin_list`. -#}
+        {#- ⚠️ Pas un blanc entre les deux enfants : `.admin-hero-fact-value` est en
+            `display: block`, donc un simple retour à la ligne dans le `<p>` devient
+            une LIGNE DE TEXTE vide et la bande grandit de 48 px. Mesuré. -#}
+        <p class="admin-hero-fact"><b class="admin-hero-fact-value">{{ fact }}</b>{% if fact_note|default('') %}<span class="admin-hero-fact-note">{{ fact_note }}</span>{% endif %}</p>
+    {% endif %}
     {% if back_href|default('') and back_label|default('') %}
         {# ⚠️ `.admin-hero-action`, never `.btn-link`. As a plain `.btn-link` it is
            repainted `--theme-input` — a dark smudge on the magenta — by two

@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}{{ package.id|default(false) ? 'usage_rights.edit'|trans : 'usage_rights.create'|trans }} · FabOS{% endblock %}
-{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260828-s152e' }}">{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260831-s153b' }}">{% endblock %}
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
     page_title: package.id|default(false) ? 'usage_rights.edit'|trans : 'usage_rights.create'|trans,
@@ -18,24 +18,138 @@
             {{ form_row(detailsForm.name) }}
             {{ form_row(detailsForm.description) }}
             {{ form_row(detailsForm.active) }}
-            {{ form_row(detailsForm.full_access) }}
-            {# ⚠️ **La matrice reste du balisage, et c'est délibéré (S147, J-22).**
-               `_usage_rights_matrix.html.twig` est un partial PARTAGÉ — la
-               prévisualisation d'un droit s'en sert ailleurs — et ses cases postent
-               `features[]` à la racine, hors du nom du formulaire. L'absorber dans
-               le `FormType` le casserait pour ses autres appelants pour ne gagner
-               qu'une uniformité de façade. #}
-            {% include 'site/_usage_rights_matrix.html.twig' with {
-                capabilities: availableFeatures,
-                enabled: enabledFeatures,
-                selected: package.features,
-                id_prefix: 'package-rights',
-            } only %}
+            {# 🔴 **S153 — la matrice de fonctionnalités et la case « accès
+               complet » sont PARTIES d'ici.** Ce que le package autorise se
+               saisit dans la carte « Ce que ce package autorise », en dessous,
+               et un compilateur l'écrit dans les cinq tables. Deux surfaces
+               d'écriture pour un même fait, c'est ce que la mesure a trouvé en
+               base : un package portant `fullAccess = 1` ET quatorze grants,
+               deux vérités dont rien ne disait laquelle l'écran croyait.
+               ⚠️ Cette carte-ci n'écrit donc plus que l'identité — et renommer
+               un package ne peut plus, en silence, changer ses droits. #}
             <div class="admin-actions"><button class="btn-link btn-primary-admin" type="submit">{{ 'common.save'|trans }}</button><a class="admin-action" href="{{ path('app_admin_usage_rights') }}">{{ 'common.cancel'|trans }}</a></div>
         {{ form_end(detailsForm) }}
     {% endblock %}
     {% block panel_extra %}
         {% if package.id|default(false) %}
+            {# ============================================================
+               LA SAISIE (S153) — quatre lignes de restriction, une d'extension.
+
+               🔴 **Elle passe AVANT l'éditeur détaillé, et c'est le point.** La
+               mesure du 2026-08-28 : les deux packages existants portent 21
+               grants, et les 21 ont lieu, section, ressource et catégorie VIDES ;
+               zéro fenêtre, zéro quota. Les six dimensions que l'écran faisait
+               remplir n'ont jamais servi, et « tout autoriser » a coûté quatorze
+               créations de grant. Ici, les sept cas réels de l'opérateur tiennent
+               en zéro à deux décochages.
+
+               🔴 **La révélation est en CSS pur (`:has()`), sans une ligne de
+               JavaScript.** Un contrôleur Stimulus ferait la même chose en moins
+               bien : il faudrait qu'il tourne pour que le formulaire soit
+               utilisable. Ici, sans JS, tout marche déjà.
+               ⚠️ **Et le CSS CACHE, il ne désactive rien** : les listes repliées
+               postent leur contenu. C'est la CASE qui décide, côté serveur —
+               même leçon que le préréglage de plage de S149.
+
+               ⚠️ `specFits` vient du contrôleur. Un package que ces cinq lignes
+               ne savent pas exprimer — un grant `Manage`, une section, une
+               machine précise — n'ouvre pas cette carte : la rouvrir écraserait
+               à la première soumission ce qu'elle n'a pas su afficher.
+               ============================================================ #}
+            {% if specFits and specForm %}
+                <section class="usage-assignments">
+                    <div class="admin-panel-header"><h2>{{ 'usage_rights.spec_heading'|trans }}</h2></div>
+                    {{ form_start(specForm, {attr: {class: 'pkg-spec'}}) }}
+                        {% form_theme specForm 'form/admin_theme.html.twig' %}
+                        {# La phrase du haut est la ligne de CONSÉQUENCE, pas un
+                           résumé posé à côté qui pourrait diverger. #}
+                        <p class="pkg-spec-sentence">{{ 'usage_rights.spec_sentence'|trans|raw }}</p>
+
+                        <div class="pkg-axis">
+                            <div class="pkg-axis-head">
+                                <span class="pkg-axis-key">{{ 'usage_rights.spec_axis_what'|trans }}</span>
+                                {{ form_widget(specForm.features_all) }}{{ form_label(specForm.features_all) }}
+                            </div>
+                            <div class="pkg-detail">
+                                {{ form_widget(specForm.features) }}
+                                <p class="pkg-hint">{{ 'usage_rights.spec_features_hint'|trans }}</p>
+                            </div>
+                        </div>
+
+                        <div class="pkg-axis">
+                            <div class="pkg-axis-head">
+                                <span class="pkg-axis-key">{{ 'usage_rights.spec_axis_when'|trans }}</span>
+                                {{ form_widget(specForm.days_all) }}{{ form_label(specForm.days_all) }}
+                            </div>
+                            <div class="pkg-detail">
+                                {{ form_widget(specForm.days) }}
+                                <p class="pkg-hint">
+                                    {{ form_label(specForm.start_time) }} {{ form_widget(specForm.start_time) }}
+                                    {{ form_label(specForm.end_time) }} {{ form_widget(specForm.end_time) }}
+                                </p>
+                                <p class="pkg-hint">{{ 'usage_rights.spec_days_hint'|trans }}</p>
+                            </div>
+                        </div>
+
+                        <div class="pkg-axis">
+                            <div class="pkg-axis-head">
+                                <span class="pkg-axis-key">{{ 'usage_rights.spec_axis_where'|trans }}</span>
+                                {{ form_widget(specForm.venues_all) }}{{ form_label(specForm.venues_all) }}
+                            </div>
+                            <div class="pkg-detail">
+                                {{ form_widget(specForm.venues) }}
+                                {# La catégorie de machines est le seul « avancé » qui
+                                   reste, parce que c'est le seul des quatre axes
+                                   retirés que l'opérateur a nommé dans ses sept cas. #}
+                                <details class="pkg-adv">
+                                    <summary>{{ 'usage_rights.spec_categories_summary'|trans }}</summary>
+                                    <div>
+                                        {{ form_widget(specForm.categories_all) }}{{ form_label(specForm.categories_all) }}
+                                        <div class="pkg-detail-cat">{{ form_widget(specForm.categories) }}</div>
+                                    </div>
+                                </details>
+                            </div>
+                        </div>
+
+                        <div class="pkg-axis">
+                            <div class="pkg-axis-head">
+                                <span class="pkg-axis-key">{{ 'usage_rights.spec_axis_how_much'|trans }}</span>
+                                {{ form_widget(specForm.quota_unlimited) }}{{ form_label(specForm.quota_unlimited) }}
+                            </div>
+                            <div class="pkg-detail">
+                                <p class="pkg-hint">
+                                    {{ form_label(specForm.quota_hours) }} {{ form_widget(specForm.quota_hours) }}
+                                    {{ form_widget(specForm.quota_period) }}
+                                </p>
+                            </div>
+                        </div>
+
+                        {# ⚠️ **La cinquième ligne AJOUTE un pouvoir**, les quatre
+                           autres en retirent : elle arrive donc DÉCOCHÉE, et elle
+                           ne se révèle que si les quatre autres sont sur « aucune
+                           restriction ». Ce n'est pas de la coquetterie : elle
+                           s'écrit dans `USAGE_PACKAGE.fullAccess`, un seul bit,
+                           qui ne sait pas dire « tout sauf le jeudi ». Le serveur
+                           refuse la combinaison ; le CSS évite d'avoir à la
+                           proposer. #}
+                        <div class="pkg-axis pkg-axis-exempt">
+                            <div class="pkg-axis-head">
+                                <span class="pkg-axis-key">{{ 'usage_rights.spec_axis_hours'|trans }}</span>
+                                {{ form_widget(specForm.hours_exempt) }}{{ form_label(specForm.hours_exempt) }}
+                            </div>
+                            <p class="pkg-hint">{{ 'usage_rights.spec_hours_hint'|trans }}</p>
+                        </div>
+
+                        <div class="admin-actions"><button class="btn-link btn-primary-admin" type="submit">{{ 'common.save'|trans }}</button></div>
+                    {{ form_end(specForm) }}
+                </section>
+            {% else %}
+                <section class="usage-assignments">
+                    <div class="admin-panel-header"><h2>{{ 'usage_rights.spec_heading'|trans }}</h2></div>
+                    <p class="settings-hint">{{ 'usage_rights.spec_unavailable'|trans }}</p>
+                </section>
+            {% endif %}
+
             {# ⚠️ **The grants editor (S134b).** The feature checkboxes above are the
                v1 model: a package grants a feature, full stop. Grants v2 adds three
                dimensions — an action, a location, a section — and until this block

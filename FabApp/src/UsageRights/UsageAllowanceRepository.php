@@ -126,6 +126,54 @@ final class UsageAllowanceRepository
         ]);
     }
 
+    /**
+     * Réécrire d'un coup TOUTES les allocations d'un package (S153).
+     *
+     * 🔴 **Remplacer, pas ajouter** — même raison que
+     * `UsagePackageRepository::replaceGrants()` : la saisie décrit le package
+     * entier, donc recocher « sans limite » doit RETIRER le quota. Un ajout
+     * laisserait le plafond en place au-dessus d'une phrase qui affirme qu'il
+     * n'y en a pas, et c'est le sens du mensonge qui refuse.
+     *
+     * ⚠️ **Une table absente n'est pas une erreur quand il n'y a rien à
+     * écrire.** Sur une installation sans la migration, un package « sans
+     * limite » se compile sans bruit ; c'est seulement écrire un quota qui
+     * demande la table, et ça, on le dit.
+     *
+     * @param list<array{featureKey:?string,reservableType:?string,unit:string,amount:int,period:string}> $rows
+     */
+    public function replaceForPackage(int $packageId, array $rows): void
+    {
+        if (!$this->tableExists()) {
+            if ($rows === []) {
+                return;
+            }
+
+            throw new \RuntimeException("La migration des allocations n'a pas encore été exécutée sur cette installation.");
+        }
+
+        $this->db->transactional(function () use ($packageId, $rows): void {
+            $this->db->delete('USAGE_PACKAGE_ALLOWANCE', ['packageId' => $packageId]);
+            foreach ($rows as $row) {
+                if (!UsageAllowance::isValidUnit($row['unit']) || !UsageAllowance::isValidPeriod($row['period'])) {
+                    throw new \InvalidArgumentException('Unité ou période inconnue.');
+                }
+                if ($row['amount'] <= 0) {
+                    throw new \InvalidArgumentException('Une allocation doit être strictement positive.');
+                }
+                $this->db->insert('USAGE_PACKAGE_ALLOWANCE', [
+                    'packageId' => $packageId,
+                    'featureKey' => $row['featureKey'],
+                    'reservableType' => $row['reservableType'],
+                    'unit' => $row['unit'],
+                    'amount' => $row['amount'],
+                    'period' => $row['period'],
+                    'createdAt' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+                ]);
+            }
+        });
+    }
+
     public function delete(int $packageId, int $allowanceId): void
     {
         if (!$this->tableExists()) {

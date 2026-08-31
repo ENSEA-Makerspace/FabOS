@@ -1524,6 +1524,26 @@ adm:
     view: "Ansehen"
 
 usage_rights:
+    spec_heading: "Was dieses Paket erlaubt"
+    spec_sentence: "Dieses Paket gibt Zugriff auf <b>alles</b>, <b>jederzeit</b>, <b>überall</b>, <b>ohne Begrenzung</b>."
+    spec_axis_what: "gibt Zugriff auf"
+    spec_axis_when: "wann"
+    spec_axis_where: "wo"
+    spec_axis_how_much: "wie viel"
+    spec_axis_hours: "Öffnungszeiten"
+    spec_features_all: "alles"
+    spec_features_hint: "Die wahrscheinlichste Einschränkung ist „alles außer einem“."
+    spec_days_all: "jederzeit"
+    spec_days_hint: "Ein Zeitfenster öffnet das Lab nie außerhalb seiner Zeiten: die Schließung wird vor den Rechten geprüft."
+    spec_venues_all: "überall"
+    spec_categories_all: "alle Kategorien"
+    spec_categories_summary: "Zusätzlich auf eine Maschinenkategorie beschränken"
+    spec_quota_all: "ohne Begrenzung"
+    spec_quota_hours: "höchstens, in Stunden"
+    spec_hours_exempt: "ohne Zeitbeschränkung (Team)"
+    spec_hours_hint: "Standardmäßig nicht gesetzt, anders als die vier anderen: diese Zeile fügt ein Recht hinzu, statt eines zu entziehen. Sie hebt nur den Wochenplan auf, nie eine datierte Schließung."
+    spec_saved: "Die Rechte des Pakets wurden gespeichert."
+    spec_unavailable: "Dieses Paket trägt Rechte, die dieses Formular nicht ausdrücken kann — eine „Verwalten“-Aktion, einen Abschnitt, eine bestimmte Ressource oder zwei verschiedene Wochen. Bearbeiten Sie es unten, Recht für Recht."
     settings_consequence_gaps: "Diese Rechte würden noch niemanden abdecken: %capabilities%."
     settings_consequence_ready: "Bereit zum Umschalten: die nötigen Pakete und Mitglieder sind vorhanden."
     grant_consequence: "Dieses Grant erlaubt: %summary%"
@@ -2168,6 +2188,10 @@ rfid_delete:
 
 # Tableau de bord admin — S134c.
 admin_dashboard:
+    fact_open: "Geöffnet"
+    fact_open_until: "bis %time%"
+    fact_closed: "Geschlossen"
+    fact_closed_until: "öffnet wieder um %time%"
     setup_needed: "Diese Installation ist noch nicht konfiguriert."
     setup_hint: "Ein paar Angaben — Name des Standorts, öffentliche URL, Sprache — der Rest folgt."
     welcome: "Willkommen, %name%"

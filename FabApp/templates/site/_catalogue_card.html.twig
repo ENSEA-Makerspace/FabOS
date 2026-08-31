@@ -36,6 +36,15 @@
      icon_slug    which category icon to draw (head + media fallback)
      photo        an image path; the media box keeps the SAME aspect ratio with
                   or without one, so a half-photographed catalogue stays even
+     placeholder_seed
+                  ⚠️ **S153.** A catalogue whose objects have an IDENTITY but
+                  rarely a picture — events — passes the object's id here, and a
+                  photoless card draws `_event_placeholder.html.twig` instead of
+                  the category icon. The seed is what makes the drawing stable:
+                  `id % 6`, so the same event keeps the same poster forever and
+                  two members looking at the same list see the same page. A
+                  catalogue that does not pass it is PIXEL-IDENTICAL to before —
+                  the icon fallback is untouched.
      media_ratio  that ratio, e.g. '3 / 2'. Default 16/9. A bigger card wants a
                   taller picture; this is how a caller says so without writing a
                   rule of its own. ⚠️ Still cropped to fill, always — see the
@@ -139,6 +148,12 @@
             {% if photo|default('') %}
                 <img src="{{ photo starts with 'http' or photo starts with '/' ? photo : asset(photo) }}"
                      alt="" loading="lazy" decoding="async">
+            {% elseif placeholder_seed is defined and placeholder_seed is not null %}
+                {#- ⚠️ `is defined and is not null`, never `|default(...)`: a seed
+                    of literally `0` is a legitimate event id in nobody's world
+                    but is a legitimate MODULO, and `0|default(x)` is `x` in Twig
+                    — the first trap of the phase list. -#}
+                {% include 'site/_event_placeholder.html.twig' with { seed: placeholder_seed } only %}
             {% else %}
                 <span class="ml-media-icon">
                     {% include 'site/_category_icon.html.twig' with { slug: icon_slug|default('') } only %}
