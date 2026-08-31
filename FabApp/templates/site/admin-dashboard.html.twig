@@ -21,10 +21,22 @@
         /* Four per row, not auto-fit: with seven tiles auto-fit puts all of them on
            one line on a wide screen, which reads as a strip of numbers rather than a
            summary. Fixed columns give 4 + 3, and the last row stays left-aligned. */
+        /* 🔴 **`margin-top`, et pas `padding-top`** (S153b). Les tuiles
+           démarraient exactement là où la bande finissait — zéro pixel entre le
+           dégradé et la première carte, mesuré au navigateur. La cause est une
+           asymétrie d'`admin.css` : `.admin-panel > :first-child` reçoit
+           `padding-top: 24px`, mais ici le premier enfant est la bande, donc la
+           grille — deuxième enfant — n'en reçoit aucun.
+           ⚠️ Y répondre par un `padding-top` local ne marcherait pas : la
+           couverture `.admin-panel > :not(…)` pose `padding: 0 24px` à (0,6,0)
+           et gagnerait. La marge, elle, n'est disputée par personne.
+           ⚠️ `--spacing-lg`, la même valeur que la gouttière latérale de 24 px :
+           l'air au-dessus des tuiles est celui qu'elles ont déjà sur les côtés. */
         .admin-stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: var(--spacing-lg);
+            margin-top: var(--spacing-lg);
             margin-bottom: var(--spacing-xl);
         }
         
@@ -97,7 +109,9 @@
             gap: var(--spacing-lg);
         }
         
-        .first-run-card { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.34); border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; }
+        /* Même raison que la grille au-dessus : quand cette carte est là, c'est
+           ELLE qui suit la bande, et elle était collée pareil. */
+        .first-run-card { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.34); border-radius: 12px; padding: 14px 18px; margin-top: var(--spacing-lg); margin-bottom: 20px; }
         .first-run-card strong { font-size: 15px; }
         .first-run-card span { opacity: .9; font-size: 13px; flex: 1 1 260px; }
 
