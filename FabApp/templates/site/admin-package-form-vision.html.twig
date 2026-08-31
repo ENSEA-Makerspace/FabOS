@@ -1,0 +1,205 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Saisie des packages · FabOS{% endblock %}
+{# 🔴 **Les styles vont dans `stylesheets`, PAS dans `page_styles`.**
+   `base.html.twig` n'a pas de bloc `page_styles` — seul `base_public` en a un — et
+   Twig ignore SANS UN MOT un bloc que le parent ne déclare pas. La première version
+   de cette page a donc rendu ses cinq axes tous dépliés, sans une ligne de CSS et
+   sans une erreur : la révélation `:has()` n'était jamais arrivée. Même famille que
+   le `/prets/{id}` sans navigation — un bloc qui n'existe pas chez le parent est un
+   silence, pas une alerte. #}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260828-s152e' }}">
+    {# ⚠️ **Un `<style>` local, et c'est assumé** : cette page est une PROPOSITION.
+       Rien de ce qui suit n'est un composant du produit, donc rien ne doit entrer
+       dans `components.css` avant que la forme soit tranchée. Le jour où elle
+       l'est, ces règles déménagent et ce bloc disparaît. #}
+    <style>
+        .dzp-lead { max-width: 62ch; }
+        .dzp-form { max-width: 720px; border: 1px solid var(--border-color); border-radius: var(--border-radius); background: var(--theme-surface); padding: var(--spacing-lg); }
+        .dzp-sentence { font-size: var(--font-size-lg); line-height: 1.6; margin: 0 0 var(--spacing-lg); padding-bottom: var(--spacing-md); border-bottom: 1px solid var(--border-color); }
+        .dzp-sentence b { color: var(--color-primary-text); }
+
+        .dzp-axis { padding: var(--spacing-md) 0; border-bottom: 1px solid var(--border-color); }
+        .dzp-axis:last-of-type { border-bottom: 0; }
+        .dzp-axis-head { display: flex; align-items: baseline; gap: var(--spacing-md); }
+        .dzp-axis-key { flex: 0 0 7rem; color: var(--color-text-light); font-size: var(--font-size-sm); }
+        .dzp-axis-toggle { display: inline-flex; align-items: center; gap: .5rem; font-weight: 600; }
+
+        /* 🔴 **La révélation se fait en CSS, sans une ligne de JavaScript.**
+           `:has()` lit l'état de la case et ouvre le détail. Un contrôleur Stimulus
+           ferait la même chose en moins bien : il faudrait qu'il tourne pour que le
+           formulaire soit utilisable, alors qu'ici sans JS tout marche déjà. */
+        .dzp-detail { display: none; margin: var(--spacing-md) 0 0 7rem; }
+        .dzp-axis:has(.dzp-axis-toggle input:not(:checked)) .dzp-detail { display: block; }
+
+        .dzp-choices { display: flex; flex-wrap: wrap; gap: .4rem 1.2rem; }
+        .dzp-choices label { display: inline-flex; align-items: center; gap: .4rem; font-weight: 400; }
+        .dzp-hint { color: var(--color-text-light); font-size: var(--font-size-sm); margin: .4rem 0 0; }
+        .dzp-adv { margin-top: var(--spacing-md); }
+        .dzp-adv summary { cursor: pointer; color: var(--color-text-light); font-size: var(--font-size-sm); }
+
+        .dzp-table th, .dzp-table td { text-align: left; padding: 6px 12px; border-bottom: 1px solid var(--border-color); }
+        .dzp-table th { color: var(--color-text-light); font-size: var(--font-size-xs); text-transform: uppercase; letter-spacing: .04em; }
+    </style>
+{% endblock %}
+
+{% block body %}
+{% embed 'site/_admin_list.html.twig' with {
+    panel_title: 'Saisie des packages — proposition',
+} %}
+    {% block content %}
+        <div class="blueprint-notice" role="note">
+            {% include 'site/_state_chip.html.twig' with {label: 'Proposition', signal: 'caution'} only %}
+            <p>Rien de cette page n'est en ligne. C'est une forme à juger avant de l'écrire, comme on l'a fait pour le format de liste.</p>
+            <a class="admin-action" href="{{ path('app_admin_design') }}">Retour au guide de style</a>
+        </div>
+
+        <h2>Ce que la mesure dit du formulaire actuel</h2>
+        <p class="dzp-lead">
+            Les deux packages qui existent portent <strong>21 grants</strong>. Sur les 21 :
+            <strong>section, lieu, ressource et catégorie sont vides — les 21 fois</strong>.
+            <code>USAGE_GRANT_WINDOW</code> : 0 ligne. <code>USAGE_PACKAGE_ALLOWANCE</code> : 0 ligne.
+        </p>
+        <p class="dzp-lead">
+            Autrement dit, les six dimensions que l'écran fait remplir n'ont jamais servi, et
+            « tout autoriser » a coûté <strong>14 créations de grant</strong> — une par feature,
+            dans un formulaire de neuf champs — alors que la colonne <code>fullAccess</code>
+            existait déjà et le disait. 🔴 Elle est même à <code>1</code> sur ce package, en plus
+            de ses 14 grants : <strong>deux vérités pour un seul fait</strong>.
+        </p>
+
+        <h2>La proposition : un formulaire, quatre lignes, qui se lit comme une phrase</h2>
+        <p class="dzp-lead">
+            Tout est sur « aucune restriction » à l'arrivée, parce que c'est le cas mesuré.
+            Décocher une ligne révèle son détail <em>sur place</em>. La phrase du haut est la
+            ligne de conséquence — pas un résumé à côté, qui pourrait diverger.
+        </p>
+
+        <form class="dzp-form" onsubmit="return false">
+            <p class="dzp-sentence">
+                Ce package donne accès à <b>tout</b>, <b>tout le temps</b>, <b>partout</b>, <b>sans limite</b>.
+            </p>
+
+            <div class="dzp-axis">
+                <div class="dzp-axis-head">
+                    <span class="dzp-axis-key">donne accès à</span>
+                    <label class="dzp-axis-toggle"><input type="checkbox" checked> tout</label>
+                </div>
+                <div class="dzp-detail">
+                    <div class="dzp-choices">
+                        {% for f in ['Machines', 'Espaces', 'Rendez-vous', 'Événements', 'Formations', 'Badges', 'Prêts', 'Matériaux', 'Maintenance', 'Projets', 'Classement', 'Pages du lab', 'Équipe', 'Formateurs'] %}
+                            <label><input type="checkbox" checked> {{ f }}</label>
+                        {% endfor %}
+                    </div>
+                    <p class="dzp-hint">Toutes cochées : la restriction la plus probable est « tout sauf une ».
+                        ⚠️ Tout coché est enregistré comme <code>fullAccess</code>, sans grants — sinon on recrée les deux vérités.</p>
+                </div>
+            </div>
+
+            <div class="dzp-axis">
+                <div class="dzp-axis-head">
+                    <span class="dzp-axis-key">quand</span>
+                    <label class="dzp-axis-toggle"><input type="checkbox" checked> tout le temps</label>
+                </div>
+                <div class="dzp-detail">
+                    <div class="dzp-choices">
+                        {% for j in ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'] %}
+                            <label><input type="checkbox" checked> {{ j }}</label>
+                        {% endfor %}
+                    </div>
+                    <p class="dzp-hint">
+                        de <input type="time" value="09:00"> à <input type="time" value="18:00">
+                    </p>
+                    <p class="dzp-hint">🔴 Une fenêtre ne peut pas ouvrir le lab hors de ses horaires :
+                        la fermeture est testée avant les droits. C'est la case « sans limite d'horaires »
+                        plus bas qui sert à ça, et elle ne lève que la grille hebdomadaire — jamais une
+                        fermeture datée.</p>
+                </div>
+            </div>
+
+            <div class="dzp-axis">
+                <div class="dzp-axis-head">
+                    <span class="dzp-axis-key">où</span>
+                    <label class="dzp-axis-toggle"><input type="checkbox" checked> partout</label>
+                </div>
+                <div class="dzp-detail">
+                    <div class="dzp-choices">
+                        <label><input type="checkbox" checked> FabLab — D173</label>
+                        <label><input type="checkbox" checked> Atelier Nord</label>
+                    </div>
+                    <details class="dzp-adv">
+                        <summary>Restreindre aussi à une catégorie de machines</summary>
+                        <div class="dzp-choices" style="margin-top:.6rem">
+                            {% for c in ['Découpe', 'Impression 3D', 'Textile', 'Usinage', 'Électronique'] %}
+                                <label><input type="checkbox" checked> {{ c }}</label>
+                            {% endfor %}
+                        </div>
+                    </details>
+                </div>
+            </div>
+
+            <div class="dzp-axis">
+                <div class="dzp-axis-head">
+                    <span class="dzp-axis-key">combien</span>
+                    <label class="dzp-axis-toggle"><input type="checkbox" checked> sans limite</label>
+                </div>
+                <div class="dzp-detail">
+                    <p class="dzp-hint">
+                        au plus <input type="number" value="10" min="1" style="width:5rem"> heures par
+                        <select><option>semaine</option><option>mois</option><option>jour</option></select>
+                    </p>
+                </div>
+            </div>
+
+            <div class="dzp-axis">
+                <div class="dzp-axis-head">
+                    <span class="dzp-axis-key">horaires</span>
+                    <label class="dzp-axis-toggle"><input type="checkbox"> sans limite d'horaires (staff)</label>
+                </div>
+                <p class="dzp-hint" style="margin-left:7rem">
+                    Décochée par défaut, contrairement aux quatre autres : celle-ci <em>ajoute</em> un
+                    pouvoir au lieu d'en retirer un. Elle réutilise <code>fullAccess</code> — aucune
+                    migration — et ne lève que la grille hebdomadaire, jamais une fermeture datée.
+                </p>
+            </div>
+        </form>
+
+        <h2>Ce que ça donne sur les cas réels de l'opérateur</h2>
+        <table class="admin-table dzp-table">
+            <thead><tr><th>Le package</th><th>Décochages</th><th>Coût</th></tr></thead>
+            <tbody>
+                <tr><td>Staff — aucune restriction</td><td>aucun, + « sans limite d'horaires »</td><td>1 clic</td></tr>
+                <tr><td>Prof — réservations illimitées</td><td>aucun</td><td>0 clic</td></tr>
+                <tr><td>Jeudi après-midi illimité</td><td>quand</td><td>1</td></tr>
+                <tr><td>Week-end, un sous-lieu</td><td>quand + où</td><td>2</td></tr>
+                <tr><td>Une catégorie de machines</td><td>donne accès à + où</td><td>2</td></tr>
+                <tr><td>Un sous-lieu</td><td>où</td><td>1</td></tr>
+                <tr><td>Lieux mais pas machines</td><td>donne accès à</td><td>1</td></tr>
+            </tbody>
+        </table>
+
+        <h2>Ce que le formulaire ne dit pas, et pourquoi</h2>
+        <ul>
+            <li><strong>À qui.</strong> L'attribution reste une liste sous le package : un même package
+                sert plusieurs personnes, il ne peut pas les nommer. C'est aussi ce qui permet de traiter
+                l'exclusivité — on donne le package aux seuls membres concernés, sans que le modèle des
+                droits ait à connaître la notion.</li>
+            <li><strong>Section et ressource précise</strong> (<code>machine:12</code>). Utilisées zéro fois
+                sur 21 grants. Derrière un « avancé » le jour où quelqu'un les demande, pas avant.</li>
+            <li><strong>La priorité.</strong> Écartée par l'opérateur, et elle n'existe nulle part dans le
+                modèle : celui-ci dit oui ou non, jamais « celui-ci passe avant ».</li>
+        </ul>
+
+        <h2>Ce qu'il reste à trancher</h2>
+        <ul>
+            <li>L'<strong>ordre des quatre lignes</strong> — la phrase se lit-elle mieux
+                « à / quand / où / combien » ou « à / où / quand / combien » ?</li>
+            <li>La ligne <strong>horaires</strong> : cinquième axe comme ici, ou case à part du reste
+                puisqu'elle ajoute au lieu de retrancher ?</li>
+            <li>Les <strong>14 features</strong> affichées à plat : faut-il les grouper
+                (réserver / apprendre / gérer) dès qu'on décoche « tout » ?</li>
+        </ul>
+    {% endblock %}
+{% endembed %}
+{% endblock %}

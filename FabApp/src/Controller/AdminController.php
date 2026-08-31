@@ -2285,6 +2285,26 @@ final class AdminController extends AbstractController
     }
 
     /** Current-domain map: a venue is the physical booking scope. */
+    /**
+     * La saisie des packages — proposition (S153).
+     *
+     * ⚠️ **Sous-page et non section du guide de style**, pour la même raison que
+     * `structure` et `droits-quotas` : le guide décrit ce qui EST, une proposition
+     * décrit ce qui pourrait être. Les mélanger sur une page, c'est laisser un
+     * lecteur croire qu'une maquette est un composant.
+     *
+     * 🅿️ **À SUPPRIMER une fois la forme implémentée** — page, route et lien.
+     * C'est ce qui a été fait pour les propositions du format de liste (S130e,
+     * S140), dont le raisonnement vit dans `HISTORY.md` et pas dans l'écran.
+     */
+    #[Route('/design/packages', name: 'app_admin_package_form_vision', methods: ['GET'])]
+    public function packageFormVision(): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        return $this->render('site/admin-package-form-vision.html.twig');
+    }
+
     #[Route('/design/structure', name: 'app_admin_structure_vision', methods: ['GET'])]
     public function structureVision(
         MachineRepository $machines,
