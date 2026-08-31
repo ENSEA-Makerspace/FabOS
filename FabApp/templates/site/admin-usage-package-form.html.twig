@@ -150,110 +150,35 @@
                 </section>
             {% endif %}
 
-            {# ⚠️ **The grants editor (S134b).** The feature checkboxes above are the
-               v1 model: a package grants a feature, full stop. Grants v2 adds three
-               dimensions — an action, a location, a section — and until this block
-               existed they were reachable only by SQL, which is not what
-               "administrable" means. The two coexist while chokepoints are being
-               moved one at a time; the checkboxes stop deciding anything for a
-               capability the moment it is switched on `/admin/usage-rights/shadow`. #}
+            {# **CE QUE LA SAISIE A COMPILÉ** — la liste des grants du package,
+               en lecture, plus le bouton qui en retire un.
+
+               ⚠️ Les notes qui vivaient ici décrivaient l'éditeur à neuf champs de
+               S134b/S144b/S149 ; il n'existe plus (voir juste en dessous), et les
+               garder aurait laissé un commentaire qui décrit un écran absent. Le
+               raisonnement de ces trois sessions vit dans `HISTORY.md`. #}
             <section class="usage-assignments">
                 <div class="admin-panel-header"><h2>{{ 'usage_rights.grants'|trans }}</h2></div>
                 <p class="settings-hint">{{ 'usage_rights.grants_help'|trans }}</p>
 
-                {# ⚠️ **Dix champs qui posent UNE phrase** : « ce package laisse
-                   *utiliser* les *imprimantes 3D* du *lieu X*, le *jeudi* de *14 h*
-                   à *18 h* ». Ils restent ensemble parce que c'est ainsi qu'un
-                   opérateur y pense — et la plage y est facultative : sans elle le
-                   grant est éveillé toute la semaine, ce que sont tous les grants
-                   écrits avant S144b.
-                   ⚠️ **Un seul champ pour la ressource, pas deux** (S144b) : le
-                   genre se déduit de la valeur choisie, `machine` ou `machine:12`.
+                {# 🔴 **S153b — l'éditeur « Ajouter un grant » est PARTI, et c'est
+                   l'aboutissement de la phase.** Neuf champs qui écrivaient les
+                   mêmes lignes que la carte du haut : deux surfaces d'écriture pour
+                   un même fait, exactement ce que la mesure du 2026-08-28 avait
+                   trouvé EN BASE (un package portant `fullAccess = 1` ET quatorze
+                   grants, sans que rien ne dise laquelle des deux vérités l'écran
+                   croyait).
 
-                   🔴 **S149 — neuf contrôles posés en égaux, dont sept avaient un
-                   défaut sensé.** C'était le vrai coût de cet éditeur, et ce n'était
-                   pas le nombre de clics : deux champs seulement doivent être
-                   remplis, les sept autres valent « sans restriction » tant qu'on
-                   n'y touche pas. Trois d'entre eux passent derrière le préréglage
-                   de plage, quatre derrière la ligne de portée. L'éditeur ouvre donc
-                   sur TROIS listes : quoi, quelle action, quand.
-                   ⚠️ **Le modèle stocké ne bouge pas.** `day_of_week`,
-                   `start_time` et `end_time` restent les champs qui écrivent une
-                   plage ; le préréglage dit seulement lesquels comptent. #}
-                <details class="settings-danger settings-danger--neutral"{{ refusedEditor|default(null) == 'grantForm' ? ' open' : '' }}>
-                    <summary>{{ 'usage_rights.grant_add'|trans }}</summary>
-                    <div>
-                        {# ⚠️ `conditional-field` CACHE, il ne désactive rien : les trois
-                           champs de plage postent leurs défauts même repliés. C'est le
-                           contrôleur PHP, en lisant `window_preset`, qui décide s'ils
-                           comptent. Sans JavaScript ils restent tous visibles et le
-                           formulaire se comporte exactement comme avant S149. #}
-                        {{ form_start(grantForm, {attr: {class: 'usage-assignment-form usage-grant-form', 'data-controller': 'conditional-field'}}) }}
-                            {% form_theme grantForm 'form/admin_theme.html.twig' %}
-                            {{ form_row(grantForm.feature) }}
-                            {# ⚠️ Manage never confers Use — a manage-only grant leaves
-                               reporting open and booking closed. That is the whole
-                               reason the dimension exists, so the two are never a
-                               single "level" dropdown. #}
-                            {{ form_row(grantForm.grant_action) }}
-                            {# **Le préréglage de plage.** « À toute heure » est le
-                               défaut parce que c'est le cas courant ; « personnalisé… »
-                               fait apparaître les trois champs. ⚠️ **Deux choix, pas
-                               trois** : « horaires d'ouverture » a été retiré en S149
-                               — le pourquoi est dans `UsageRightsAdminController`,
-                               au-dessus de `$presetChoices`. #}
-                            {{ form_row(grantForm.window_preset, {attr: {
-                                'data-conditional-field-target': 'source',
-                                'data-action': 'change->conditional-field#apply',
-                            }}) }}
-                            {# 🔴 `class: 'afp-select'` REPOSÉ ici, et ce n'est pas une
-                               redondance : une variable passée à `form_row()` REMPLACE
-                               celle du `FormType`, elle ne s'y ajoute pas. Sans cette
-                               ligne les trois champs perdent leur boîte et rendent des
-                               contrôles nus — le genre de régression qu'aucun des quatre
-                               outils ne voit, parce que le balisage reste valide. #}
-                            {% set _when_custom = {
-                                class: 'afp-select',
-                                'data-conditional-field-target': 'dependent',
-                                'data-conditional-field-show-when': 'custom',
-                            } %}
-                            {{ form_row(grantForm.day_of_week, {row_attr: _when_custom}) }}
-                            {{ form_row(grantForm.start_time, {row_attr: _when_custom}) }}
-                            {{ form_row(grantForm.end_time, {row_attr: _when_custom}) }}
-                            {# ⚠️ **La portée en toutes lettres, et le contrôle à la
-                               demande** (règle 7). Les quatre champs valent tous
-                               « sans restriction » : les poser en égaux des deux
-                               champs qui décident vraiment était le défaut. Un
-                               `<details>`, pas un contrôleur : ça marche sans
-                               JavaScript, et le résumé reste lisible replié.
-                               🔴 `grantScopeOpen` vient du CONTRÔLEUR. Un grant
-                               refusé sur son lieu doit rouvrir sur le lieu choisi —
-                               afficher « tous les lieux » au-dessus d'un repli fermé
-                               qui contient autre chose serait un écran qui ment.
-                               `form.vars` lu ici ne marcherait pas : `prod` n'a pas
-                               `strict_variables`.
-                               ⚠️ `form-field full` et non une classe à nous : la
-                               règle « traverser la grille » existe déjà, et le point 1
-                               des dix interdit un CSS local de plus. #}
-                            <details class="form-field full log-detail"{{ grantScopeOpen|default(false) ? ' open' : '' }}>
-                                <summary>{{ 'usage_rights.grant_scope'|trans }} : {{ grantScope }} — {{ 'usage_rights.grant_scope_restrict'|trans }}</summary>
-                                {{ form_row(grantForm.venue_id) }}
-                                {{ form_row(grantForm.section) }}
-                                {{ form_row(grantForm.reservable) }}
-                                {{ form_row(grantForm.category_label) }}
-                            </details>
-                            {# **La ligne de conséquence** (règle 4) : ce que la
-                               soumission va écrire, dans les mots exacts de la ligne
-                               qui apparaîtra dans la liste en dessous. Calculée par le
-                               contrôleur, donc elle suit ce qui a été tapé après un
-                               refus. ⚠️ Elle ne se met PAS à jour à la frappe — c'est
-                               un rendu serveur, et le contrat dit « calculée par le
-                               contrôleur ». #}
-                            <p class="form-field full form-help">{{ grantConsequence }}</p>
-                            <button class="btn-link btn-primary-admin" type="submit">{{ 'usage_rights.grant_add'|trans }}</button>
-                        {{ form_end(grantForm) }}
-                    </div>
-                </details>
+                   ⚠️ Et les deux ne cohabitaient pas : la saisie REMPLACE les grants
+                   du package. Un grant tapé ici aurait disparu sans un mot à la
+                   sauvegarde suivante de la carte du haut — un piège, pas une option
+                   avancée.
+
+                   ⚠️ **La liste ci-dessous reste, et sa suppression aussi.** Elle
+                   montre ce que la saisie a compilé — c'est le seul endroit qui dise
+                   ce qui est réellement en base — et supprimer un grant est l'issue
+                   de secours qui fait re-rentrer dans la saisie un package qu'elle
+                   refuse (voir `PackageSpecCompiler::decompile()`). #}
 
                 {% if grants %}
                     <div class="usage-assignment-list">
@@ -277,17 +202,12 @@
                                     </small>
                                 </span>
                                 <div class="usage-grant-controls">
-                                    <form method="post" class="usage-window-form">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('usage_package_grants_' ~ package.id) }}">
-                                        <input type="hidden" name="action" value="window_add">
-                                        <input type="hidden" name="grant_id" value="{{ grant.id }}">
-                                        <select name="day_of_week" aria-label="{{ 'usage_rights.grant_day'|trans }}">
-                                            {% for day in 1..7 %}<option value="{{ day }}">{{ ('usage_rights.day_' ~ day)|trans }}</option>{% endfor %}
-                                        </select>
-                                        <input type="time" name="start_time" value="14:00" aria-label="{{ 'usage_rights.window_from'|trans }}">
-                                        <input type="time" name="end_time" value="18:00" aria-label="{{ 'usage_rights.window_to'|trans }}">
-                                        <button class="admin-action" type="submit">{{ 'usage_rights.window_add'|trans }}</button>
-                                    </form>
+                                    {# 🔴 **S153b — le formulaire « Ajouter une plage »
+                                       est parti d'ici aussi**, pour la même raison que
+                                       les deux autres : la semaine d'un package se dit
+                                       ligne « quand », en un seul endroit. Retirer une
+                                       plage reste possible juste en dessous — c'est
+                                       l'issue de secours, pas une seconde saisie. #}
                                     {% for window in grant.windows %}
                                         {# ⚠️ Removing the last window WIDENS the grant
                                            to the whole week — the one delete here that
@@ -329,29 +249,15 @@
                 <div class="admin-panel-header"><h2>{{ 'usage_rights.allowances'|trans }}</h2></div>
                 <p class="settings-hint">{{ 'usage_rights.allowances_help'|trans }}</p>
 
-                {% if allowancesReady %}
-                    {# ⚠️ **Deux champs de quantité pour une seule question, et
-                       c'est l'unité qui décide lequel compte.** En heures le
-                       contrôleur lit `allowance_hours` et le convertit en minutes ;
-                       en séances il lit `allowance_count`. Les fusionner écrirait
-                       des séances dans une colonne de minutes — un quota faux et
-                       muet. #}
-                    <details class="settings-danger settings-danger--neutral"{{ refusedEditor|default(null) == 'allowanceForm' ? ' open' : '' }}>
-                        <summary>{{ 'usage_rights.allowance_add'|trans }}</summary>
-                        <div>
-                            {{ form_start(allowanceForm, {attr: {class: 'usage-assignment-form usage-grant-form'}}) }}
-                                {% form_theme allowanceForm 'form/admin_theme.html.twig' %}
-                                {{ form_row(allowanceForm.allowance_feature) }}
-                                {{ form_row(allowanceForm.allowance_reservable) }}
-                                {{ form_row(allowanceForm.allowance_unit) }}
-                                {{ form_row(allowanceForm.allowance_hours) }}
-                                {{ form_row(allowanceForm.allowance_count) }}
-                                {{ form_row(allowanceForm.allowance_period) }}
-                                <button class="btn-link btn-primary-admin" type="submit">{{ 'usage_rights.allowance_add'|trans }}</button>
-                            {{ form_end(allowanceForm) }}
-                        </div>
-                    </details>
-                {% else %}
+                {# 🔴 **S153b — l'éditeur « Ajouter une allocation » est PARTI.**
+                   Les quotas se saisissent ligne « combien » de la carte du haut, et
+                   nulle part ailleurs. Le garder aurait laissé deux surfaces
+                   d'écriture pour un même fait — et la pire des deux, parce que la
+                   saisie REMPLACE les allocations : une ligne ajoutée ici aurait
+                   disparu sans un mot à la sauvegarde suivante.
+                   ⚠️ La liste et sa suppression restent : elle montre ce que la
+                   saisie a compilé, et supprimer est l'issue de secours. #}
+                {% if not allowancesReady %}
                     <p class="usage-empty">{{ 'usage_rights.allowances_migration_pending'|trans }}</p>
                 {% endif %}
 

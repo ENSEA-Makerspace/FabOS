@@ -30,7 +30,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  * ⚠️ **Les heures sont des `TimeType` en `input: 'string'`.** Le compilateur
  * appelle `GrantWindow::fromClock()`, qui parle « HH:MM » : la valeur doit rester
  * une CHAÎNE, sans quoi un aller-retour par `DateTime` glisse un fuseau dans une
- * heure de mur. Même réglage que `PackageGrantType::clock()`.
+ * heure de mur — c'est le réglage qu'utilisait `PackageGrantType`, retiré en
+ * S153b avec l'éditeur grant-par-grant.
  */
 final class PackageSpecType extends AbstractType
 {
@@ -63,7 +64,7 @@ final class PackageSpecType extends AbstractType
             // `input: 'string'` + `input_format: 'H:i'` gardent la valeur en
             // « HH:MM », qui est ce que `GrantWindow::fromClock()` attend. Un
             // aller-retour par `DateTime` serait une conversion de plus, donc un
-            // fuseau de plus. Même réglage que `PackageGrantType::clock()`.
+            // fuseau de plus.
             ->add('start_time', TimeType::class, [
                 'label' => 'usage_rights.window_from',
                 'widget' => 'single_text', 'html5' => true,

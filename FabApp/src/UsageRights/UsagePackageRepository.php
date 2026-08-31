@@ -79,6 +79,46 @@ final class UsagePackageRepository
         ];
     }
 
+    /**
+     * Écrire l'IDENTITÉ d'un package et rien d'autre : son nom, sa description,
+     * son état actif (S153b).
+     *
+     * 🔴 **Pourquoi ce n'est pas `save()` avec les mêmes valeurs.** `save()`
+     * réécrit AUSSI `fullAccess` et les lignes de `USAGE_PACKAGE_FEATURE`, donc
+     * la carte d'identité devait lui repasser ce que le package portait — lu au
+     * chargement de la page. Une soumission partie d'un onglet ouvert avant une
+     * modification de la saisie réécrivait alors l'ancienne liste : renommer un
+     * package RESSUSCITAIT des droits qu'on venait de lui retirer, sans un mot.
+     * Mesuré en base sur un package réel : quatre lignes de feature pour deux
+     * grants, dont la saisie ne pouvait pas être la cause.
+     *
+     * ⚠️ C'est la même famille que les « deux vérités » que toute cette phase
+     * range, prise par un autre bout : un écran qui n'a rien à dire sur les
+     * droits ne doit pas les ÉCRIRE, fût-ce en recopiant.
+     */
+    public function saveIdentity(int $id, string $name, string $description, bool $active): void
+    {
+        $name = mb_substr(trim($name), 0, 120);
+        $description = mb_substr(trim($description), 0, 1000);
+        if ($name === '') {
+            throw new \InvalidArgumentException('Le nom du package est obligatoire.');
+        }
+
+        $this->db->update('USAGE_PACKAGE', [
+            'name' => $name,
+            'description' => $description,
+            'active' => $active ? 1 : 0,
+            'updatedAt' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+        ], ['id' => $id]);
+
+        // ⚠️ Pas de test sur `affected_rows` — voir la note dans `save()` : MySQL
+        // rend 0 quand rien ne change, et enregistrer deux fois la même identité
+        // n'est pas une erreur.
+        if (!$this->db->fetchOne('SELECT 1 FROM USAGE_PACKAGE WHERE id = :id', ['id' => $id])) {
+            throw new \InvalidArgumentException('Package introuvable.');
+        }
+    }
+
     /** @param list<string> $features */
     public function save(?int $id, string $name, string $description, bool $active, bool $fullAccess, array $features): int
     {
