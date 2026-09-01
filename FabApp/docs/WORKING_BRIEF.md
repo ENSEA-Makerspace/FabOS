@@ -1,4 +1,4 @@
-# Où on en est — 2026-08-31
+# Où on en est — 2026-09-01
 
 **Lire ceci en premier.** Une page. Le reste se lit à la demande :
 
@@ -31,7 +31,14 @@ gagnent la réservation hors grille hebdomadaire (jamais hors d'une fermeture
 datée). C'est le cas n°1 de la liste de l'opérateur, mais c'est un
 **élargissement d'accès** — à confirmer package par package.
 
-**Deux décisions opérateur toujours en attente :**
+🅿️ **Phase S158 planifiée le 2026-09-01, pas commencée** — les groupes et le mot,
+`ROADMAP.md` § « Phase S158 ». 🔴 Le fait qui la reframe : **`USER_GROUP_MEMBER`
+n'est écrit par RIEN**, donc aucun écran ne crée un groupe ni n'y met personne, et
+seuls comptent les groupes qu'un rôle implique. Trois décisions y attendent
+l'opérateur : quelles extensions de groupe, ce que devient le lien rôle→groupe
+après le contract, et le mot qui remplace « package ».
+
+**Décisions opérateur toujours en attente :**
 - 🔴🔴 **J-25** — aucun membre ne peut réserver (voir plus bas). ⚠️ À réexaminer
   à la lumière de ce qui précède : un package `fullAccess` sans grants
   n'autorisait rien sous la v2, ce qui est exactement cette forme de panne.

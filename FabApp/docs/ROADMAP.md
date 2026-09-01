@@ -301,6 +301,145 @@ qu'un afficherait « personne » pour un package donné à une équipe entière.
 
 ---
 
+# Phase S158 — les groupes, et le mot 🅿️ À TRANCHER
+
+**Demandée par l'opérateur le 2026-09-01** : « des groupes qui aillent au-delà de
+ceux qui existent, peut-être en fusionnant les systèmes — ça rendra l'attribution
+des packages plus facile », et « renommer les packages, *Use bundles* ou
+approchant ». Ce qui suit est le plan, pas du code.
+
+---
+
+## 🔴 Le fait mesuré qui change la question
+
+**`USER_GROUP_MEMBER` n'est écrit par RIEN.** Pas un contrôleur, pas un service :
+la table est créée et les sept intégrés sont semés par `Version20260816130000`,
+et c'est tout. Aucun écran ne crée un groupe, aucun n'y met quelqu'un.
+
+Conséquence, aujourd'hui : des sept groupes, seuls comptent ceux qu'un **rôle**
+implique (`ROLE_STAFF` → `staff`, etc.) et l'audience résolue `user`. Le
+formulaire « attribuer à un groupe » d'un package est donc un contrôle dont la
+portée utile se règle ailleurs, sur l'écran des rôles — et « Stagiaires » ou
+« Bénévoles », que la vision nomme explicitement, sont inatteignables.
+
+⚠️ **C'est exactement la famille de défaut que ce dépôt a déjà nommée**, un étage
+plus haut : `USAGE_RIGHT_ASSIGNMENT.groupId` a vécu deux sessions sans écriture,
+et le commentaire de `assignGroup()` le dit — *« un demi-modèle sans surface
+d'écriture se lit comme une fonctionnalité et se comporte comme une absence »*.
+Ici c'est la table des groupes elle-même.
+
+**Donc : « aller au-delà des groupes existants » commence par pouvoir en créer
+un.** Tant que non, tout le reste est décoratif.
+
+## ✅ Et la fusion est déjà DESSINÉE, pas exécutée
+
+`AudienceResolver` le dit dans son en-tête, depuis S133b :
+
+> *« Les rôles amorcent les intégrés, ils ne les remplacent pas. Quand S134
+> déplacera la vérité dans les groupes, la moitié rôle sort et rien d'autre n'a
+> à changer. »*
+
+Il n'y a donc pas deux systèmes à réconcilier : il y en a **un** — les audiences
+— alimenté par trois sources (des lignes stockées, des rôles, l'audience résolue
+`user`), et une des trois doit finir par disparaître. Le plan est d'exécuter ça,
+dans l'ordre qui ne peut pas casser.
+
+⚠️ **Les rôles Symfony ne disparaissent pas**, et confondre les deux serait le
+piège de cette phase. `getRoles()` reste ce dont la sécurité, les voters et
+`NavBuilder` se servent. Ce qui sort, c'est l'**amorçage** rôle → audience.
+
+---
+
+## L'ordre, et pourquoi il est dans cet ordre
+
+**1. L'écran des groupes** — `/admin/groupes`. Créer, renommer, décrire un groupe
+libre ; ajouter et retirer des membres. **Aucune migration** : les deux tables
+existent depuis S133b.
+⚠️ Les sept intégrés ne sont pas supprimables ; `user` et `guest` sont virtuels et
+n'ont jamais de ligne d'appartenance — l'écran doit le DIRE, sinon « 0 membre » se
+lit comme une erreur. C'est déjà la règle de `assignmentsForPackage()`.
+✅ **Cette étape seule rend réel le formulaire d'attribution par groupe**, et
+c'est elle qui répond à « rendre l'attribution plus facile ».
+
+**2. L'appartenance depuis la fiche membre** — `/admin/utilisateurs/{id}`. Les
+mêmes lignes, vues par l'autre bout, parce qu'on pense « dans quels groupes est
+cette personne » aussi souvent que l'inverse.
+⚠️ Une seule source d'écriture, comme pour les droits d'un package : les deux
+écrans éditent la même table, ils ne se doublent pas.
+
+**3. Le backfill rôle → groupe.** Écrire les lignes `USER_GROUP_MEMBER` que les
+rôles impliquent aujourd'hui.
+✅ **Purement additif, et c'est tout l'argument de sûreté** : `AudienceResolver`
+rend l'UNION, donc écrire une ligne que le rôle produisait déjà ne change aucune
+réponse. Le même raisonnement que `UsageGrantSchema` — on replie vers l'ancien
+comportement, jamais vers le neuf.
+
+**4. Le contract : la moitié rôle sort de `compute()`.**
+🔴 **Seulement après une passe d'ombre qui prouve, compte par compte, que les deux
+moitiés disent la même chose.** C'est le protocole de `/admin/usage-rights/shadow`
+et il existe déjà. Retirer l'amorçage avant, c'est retirer `staff` à tout le monde
+en silence.
+⚠️ Et il faut décider ce que devient le lien : un rôle donné après le contract
+n'inscrit plus dans le groupe. Soit l'écran des rôles écrit les deux (couplage
+explicite), soit les deux divergent volontairement. **À trancher.**
+
+**5. Alors seulement, « au-delà des groupes existants ».** Ce qui rendrait
+l'attribution vraiment facile, et ce que ça coûte :
+
+| Idée | Ce que ça donne | Ce que ça coûte |
+|---|---|---|
+| **Groupes à règle** — « tous ceux qui ont la formation Laser », « tous ceux dont l'abonnement court » | L'attribution devient automatique : plus personne à ajouter à la main | 🔴 Une règle fausse ouvre un droit à une population entière, en silence. Exige une **prévisualisation obligatoire** (« cette règle vise 34 comptes, les voici ») avant enregistrement, et une relecture à chaque évaluation — jamais une copie figée, la leçon de « horaires d'ouverture » en S149 |
+| **Appartenance datée** — membre du 1er sept. au 30 juin | Les cohortes scolaires s'expriment enfin | Une colonne sur `USER_GROUP_MEMBER` (migration additive). ⚠️ `AudienceResolver` devient dépendant de l'instant : sa mémoïsation par requête reste juste, une mémoïsation plus longue ne le serait plus |
+| **Groupes imbriqués** | « Tous les encadrants » = staff + formateurs | 🔴 Le risque de cycle, et un calcul d'appartenance qui n'est plus une jointure. **Je le déconseille** tant que les règles ci-dessus ne sont pas livrées : elles couvrent le même besoin sans graphe |
+
+🅿️ **Décision opérateur attendue** : lesquelles des trois, et dans quel ordre.
+Ma recommandation : **appartenance datée d'abord** (petite, sûre, et les cohortes
+sont le vrai besoin d'un lab scolaire), **groupes à règle ensuite**, **imbriqués
+jamais**.
+
+---
+
+## Le mot
+
+**Renommer est une affaire de VOCABULAIRE, pas de schéma.** `USAGE_PACKAGE` et
+ses tables ne bougent pas : renommer une table est une manœuvre expand/contract
+complète pour zéro bénéfice visible, et l'agent ne peut pas migrer. Le travail
+est de **~56 chaînes françaises** et leurs quatre traductions.
+
+✅ **Et il y a une raison de le faire MAINTENANT**, plus forte que le goût : la
+Phase H apporte des offres, des commandes et des paiements. Dans ce vocabulaire,
+« package » voudra dire *une chose qu'on achète*. Le libérer avant que le commerce
+n'arrive coûte 56 chaînes ; après, ça coûtera une ambiguïté permanente.
+
+⚠️ **Un défaut à corriger au passage** : la section du menu s'appelle
+« Packages », le modèle s'appelle « droits d'usage », l'URL est
+`/admin/usage-rights` et le document de vision `USAGE_RIGHTS_VISION.md`. **Deux
+mots pour une chose** — exactement ce que la revue R5 reproche aux états de
+machine. Le renommage doit refermer ça, pas en ajouter un troisième.
+
+⚠️ **Pas via `VocabularyTranslator`.** Ce service porte les noms propres de
+l'installation (`%venue%`, `%org%`) ; le nom d'un objet du produit n'est pas un
+réglage par lab, sinon deux installations ne parlent plus la même langue dans la
+documentation.
+
+**Candidats, et ce que chacun dit :**
+
+| FR | EN | Ce que ça évoque | Contre |
+|---|---|---|---|
+| **Forfait d'usage** | Use bundle | Ce qu'on donne à quelqu'un pour qu'il puisse faire des choses | Un peu long en tête de menu |
+| Bundle d'usage | Use bundle | Fidèle au mot de l'opérateur | Anglicisme dans un admin français |
+| Droits d'usage | Usage rights | Déjà l'URL, le document de vision et le nom du modèle | Ne distingue pas le MODÈLE (le forfait) de son EFFET (les droits) — et c'est justement la distinction qui manque |
+
+🅿️ **Ma recommandation : « Forfait » en français, « Bundle » en anglais**, avec la
+section du menu qui reste « Droits d'usage » et l'entrée qui devient
+« Forfaits ». On lit alors : *« Droits d'usage → Forfaits »*, où le titre dit le
+domaine et l'entrée dit l'objet — et « un forfait donne des droits » est une
+phrase vraie, ce que « un package donne des packages » n'était pas.
+⚠️ L'URL `/admin/usage-rights` **ne change pas** : elle nomme le domaine, elle est
+juste, et casser des liens pour du vocabulaire est le mauvais échange.
+
+---
+
 # Phase H — commerce facultatif (S150–S154)
 
 🔴 **BLOQUÉE PAR LA PHASE J** (opérateur, 2026-08-21).
