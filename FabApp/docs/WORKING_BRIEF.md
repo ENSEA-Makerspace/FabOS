@@ -36,9 +36,17 @@ existe : on peut enfin créer un groupe et y mettre quelqu'un, ce que rien ne
 permettait, la fiche d'un membre montre ses groupes, et le backfill a écrit les
 11 lignes que les rôles produisaient déjà — sans changer une seule réponse, ce
 que la commande vérifie et annulerait sinon.
-🔴 **Prochaine étape : le CONTRACT**, et il demande une décision — après le
-contract, un rôle donné doit-il encore inscrire dans le groupe, ou les deux
-divergent-ils ? Plan complet dans `ROADMAP.md` § « Phase S158 ».
+🅿️ **Et une phase S159 est écrite, à faire** : *les forfaits ne s'attribuent qu'à
+des GROUPES* (idée de l'opérateur, 2026-09-01) — voir `ROADMAP.md`. ✅ Viable :
+les quatre chokepoints sont sur grants v2, donc le chemin groupe est vivant.
+🔴 Mais les dates de validité sont portées par l'ATTRIBUTION : *OpenLab* court
+jusqu'en 2029 pour une seule personne, donc l'appartenance datée est une
+dépendance dure.
+
+🔴 **La décision qui bloque les deux : le CONTRACT** — après lui, un rôle donné
+doit-il encore inscrire dans le groupe, ou les deux divergent-ils ? ⚠️ Et elle
+n'est plus indépendante : en groupes-seuls, un rôle qui n'inscrit plus dans le
+groupe ne donne plus **aucun** forfait. Plan complet dans `ROADMAP.md` § « Phase S158 ».
 ✅ Le mot est fait aussi : « package » → **forfait / bundle**.
 🅿️ Deux décisions y attendent encore l'opérateur : quelles extensions de groupe
 (appartenance datée, groupes à règle), et ce que devient le lien rôle→groupe

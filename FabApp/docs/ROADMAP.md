@@ -464,6 +464,91 @@ juste, et casser des liens pour du vocabulaire est le mauvais échange.
 
 ---
 
+# Phase S159 — les forfaits ne s'attribuent qu'à des GROUPES 🅿️ À FAIRE
+
+**Idée de l'opérateur, 2026-09-01.** Supprimer le doublon : aujourd'hui un forfait
+s'attribue **soit** à une personne, **soit** à un groupe, et tout lecteur doit
+poser les deux questions. Un seul chemin — le groupe — rendrait la gestion des
+droits plus simple à tenir.
+
+---
+
+## ✅ Ce qui rend l'idée viable MAINTENANT, et c'est mesuré
+
+**Les quatre chokepoints sont déjà sur grants v2** (`usage_rights_v2_machines`,
+`_places`, `_person_booking`, `_events` = 1). Le lecteur qui décide vraiment est
+donc `UsageGrantRepository::paths()`, et **il gère les deux chemins** : une
+attribution par groupe est pleinement vivante aujourd'hui.
+
+⚠️ Ce n'était pas acquis. `UsagePackageRepository::grantingPackages()` — le lecteur
+v1 — ne regarde que `a.userId` : sur une installation dont un chokepoint serait
+resté en v1, un forfait donné à un groupe n'accorderait **rien**. La v1 n'est plus
+consultée ici, mais elle reste dans le code et cette limite est réelle pour toute
+autre installation. **À vérifier avant de porter cette phase ailleurs.**
+
+## Ce que le doublon coûte, en une ligne
+
+`reachOf()`, `hasUnrestrictedAccess()`, `UsageGrantRepository::grantRows()` et le
+filtre « droit d'usage » posent tous la même double question — écrite quatre fois
+en une session (S153c, S158c). Et « pourquoi ai-je ce droit ? » a deux réponses
+possibles là où une suffirait : *parce que tu es dans ce groupe*.
+
+## 🔴 Le seul point qui BLOQUE un modèle groupes-seuls
+
+**Les dates de validité sont portées par l'ATTRIBUTION, pas par le groupe.**
+`USAGE_RIGHT_ASSIGNMENT.validFrom / validUntil`. Mesuré sur la boîte : le forfait
+*OpenLab* est attribué à Alvaro **jusqu'au 2029-09-01**.
+
+En groupes-seuls, cette date s'applique au **groupe entier** — ce qui est juste
+pour une promo (« les BUT2 jusqu'au 30 juin ») et **faux pour une personne**.
+Supprimer le chemin personnel sans **appartenance datée** retirerait donc une
+capacité qui est utilisée aujourd'hui. C'est la dépendance, et elle est dure.
+
+## ⚠️ Ce qu'il faut assumer
+
+- **Une exception à une personne devient un groupe d'une personne.** C'est plus
+  honnête qu'une attribution invisible — mais la liste des groupes devient un
+  fourre-tout si personne ne la range. À surveiller, pas à empêcher.
+- 🔴 **Ça change le poids de la décision du contract** (§ Phase S158, étape 4).
+  Si les forfaits ne passent que par les groupes ET que le rôle n'inscrit plus
+  dans le groupe, alors donner `ROLE_STAFF` à quelqu'un ne lui donne **plus aucun
+  forfait**. Les deux décisions ne sont plus indépendantes : **trancher le
+  contract AVANT cette phase.**
+
+---
+
+## L'ordre, et pourquoi
+
+**1. Retirer le formulaire « attribuer à un membre » de la fiche forfait.**
+C'est le gros du gain, et il ne coûte rien : une seule surface d'écriture, comme
+pour les droits eux-mêmes en S153b. **Le lecteur reste tolérant** — les lignes
+personnelles existantes continuent d'accorder ce qu'elles accordent. Aucune
+migration, réversible, et ça change le geste quotidien (« j'ajoute la personne au
+groupe ») sans rien retirer.
+⚠️ La liste des attributions et sa révocation RESTENT : c'est le seul endroit qui
+dise ce qui est réellement en base, et l'issue de secours. Même partage qu'en
+S153b.
+
+**2. L'appartenance datée** (déjà listée en Phase S158, étape 5) — une colonne sur
+`USER_GROUP_MEMBER`, migration additive. Sans elle, « jusqu'au 30 juin » n'est
+plus exprimable pour une personne.
+⚠️ `AudienceResolver` devient alors dépendant de l'INSTANT : sa mémoïsation par
+requête reste juste, une mémoïsation plus longue ne le serait plus.
+
+**3. Convertir les attributions personnelles en groupes**, puis **retirer le
+chemin `userId` des lecteurs.** C'est là — et seulement là — que le code se
+simplifie. Retirer le chemin avant que les lignes soient converties retirerait un
+droit que quelqu'un détient.
+⚠️ Sur la boîte : **3 lignes** à convertir (forfaits 1, 2 et 21). Ailleurs, ça peut
+être beaucoup ; la conversion doit être une commande avec un plan et une
+vérification avant/après, comme `app:s158:backfill-groups`.
+
+🅿️ **Décision opérateur attendue avant de commencer** : le contract de la Phase
+S158 (le rôle inscrit-il encore dans le groupe ?), parce que la réponse change ce
+que cette phase-ci provoque.
+
+---
+
 # Phase H — commerce facultatif (S150–S154)
 
 🔴 **BLOQUÉE PAR LA PHASE J** (opérateur, 2026-08-21).
