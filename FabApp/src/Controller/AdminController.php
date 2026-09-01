@@ -1473,10 +1473,11 @@ final class AdminController extends AbstractController
         ProgressionRepository $progressions,
         RoleRepository $roles,
         UsagePackageRepository $packages,
+        UserGroupRepository $userGroups,
         AudienceResolver $audiences,
         LabClock $clock,
     ): Response {
-        $filters = $this->extractFilters($request, ['q', 'statut', 'role', 'package']);
+        $filters = $this->extractFilters($request, ['q', 'statut', 'role', 'package', 'groupe']);
         $logCounts = [];
         foreach ($logs->createQueryBuilder('log')
             ->select('IDENTITY(log.utilisateur) AS userId, COUNT(log.id) AS logCount')
@@ -1491,15 +1492,24 @@ final class AdminController extends AbstractController
         // list BEFORE filtering. The template used to count `users`, which is the
         // filtered result — so with a status selected every tile reported the
         // same number, the number of rows already on screen.
-        $allUsers = $users->findForAdminFilters(['q' => '', 'statut' => '', 'role' => '', 'package' => '']);
+        $allUsers = $users->findForAdminFilters(['q' => '', 'statut' => '', 'role' => '', 'package' => '', 'groupe' => '']);
+
+        // ⚠️ Les deux filtres se composent, et dans cet ordre parce qu'il n'en a
+        // aucune importance : chacun ne fait que retirer des lignes.
+        $rows = $this->filterByPackage(
+            $users->findForAdminFilters($filters),
+            trim((string) ($filters['package'] ?? '')),
+            $packages,
+            $audiences,
+            $clock,
+        );
 
         return $this->render('site/admin-utilisateurs.html.twig', [
-            'users' => $this->filterByPackage(
-                $users->findForAdminFilters($filters),
-                trim((string) ($filters['package'] ?? '')),
-                $packages,
+            'users' => $this->filterByGroup(
+                $rows,
+                trim((string) ($filters['groupe'] ?? '')),
+                $userGroups,
                 $audiences,
-                $clock,
             ),
             'allUsers' => $allUsers,
             'logCounts' => $logCounts,
@@ -1510,7 +1520,46 @@ final class AdminController extends AbstractController
             // attributions, et « qui avait ce forfait » est justement la question
             // qu'on pose le jour où on le désactive.
             'packageChoices' => $packages->findAll(),
+            // ⚠️ Les audiences VIRTUELLES sont proposées comme les autres : « tout
+            // compte actif » est un filtre parfaitement sensé, et c'est justement
+            // celui qu'aucune jointure ne saurait écrire.
+            'groupChoices' => $userGroups->all(),
         ]);
+    }
+
+    /**
+     * Les personnes que ce groupe contient, dans la liste déjà filtrée (S158c).
+     *
+     * 🔴 **L'appartenance se demande à `AudienceResolver`, jamais à une jointure
+     * écrite ici.** Elle est l'union de trois choses — les lignes stockées, les
+     * rôles, et l'audience `user` qui n'est écrite NULLE PART et vaut « tout
+     * compte actif ». Un filtre qui joindrait `USER_GROUP_MEMBER` répondrait
+     * « personne » sur `user`, et raterait la moitié des autres tant que
+     * l'amorçage par les rôles n'est pas sorti. `primeFor()` est là pour que ce
+     * soit une requête et pas une par ligne.
+     *
+     * ⚠️ Une clé inconnue rend la liste INCHANGÉE, jamais vide — même règle que
+     * le filtre par forfait juste au-dessus.
+     *
+     * @param list<Utilisateur> $rows
+     * @return list<Utilisateur>
+     */
+    private function filterByGroup(array $rows, string $groupId, UserGroupRepository $groups, AudienceResolver $audiences): array
+    {
+        if ($groupId === '' || !ctype_digit($groupId)) {
+            return array_values($rows);
+        }
+        $group = $groups->find((int) $groupId);
+        if ($group === null) {
+            return array_values($rows);
+        }
+
+        $audiences->primeFor($rows);
+
+        return array_values(array_filter(
+            $rows,
+            static fn (Utilisateur $user): bool => in_array($group['key'], $audiences->keysFor($user), true),
+        ));
     }
 
     /**
@@ -1683,12 +1732,21 @@ final class AdminController extends AbstractController
         // ligne dit PAR OÙ elle passe. Seul le stocké se retire d'ici.
         $memberKeys = array_flip($audiences->keysFor($user));
         $storedGroupIds = array_flip($userGroups->storedGroupIdsFor((int) $user->getId()));
+        // 🔴 **Ce que les rôles donneraient SANS aucune ligne** (S158c). Depuis
+        // le backfill, une appartenance est souvent stockée ET produite par un
+        // rôle : déduire la seconde de l'absence de la première n'est plus
+        // possible, et l'écran offrait un « Retirer » qui supprimait la ligne
+        // sans sortir la personne du groupe.
+        $roleKeys = array_flip($audiences->roleKeysFor($user));
 
         $groupRows = [];
         $joinable = [];
         foreach ($userGroups->all() as $row) {
             if (isset($memberKeys[$row['key']])) {
-                $groupRows[] = $row + ['stored' => isset($storedGroupIds[$row['id']])];
+                $groupRows[] = $row + [
+                    'stored' => isset($storedGroupIds[$row['id']]),
+                    'role' => isset($roleKeys[$row['key']]),
+                ];
                 continue;
             }
             // ⚠️ Une audience virtuelle ne s'ajoute pas : elle se résout depuis le

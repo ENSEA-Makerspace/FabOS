@@ -378,14 +378,21 @@ passer. La sonde vérifie que les deux vues rendent la même réponse.
 🔴 La redirection est FIXE (`app_admin_user_detail`), jamais une cible venue de la
 requête : un `?back=` recopié dans un `redirect()` est une redirection ouverte.
 
-**3. Le backfill rôle → groupe.** 🅿️ **PROCHAINE ÉTAPE.** Écrire les lignes `USER_GROUP_MEMBER` que les
-rôles impliquent aujourd'hui.
-✅ **Purement additif, et c'est tout l'argument de sûreté** : `AudienceResolver`
-rend l'UNION, donc écrire une ligne que le rôle produisait déjà ne change aucune
-réponse. Le même raisonnement que `UsageGrantSchema` — on replie vers l'ancien
-comportement, jamais vers le neuf.
+**3. Le backfill rôle → groupe.** — ✅ **FAIT le 2026-09-01** (S158c).
+`app:s158:backfill-groups`, **11 lignes écrites** : admin 6, staff 2,
+formateurs 3.
+✅ **L'argument de sûreté est EXÉCUTÉ, pas affirmé.** La commande photographie les
+audiences de chaque compte avant, écrit, rephotographie avec un résolveur NEUF, et
+**annule tout si un seul jeu de clés a bougé**. Mesuré : les 9 comptes sont
+identiques au jeton près. `--write` est obligatoire ; sans lui elle montre le plan.
+🔴 **Et le backfill a créé un défaut qu'il fallait réparer avec lui** : « stocké »
+et « venu d'un rôle » ne s'excluent plus, donc l'écran offrait un « Retirer » qui
+supprimait la ligne sans sortir la personne du groupe — le rôle l'y remettait.
+`AudienceResolver::roleKeysFor()` pose maintenant la question au lieu de la
+déduire, et le bouton n'apparaît que si la ligne est la SEULE raison. 🅿️ Il
+réapparaîtra tout seul après le contract.
 
-**4. Le contract : la moitié rôle sort de `compute()`.**
+**4. Le contract : la moitié rôle sort de `compute()`.** 🅿️ **PROCHAINE ÉTAPE, et elle demande une DÉCISION.**
 🔴 **Seulement après une passe d'ombre qui prouve, compte par compte, que les deux
 moitiés disent la même chose.** C'est le protocole de `/admin/usage-rights/shadow`
 et il existe déjà. Retirer l'amorçage avant, c'est retirer `staff` à tout le monde

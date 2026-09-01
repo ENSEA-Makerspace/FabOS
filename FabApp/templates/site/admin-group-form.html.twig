@@ -87,14 +87,23 @@
                                     <strong>{{ member.user.displayName }}</strong>
                                     <small>
                                         {{ member.user.email }} ·
-                                        {{ (member.stored ? 'groups.source_stored' : 'groups.source_role')|trans }}
+                                        {{ (member.role ? (member.stored ? 'groups.source_both' : 'groups.source_role') : 'groups.source_stored')|trans }}
                                     </small>
                                 </span>
                                 {# 🔴 Pas de bouton pour une appartenance venue d'un
                                    RÔLE : cet écran ne peut pas la retirer, et un
                                    bouton qui échoue est pire que pas de bouton.
                                    La phrase dit où aller. #}
-                                {% if member.stored %}
+                                {# 🔴 **Le bouton n'existe QUE si la ligne est la seule
+                                   raison.** Depuis le backfill de S158c, une
+                                   appartenance est souvent stockée ET produite par un
+                                   rôle : retirer la ligne ne sortirait alors personne du
+                                   groupe, puisque le rôle l'y remet aussitôt. Un bouton
+                                   qui supprime quelque chose sans faire ce qu'il annonce
+                                   est pire qu'un bouton absent.
+                                   🅿️ Il réapparaîtra tout seul après le « contract » :
+                                   `roleKeysFor()` cessera alors de rendre ces clés. #}
+                                {% if member.stored and not member.role %}
                                     <form method="post"
                                           data-controller="confirm" data-action="submit->confirm#ask"
                                           data-confirm-message-value="{{ 'groups.remove_confirm'|trans({'%name%': member.user.displayName}) }}">

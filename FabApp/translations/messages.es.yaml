@@ -3109,6 +3109,7 @@ user_status:
 # Gestion des utilisateurs — S134c.
 admin_users:
     filter_package: "Derecho de uso"
+    filter_group: "Grupo"
     col_status: "Estado"
     browser_title: "Gestión de usuarios - FabOS"
     action_label: "Crear un usuario"
@@ -3771,6 +3772,7 @@ groups:
     remove_confirm: "¿Quitar a %name% de este grupo? Los planes que traía el grupo dejarán de aplicarse a esta persona."
     source_stored: "añadido aquí"
     source_role: "por su rol"
+    source_both: "por su rol, y añadido aquí"
     change_role: "Ver ficha"
     no_members: "Nadie por ahora."
     key_fixed: "Clave: %key% — fijada al crear, ya no cambia."

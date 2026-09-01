@@ -3110,6 +3110,7 @@ user_status:
 # Gestion des utilisateurs — S134c.
 admin_users:
     filter_package: "Usage right"
+    filter_group: "Group"
     col_status: "Status"
     browser_title: "User management - FabOS"
     action_label: "Create a user"
@@ -3772,6 +3773,7 @@ groups:
     remove_confirm: "Remove %name% from this group? Bundles the group carried will no longer apply to them."
     source_stored: "added here"
     source_role: "through their role"
+    source_both: "through their role, and listed here"
     change_role: "Open profile"
     no_members: "Nobody yet."
     key_fixed: "Key: %key% — set at creation, never changed."

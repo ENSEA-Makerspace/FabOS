@@ -123,6 +123,39 @@ final class AudienceResolver
     }
 
     /**
+     * Les audiences qu'une personne aurait SANS aucune ligne d'appartenance —
+     * celles que ses rôles et la résolution lui donnent (S158c).
+     *
+     * 🔴 **Pourquoi cette question existe, et elle est née d'un défaut.** Avant le
+     * backfill, « stocké » et « venu d'un rôle » s'excluaient, et un écran pouvait
+     * déduire l'un de l'autre. Après, une appartenance est souvent **les deux** —
+     * et l'écran des groupes s'est mis à offrir un bouton « Retirer » qui
+     * supprimait bien la ligne, sans sortir la personne du groupe, puisque le rôle
+     * l'y remet. Un contrôle qui tient sa promesse à moitié.
+     *
+     * La question juste est donc : *cette personne resterait-elle dans ce groupe
+     * si la ligne disparaissait ?* Elle ne se déduit pas, elle se pose.
+     *
+     * ⚠️ **Non mémoïsée**, et volontairement : elle est posée une fois par écran,
+     * et la mémoire de cette classe porte l'union — y ranger une seconde réponse
+     * sous la même clé les ferait se remplacer l'une l'autre.
+     *
+     * 🅿️ Le jour du « contract », quand l'amorçage par les rôles sortira de
+     * `compute()`, cette méthode rendra `['user']` et rien d'autre : les boutons
+     * « Retirer » réapparaîtront d'eux-mêmes, sans qu'un écran ait à changer.
+     *
+     * @return list<string>
+     */
+    public function roleKeysFor(?Utilisateur $user): array
+    {
+        if (!$user instanceof Utilisateur || $user->getId() === null) {
+            return [self::GUEST];
+        }
+
+        return $this->compute($user, []);
+    }
+
+    /**
      * L'union des trois appartenances : l'audience résolue `user`, celles que les
      * rôles impliquent, et les lignes stockées.
      *

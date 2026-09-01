@@ -33,6 +33,13 @@
    gives a hash with holes rather than a sequence — and this Twig has no `values`
    filter to flatten it back. Mapping over the KEYS is what returns a plain list.
 
+   ⚠️ **Le filtre « groupe » (S158c) est le voisin du précédent, et il a la même
+   raison de ne pas être une jointure** : l'appartenance est l'union des lignes
+   stockées, des rôles et de l'audience `user` — seule cette dernière vaut « tout
+   compte actif », et aucune jointure ne l'écrit. Il vient AVANT le forfait dans
+   la rangée parce qu'un groupe organise des personnes et qu'un forfait leur
+   donne des droits : on cherche d'abord qui, ensuite quoi.
+
    ⚠️ **Le filtre « droit d'usage » (S153c), et sa clé est un ID.** Il ne se
    règle PAS dans `findForAdminFilters()` : `USAGE_RIGHT_ASSIGNMENT` n'a pas
    d'entité, donc rien à joindre en DQL, et surtout l'appartenance à un groupe
@@ -57,7 +64,7 @@
     list_route: 'app_admin_users',
     list_search: filters.q|default(''),
     list_search_placeholder: 'common.search_placeholder'|trans,
-    list_query: {statut: filters.statut, role: filters.role, package: filters.package},
+    list_query: {statut: filters.statut, role: filters.role, package: filters.package, groupe: filters.groupe},
     list_tiles_label: 'admin_list.facet_status'|trans,
     list_tiles: [
         {label: 'admin_list.all'|trans, count: allUsers|length, query: {statut: ''}},
@@ -67,7 +74,9 @@
     ],
     list_refine: [
         {name: 'role', label: 'workspace.filter.role'|trans, value: filters.role, options: [{value: '', label: 'admin_list.all'|trans}]|merge(roleChoices|keys|map(value => {value: value, label: roleChoices[value]}))},
-    ]|merge(packageChoices|length > 0 ? [
+    ]|merge(groupChoices|length > 0 ? [
+        {name: 'groupe', label: 'admin_users.filter_group'|trans, value: filters.groupe, options: [{value: '', label: 'admin_list.all'|trans}]|merge(groupChoices|map(g => {value: g.id, label: g.label}))},
+    ] : [])|merge(packageChoices|length > 0 ? [
         {name: 'package', label: 'admin_users.filter_package'|trans, value: filters.package, options: [{value: '', label: 'admin_list.all'|trans}]|merge(packageChoices|map(p => {value: p.id, label: p.name}))},
     ] : []),
 } %}
