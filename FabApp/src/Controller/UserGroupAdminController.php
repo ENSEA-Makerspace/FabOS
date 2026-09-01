@@ -123,6 +123,46 @@ final class UserGroupAdminController extends AbstractController
     }
 
     /**
+     * L'appartenance vue depuis la FICHE DU MEMBRE (S158b) — les mêmes lignes,
+     * par l'autre bout.
+     *
+     * ⚠️ **Même dépôt, mêmes gardes, même jeton.** On pense « dans quels groupes
+     * est cette personne » aussi souvent que « qui est dans ce groupe » ; ce sont
+     * deux vues, pas deux surfaces d'écriture. Un second chemin d'écriture aurait
+     * ses propres refus, et celui des deux qu'on oublie de corriger est celui qui
+     * laisse passer.
+     *
+     * 🔴 **La redirection est FIXE.** Elle vise `app_admin_user_detail` avec l'id
+     * de la route, jamais une cible venue de la requête : un `?back=` recopié
+     * dans un `redirect()` est une redirection ouverte, et cet écran est derrière
+     * une session d'administrateur.
+     */
+    #[Route('/membre/{userId<\d+>}', name: 'app_admin_group_member', methods: ['POST'])]
+    public function member(int $userId, Request $request, UserGroupRepository $groups): Response
+    {
+        if (!$this->isCsrfTokenValid('admin_groups', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', $this->translator->trans('groups.csrf_error'));
+
+            return $this->redirectToRoute('app_admin_user_detail', ['id' => $userId]);
+        }
+
+        try {
+            $groupId = $request->request->getInt('id');
+            if ($request->request->get('action') === 'remove_member') {
+                $groups->removeMember($groupId, $userId);
+                $this->addFlash('success', $this->translator->trans('groups.member_removed'));
+            } else {
+                $groups->addMember($groupId, $userId);
+                $this->addFlash('success', $this->translator->trans('groups.member_added'));
+            }
+        } catch (\Throwable $e) {
+            $this->addFlash('error', $e->getMessage());
+        }
+
+        return $this->redirectToRoute('app_admin_user_detail', ['id' => $userId]);
+    }
+
+    /**
      * Les cinq écritures, toutes derrière le même jeton.
      *
      * ⚠️ **Chaque action porte un identifiant, pas une liste de champs** — même

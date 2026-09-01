@@ -194,6 +194,26 @@ final class UserGroupRepository
     }
 
     /**
+     * Les groupes où l'appartenance de cette personne est ÉCRITE — en une requête.
+     *
+     * ⚠️ L'inverse de `storedMemberIds()`, et il existe pour la fiche du membre :
+     * poser la question groupe par groupe y ferait sept requêtes pour une page.
+     *
+     * @return list<int>
+     */
+    public function storedGroupIdsFor(int $userId): array
+    {
+        try {
+            return array_map('intval', $this->db->fetchFirstColumn(
+                'SELECT groupId FROM USER_GROUP_MEMBER WHERE userId = :u',
+                ['u' => $userId],
+            ));
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    /**
      * ⚠️ **Ajouter à un groupe VIRTUEL est refusé.** `user` et `guest` sont
      * résolus depuis le compte et n'ont jamais de ligne : en écrire une créerait
      * une appartenance que le résolveur n'utilise pas, donc un contrôle qui a

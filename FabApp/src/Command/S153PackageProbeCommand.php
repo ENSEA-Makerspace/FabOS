@@ -386,8 +386,21 @@ final class S153PackageProbeCommand extends Command
             $failures += $this->check($io, 'un groupe intégré refuse d’être supprimé', $protectedRefused, 'garde serveur');
         }
 
+        // 🔴 **La vue par l'autre bout doit rendre la MÊME réponse** (S158b) : la
+        // fiche du membre liste ses groupes à partir de `storedGroupIdsFor()`, et
+        // la fiche du groupe liste ses membres à partir de `storedMemberIds()`.
+        // Deux requêtes, une seule appartenance — si elles divergeaient, un écran
+        // afficherait un lien que l'autre nierait.
+        $failures += $this->check(
+            $io,
+            'et la fiche du membre voit le même lien',
+            in_array($id, $this->groups->storedGroupIdsFor((int) $member->getId()), true),
+            'aller-retour',
+        );
+
         $this->groups->removeMember($id, (int) $member->getId());
         $failures += $this->check($io, 'et la ligne se retire', $this->groups->storedMemberIds($id) === [], 'retrait');
+        $failures += $this->check($io, 'des deux côtés', !in_array($id, $this->groups->storedGroupIdsFor((int) $member->getId()), true), 'aller-retour');
 
         $this->groups->delete($id);
         $failures += $this->check($io, 'le groupe libre se supprime', $this->groups->find($id) === null, 'suppression');

@@ -3,7 +3,7 @@
 {% block title %}{{ 'admin_user_detail.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260831-s153b' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260901-s158' }}">
     {# ⚠️ **S147, J-22 — this page's rules moved to `admin.css`.** They were
        already tokenised and already commented; what was wrong was only that they
        lived here, so nothing else could use them and the next screen with a
@@ -76,6 +76,55 @@
                     id_prefix: 'admin-member-usage-rights',
                     allowances: usageBudgets,
                 } only %}
+
+{# LES GROUPES DE CETTE PERSONNE (S158b) — la même appartenance que
+   `/admin/groupes`, vue par l'autre bout, et écrite par le même dépôt.
+
+   🔴 **Chaque ligne dit PAR OÙ elle passe.** « Ajouté ici » est une ligne de
+   `USER_GROUP_MEMBER` et se retire d'un bouton ; « par son rôle » vient de
+   `ROLE_STAFF` & co. et ne se retire qu'en changeant le rôle — le bouton
+   n'existe donc pas plutôt que d'échouer.
+   ⚠️ Placé juste après le résumé des droits, parce que c'est la question qui
+   suit : un groupe porte des forfaits, un forfait porte des droits. #}
+<h2>{{ 'groups.member_heading'|trans }}</h2>
+                    <div class="admin-panel-pad">
+                        <p class="admin-panel-help">{{ 'groups.member_help'|trans }}</p>
+
+                        {% if groupRows %}
+                            <ul class="admin-group-chips">
+                                {% for row in groupRows %}
+                                    <li>
+                                        <a href="{{ path('app_admin_group_edit', {id: row.id}) }}">{{ row.label }}</a>
+                                        <small>{{ (row.virtual ? 'groups.source_resolved' : (row.stored ? 'groups.source_stored' : 'groups.source_role'))|trans }}</small>
+                                        {% if row.stored %}
+                                            <form method="post" action="{{ path('app_admin_group_member', {userId: user.id}) }}"
+                                                  data-controller="confirm" data-action="submit->confirm#ask"
+                                                  data-confirm-message-value="{{ 'groups.remove_confirm'|trans({'%name%': user.displayName}) }}">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('admin_groups') }}">
+                                                <input type="hidden" name="action" value="remove_member">
+                                                <input type="hidden" name="id" value="{{ row.id }}">
+                                                <button class="admin-action danger" type="submit">{{ 'groups.remove_member'|trans }}</button>
+                                            </form>
+                                        {% endif %}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="usage-empty">{{ 'groups.member_none'|trans }}</p>
+                        {% endif %}
+
+                        {% if joinableGroups %}
+                            <form method="post" action="{{ path('app_admin_group_member', {userId: user.id}) }}" class="usage-assignment-form">
+                                <input type="hidden" name="_token" value="{{ csrf_token('admin_groups') }}">
+                                <input type="hidden" name="action" value="add_member">
+                                <label class="sr-only" for="u-group">{{ 'groups.add_to_group'|trans }}</label>
+                                <select id="u-group" name="id" required>
+                                    {% for row in joinableGroups %}<option value="{{ row.id }}">{{ row.label }}</option>{% endfor %}
+                                </select>
+                                <button class="btn-link btn-primary-admin" type="submit">{{ 'groups.add_to_group'|trans }}</button>
+                            </form>
+                        {% endif %}
+                    </div>
 
 <h2>{{ 'admin_user_detail.person_type_heading'|trans }}</h2>
                     <div class="admin-panel-pad">

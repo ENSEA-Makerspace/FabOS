@@ -122,6 +122,7 @@ use App\UsageRights\UsageAllowanceService;
 use App\UsageRights\UsageRightsService;
 use App\UsageRights\UsageCapabilityRegistry;
 use App\UsageRights\UsagePackageRepository;
+use App\UsageRights\UserGroupRepository;
 use App\UsageRights\AudienceResolver;
 use App\Reservation\LabClock;
 use App\Venue\VenueContext;
@@ -1666,10 +1667,35 @@ final class AdminController extends AbstractController
         UsageRightsService $usageRights,
         UsageAllowanceService $usageBudgets,
         AccountGuard $accountGuard,
+        UserGroupRepository $userGroups,
+        AudienceResolver $audiences,
     ): Response {
         $user = $users->find($id);
         if (!$user) {
             throw $this->createNotFoundException('Utilisateur introuvable');
+        }
+
+        // ⚠️ **S158b — les groupes de cette personne, la même appartenance vue par
+        // l'autre bout.** On y pense aussi souvent que « qui est dans ce groupe »,
+        // et c'est le même dépôt qui écrit : deux vues, pas deux surfaces.
+        // 🔴 L'appartenance est l'UNION des lignes stockées, des rôles et de
+        // l'audience `user` — `AudienceResolver` seul sait la calculer, et chaque
+        // ligne dit PAR OÙ elle passe. Seul le stocké se retire d'ici.
+        $memberKeys = array_flip($audiences->keysFor($user));
+        $storedGroupIds = array_flip($userGroups->storedGroupIdsFor((int) $user->getId()));
+
+        $groupRows = [];
+        $joinable = [];
+        foreach ($userGroups->all() as $row) {
+            if (isset($memberKeys[$row['key']])) {
+                $groupRows[] = $row + ['stored' => isset($storedGroupIds[$row['id']])];
+                continue;
+            }
+            // ⚠️ Une audience virtuelle ne s'ajoute pas : elle se résout depuis le
+            // compte, et une ligne y serait lue par personne.
+            if (!$row['virtual']) {
+                $joinable[] = $row;
+            }
         }
 
         $physicalTrainingRows = [];
@@ -1708,6 +1734,8 @@ final class AdminController extends AbstractController
             // ⚠️ The verdict is read here so the panel can EXPLAIN a refusal
             // instead of hiding a button — the same guard the POST re-runs.
             'anonymiseRefusal' => $accountGuard->refusalFor($user),
+            'groupRows' => $groupRows,
+            'joinableGroups' => $joinable,
         ]);
     }
 

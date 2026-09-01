@@ -368,13 +368,17 @@ lit comme une erreur. C'est déjà la règle de `assignmentsForPackage()`.
 ✅ **Cette étape seule rend réel le formulaire d'attribution par groupe**, et
 c'est elle qui répond à « rendre l'attribution plus facile ».
 
-**2. L'appartenance depuis la fiche membre** 🅿️ **PROCHAINE ÉTAPE.** — `/admin/utilisateurs/{id}`. Les
-mêmes lignes, vues par l'autre bout, parce qu'on pense « dans quels groupes est
-cette personne » aussi souvent que l'inverse.
-⚠️ Une seule source d'écriture, comme pour les droits d'un package : les deux
-écrans éditent la même table, ils ne se doublent pas.
+**2. L'appartenance depuis la fiche membre** — ✅ **LIVRÉE le 2026-09-01**
+(S158b). `/admin/utilisateurs/{id}` porte ses groupes, chacun disant par où il
+passe, et seul le stocké s'y retire.
+✅ **Une seule source d'écriture** : le même `UserGroupRepository`, les mêmes
+gardes, le même jeton. Deux vues, pas deux surfaces — un second chemin aurait ses
+propres refus, et celui des deux qu'on oublie de corriger est celui qui laisse
+passer. La sonde vérifie que les deux vues rendent la même réponse.
+🔴 La redirection est FIXE (`app_admin_user_detail`), jamais une cible venue de la
+requête : un `?back=` recopié dans un `redirect()` est une redirection ouverte.
 
-**3. Le backfill rôle → groupe.** Écrire les lignes `USER_GROUP_MEMBER` que les
+**3. Le backfill rôle → groupe.** 🅿️ **PROCHAINE ÉTAPE.** Écrire les lignes `USER_GROUP_MEMBER` que les
 rôles impliquent aujourd'hui.
 ✅ **Purement additif, et c'est tout l'argument de sûreté** : `AudienceResolver`
 rend l'UNION, donc écrire une ligne que le rôle produisait déjà ne change aucune

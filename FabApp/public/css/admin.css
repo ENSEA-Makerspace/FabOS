@@ -497,6 +497,25 @@
 .usage-assignment small { color: var(--color-text-light); line-height: 1.35; }
 .usage-assignments { border-top: 1px solid var(--border-color); }
 
+/* --- Les groupes d'une personne, sur sa fiche (S158b) ------------------------
+   Une ligne par groupe : son nom, par où l'appartenance passe, et le bouton
+   seulement quand elle est retirable d'ici. ⚠️ `flex-wrap` parce que la source
+   est une phrase, pas un mot : « par son rôle » passe à la ligne plutôt que de
+   pousser le bouton hors de la carte. */
+.admin-group-chips { list-style: none; margin: 0 0 var(--spacing-md); padding: 0; display: grid; gap: .5rem; }
+.admin-group-chips li {
+    display: flex; align-items: center; flex-wrap: wrap; gap: .6rem;
+    padding: .5rem .75rem;
+    border: 1px solid var(--border-color); border-radius: var(--border-radius);
+    background: var(--theme-surface);
+}
+.admin-group-chips a { font-weight: var(--font-weight-semibold); }
+/* ⚠️ `.admin-meta` est déjà exclu de la couverture sombre ; ce `small` ne l'est
+   pas, donc il prend `--color-text-light` par la couverture — c'est ce qu'on
+   veut ici, la source est une mention discrète. */
+.admin-group-chips small { color: var(--color-text-light); font-size: var(--font-size-sm); }
+.admin-group-chips form { margin-left: auto; }
+
 /* --- LA SAISIE D'UN PACKAGE (S153) -------------------------------------------
    Quatre lignes de restriction plus une d'extension, qui se lisent comme une
    phrase. Les règles vivent ICI, dans la feuille partagée de l'admin, et pas

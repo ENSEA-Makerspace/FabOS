@@ -31,9 +31,11 @@ gagnent la réservation hors grille hebdomadaire (jamais hors d'une fermeture
 datée). C'est le cas n°1 de la liste de l'opérateur, mais c'est un
 **élargissement d'accès** — à confirmer package par package.
 
-🅿️ **Phase S158 ouverte le 2026-09-01 — l'étape 1 est LIVRÉE.** `/admin/groupes`
+🅿️ **Phase S158 ouverte le 2026-09-01 — les étapes 1 et 2 sont LIVRÉES.** `/admin/groupes`
 existe : on peut enfin créer un groupe et y mettre quelqu'un, ce que rien ne
-permettait. Prochaine étape : l'appartenance depuis la fiche membre. Plan complet dans `ROADMAP.md` § « Phase S158 ».
+permettait, et la fiche d'un membre montre ses groupes. Prochaine étape : le
+backfill rôle→groupe, purement additif — puis le contract, qui demande une passe
+d'ombre compte par compte. Plan complet dans `ROADMAP.md` § « Phase S158 ».
 ✅ Le mot est fait aussi : « package » → **forfait / bundle**.
 🅿️ Deux décisions y attendent encore l'opérateur : quelles extensions de groupe
 (appartenance datée, groupes à règle), et ce que devient le lien rôle→groupe
