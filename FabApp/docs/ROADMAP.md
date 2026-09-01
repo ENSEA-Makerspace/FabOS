@@ -399,7 +399,13 @@ jamais**.
 
 ---
 
-## Le mot
+## Le mot — ✅ FAIT le 2026-09-01
+
+Livré : **forfait / bundle / Nutzungspaket / plan / forfait**, et le menu lit
+désormais « Droits d'usage → Forfaits ». Les tables, les identifiants et l'URL
+`/admin/usage-rights` n'ont pas bougé — la correspondance entre les deux
+vocabulaires est écrite dans `PROJECT_STATE.md`, parce que chercher « forfait »
+dans le code ne rend rien. Ce qui suit est le raisonnement, gardé.
 
 **Renommer est une affaire de VOCABULAIRE, pas de schéma.** `USAGE_PACKAGE` et
 ses tables ne bougent pas : renommer une table est une manœuvre expand/contract

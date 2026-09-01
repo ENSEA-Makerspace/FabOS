@@ -64,7 +64,7 @@ final readonly class PackageSpecCompiler
         $keys = $this->capabilities->keys();
         $features = $spec->featuresAll ? $keys : array_values(array_intersect($keys, $spec->features));
         if ($features === []) {
-            throw new \InvalidArgumentException('Un package doit donner accès à au moins une chose.');
+            throw new \InvalidArgumentException('Un forfait doit donner accès à au moins une chose.');
         }
 
         // 🔴 La cinquième ligne ne peut pas coexister avec une restriction : elle

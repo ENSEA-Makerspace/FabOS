@@ -32,7 +32,7 @@ final class PackageAssignType extends AbstractType
                 'choice_translation_domain' => false,
                 'choices' => $options['member_choices'],
                 'placeholder' => 'usage_rights.select_member',
-                'constraints' => [new Assert\NotBlank(message: 'Choisissez la personne à qui accorder ce package.')],
+                'constraints' => [new Assert\NotBlank(message: 'Choisissez la personne à qui accorder ce forfait.')],
             ])
             ->add('valid_from', DateTimeType::class, $this->moment($options) + ['label' => 'usage_rights.valid_from'])
             ->add('valid_until', DateTimeType::class, $this->moment($options) + ['label' => 'usage_rights.valid_until']);

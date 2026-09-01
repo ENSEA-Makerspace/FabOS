@@ -133,6 +133,17 @@ si c'est une ressource.
 **L'application est ON. Les quatre chokepoints sont sur grants v2** :
 `usage_rights_v2_machines | places | person_booking | events`.
 
+- 🔴 **DEUX VOCABULAIRES, ET C'EST DÉLIBÉRÉ (S153d).** L'écran dit **« forfait »**
+  (`bundle` en anglais, `Nutzungspaket`, `plan`, `forfait`) ; le code, les tables
+  et les URLs disent **`package`** — `USAGE_PACKAGE`, `UsagePackageRepository`,
+  `/admin/usage-rights`. Renommer les tables aurait été un expand/contract complet
+  pour zéro bénéfice visible, et casser les URLs pour du vocabulaire est le mauvais
+  échange. ⚠️ **Donc : chercher « forfait » dans le code ne rend rien.** Le mot n'a
+  changé que dans les cinq catalogues de traduction et dans les messages
+  d'exception qui atteignent un flash.
+  ✅ Le motif du renommage : la Phase H apporte offres et paiements, où « package »
+  voudrait dire *une chose qu'on achète*. Le mot est libéré avant qu'il n'arrive.
+
 - 🔴 **`USAGE_PACKAGE_GRANT` est LA table de grants.** Sa colonne est `sectionKey`,
   pas `section`. `USAGE_GRANT` et `USAGE_PACKAGE_GROUP_ASSIGNMENT` ont été
   **supprimées** (`Version20260821140000`, 2026-08-21).

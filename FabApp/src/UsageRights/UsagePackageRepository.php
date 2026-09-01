@@ -3,6 +3,7 @@
 namespace App\UsageRights;
 
 use App\Entity\Utilisateur;
+use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 
 /**
@@ -101,7 +102,7 @@ final class UsagePackageRepository
         $name = mb_substr(trim($name), 0, 120);
         $description = mb_substr(trim($description), 0, 1000);
         if ($name === '') {
-            throw new \InvalidArgumentException('Le nom du package est obligatoire.');
+            throw new \InvalidArgumentException('Le nom du forfait est obligatoire.');
         }
 
         $this->db->update('USAGE_PACKAGE', [
@@ -115,7 +116,7 @@ final class UsagePackageRepository
         // rend 0 quand rien ne change, et enregistrer deux fois la même identité
         // n'est pas une erreur.
         if (!$this->db->fetchOne('SELECT 1 FROM USAGE_PACKAGE WHERE id = :id', ['id' => $id])) {
-            throw new \InvalidArgumentException('Package introuvable.');
+            throw new \InvalidArgumentException('Forfait introuvable.');
         }
     }
 
@@ -125,7 +126,7 @@ final class UsagePackageRepository
         $name = mb_substr(trim($name), 0, 120);
         $description = mb_substr(trim($description), 0, 1000);
         if ($name === '') {
-            throw new \InvalidArgumentException('Le nom du package est obligatoire.');
+            throw new \InvalidArgumentException('Le nom du forfait est obligatoire.');
         }
 
         $features = array_values(array_unique(array_filter(array_map('strval', $features))));
@@ -150,7 +151,7 @@ final class UsagePackageRepository
                 // ce que la sonde a attrapé au premier essai. La question posée
                 // est l'existence, alors c'est elle qu'on pose.
                 if ($updated !== 1 && !$this->db->fetchOne('SELECT 1 FROM USAGE_PACKAGE WHERE id = :id', ['id' => $id])) {
-                    throw new \InvalidArgumentException('Package introuvable.');
+                    throw new \InvalidArgumentException('Forfait introuvable.');
                 }
                 $this->db->delete('USAGE_PACKAGE_FEATURE', ['packageId' => $id]);
             }
@@ -160,13 +161,13 @@ final class UsagePackageRepository
             }
         });
 
-        return $id ?? throw new \LogicException('Package non créé.');
+        return $id ?? throw new \LogicException('Forfait non créé.');
     }
 
     public function assign(int $packageId, Utilisateur $user, ?\DateTimeImmutable $from, ?\DateTimeImmutable $until, ?int $issuedById): void
     {
         if ($user->getId() === null || $this->find($packageId) === null) {
-            throw new \InvalidArgumentException('Utilisateur ou package introuvable.');
+            throw new \InvalidArgumentException('Utilisateur ou forfait introuvable.');
         }
         if ($from !== null && $until !== null && $until <= $from) {
             throw new \InvalidArgumentException('La fin doit être après le début.');
@@ -184,7 +185,7 @@ final class UsagePackageRepository
             ],
         );
         if ($overlap) {
-            throw new \InvalidArgumentException('Ce membre possède déjà ce package sur tout ou partie de cette période.');
+            throw new \InvalidArgumentException('Ce membre possède déjà ce forfait sur tout ou partie de cette période.');
         }
 
         $this->db->insert('USAGE_RIGHT_ASSIGNMENT', [
@@ -473,13 +474,13 @@ final class UsagePackageRepository
     public function assignGroup(int $packageId, string $groupKey, ?\DateTimeImmutable $from, ?\DateTimeImmutable $until, ?int $issuedById): void
     {
         if ($this->find($packageId) === null) {
-            throw new \InvalidArgumentException('Package introuvable.');
+            throw new \InvalidArgumentException('Forfait introuvable.');
         }
         if ($from !== null && $until !== null && $until <= $from) {
             throw new \InvalidArgumentException('La fin doit être après le début.');
         }
         if ($groupKey === AudienceResolver::GUEST) {
-            throw new \InvalidArgumentException("L'audience « invité » n'a pas de compte : un package ne peut rien lui accorder.");
+            throw new \InvalidArgumentException("L'audience « invité » n'a pas de compte : un forfait ne peut rien lui accorder.");
         }
 
         $groupId = $this->db->fetchOne('SELECT id FROM USER_GROUP WHERE groupKey = :key', ['key' => $groupKey]);
@@ -499,7 +500,7 @@ final class UsagePackageRepository
             ],
         );
         if ($overlap) {
-            throw new \InvalidArgumentException('Ce groupe possède déjà ce package sur tout ou partie de cette période.');
+            throw new \InvalidArgumentException('Ce groupe possède déjà ce forfait sur tout ou partie de cette période.');
         }
 
         // ⚠️ `userId` stays NULL: the row belongs to the group, and writing both
@@ -573,7 +574,7 @@ final class UsagePackageRepository
                 'SELECT id, grantId, dayOfWeek, startMinute, endMinute FROM USAGE_GRANT_WINDOW
                  WHERE grantId IN (:ids) ORDER BY dayOfWeek, startMinute',
                 ['ids' => $grantIds],
-                ['ids' => \Doctrine\DBAL\ArrayParameterType::INTEGER],
+                ['ids' => ArrayParameterType::INTEGER],
             );
         } catch (\Throwable) {
             return [];
@@ -635,7 +636,7 @@ final class UsagePackageRepository
             ),
         );
         if ($duplicate) {
-            throw new \InvalidArgumentException('Ce grant existe déjà dans ce package.');
+            throw new \InvalidArgumentException('Ce grant existe déjà dans ce forfait.');
         }
 
         $this->db->insert('USAGE_PACKAGE_GRANT', array_merge([
@@ -672,7 +673,7 @@ final class UsagePackageRepository
         // `deleteGrant()` is: an id arriving from another package's form must not
         // reach across the boundary.
         if (!$this->grantBelongsTo($packageId, $grantId)) {
-            throw new \InvalidArgumentException('Grant introuvable dans ce package.');
+            throw new \InvalidArgumentException('Grant introuvable dans ce forfait.');
         }
 
         try {
@@ -835,7 +836,7 @@ final class UsagePackageRepository
                     'userId' => $user->getId(),
                     'keys' => $keys === [] ? [''] : $keys,
                 ],
-                ['keys' => \Doctrine\DBAL\ArrayParameterType::STRING],
+                ['keys' => ArrayParameterType::STRING],
             );
         } catch (\Throwable) {
             // ⚠️ Le repli est le comportement d'AVANT : pas d'exemption. Une
@@ -871,7 +872,21 @@ final class UsagePackageRepository
         try {
             $rows = $this->db->executeQuery(
                 'SELECT packageId, featureKey FROM USAGE_PACKAGE_FEATURE WHERE packageId IN (:ids) ORDER BY featureKey',
-                ['ids' => $packageIds], ['ids' => Connection::PARAM_INT_ARRAY],
+                // 🔴 **`Connection::PARAM_INT_ARRAY` N'EXISTE PLUS dans ce DBAL**
+                // (S153d). La constante a été retirée au profit de
+                // `ArrayParameterType`, et référencer une constante de classe
+                // absente est une `Error` fatale en PHP 8 — que le `catch
+                // (\Throwable)` juste en dessous avalait. Résultat mesuré à
+                // l'écran : la colonne « Fonctionnalités » de
+                // `/admin/usage-rights` affichait **0 pour les quatre forfaits**,
+                // dont un qui en porte sept. Aucune erreur, aucun journal, une
+                // page qui ment.
+                // ⚠️ C'est le coût d'un catch-all sur une requête dont le repli
+                // ressemble à une réponse valide : « ce forfait n'ouvre rien » et
+                // « je n'ai pas pu lire » se rendent identiquement. Le même
+                // catch reste ici pour l'installation sans la table, mais la
+                // requête, elle, doit pouvoir s'exécuter.
+                ['ids' => $packageIds], ['ids' => ArrayParameterType::INTEGER],
             )->fetchAllAssociative();
         } catch (\Throwable) {
             return [];

@@ -16,11 +16,11 @@
 
         <div class="rights-vision-sections">
             <section class="blueprint-section">
-                <div class="blueprint-heading"><span>1</span><div><h2>Une chaîne simple</h2><p>Le groupe organise les personnes ; le package porte les droits.</p></div></div>
+                <div class="blueprint-heading"><span>1</span><div><h2>Une chaîne simple</h2><p>Le groupe organise les personnes ; le forfait porte les droits.</p></div></div>
                 <ol class="rights-model">
                     <li><span>1</span><div><strong>Compte local actif</strong><small>Identité et suspension restent autoritaires dans ce FabOS, même avec SSO.</small></div></li>
                     <li><span>2</span><div><strong>Individu et groupes</strong><small>Toutes leurs attributions actives sont réunies ; aucun groupe ne devient un rôle importé de LDAP.</small></div></li>
-                    <li><span>3</span><div><strong>Packages</strong><small>Chaque grant vise un workspace, un droit, un scope, un calendrier et éventuellement une politique complète.</small></div></li>
+                    <li><span>3</span><div><strong>Forfaits</strong><small>Chaque grant vise un workspace, un droit, un scope, un calendrier et éventuellement une politique complète.</small></div></li>
                     <li><span>4</span><div><strong>Verdict métier</strong><small>Le service vérifie ensuite qualification, sécurité physique et contraintes propres à l’action.</small></div></li>
                 </ol>
             </section>
@@ -37,7 +37,7 @@
             <section class="blueprint-section">
                 <div class="blueprint-heading"><span>3</span><div><h2>Exemple : bénévoles</h2><p>Une seule source de droits, attribuable au groupe ou directement à une personne.</p></div></div>
                 <article class="rights-group-example">
-                    <header><div><h3>Package Bénévoles atelier</h3><p>Attribué au groupe Bénévoles ; les grants s’ajoutent à toute attribution individuelle.</p></div>{% include 'site/_state_chip.html.twig' with {label: 'Exemple', signal: 'muted'} only %}</header>
+                    <header><div><h3>Forfait Bénévoles atelier</h3><p>Attribué au groupe Bénévoles ; les grants s’ajoutent à toute attribution individuelle.</p></div>{% include 'site/_state_chip.html.twig' with {label: 'Exemple', signal: 'muted'} only %}</header>
                     <div class="rights-group-columns">
                         <section><h3>Use · Équipement</h3><ul class="rights-permission-list"><li>Réserver les machines couvertes</li><li>Scope : lieu principal · catégories autorisées</li><li>Calendrier : 24/7 · politique de quotas complète</li></ul></section>
                         <section><h3>Manage · Maintenance</h3><ul class="rights-permission-list"><li>Voir, déclarer et planifier les interventions</li><li>Consulter et exporter le reporting du même scope</li><li>Remise en service exclue : capacité sensible séparée</li></ul></section>
@@ -48,7 +48,7 @@
             <section class="blueprint-section">
                 <div class="blueprint-heading"><span>4</span><div><h2>Admin recovery reste sûr</h2><p>Récupérer FabOS ne signifie pas pouvoir utiliser physiquement toute ressource.</p></div></div>
                 <dl class="rights-effective-grid">
-                    <div><dt>Administration</dt><dd>Accessible hors packages pour éviter le lockout.</dd></div>
+                    <div><dt>Administration</dt><dd>Accessible hors forfaits pour éviter le lockout.</dd></div>
                     <div><dt>Badges & formations</dt><dd>Toujours requis lors de l’utilisation d’une ressource.</dd></div>
                     <div><dt>Arrêt technique</dt><dd>Jamais contourné par Admin recovery.</dd></div>
                     <div><dt>Modification d’une qualification</dt><dd>Action explicite et auditée, jamais avantage implicite.</dd></div>
