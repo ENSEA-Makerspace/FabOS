@@ -122,6 +122,7 @@ use App\UsageRights\UsageAllowanceService;
 use App\UsageRights\UsageRightsService;
 use App\UsageRights\UsageCapabilityRegistry;
 use App\UsageRights\UsagePackageRepository;
+use App\UsageRights\AudienceResolver;
 use App\Reservation\LabClock;
 use App\Venue\VenueContext;
 use Doctrine\ORM\EntityManagerInterface;
@@ -1464,9 +1465,17 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/utilisateurs', name: 'app_admin_users', methods: ['GET'])]
-    public function users(Request $request, UtilisateurRepository $users, AccessRfidLogRepository $logs, ProgressionRepository $progressions, RoleRepository $roles): Response
-    {
-        $filters = $this->extractFilters($request, ['q', 'statut', 'role']);
+    public function users(
+        Request $request,
+        UtilisateurRepository $users,
+        AccessRfidLogRepository $logs,
+        ProgressionRepository $progressions,
+        RoleRepository $roles,
+        UsagePackageRepository $packages,
+        AudienceResolver $audiences,
+        LabClock $clock,
+    ): Response {
+        $filters = $this->extractFilters($request, ['q', 'statut', 'role', 'package']);
         $logCounts = [];
         foreach ($logs->createQueryBuilder('log')
             ->select('IDENTITY(log.utilisateur) AS userId, COUNT(log.id) AS logCount')
@@ -1481,16 +1490,83 @@ final class AdminController extends AbstractController
         // list BEFORE filtering. The template used to count `users`, which is the
         // filtered result — so with a status selected every tile reported the
         // same number, the number of rows already on screen.
-        $allUsers = $users->findForAdminFilters(['q' => '', 'statut' => '', 'role' => '']);
+        $allUsers = $users->findForAdminFilters(['q' => '', 'statut' => '', 'role' => '', 'package' => '']);
 
         return $this->render('site/admin-utilisateurs.html.twig', [
-            'users' => $users->findForAdminFilters($filters),
+            'users' => $this->filterByPackage(
+                $users->findForAdminFilters($filters),
+                trim((string) ($filters['package'] ?? '')),
+                $packages,
+                $audiences,
+                $clock,
+            ),
             'allUsers' => $allUsers,
             'logCounts' => $logCounts,
             'progressionCounts' => $this->buildUserProgressionStats($progressions),
             'filters' => $filters,
             'roleChoices' => $this->buildAdminRoleChoices($roles),
+            // ⚠️ Tous les packages, actifs ou non : un package désactivé garde ses
+            // attributions, et « qui avait ce forfait » est justement la question
+            // qu'on pose le jour où on le désactive.
+            'packageChoices' => $packages->findAll(),
         ]);
+    }
+
+    /**
+     * Les personnes que ce package atteint, dans la liste déjà filtrée (S153c).
+     *
+     * 🔴 **Les DEUX chemins d'attribution, et c'est tout l'enjeu.** Une
+     * attribution est personnelle ou collective ; un filtre qui n'en verrait
+     * qu'un afficherait « personne » pour un package donné à une équipe entière.
+     *
+     * 🔴 **Et l'appartenance à un groupe se demande à `AudienceResolver`, jamais
+     * à une requête écrite ici.** Elle est l'union de trois choses — des lignes
+     * stockées, des rôles, et l'audience `user` qui n'est écrite nulle part et
+     * vaut « tout compte actif ». La refaire en SQL serait une deuxième vérité
+     * sur l'appartenance, et elle dériverait le jour où S134 déplace celle-ci
+     * dans les groupes. `primeFor()` existe pour que ce soit UNE requête et pas
+     * une par ligne.
+     *
+     * ⚠️ Une clé inconnue rend la liste INCHANGÉE, jamais vide : un package
+     * supprimé pendant qu'on tient son lien ne doit pas répondre « aucun membre »,
+     * qui est une phrase fausse sur le lab plutôt qu'un filtre sans objet. Même
+     * règle que la catégorie d'événement de S146f.
+     *
+     * @param list<Utilisateur> $rows
+     * @return list<Utilisateur>
+     */
+    private function filterByPackage(
+        array $rows,
+        string $packageId,
+        UsagePackageRepository $packages,
+        AudienceResolver $audiences,
+        LabClock $clock,
+    ): array {
+        if ($packageId === '' || !ctype_digit($packageId) || $packages->find((int) $packageId) === null) {
+            return array_values($rows);
+        }
+
+        $reach = $packages->reachOf((int) $packageId, $clock->now());
+        if ($reach['userIds'] === [] && $reach['groupKeys'] === []) {
+            return [];
+        }
+
+        $direct = array_flip($reach['userIds']);
+        $groupKeys = array_flip($reach['groupKeys']);
+        $audiences->primeFor($rows);
+
+        return array_values(array_filter($rows, static function (Utilisateur $user) use ($direct, $groupKeys, $audiences): bool {
+            if (isset($direct[(int) $user->getId()])) {
+                return true;
+            }
+            foreach ($audiences->keysFor($user) as $key) {
+                if (isset($groupKeys[$key])) {
+                    return true;
+                }
+            }
+
+            return false;
+        }));
     }
 
     #[Route('/utilisateurs/new', name: 'app_admin_user_new', methods: ['GET', 'POST'])]

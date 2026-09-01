@@ -33,6 +33,18 @@
    gives a hash with holes rather than a sequence — and this Twig has no `values`
    filter to flatten it back. Mapping over the KEYS is what returns a plain list.
 
+   ⚠️ **Le filtre « droit d'usage » (S153c), et sa clé est un ID.** Il ne se
+   règle PAS dans `findForAdminFilters()` : `USAGE_RIGHT_ASSIGNMENT` n'a pas
+   d'entité, donc rien à joindre en DQL, et surtout l'appartenance à un groupe
+   n'est pas une jointure — c'est l'union de lignes stockées, de rôles et de
+   l'audience `user`, que `AudienceResolver` seul sait résoudre. Le contrôleur
+   filtre donc la liste après coup, en passant par lui.
+   ⚠️ Le menu ne s'affiche que s'il existe au moins un package : un `<select>` à
+   une seule entrée « Tous » est un contrôle qui ne fait rien.
+   ⚠️ **Les tuiles et « 3 sur 11 » comptent toujours `allUsers`**, donc le total
+   reste celui du lab. C'est voulu : le compte de gauche dit combien la sélection
+   montre, celui de droite combien il y a.
+
    ⚠️ Kept out of the argument hash: a comment between two of its keys is a Twig
    syntax error. #}
 {% embed 'site/_admin_list.html.twig' with {
@@ -45,7 +57,7 @@
     list_route: 'app_admin_users',
     list_search: filters.q|default(''),
     list_search_placeholder: 'common.search_placeholder'|trans,
-    list_query: {statut: filters.statut, role: filters.role},
+    list_query: {statut: filters.statut, role: filters.role, package: filters.package},
     list_tiles_label: 'admin_list.facet_status'|trans,
     list_tiles: [
         {label: 'admin_list.all'|trans, count: allUsers|length, query: {statut: ''}},
@@ -55,7 +67,9 @@
     ],
     list_refine: [
         {name: 'role', label: 'workspace.filter.role'|trans, value: filters.role, options: [{value: '', label: 'admin_list.all'|trans}]|merge(roleChoices|keys|map(value => {value: value, label: roleChoices[value]}))},
-    ],
+    ]|merge(packageChoices|length > 0 ? [
+        {name: 'package', label: 'admin_users.filter_package'|trans, value: filters.package, options: [{value: '', label: 'admin_list.all'|trans}]|merge(packageChoices|map(p => {value: p.id, label: p.name}))},
+    ] : []),
 } %}
     {% block content %}
         {# ⚠️ The actions column and its link say "Voir", not "Modifier". Both said

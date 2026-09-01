@@ -10,6 +10,7 @@ use App\Reservation\ReservableResolver;
 use App\Reservation\ReservableType;
 use App\Reservation\ReservationService;
 use App\Schedule\ScheduleResolver;
+use App\UsageRights\AudienceResolver;
 use App\UsageRights\PackageSpec;
 use App\UsageRights\PackageSpecCompiler;
 use App\UsageRights\UsageAllowanceRepository;
@@ -52,6 +53,7 @@ final class S153PackageProbeCommand extends Command
         private readonly ReservableResolver $reservables,
         private readonly MachineRepository $machines,
         private readonly UtilisateurRepository $users,
+        private readonly AudienceResolver $audiences,
         private readonly LabClock $clock,
     ) {
         parent::__construct();
@@ -67,6 +69,7 @@ final class S153PackageProbeCommand extends Command
             $failures += $this->probeCompile($io);
             $failures += $this->probeNormalisation($io);
             $failures += $this->probeHoursExemption($io);
+            $failures += $this->probeGroupReach($io);
         } finally {
             // ⚠️ `rollBack()` dans un `finally` : une exception au milieu ne doit
             // pas laisser un package de sonde en base.
@@ -236,6 +239,67 @@ final class S153PackageProbeCommand extends Command
         $io->warning('Aucun couple (membre, machine) n’atteint le contrôle d’horaires : une règle antérieure refuse d’abord. Rien mesuré ici.');
 
         return 0;
+    }
+
+    /**
+     * Le filtre « droit d'usage » de la liste des utilisateurs voit-il une
+     * attribution par GROUPE ? (S153c)
+     *
+     * 🔴 **C'est le seul défaut que ce filtre pouvait avoir, et aucune donnée de
+     * la boîte ne l'exerce** : les quatre attributions qui existent sont toutes
+     * personnelles. Un filtre qui ne verrait que `userId` afficherait « personne »
+     * pour un package donné à une équipe entière, et rien à l'écran ne le dirait.
+     * La sonde crée donc l'attribution collective qui manque, dans une
+     * transaction annulée.
+     *
+     * ⚠️ Le groupe visé est `user` — l'audience RÉSOLUE, celle qui n'a jamais de
+     * ligne d'appartenance et vaut « tout compte actif ». C'est le cas le plus
+     * dur : une jointure sur `USER_GROUP_MEMBER` ne le trouverait jamais.
+     */
+    private function probeGroupReach(SymfonyStyle $io): int
+    {
+        $io->section('4. Le filtre voit une attribution par GROUPE');
+
+        $member = null;
+        foreach ($this->users->findBy([], ['id' => 'ASC']) as $candidate) {
+            if ($candidate instanceof Utilisateur) {
+                $member = $candidate;
+                break;
+            }
+        }
+        if ($member === null) {
+            $io->warning('Aucun compte : rien à mesurer ici.');
+
+            return 0;
+        }
+
+        $id = $this->packages->save(null, 'Sonde S153 — groupe', '', true, false, []);
+        $this->compiler->compile($id, 'Sonde S153 — groupe', '', true, new PackageSpec());
+
+        $failures = 0;
+        $before = $this->packages->reachOf($id, $this->clock->now());
+        $failures += $this->check($io, 'sans attribution : la portée est vide', $before['userIds'] === [] && $before['groupKeys'] === [], 'vide');
+
+        try {
+            $this->packages->assignGroup($id, 'user', null, null, null);
+        } catch (\Throwable $e) {
+            $io->warning('Attribution de groupe impossible sur cette installation : ' . $e->getMessage());
+
+            return $failures;
+        }
+
+        $after = $this->packages->reachOf($id, $this->clock->now());
+        $failures += $this->check($io, 'la clé de groupe est vue', in_array('user', $after['groupKeys'], true), implode(',', $after['groupKeys']));
+        $failures += $this->check($io, 'et AUCUN identifiant direct', $after['userIds'] === [], 'direct');
+
+        // 🔴 Le test que le filtre applique vraiment : la clé du package est-elle
+        // dans les audiences de la personne ? C'est `AudienceResolver` qui répond,
+        // et `primeFor()` doit rendre la même réponse que `keysFor()`.
+        $this->audiences->primeFor([$member]);
+        $keys = $this->audiences->keysFor($member);
+        $failures += $this->check($io, 'la personne est dans « user » — donc filtrée dedans', in_array('user', $keys, true), implode(',', $keys));
+
+        return $failures;
     }
 
     /**

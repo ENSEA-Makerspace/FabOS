@@ -195,6 +195,58 @@ final class UsagePackageRepository
     }
 
     /**
+     * Par quoi ce package atteint quelqu'un, à un instant donné : la liste des
+     * identifiants attribués en direct, et les clés de groupe (S153c).
+     *
+     * 🔴 **Les DEUX chemins, et c'est tout l'intérêt.** Une attribution est soit
+     * personnelle (`userId`), soit collective (`groupId`) — le modèle a les deux
+     * depuis S144a, et `grantingPackages()` ne regarde toujours que le premier,
+     * ce qui est une limite connue de la v1. Un filtre qui n'en verrait qu'un
+     * afficherait « personne » pour un package donné à une équipe entière.
+     *
+     * ⚠️ **Cette méthode ne dit PAS qui est dans un groupe** : elle rend les
+     * clés, et `AudienceResolver` seul sait les résoudre en personnes — parce que
+     * l'appartenance est une union de trois choses (des lignes stockées, des
+     * rôles, et l'audience `user` qui n'est écrite nulle part). La refaire en SQL
+     * ici serait une deuxième vérité sur l'appartenance, et elle dériverait.
+     *
+     * @return array{userIds: list<int>, groupKeys: list<string>}
+     */
+    public function reachOf(int $packageId, \DateTimeImmutable $at): array
+    {
+        $moment = $at->format('Y-m-d H:i:s');
+        $window = 'a.revokedAt IS NULL
+                   AND (a.validFrom IS NULL OR a.validFrom <= :moment)
+                   AND (a.validUntil IS NULL OR a.validUntil > :moment)';
+
+        try {
+            $userIds = array_map('intval', $this->db->fetchFirstColumn(
+                "SELECT DISTINCT a.userId FROM USAGE_RIGHT_ASSIGNMENT a
+                 WHERE a.packageId = :package AND a.userId IS NOT NULL AND {$window}",
+                ['package' => $packageId, 'moment' => $moment],
+            ));
+        } catch (\Throwable) {
+            $userIds = [];
+        }
+
+        try {
+            $groupKeys = array_map('strval', $this->db->fetchFirstColumn(
+                "SELECT DISTINCT g.groupKey FROM USAGE_RIGHT_ASSIGNMENT a
+                 INNER JOIN USER_GROUP g ON g.id = a.groupId
+                 WHERE a.packageId = :package AND a.groupId IS NOT NULL AND {$window}",
+                ['package' => $packageId, 'moment' => $moment],
+            ));
+        } catch (\Throwable) {
+            // ⚠️ Une installation sans la migration S133b n'a pas `USER_GROUP` :
+            // les attributions personnelles ci-dessus restent lisibles, et c'est
+            // le repli honnête — le même que `assignmentsForPackage()`.
+            $groupKeys = [];
+        }
+
+        return ['userIds' => array_values($userIds), 'groupKeys' => array_values($groupKeys)];
+    }
+
+    /**
      * Everyone this package currently reaches — members **and** groups (S144a).
      *
      * 🔴 It was an `INNER JOIN UTILISATEUR`, so a group assignment was invisible

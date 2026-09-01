@@ -69,6 +69,68 @@ final class AudienceResolver
             return $this->memo[$id];
         }
 
+        return $this->memo[$id] = $this->compute($user, $this->storedKeysFor((int) $user->getId()));
+    }
+
+    /**
+     * Pré-résoudre TOUTE une liste de personnes en une seule requête (S153c).
+     *
+     * ⚠️ **Pourquoi ça existe** : `keysFor()` interroge `USER_GROUP_MEMBER` une
+     * fois par personne, ce qui est juste pour une question isolée et devient une
+     * requête par ligne sur un écran qui en pose deux cents. Le filtre « droit
+     * d'usage » de la liste des utilisateurs pose exactement cette question-là.
+     *
+     * 🔴 **Et ça ne DUPLIQUE pas la règle d'appartenance** : les deux chemins
+     * passent par `compute()`. Une seconde copie du tableau rôle → groupe est
+     * précisément ce qui aurait dérivé le jour où S134 déplace la vérité dans les
+     * groupes — le commentaire en tête de cette classe le dit déjà.
+     *
+     * @param iterable<Utilisateur> $users
+     */
+    public function primeFor(iterable $users): void
+    {
+        $pending = [];
+        foreach ($users as $user) {
+            $id = $user->getId();
+            if ($id !== null && !isset($this->memo[(string) $id])) {
+                $pending[(int) $id] = $user;
+            }
+        }
+        if ($pending === []) {
+            return;
+        }
+
+        $stored = array_fill_keys(array_keys($pending), []);
+        try {
+            $rows = $this->db->fetchAllAssociative(
+                'SELECT m.userId, g.groupKey FROM USER_GROUP_MEMBER m
+                 INNER JOIN USER_GROUP g ON g.id = m.groupId
+                 WHERE m.userId IN (:ids)',
+                ['ids' => array_keys($pending)],
+                ['ids' => \Doctrine\DBAL\ArrayParameterType::INTEGER],
+            );
+            foreach ($rows as $row) {
+                $stored[(int) $row['userId']][] = (string) $row['groupKey'];
+            }
+        } catch (\Throwable) {
+            // Même repli que `storedKeysFor()` : les audiences calculables
+            // restent, les stockées manquent. Jamais une exception sur un écran.
+        }
+
+        foreach ($pending as $id => $user) {
+            $this->memo[(string) $id] = $this->compute($user, $stored[$id] ?? []);
+        }
+    }
+
+    /**
+     * L'union des trois appartenances : l'audience résolue `user`, celles que les
+     * rôles impliquent, et les lignes stockées.
+     *
+     * @param list<string> $storedKeys
+     * @return list<string>
+     */
+    private function compute(Utilisateur $user, array $storedKeys): array
+    {
         $roles = $user->getRoles();
         $keys = [self::USER];
 
@@ -87,11 +149,11 @@ final class AudienceResolver
             }
         }
 
-        foreach ($this->storedKeysFor((int) $user->getId()) as $key) {
+        foreach ($storedKeys as $key) {
             $keys[] = $key;
         }
 
-        return $this->memo[$id] = array_values(array_unique($keys));
+        return array_values(array_unique($keys));
     }
 
     /**
