@@ -535,17 +535,97 @@ plus exprimable pour une personne.
 ⚠️ `AudienceResolver` devient alors dépendant de l'INSTANT : sa mémoïsation par
 requête reste juste, une mémoïsation plus longue ne le serait plus.
 
-**3. Convertir les attributions personnelles en groupes**, puis **retirer le
-chemin `userId` des lecteurs.** C'est là — et seulement là — que le code se
-simplifie. Retirer le chemin avant que les lignes soient converties retirerait un
-droit que quelqu'un détient.
-⚠️ Sur la boîte : **3 lignes** à convertir (forfaits 1, 2 et 21). Ailleurs, ça peut
-être beaucoup ; la conversion doit être une commande avec un plan et une
-vérification avant/après, comme `app:s158:backfill-groups`.
+**3. Convertir les attributions personnelles en groupes** — 🔴 **mais NE PAS
+retirer le chemin `userId` du modèle.** Voir le commerce ci-dessous : c'est le cas
+qui l'interdit. Ce qui disparaît est la surface HUMAINE ; la colonne reste, pour
+ce qu'une machine écrit.
+⚠️ Sur la boîte : **3 lignes** écrites à la main (forfaits 1, 2 et 21). La
+conversion doit être une commande avec un plan et une vérification avant/après,
+comme `app:s158:backfill-groups`.
 
 🅿️ **Décision opérateur attendue avant de commencer** : le contract de la Phase
 S158 (le rôle inscrit-il encore dans le groupe ?), parce que la réponse change ce
 que cette phase-ci provoque.
+
+---
+
+## 🔴 L'EFFET DE BORD SUR LE COMMERCE, et c'est le cas qui n'est pas géré
+
+**Un achat est individuel par nature.** La Phase H vend une ligne « Forfait » à
+UNE personne, qui a payé. En groupes-seuls, il n'existe aucun chemin pour la lui
+donner — sauf à fabriquer un groupe d'une personne **par acheteur**, c'est-à-dire
+une liste de groupes qui grossit à chaque vente.
+
+Et ce n'est pas une gêne d'ergonomie, c'est une contradiction avec un contrat déjà
+écrit. `USAGE_RIGHTS_VISION.md` dit, pour la compensation d'une ligne d'achat :
+
+> *« Sa compensation ne peut révoquer que l'attribution portant la source unique
+> de cette ligne, **jamais un droit équivalent venu d'un groupe** ou d'une autre
+> attribution. »*
+
+Autrement dit : un remboursement doit retirer **exactement** ce que cette
+commande-là a donné. Une attribution de groupe ne sait pas faire ça — la retirer
+toucherait tous les membres, et ne pas la retirer laisserait un droit payé puis
+remboursé. Les deux réponses sont fausses.
+
+⚠️ **Et la colonne qui manque le confirme** : `USAGE_RIGHT_ASSIGNMENT` porte
+`id, packageId, userId, groupId, validFrom, validUntil, issuedById, createdAt,
+revokedAt, revokedById` — **aucune `source`**. La « source d'attribution unique »
+que S152 exige n'existe pas encore ; elle se posera sur une attribution
+individuelle, pas sur un groupe.
+
+✅ **Donc la conclusion, et elle est meilleure que l'idée de départ** : le chemin
+personnel n'est pas un doublon, c'est **le chemin des attributions écrites par une
+MACHINE** — une commande, demain un abonnement. Ce qu'on supprime est la surface
+d'écriture **humaine**, pas la colonne.
+
+Ce qui donne la règle à tenir, et elle est simple à dire :
+
+| Qui écrit | Chemin |
+|---|---|
+| un opérateur | **le groupe**, toujours |
+| le commerce, une machine | l'attribution individuelle, avec sa source |
+
+⚠️ **Le lecteur garde donc les deux chemins pour toujours**, et l'allègement de
+code espéré en étape 3 n'aura pas lieu. Le gain réel est ailleurs, et il reste
+entier : **une seule façon pour un humain d'accorder un droit**, et une réponse
+unique à « pourquoi ai-je ce droit ? » — *parce que tu es dans ce groupe*, ou
+*parce que tu l'as acheté*.
+
+🅿️ **À faire quand la Phase H arrivera** : ajouter `source` à
+`USAGE_RIGHT_ASSIGNMENT` (migration additive), et refuser à l'écran humain
+d'écrire une attribution individuelle — l'API du commerce, elle, y a droit.
+
+---
+
+## Le nettoyage — ce qui reste de temporaire à l'écran
+
+**Demandé par l'opérateur le 2026-09-01**, dans le même mouvement : ne garder que
+ce qui EST. Inventaire, et ce que je propose pour chacun.
+
+| Écran | Ce que c'est | Proposition |
+|---|---|---|
+| `/admin/design/droits-quotas` | maquette « Accès & responsabilités ». Porte `prototype_notice` : *« Cette maquette… n'enregistre rien »* | 🔴 **supprimer** — les droits sont construits, la maquette décrit ce qui aurait pu être |
+| `/admin/design/workspaces` | maquette des workspaces | 🔴 **supprimer** |
+| `/admin/design/structure` | maquette de la structure | ⚠️ **à trancher** : trois redirections permanentes pointent dessus (`AdminController` ~2675, 2717, 2732). La supprimer casse ces liens ; il faut les rediriger ailleurs d'abord |
+| `/admin/usage-rights/shadow` — « Aperçu grants v2 » | l'écran à lire AVANT de basculer un chokepoint | 🔴 **supprimer** : mesuré, **les quatre sont déjà basculés** (`usage_rights_v2_*` = 1). Sa raison d'être est épuisée, et il montre une comparaison qui n'a plus de second terme |
+| `/admin/design` | le guide de style : ce qui EST, mesuré au navigateur | ✅ **garder** — c'est la référence du design system, pas une maquette |
+| `/roadmap`, `/roadmap/historique`, `/roadmap/droits-usage` | le plan, rendu depuis le dépôt | ✅ **garder** — c'est là qu'il vit |
+| `/admin/pages-manquantes` | outil de développement, derrière le drapeau | ✅ **garder**, il n'est visible qu'en mode développement |
+
+⚠️ **La règle qui s'applique**, la même qu'en S153 : *une proposition implémentée
+se SUPPRIME — page, route, lien, section*, et son raisonnement va dans
+`HISTORY.md`. Ces trois maquettes sont dans ce cas ; le guide de style et la
+feuille de route n'y sont pas, ils décrivent ce qui existe.
+
+⚠️ **Et il reste le vocabulaire** : `USAGE_RIGHTS_VISION.md` s'appelle « vision »
+mais décrit désormais un modèle en grande partie construit. Le relire pour en
+sortir ce qui est FAIT est un travail de doc, pas d'écran — à faire une fois cette
+phase close, pas avant.
+
+---
+
+
 
 ---
 
