@@ -1956,6 +1956,7 @@ admin_nav:
         app_admin_creations: Projekte
         app_admin_lab_pages: Seiten
         app_admin_users: Benutzer
+        app_admin_groups: "Gruppen"
         app_admin_opening_hours: Öffnungszeiten
         app_admin_usage_rights: Nutzungspakete
         app_admin_usage_rights_shadow: "Grants-v2-Vorschau"
@@ -3740,3 +3741,44 @@ blueprint:
     workspaces_panel: "Workspace-Matrix"
 admin_missing:
     list_panel: "Angefragte Adressen"
+
+groups:
+    panel_note: "Eine Gruppe ordnet Personen; ein Nutzungspaket trägt Rechte."
+    intro: "Die sieben integrierten Gruppen sind geschützt: ihr Name lässt sich ändern, ihr Schlüssel nicht, und löschen lassen sie sich nicht. Eigene Gruppen können Sie anlegen — Praktikanten, Ehrenamtliche, ein Jahrgang."
+    create: "Gruppe erstellen"
+    create_help: "Der Schlüssel der Gruppe wird einmalig aus dem Namen gebildet. Nutzungspakete finden die Gruppe darüber, ein späteres Umbenennen verschiebt also keine Rechte."
+    field_label: "Name"
+    field_description: "Beschreibung"
+    col_group: "Gruppe"
+    col_members: "Mitglieder"
+    col_bundles: "Nutzungspakete"
+    col_kind: "Art"
+    kind_builtin: "Integriert"
+    kind_free: "Eigene"
+    empty: "Keine Gruppen."
+    stored_of: "davon %count% hier eingetragen"
+    virtual_members: "%count% — aufgelöste Audience"
+    members: "Mitglieder"
+    members_help: "Angezeigt wird die Zugehörigkeit, die wirklich entscheidet: hier eingetragene Personen und die, die eine Rolle hinzufügt. Nur die ersten lassen sich hier entfernen."
+    virtual_help: "Diese Audience wird aus dem Konto aufgelöst: sie hat keine Mitgliederliste. Jedes aktive Konto gehört dazu, ohne jemanden einzutragen oder ans Austragen denken zu müssen."
+    add_member: "Zur Gruppe hinzufügen"
+    remove_member: "Entfernen"
+    remove_confirm: "%name% aus dieser Gruppe entfernen? Die Nutzungspakete der Gruppe gelten dann nicht mehr für diese Person."
+    source_stored: "hier hinzugefügt"
+    source_role: "über die Rolle"
+    change_role: "Profil öffnen"
+    no_members: "Noch niemand."
+    key_fixed: "Schlüssel: %key% — bei der Erstellung festgelegt, danach unveränderlich."
+    danger: "Löschen"
+    delete: "Gruppe löschen"
+    delete_help: "Diese Gruppe zu löschen entfernt auch die %count% Paketzuweisung(en), die über sie liefen."
+    delete_confirm: "„%name%“ löschen? %count% Paketzuweisung(en) über diese Gruppe werden mit entfernt."
+    protected: "Integrierte Gruppe"
+    protected_help: "Diese Gruppe gehört zum Modell: Name und Beschreibung sind änderbar, Schlüssel und Existenz nicht."
+    created: "Gruppe erstellt."
+    saved: "Gruppe gespeichert."
+    deleted: "Gruppe gelöscht."
+    member_added: "Person zur Gruppe hinzugefügt."
+    member_removed: "Person aus der Gruppe entfernt."
+    csrf_error: "Aktion abgelehnt: ungültiges CSRF-Token."
+    unknown_action: "Unbekannte Aktion."

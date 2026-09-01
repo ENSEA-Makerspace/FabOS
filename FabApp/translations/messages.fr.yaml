@@ -92,6 +92,7 @@ admin_nav:
         app_admin_creations: Projets
         app_admin_lab_pages: Pages
         app_admin_users: Utilisateurs
+        app_admin_groups: "Groupes"
         app_admin_opening_hours: Horaires
         app_admin_usage_rights: Forfaits
         app_admin_usage_rights_shadow: "Aperçu grants v2"
@@ -3742,3 +3743,44 @@ blueprint:
     workspaces_panel: "Matrice des workspaces"
 admin_missing:
     list_panel: "Adresses demandées"
+
+groups:
+    panel_note: "Un groupe organise des personnes ; un forfait porte des droits."
+    intro: "Les sept groupes intégrés sont protégés : leur nom se change, pas leur clé, et ils ne se suppriment pas. Vous pouvez en créer d'autres — Stagiaires, Bénévoles, une promo."
+    create: "Créer un groupe"
+    create_help: "La clé du groupe est tirée du nom une fois pour toutes. C'est par elle que les forfaits le retrouvent, donc renommer le groupe plus tard ne déplace aucun droit."
+    field_label: "Nom"
+    field_description: "Description"
+    col_group: "Groupe"
+    col_members: "Membres"
+    col_bundles: "Forfaits"
+    col_kind: "Type"
+    kind_builtin: "Intégré"
+    kind_free: "Libre"
+    empty: "Aucun groupe."
+    stored_of: "dont %count% inscrits ici"
+    virtual_members: "%count% — audience résolue"
+    members: "Membres"
+    members_help: "L'appartenance affichée est celle qui décide vraiment : les personnes inscrites ici, plus celles qu'un rôle y met. Seules les premières se retirent depuis cet écran."
+    virtual_help: "Cette audience se résout depuis le compte : elle n'a pas de liste d'appartenance. Tout compte actif en fait partie, sans qu'on ait à l'y inscrire ni à penser à l'en retirer."
+    add_member: "Ajouter au groupe"
+    remove_member: "Retirer"
+    remove_confirm: "Retirer %name% de ce groupe ? Les forfaits que le groupe portait ne s'appliqueront plus à cette personne."
+    source_stored: "ajouté ici"
+    source_role: "par son rôle"
+    change_role: "Voir la fiche"
+    no_members: "Personne pour l'instant."
+    key_fixed: "Clé : %key% — fixée à la création, elle ne change plus."
+    danger: "Supprimer"
+    delete: "Supprimer le groupe"
+    delete_help: "Supprimer ce groupe retire aussi les %count% attribution(s) de forfait qui passaient par lui."
+    delete_confirm: "Supprimer « %name% » ? %count% attribution(s) de forfait passant par ce groupe seront retirées en même temps."
+    protected: "Groupe intégré"
+    protected_help: "Ce groupe fait partie du modèle : son nom et sa description se modifient, sa clé et son existence non."
+    created: "Groupe créé."
+    saved: "Groupe enregistré."
+    deleted: "Groupe supprimé."
+    member_added: "Personne ajoutée au groupe."
+    member_removed: "Personne retirée du groupe."
+    csrf_error: "Action refusée : jeton CSRF invalide."
+    unknown_action: "Action inconnue."

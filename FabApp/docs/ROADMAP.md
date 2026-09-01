@@ -352,16 +352,23 @@ piège de cette phase. `getRoles()` reste ce dont la sécurité, les voters et
 
 ## L'ordre, et pourquoi il est dans cet ordre
 
-**1. L'écran des groupes** — `/admin/groupes`. Créer, renommer, décrire un groupe
-libre ; ajouter et retirer des membres. **Aucune migration** : les deux tables
-existent depuis S133b.
+**1. L'écran des groupes** — ✅ **LIVRÉ le 2026-09-01** (S158a). `/admin/groupes` :
+créer, renommer, décrire un groupe libre ; ajouter et retirer des membres.
+Aucune migration — les deux tables existaient depuis S133b et personne ne les
+écrivait.
+✅ **La liste affiche l'appartenance EFFECTIVE**, pas les lignes stockées : sur la
+boîte, « Administrateur global » compte 6 et « Staff » 2, alors que les deux ont
+**zéro** ligne en base. Un écran qui n'aurait compté que le stocké aurait annoncé
+« 0 membre » sur des groupes qui ouvrent des droits.
+✅ Sonde d'écriture verte : la ligne arrive en base **et** `AudienceResolver` la
+voit — donc un forfait attribué au groupe suit la personne.
 ⚠️ Les sept intégrés ne sont pas supprimables ; `user` et `guest` sont virtuels et
 n'ont jamais de ligne d'appartenance — l'écran doit le DIRE, sinon « 0 membre » se
 lit comme une erreur. C'est déjà la règle de `assignmentsForPackage()`.
 ✅ **Cette étape seule rend réel le formulaire d'attribution par groupe**, et
 c'est elle qui répond à « rendre l'attribution plus facile ».
 
-**2. L'appartenance depuis la fiche membre** — `/admin/utilisateurs/{id}`. Les
+**2. L'appartenance depuis la fiche membre** 🅿️ **PROCHAINE ÉTAPE.** — `/admin/utilisateurs/{id}`. Les
 mêmes lignes, vues par l'autre bout, parce qu'on pense « dans quels groupes est
 cette personne » aussi souvent que l'inverse.
 ⚠️ Une seule source d'écriture, comme pour les droits d'un package : les deux

@@ -1956,6 +1956,7 @@ admin_nav:
         app_admin_creations: Progetti
         app_admin_lab_pages: Pagine
         app_admin_users: Utenti
+        app_admin_groups: "Gruppi"
         app_admin_opening_hours: Orari
         app_admin_usage_rights: Forfait
         app_admin_usage_rights_shadow: "Anteprima grants v2"
@@ -3740,3 +3741,44 @@ blueprint:
     workspaces_panel: "Matrice dei workspace"
 admin_missing:
     list_panel: "Indirizzi richiesti"
+
+groups:
+    panel_note: "Un gruppo organizza le persone; un forfait porta i diritti."
+    intro: "I sette gruppi integrati sono protetti: il nome si cambia, la chiave no, e non si possono eliminare. Potete crearne altri — Tirocinanti, Volontari, una classe."
+    create: "Crea un gruppo"
+    create_help: "La chiave del gruppo è ricavata dal nome una volta per tutte. I forfait ritrovano il gruppo tramite essa, quindi rinominarlo in seguito non sposta alcun diritto."
+    field_label: "Nome"
+    field_description: "Descrizione"
+    col_group: "Gruppo"
+    col_members: "Membri"
+    col_bundles: "Forfait"
+    col_kind: "Tipo"
+    kind_builtin: "Integrato"
+    kind_free: "Proprio"
+    empty: "Nessun gruppo."
+    stored_of: "di cui %count% iscritti qui"
+    virtual_members: "%count% — audience risolta"
+    members: "Membri"
+    members_help: "L'appartenenza mostrata è quella che decide davvero: le persone iscritte qui, più quelle che un ruolo vi aggiunge. Solo le prime si possono togliere da questa schermata."
+    virtual_help: "Questa audience si risolve dall'account: non ha un elenco di appartenenza. Ogni account attivo ne fa parte, senza iscrivere nessuno né ricordarsi di toglierlo."
+    add_member: "Aggiungi al gruppo"
+    remove_member: "Togli"
+    remove_confirm: "Togliere %name% da questo gruppo? I forfait portati dal gruppo non si applicheranno più a questa persona."
+    source_stored: "aggiunto qui"
+    source_role: "tramite il ruolo"
+    change_role: "Apri la scheda"
+    no_members: "Ancora nessuno."
+    key_fixed: "Chiave: %key% — fissata alla creazione, non cambia più."
+    danger: "Elimina"
+    delete: "Elimina il gruppo"
+    delete_help: "Eliminare questo gruppo toglie anche le %count% assegnazione/i di forfait che passavano da esso."
+    delete_confirm: "Eliminare «%name%»? %count% assegnazione/i di forfait che passano da questo gruppo saranno tolte insieme."
+    protected: "Gruppo integrato"
+    protected_help: "Questo gruppo fa parte del modello: nome e descrizione si modificano, chiave ed esistenza no."
+    created: "Gruppo creato."
+    saved: "Gruppo salvato."
+    deleted: "Gruppo eliminato."
+    member_added: "Persona aggiunta al gruppo."
+    member_removed: "Persona tolta dal gruppo."
+    csrf_error: "Azione rifiutata: token CSRF non valido."
+    unknown_action: "Azione sconosciuta."

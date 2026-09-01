@@ -1,0 +1,99 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ 'admin_nav.entry.app_admin_groups'|trans }} - FabOS{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260901-s158a' }}">{% endblock %}
+{% block body %}
+{# LES GROUPES (S158a) — l'écran qui manquait.
+
+   🔴 **La colonne qui compte est « Membres », et elle dit l'EFFECTIF.** Un
+   groupe intégré comme Staff tire ses membres des RÔLES : il peut n'avoir aucune
+   ligne d'appartenance en base et couvrir la moitié du lab. Une colonne qui ne
+   compterait que les lignes stockées annoncerait « 0 membre » au-dessus d'un
+   groupe qui ouvre des droits — c'est le genre de chiffre qu'on croit.
+
+   ⚠️ La seconde ligne de la cellule dit d'où vient l'écart : « dont N inscrits
+   ici ». Les deux nombres ensemble, jamais un seul.
+
+   ⚠️ **« Forfaits » n'est pas décoratif** : `USAGE_RIGHT_ASSIGNMENT.groupId` est
+   en `ON DELETE CASCADE`, donc supprimer un groupe RETIRE les droits qu'il
+   portait. Le compte est là pour que la confirmation puisse le nommer. #}
+{% embed 'site/_admin_list.html.twig' with {
+    panel_title: 'admin_nav.entry.app_admin_groups'|trans,
+    panel_note: 'groups.panel_note'|trans,
+    list_count: rows|length,
+    list_route: 'app_admin_groups',
+    list_search_placeholder: 'common.search_placeholder'|trans,
+    list_client_filter: true,
+} %}
+    {% block content %}
+        <p class="settings-hint">{{ 'groups.intro'|trans }}</p>
+
+        <details class="settings-danger settings-danger--neutral">
+            <summary>{{ 'groups.create'|trans }}</summary>
+            <div>
+                <form method="post" action="{{ path('app_admin_groups') }}" class="form-grid">
+                    <input type="hidden" name="_token" value="{{ csrf_token('admin_groups') }}">
+                    <input type="hidden" name="action" value="create">
+                    <div class="form-field">
+                        <label for="group-label">{{ 'groups.field_label'|trans }}</label>
+                        <input id="group-label" type="text" name="label" maxlength="120" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="group-description">{{ 'groups.field_description'|trans }}</label>
+                        <input id="group-description" type="text" name="description" maxlength="255">
+                    </div>
+                    <div class="form-field full"><button class="ml-btn" type="submit">{{ 'groups.create'|trans }}</button></div>
+                </form>
+                {# ⚠️ Dit ici parce que la clé se voit ensuite partout et ne se
+                   change plus : c'est par elle que les forfaits retrouvent le
+                   groupe, et la renommer déplacerait des droits en silence. #}
+                <p class="settings-hint">{{ 'groups.create_help'|trans }}</p>
+            </div>
+        </details>
+
+        {% embed 'site/_data_table.html.twig' with {
+            pin_actions: true,
+            columns: [
+                {label: 'groups.col_group'|trans, class: 'is-grow'},
+                {label: 'groups.col_members'|trans, class: 'is-tight'},
+                {label: 'groups.col_bundles'|trans, numeric: true, class: 'is-tight'},
+                {label: 'groups.col_kind'|trans, class: 'is-tight'},
+                {label: 'rfid_readers.col_actions'|trans, class: 'is-actions'},
+            ],
+            rows: rows,
+            empty: 'groups.empty'|trans,
+        } %}
+            {% block rows %}
+                {% for row in rows %}
+                    <tr data-admin-list-filter-row>
+                        <td>{% include 'site/_cell_title.html.twig' with {
+                            title: row.label,
+                            subtitle: row.description ?: row.key,
+                            href: path('app_admin_group_edit', {id: row.id}),
+                            media: include('site/_cell_media.html.twig', {initials: row.label, shape: 'square'}, with_context = false),
+                        } only %}</td>
+                        <td>
+                            {# ⚠️ Une audience VIRTUELLE n'a pas de membres à
+                               compter : elle se résout depuis le compte. Dire
+                               « tout compte actif » est le nombre juste. #}
+                            {% if row.virtual %}
+                                <span>{{ 'groups.virtual_members'|trans({'%count%': effective[row.key]|default(0)}) }}</span>
+                            {% else %}
+                                <strong>{{ effective[row.key]|default(0) }}</strong>
+                                <small class="admin-meta">{{ 'groups.stored_of'|trans({'%count%': row.stored}) }}</small>
+                            {% endif %}
+                        </td>
+                        <td class="is-numeric">{{ row.bundles }}</td>
+                        <td>{% include 'site/_cell_state.html.twig' with {
+                            label: (row.builtin ? 'groups.kind_builtin' : 'groups.kind_free')|trans,
+                            signal: row.builtin ? 'muted' : 'go',
+                        } only %}</td>
+                        <td class="is-actions">
+                            <a class="action-btn edit" href="{{ path('app_admin_group_edit', {id: row.id}) }}">{{ 'admin_inline.edit'|trans }}</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% endblock %}
+        {% endembed %}
+    {% endblock %}
+{% endembed %}
+{% endblock %}

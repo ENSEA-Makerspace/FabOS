@@ -15,6 +15,7 @@ use App\UsageRights\PackageSpec;
 use App\UsageRights\PackageSpecCompiler;
 use App\UsageRights\UsageAllowanceRepository;
 use App\UsageRights\UsagePackageRepository;
+use App\UsageRights\UserGroupRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -54,6 +55,7 @@ final class S153PackageProbeCommand extends Command
         private readonly MachineRepository $machines,
         private readonly UtilisateurRepository $users,
         private readonly AudienceResolver $audiences,
+        private readonly UserGroupRepository $groups,
         private readonly LabClock $clock,
     ) {
         parent::__construct();
@@ -70,6 +72,7 @@ final class S153PackageProbeCommand extends Command
             $failures += $this->probeNormalisation($io);
             $failures += $this->probeHoursExemption($io);
             $failures += $this->probeGroupReach($io);
+            $failures += $this->probeGroupWrites($io);
         } finally {
             // ⚠️ `rollBack()` dans un `finally` : une exception au milieu ne doit
             // pas laisser un package de sonde en base.
@@ -298,6 +301,96 @@ final class S153PackageProbeCommand extends Command
         $this->audiences->primeFor([$member]);
         $keys = $this->audiences->keysFor($member);
         $failures += $this->check($io, 'la personne est dans « user » — donc filtrée dedans', in_array('user', $keys, true), implode(',', $keys));
+
+        return $failures;
+    }
+
+    /**
+     * L'écran des groupes écrit-il vraiment ? (S158a)
+     *
+     * 🔴 **C'est la question que cette phase existe pour retourner.** Avant
+     * S158a, `USER_GROUP_MEMBER` n'était écrit par RIEN : la table existait, les
+     * sept intégrés étaient semés, et aucune surface ne permettait de créer un
+     * groupe ni d'y mettre quelqu'un. Une sonde qui se contente de rendre la page
+     * ne prouverait que le balisage ; ce qui compte est qu'une ligne arrive en
+     * base ET que `AudienceResolver` la voie.
+     *
+     * ⚠️ La mémoïsation du résolveur est par requête : après avoir écrit la
+     * ligne, il faut redemander à un résolveur qui ne connaît pas encore la
+     * personne, sinon on relit sa propre réponse d'avant l'écriture.
+     */
+    private function probeGroupWrites(SymfonyStyle $io): int
+    {
+        $io->section('5. L’écran des groupes écrit, et le résolveur le voit');
+
+        $member = null;
+        foreach ($this->users->findBy([], ['id' => 'ASC']) as $candidate) {
+            if ($candidate instanceof Utilisateur) {
+                $member = $candidate;
+                break;
+            }
+        }
+        if ($member === null) {
+            $io->warning('Aucun compte : rien à mesurer ici.');
+
+            return 0;
+        }
+
+        $failures = 0;
+        $id = $this->groups->create('Sonde S158 — bénévoles', 'Créé par la sonde, annulé avec elle.');
+        $group = $this->groups->find($id);
+        $failures += $this->check($io, 'le groupe est créé', $group !== null, 'create');
+        if ($group === null) {
+            return $failures;
+        }
+        $failures += $this->check($io, 'sa clé est tirée du nom', $group['key'] !== '', $group['key']);
+        $failures += $this->check($io, 'et il est LIBRE, pas intégré', !$group['builtin'] && !$group['virtual'], 'libre');
+
+        $this->groups->addMember($id, (int) $member->getId());
+        $failures += $this->check($io, 'la ligne d’appartenance est écrite', $this->groups->storedMemberIds($id) === [(int) $member->getId()], 'membre');
+
+        // 🔴 Un résolveur NEUF : celui de la sonde a déjà répondu pour cette
+        // personne et rendrait sa réponse mémoïsée, d'avant l'écriture.
+        $fresh = new AudienceResolver($this->em->getConnection());
+        $failures += $this->check(
+            $io,
+            'et `AudienceResolver` la voit — donc un forfait la suivrait',
+            in_array($group['key'], $fresh->keysFor($member), true),
+            implode(',', $fresh->keysFor($member)),
+        );
+
+        // ⚠️ Ajouter à une audience VIRTUELLE doit être refusé : elle se résout
+        // depuis le compte, une ligne n'y serait lue par personne.
+        $virtual = null;
+        foreach ($this->groups->all() as $row) {
+            if ($row['virtual']) {
+                $virtual = $row;
+                break;
+            }
+        }
+        if ($virtual !== null) {
+            $refused = false;
+            try {
+                $this->groups->addMember($virtual['id'], (int) $member->getId());
+            } catch (\Throwable) {
+                $refused = true;
+            }
+            $failures += $this->check($io, 'une audience résolue refuse qu’on l’inscrive', $refused, $virtual['key']);
+
+            $protectedRefused = false;
+            try {
+                $this->groups->delete($virtual['id']);
+            } catch (\Throwable) {
+                $protectedRefused = true;
+            }
+            $failures += $this->check($io, 'un groupe intégré refuse d’être supprimé', $protectedRefused, 'garde serveur');
+        }
+
+        $this->groups->removeMember($id, (int) $member->getId());
+        $failures += $this->check($io, 'et la ligne se retire', $this->groups->storedMemberIds($id) === [], 'retrait');
+
+        $this->groups->delete($id);
+        $failures += $this->check($io, 'le groupe libre se supprime', $this->groups->find($id) === null, 'suppression');
 
         return $failures;
     }

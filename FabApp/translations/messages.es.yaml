@@ -1956,6 +1956,7 @@ admin_nav:
         app_admin_creations: Proyectos
         app_admin_lab_pages: Páginas
         app_admin_users: Usuarios
+        app_admin_groups: "Grupos"
         app_admin_opening_hours: Horarios
         app_admin_usage_rights: Planes
         app_admin_usage_rights_shadow: "Vista previa grants v2"
@@ -3740,3 +3741,44 @@ blueprint:
     workspaces_panel: "Matriz de workspaces"
 admin_missing:
     list_panel: "Direcciones solicitadas"
+
+groups:
+    panel_note: "Un grupo organiza personas; un plan aporta derechos."
+    intro: "Los siete grupos integrados están protegidos: su nombre se puede cambiar, su clave no, y no se pueden borrar. Puede crear otros — Becarios, Voluntarios, una promoción."
+    create: "Crear un grupo"
+    create_help: "La clave del grupo se deriva del nombre una sola vez. Los planes encuentran el grupo por ella, así que renombrarlo más tarde no mueve ningún derecho."
+    field_label: "Nombre"
+    field_description: "Descripción"
+    col_group: "Grupo"
+    col_members: "Miembros"
+    col_bundles: "Planes"
+    col_kind: "Tipo"
+    kind_builtin: "Integrado"
+    kind_free: "Propio"
+    empty: "Ningún grupo."
+    stored_of: "%count% inscritos aquí"
+    virtual_members: "%count% — audiencia resuelta"
+    members: "Miembros"
+    members_help: "La pertenencia mostrada es la que realmente decide: las personas inscritas aquí, más las que añade un rol. Solo las primeras se pueden quitar desde esta pantalla."
+    virtual_help: "Esta audiencia se resuelve desde la cuenta: no tiene lista de pertenencia. Toda cuenta activa forma parte de ella, sin inscribir a nadie ni acordarse de darlo de baja."
+    add_member: "Añadir al grupo"
+    remove_member: "Quitar"
+    remove_confirm: "¿Quitar a %name% de este grupo? Los planes que traía el grupo dejarán de aplicarse a esta persona."
+    source_stored: "añadido aquí"
+    source_role: "por su rol"
+    change_role: "Ver ficha"
+    no_members: "Nadie por ahora."
+    key_fixed: "Clave: %key% — fijada al crear, ya no cambia."
+    danger: "Eliminar"
+    delete: "Eliminar el grupo"
+    delete_help: "Eliminar este grupo quita también las %count% asignación(es) de plan que pasaban por él."
+    delete_confirm: "¿Eliminar «%name%»? Se quitarán también %count% asignación(es) de plan que pasaban por este grupo."
+    protected: "Grupo integrado"
+    protected_help: "Este grupo forma parte del modelo: su nombre y su descripción se modifican, su clave y su existencia no."
+    created: "Grupo creado."
+    saved: "Grupo guardado."
+    deleted: "Grupo eliminado."
+    member_added: "Persona añadida al grupo."
+    member_removed: "Persona quitada del grupo."
+    csrf_error: "Acción rechazada: token CSRF no válido."
+    unknown_action: "Acción desconocida."

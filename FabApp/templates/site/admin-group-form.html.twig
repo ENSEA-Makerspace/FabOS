@@ -1,0 +1,144 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ group.label }} · FabOS{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260901-s158a' }}">{% endblock %}
+{% block body %}
+{# UN GROUPE (S158a) : son identité, et qui est dedans.
+
+   🔴 **La liste des membres dit l'appartenance EFFECTIVE, et par où elle passe.**
+   `ROLE_STAFF` met dans `staff` sans aucune ligne en base : n'afficher que les
+   lignes stockées annoncerait un groupe vide qui ouvre pourtant des droits.
+   Chaque personne porte donc sa SOURCE, et seules celles ajoutées ici ont un
+   bouton « Retirer » — retirer quelqu'un qui est là par son rôle est impossible
+   depuis cet écran, alors le bouton n'existe pas plutôt que d'échouer.
+
+   ⚠️ **Une audience virtuelle n'a ni liste ni formulaire.** `user` et `guest` se
+   résolvent depuis le compte ; un formulaire d'ajout y serait un contrôle qui
+   n'agit pas. #}
+{# ⚠️ **Une seule bande, celle du shell.** La première version ajoutait un
+   `_admin_form_head` À L'INTÉRIEUR du `{% block content %}` : `_admin_list`
+   dessine déjà sa bande à partir de `panel_title`, si bien que « Staff »
+   s'affichait DEUX FOIS, l'une sous l'autre. Le shell est la bande ; une page
+   qui en veut une lui passe son titre, elle n'en empile pas une seconde.
+   C'est la même règle que la fiche d'un forfait, qui ne fait que passer
+   `panel_title`.
+
+   ⚠️ **Et pas de « retour » non plus.** Détourner `action_label` pour ça rendait
+   un bouton VERT à «+» portant « Tous les groupes » : un contrôle dont l'aspect
+   promet une création. Le chemin de retour existe déjà — l'onglet « Groupes » de
+   la bande de sous-navigation, que `NavBuilder` allume sur cette page parce
+   qu'elle est déclarée enfant de la liste. #}
+{% embed 'site/_admin_list.html.twig' with {
+    page_title: group.label,
+    panel_title: group.label,
+    panel_note: group.description ?: group.key,
+} %}
+    {% block content %}
+        <form method="post" class="usage-package-form">
+            <input type="hidden" name="_token" value="{{ csrf_token('admin_groups') }}">
+            <input type="hidden" name="action" value="rename">
+            <input type="hidden" name="id" value="{{ group.id }}">
+            <div class="usage-form-field">
+                <label for="g-label">{{ 'groups.field_label'|trans }}</label>
+                <input id="g-label" type="text" name="label" maxlength="120" required value="{{ group.label }}">
+            </div>
+            <div class="usage-form-field">
+                <label for="g-description">{{ 'groups.field_description'|trans }}</label>
+                <input id="g-description" type="text" name="description" maxlength="255" value="{{ group.description }}">
+            </div>
+            {# ⚠️ La clé est montrée et NON modifiable : c'est par elle que les
+               forfaits, le résolveur et la migration se retrouvent. Un champ
+               éditable ici déplacerait des droits en silence. #}
+            <p class="settings-hint">{{ 'groups.key_fixed'|trans({'%key%': group.key}) }}</p>
+            <div class="admin-actions">
+                <button class="btn-link btn-primary-admin" type="submit">{{ 'common.save'|trans }}</button>
+            </div>
+        </form>
+    {% endblock %}
+
+    {% block panel_extra %}
+        <section class="usage-assignments">
+            <div class="admin-panel-header"><h2>{{ 'groups.members'|trans }}</h2></div>
+
+            {% if group.virtual %}
+                <p class="settings-hint">{{ 'groups.virtual_help'|trans }}</p>
+            {% else %}
+                <p class="settings-hint">{{ 'groups.members_help'|trans }}</p>
+
+                {% if candidates %}
+                    <form method="post" class="usage-assignment-form">
+                        <input type="hidden" name="_token" value="{{ csrf_token('admin_groups') }}">
+                        <input type="hidden" name="action" value="add_member">
+                        <input type="hidden" name="id" value="{{ group.id }}">
+                        <label class="sr-only" for="g-member">{{ 'groups.add_member'|trans }}</label>
+                        <select id="g-member" name="user_id" required>
+                            {% for person in candidates %}
+                                <option value="{{ person.id }}">{{ person.displayName }} — {{ person.email }}</option>
+                            {% endfor %}
+                        </select>
+                        <button class="btn-link btn-primary-admin" type="submit">{{ 'groups.add_member'|trans }}</button>
+                    </form>
+                {% endif %}
+
+                {% if members %}
+                    <div class="usage-assignment-list">
+                        {% for member in members %}
+                            <div class="usage-assignment">
+                                <span>
+                                    <strong>{{ member.user.displayName }}</strong>
+                                    <small>
+                                        {{ member.user.email }} ·
+                                        {{ (member.stored ? 'groups.source_stored' : 'groups.source_role')|trans }}
+                                    </small>
+                                </span>
+                                {# 🔴 Pas de bouton pour une appartenance venue d'un
+                                   RÔLE : cet écran ne peut pas la retirer, et un
+                                   bouton qui échoue est pire que pas de bouton.
+                                   La phrase dit où aller. #}
+                                {% if member.stored %}
+                                    <form method="post"
+                                          data-controller="confirm" data-action="submit->confirm#ask"
+                                          data-confirm-message-value="{{ 'groups.remove_confirm'|trans({'%name%': member.user.displayName}) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('admin_groups') }}">
+                                        <input type="hidden" name="action" value="remove_member">
+                                        <input type="hidden" name="id" value="{{ group.id }}">
+                                        <input type="hidden" name="user_id" value="{{ member.user.id }}">
+                                        <button class="admin-action danger" type="submit">{{ 'groups.remove_member'|trans }}</button>
+                                    </form>
+                                {% else %}
+                                    <a class="admin-action" href="{{ path('app_admin_user_detail', {id: member.user.id}) }}">{{ 'groups.change_role'|trans }}</a>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="usage-empty">{{ 'groups.no_members'|trans }}</p>
+                {% endif %}
+            {% endif %}
+        </section>
+
+        {% if not group.builtin %}
+            {# ⚠️ **La suppression dit ce qu'elle emporte.** Le lien
+               `USAGE_RIGHT_ASSIGNMENT.groupId` est en `ON DELETE CASCADE` : les
+               forfaits attribués à ce groupe perdent leur attribution avec lui.
+               La confirmation nomme le nombre plutôt que de le laisser découvrir. #}
+            <section class="usage-assignments">
+                <div class="admin-panel-header"><h2>{{ 'groups.danger'|trans }}</h2></div>
+                <form method="post" class="usage-assignment-form"
+                      data-controller="confirm" data-action="submit->confirm#ask"
+                      data-confirm-message-value="{{ 'groups.delete_confirm'|trans({'%name%': group.label, '%count%': group.bundles}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('admin_groups') }}">
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="id" value="{{ group.id }}">
+                    <p class="settings-hint">{{ 'groups.delete_help'|trans({'%count%': group.bundles}) }}</p>
+                    <button class="admin-action danger" type="submit">{{ 'groups.delete'|trans }}</button>
+                </form>
+            </section>
+        {% else %}
+            <section class="usage-assignments">
+                <div class="admin-panel-header"><h2>{{ 'groups.protected'|trans }}</h2></div>
+                <p class="settings-hint">{{ 'groups.protected_help'|trans }}</p>
+            </section>
+        {% endif %}
+    {% endblock %}
+{% endembed %}
+{% endblock %}

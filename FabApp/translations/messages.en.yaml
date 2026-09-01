@@ -1956,6 +1956,7 @@ admin_nav:
         app_admin_creations: Projects
         app_admin_lab_pages: Pages
         app_admin_users: Users
+        app_admin_groups: "Groups"
         app_admin_opening_hours: Opening hours
         app_admin_usage_rights: Bundles
         app_admin_usage_rights_shadow: "Grants v2 preview"
@@ -3741,3 +3742,44 @@ blueprint:
     workspaces_panel: "Workspace matrix"
 admin_missing:
     list_panel: "Requested addresses"
+
+groups:
+    panel_note: "A group organises people; a bundle carries rights."
+    intro: "The seven built-in groups are protected: their name can change, their key cannot, and they cannot be deleted. You can add your own — Interns, Volunteers, a cohort."
+    create: "Create a group"
+    create_help: "The group's key is derived from the name once and for all. Bundles find the group through it, so renaming the group later moves no rights."
+    field_label: "Name"
+    field_description: "Description"
+    col_group: "Group"
+    col_members: "Members"
+    col_bundles: "Bundles"
+    col_kind: "Kind"
+    kind_builtin: "Built-in"
+    kind_free: "Custom"
+    empty: "No groups."
+    stored_of: "%count% listed here"
+    virtual_members: "%count% — resolved audience"
+    members: "Members"
+    members_help: "The membership shown is the one that actually decides: people listed here, plus those a role puts in. Only the first kind can be removed from this screen."
+    virtual_help: "This audience resolves from the account: it has no membership list. Every active account belongs to it, with nobody to add and nobody to remember to remove."
+    add_member: "Add to group"
+    remove_member: "Remove"
+    remove_confirm: "Remove %name% from this group? Bundles the group carried will no longer apply to them."
+    source_stored: "added here"
+    source_role: "through their role"
+    change_role: "Open profile"
+    no_members: "Nobody yet."
+    key_fixed: "Key: %key% — set at creation, never changed."
+    danger: "Delete"
+    delete: "Delete group"
+    delete_help: "Deleting this group also removes the %count% bundle assignment(s) that went through it."
+    delete_confirm: "Delete \"%name%\"? %count% bundle assignment(s) going through this group will be removed with it."
+    protected: "Built-in group"
+    protected_help: "This group is part of the model: its name and description can change, its key and its existence cannot."
+    created: "Group created."
+    saved: "Group saved."
+    deleted: "Group deleted."
+    member_added: "Person added to the group."
+    member_removed: "Person removed from the group."
+    csrf_error: "Action refused: invalid CSRF token."
+    unknown_action: "Unknown action."

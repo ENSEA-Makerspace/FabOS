@@ -309,6 +309,14 @@ final class NavBuilder
             // The per-person quota screen. It is the same route as the machine and
             // space quotas, told apart by `reservableType` — see `isCurrent()`.
             $this->adminItem('admin_nav.entry.app_admin_booking_policies', 'app_admin_booking_policies', 'reservations', feature: 'bookings', params: ['reservableType' => 'user']),
+            // ⚠️ **Les groupes vivent avec les UTILISATEURS, pas avec les
+            // forfaits** (S158a) : un groupe organise des personnes, un forfait
+            // porte des droits. C'est la première phrase de
+            // `USAGE_RIGHTS_VISION.md`, et la ranger ailleurs ferait croire que
+            // l'un dépend de l'autre.
+            $this->adminItem('admin_nav.entry.app_admin_groups', 'app_admin_groups', 'users', [
+                'app_admin_group_edit',
+            ]),
         ]);
 
         // ⚠️ **The shadow is a real destination (S133b), not a dev tool.** It is
