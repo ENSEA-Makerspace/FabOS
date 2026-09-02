@@ -133,8 +133,11 @@
                         <p class="admin-panel-help">{{ 'admin_user_detail.person_type_help'|trans }}</p>
                         {{ form_start(personTypeForm, {action: path('app_admin_user_person_type', {id: user.id})}) }}
                             {% form_theme personTypeForm 'form/admin_theme.html.twig' %}
-                            {{ form_row(personTypeForm.is_staff) }}
-                            {{ form_row(personTypeForm.is_trainer) }}
+                            {# 🔴 **REVUE R5** — « Équipe » et « Formateur » ont
+                               quitté cette carte : elles écrivaient les mêmes
+                               lignes que le panneau « Groupes », quelques
+                               centimètres plus haut sur cette page. Un fait, un
+                               endroit. #}
                             {{ form_row(personTypeForm.is_bookable) }}
                             <button type="submit" class="btn-primary">{{ 'common.save'|trans }}</button>
                         {{ form_end(personTypeForm) }}

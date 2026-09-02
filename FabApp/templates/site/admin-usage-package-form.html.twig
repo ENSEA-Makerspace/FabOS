@@ -318,22 +318,25 @@
                    qu'elles accordent**, et la liste plus bas les montre avec leur
                    bouton de révocation. Aucune migration, rien de perdu.
 
-                   🔴 Les deux dates rendent une CHAÎNE : c'est le contrôleur qui
-                   les construit dans le fuseau du LABO. Laisser le formulaire
-                   hydrater un `DateTimeImmutable` le ferait dans le fuseau PHP —
-                   UTC ici — et décalerait toute validité sans rien dire. #}
-                <details class="settings-danger settings-danger--neutral"{{ refusedEditor|default(null) == 'assignGroupForm' ? ' open' : '' }}>
-                    <summary>{{ 'usage_rights.assign_group'|trans }}</summary>
-                    <div>
-                        {{ form_start(assignGroupForm, {attr: {class: 'usage-assignment-form'}}) }}
-                            {% form_theme assignGroupForm 'form/admin_theme.html.twig' %}
-                            {{ form_row(assignGroupForm.group_key) }}
-                            {{ form_row(assignGroupForm.valid_from) }}
-                            {{ form_row(assignGroupForm.valid_until) }}
-                            <button class="btn-link btn-primary-admin" type="submit">{{ 'usage_rights.assign_group'|trans }}</button>
-                        {{ form_end(assignGroupForm) }}
-                    </div>
-                </details>
+                   🔴 **REVUE R2 — l'éditeur n'est plus REPLIÉ.** Le `<details>`
+                   se justifiait quand quatre « ajouter » se disputaient la place.
+                   Il n'en reste qu'un depuis l'étape 1 de S159, et c'est l'action
+                   que cette page existe pour permettre : la replier ajoutait un
+                   clic au geste le plus fréquent de l'écran.
+
+                   🔴 **REVUE R3 — les deux DATES sont retirées.** « Jusqu'à
+                   quand » s'écrivait ici ET sur l'appartenance au groupe, sans
+                   que rien ne dise lequel répondait à « Sofia jusqu'au 30 juin ».
+                   La date va sur l'APPARTENANCE, où elle concerne une personne.
+                   Mesuré avant de retirer : les trois attributions de groupe
+                   vivantes n'ont aucune date. #}
+                <div class="usage-assign-group">
+                    {{ form_start(assignGroupForm, {attr: {class: 'usage-assignment-form'}}) }}
+                        {% form_theme assignGroupForm 'form/admin_theme.html.twig' %}
+                        {{ form_row(assignGroupForm.group_key) }}
+                        <button class="btn-link btn-primary-admin" type="submit">{{ 'usage_rights.assign_group'|trans }}</button>
+                    {{ form_end(assignGroupForm) }}
+                </div>
                 <p class="settings-hint">{{ 'usage_rights.assign_group_help'|trans }}</p>
 
                 {% if assignments %}
@@ -362,7 +365,16 @@
                         {% endfor %}
                     </div>
                 {% else %}
-                    <p class="usage-empty">{{ 'usage_rights.no_assignments'|trans }}</p>
+                    {# 🔴 **REVUE R6 — le chemin manquant.** Le modèle groupes-seuls
+                       coûte 3 écrans au lieu d'1 pour une personne unique, et
+                       c'est assumé ; mais rien ne menait d'ici vers « créer le
+                       groupe qui va le porter » — on sortait, on créait, on
+                       revenait. Le nom du forfait part en paramètre, la page des
+                       groupes ouvre son formulaire déjà rempli. #}
+                    <p class="usage-empty">
+                        {{ 'usage_rights.no_assignments'|trans }}
+                        <a class="btn-link" href="{{ path('app_admin_groups', {'nom': package.name}) }}">{{ 'usage_rights.create_group_for_package'|trans }}</a>
+                    </p>
                 {% endif %}
             </section>
         {% endif %}

@@ -27,7 +27,10 @@
     {% block content %}
         <p class="settings-hint">{{ 'groups.intro'|trans }}</p>
 
-        <details class="settings-danger settings-danger--neutral">
+        {# ⚠️ Ouvert d'office quand on ARRIVE d'un forfait (revue R6) : le nom est
+           déjà rempli, laisser le formulaire replié cacherait ce qu'on vient
+           faire ici. #}
+        <details class="settings-danger settings-danger--neutral"{{ app.request.query.has('nom') ? ' open' : '' }}>
             <summary>{{ 'groups.create'|trans }}</summary>
             <div>
                 <form method="post" action="{{ path('app_admin_groups') }}" class="form-grid">
@@ -35,7 +38,7 @@
                     <input type="hidden" name="action" value="create">
                     <div class="form-field">
                         <label for="group-label">{{ 'groups.field_label'|trans }}</label>
-                        <input id="group-label" type="text" name="label" maxlength="120" required>
+                        <input id="group-label" type="text" name="label" maxlength="120" value="{{ app.request.query.get('nom')|default('') }}" required>
                     </div>
                     <div class="form-field">
                         <label for="group-description">{{ 'groups.field_description'|trans }}</label>
@@ -79,7 +82,21 @@
                                 <span>{{ 'groups.virtual_members'|trans({'%count%': effective[row.key]|default(0)}) }}</span>
                             {% else %}
                                 <strong>{{ effective[row.key]|default(0) }}</strong>
-                                <small class="admin-meta">{{ 'groups.stored_of'|trans({'%count%': row.stored}) }}</small>
+                                {# 🔴 **REVUE R4 — la seconde ligne ne s'affiche que
+                                   si elle DIT quelque chose.** Elle existe pour
+                                   révéler un ÉCART entre l'effectif et les lignes
+                                   stockées. Le jour où elle a été écrite, l'écart
+                                   était réel — « Staff » comptait 2 membres pour
+                                   0 ligne. Depuis le backfill de S158c et le
+                                   contract de S159, les deux nombres sont égaux
+                                   sur les onze groupes : elle répétait un nombre.
+                                   ⚠️ Elle redeviendra utile toute seule le jour où
+                                   des groupes à RÈGLE apporteront des membres sans
+                                   ligne — d'où la condition plutôt que la
+                                   suppression. #}
+                                {% if effective[row.key]|default(0) != row.stored %}
+                                    <small class="admin-meta">{{ 'groups.stored_of'|trans({'%count%': row.stored}) }}</small>
+                                {% endif %}
                             {% endif %}
                         </td>
                         <td class="is-numeric">{{ row.bundles }}</td>

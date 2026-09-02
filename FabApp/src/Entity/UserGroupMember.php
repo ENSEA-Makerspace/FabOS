@@ -19,14 +19,17 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(name: 'USER_GROUP_MEMBER')]
 class UserGroupMember
 {
+    // ⚠️ Pas de `nullable: false` sur ces deux colonnes de jointure : sur une
+    // to-one qui fait partie de l'IDENTIFIANT, l'ORM le force déjà à `false` et
+    // l'écrire est déprécié (erreur en 4.0). Vu dans la sortie de `cache:clear`.
     #[ORM\Id]
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'groupMemberships')]
-    #[ORM\JoinColumn(name: 'userId', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(name: 'userId', referencedColumnName: 'id', onDelete: 'CASCADE')]
     private ?Utilisateur $utilisateur = null;
 
     #[ORM\Id]
     #[ORM\ManyToOne(targetEntity: UserGroup::class)]
-    #[ORM\JoinColumn(name: 'groupId', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(name: 'groupId', referencedColumnName: 'id', onDelete: 'CASCADE')]
     private ?UserGroup $group = null;
 
     #[ORM\Column(name: 'addedAt', type: 'datetime_immutable')]

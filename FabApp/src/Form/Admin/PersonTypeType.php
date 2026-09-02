@@ -9,14 +9,22 @@ use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
- * `/admin/utilisateurs/{id}`, carte « Type de personne » (S148, J-22).
+ * `/admin/utilisateurs/{id}`, carte des rendez-vous (S148, J-22).
  *
- * ⚠️ **Aucune contrainte, et ce n'est pas un oubli.** Trois cases ne peuvent pas
- * être invalides : toute combinaison est un état que l'opérateur a le droit de
- * demander. Ce que la conversion apporte ici n'est donc pas le refus — c'est le
- * balisage : trois `.form-field-check` du thème au lieu de trois `<label
- * class="admin-choice-row">` écrits à la main, et l'aide de la troisième case
- * rendue par `form_help()` au lieu d'un `<p>` posé à côté.
+ * 🔴 **REVUE R5 (2026-09-03) — « Équipe » et « Formateur » sont RETIRÉES d'ici.**
+ * Depuis S159e, ces deux cases écrivaient exactement les mêmes lignes que le
+ * panneau « Groupes » situé quelques centimètres plus haut sur la même page :
+ * deux contrôles pour un seul fait, c'est-à-dire la règle de toute la phase
+ * S158/S159 prise en défaut sur son propre écran.
+ *
+ * ⚠️ **Ce qui se perd, et il faut le dire** : les cases étaient plus RAPIDES que
+ * le menu du panneau Groupes — un clic contre deux. C'est un vrai coût, accepté
+ * parce qu'un opérateur qui voit deux endroits pour la même chose finit par
+ * croire qu'ils font des choses différentes.
+ *
+ * ✅ **Ce qui reste ici est un fait d'une autre nature** : « réservable » est
+ * porté par une COLONNE de l'utilisateur, pas par une appartenance, et il
+ * n'existe nulle part ailleurs.
  *
  * 🔴 La conséquence de décocher « réservable » — les rendez-vous à venir sont
  * ANNULÉS et leurs titulaires prévenus — reste dans le contrôleur : elle dépend
@@ -27,14 +35,6 @@ final class PersonTypeType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('is_staff', CheckboxType::class, [
-                'label' => 'admin_user_detail.is_staff',
-                'required' => false,
-            ])
-            ->add('is_trainer', CheckboxType::class, [
-                'label' => 'admin_user_detail.is_trainer',
-                'required' => false,
-            ])
             ->add('is_bookable', CheckboxType::class, [
                 'label' => 'admin_user_detail.is_bookable',
                 'help' => 'admin_user_detail.is_bookable_help',

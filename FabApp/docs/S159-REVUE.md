@@ -40,7 +40,7 @@ exactement ce qui l'a rendu invisible.
 
 ---
 
-## R2 — L'action principale de la fiche d'un forfait est REPLIÉE
+## ✅ R2 — L'action principale de la fiche d'un forfait était REPLIÉE — CORRIGÉ
 
 `/admin/usage-rights/21/edit` → « Attribuer à un groupe » est dans un `<details>`
 fermé. Or c'est **le seul moyen** de donner un forfait à qui que ce soit depuis
@@ -54,7 +54,7 @@ geste le plus fréquent de l'écran.
 
 ---
 
-## R3 — Une date se met à DEUX endroits, sans que rien ne dise lequel
+## ✅ R3 — Une date se mettait à DEUX endroits — CORRIGÉ
 
 Depuis S159g, « jusqu'à quand » s'écrit :
 
@@ -76,7 +76,7 @@ groupe pour une durée.
 
 ---
 
-## R4 — « 6 · dont 6 inscrits ici » ne dit plus rien
+## ✅ R4 — « 6 · dont 6 inscrits ici » ne disait plus rien — CORRIGÉ
 
 Sur `/admin/groupes`, la seconde ligne de la colonne « Membres » est là pour
 révéler un écart. Le jour où elle a été écrite, l'écart était réel : Staff comptait
@@ -89,7 +89,7 @@ ligne — et d'ici là elle ne répète pas un nombre.
 
 ---
 
-## R5 — Deux contrôles pour le même fait sur la fiche d'un membre
+## ✅ R5 — Deux contrôles pour le même fait sur la fiche d'un membre — CORRIGÉ
 
 `/admin/utilisateurs/5` porte, à quelques centimètres d'écart :
 
@@ -106,7 +106,7 @@ et c'est un vrai argument.
 
 ---
 
-## R6 — Le coût en clics du nouveau modèle, dit honnêtement
+## ✅ R6 — Le coût en clics du nouveau modèle — le chemin manquant AJOUTÉ
 
 **Avant** : donner un forfait à quelqu'un = 1 écran, 1 menu, 1 bouton.
 **Après** : 3 écrans — créer le groupe, y mettre la personne, attribuer le forfait
@@ -143,3 +143,43 @@ crée, on revient.
 navigateur authentifiée : la validité des formulaires, les jetons CSRF et les
 messages de flash **en situation réelle** ne sont pas mesurés ici. Les gardes
 elles-mêmes le sont, par la sonde `app:s153:package-probe`.
+
+---
+
+## ✅ Ce qui a été fait des six, le 2026-09-03
+
+L'opérateur a validé les cinq propositions. Toutes appliquées et mesurées **sur
+les pages rendues**, pas sur le diff.
+
+| | Ce qui change | Mesuré |
+|---|---|---|
+| **R1** | `roleKeysFor()` supprimée, le bouton « Retirer » revient | 2 boutons sur `staff`, 4 sur la fiche de Cédric |
+| **R2** | Le `<details>` disparaît, l'éditeur est à nu | `usage-assign-group` présent sur les 3 forfaits, plus un seul `<details>` |
+| **R3** | Les deux dates quittent l'attribution de groupe | 0 occurrence de `valid_from` / `valid_until` sur les pages |
+| **R4** | La seconde ligne ne s'affiche que si les nombres DIFFÈRENT | 0 occurrence : les onze groupes sont à égalité, ce que la revue annonçait |
+| **R5** | « Équipe » et « Formateur » quittent la carte de la personne | Une seule case rendue, `is_bookable` ; le panneau Groupes garde ses 4 boutons |
+| **R6** | « Créer un groupe pour ce forfait », nom prérempli | Lien présent sur le seul forfait sans attribution (#20) ; la page cible arrive **dépliée** et remplie |
+
+🔴 **R3 est tranché par la MESURE, pas par le goût.** Avant de retirer les
+champs : les trois attributions de groupe vivantes (#73, #74, #75) n'ont ni
+`validFrom` ni `validUntil`. La surface retirée ne servait à personne. ⚠️ Et le
+MODÈLE ne bouge pas — `assignGroup()` accepte toujours deux dates, les colonnes
+restent : c'est le chemin qu'écrira le module commerce.
+
+⚠️ **Ce que R5 coûte, et il faut le dire** : deux cases valaient un clic là où le
+panneau Groupes en demande deux. C'est un vrai recul de vitesse, accepté parce
+qu'un opérateur qui voit deux endroits pour la même chose finit par croire qu'ils
+font des choses différentes.
+
+⚠️ **R4 n'est pas une suppression mais une CONDITION** : la ligne redeviendra
+utile toute seule le jour où des groupes à règle apporteront des membres sans
+ligne stockée. Aujourd'hui la condition est structurellement fausse, puisque les
+rôles dérivent des appartenances — c'est-à-dire que le nombre était devenu une
+répétition, exactement ce que la revue disait.
+
+**Vérifié après coup** : `lint:twig` 217/0, `lint:yaml` 15/0, `php -l` sur tout
+`src/` et `migrations/`, balayage de **118 routes → 106×200** et aucun `NOSTATUS`
+nouveau, sonde `app:s153:package-probe` verte, 14 fichiers identiques au hachage.
+Au passage, une **dépréciation Doctrine** qui sortait à chaque `cache:clear` est
+partie : `nullable: false` sur une jointure to-one qui fait partie de
+l'identifiant est un no-op, et une erreur en ORM 4.

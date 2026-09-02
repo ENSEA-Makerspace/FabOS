@@ -1870,20 +1870,24 @@ final class AdminController extends AbstractController
         ReservationRepository $reservations,
         ReservationMailer $reservationMails,
         EntityManagerInterface $entityManager,
-        UserGroupRepository $userGroups,
     ): Response {
         $user = $users->find($id);
         if (!$user instanceof Utilisateur) {
             throw $this->createNotFoundException('Utilisateur introuvable.');
         }
 
-        // ⚠️ **S148, J-22 — trois cases, un `FormType`, et aucun refus possible.**
-        // Toute combinaison est un état que l'opérateur a le droit de demander : ce
-        // que la conversion apporte ici, c'est le balisage du thème, pas la
-        // validation. Le jeton reste par utilisateur.
+        // 🔴 **REVUE R5 — « staff » et « formateur » ne s'écrivent plus ici.**
+        // Depuis S159e ces deux cases écrivaient les mêmes lignes d'appartenance
+        // que le panneau « Groupes » de la même page. Un seul fait, deux
+        // contrôles à quelques centimètres : le doublon que cette phase a passé
+        // trois jours à supprimer partout ailleurs. Le panneau Groupes reste la
+        // seule surface, et il porte déjà les gardes (dernier administrateur,
+        // audience résolue, groupe intégré).
+        //
+        // ⚠️ Il ne reste qu'une case, et elle est d'une autre nature :
+        // « réservable » est une COLONNE de l'utilisateur, pas une appartenance.
+        // Le jeton reste par utilisateur.
         $form = $this->createForm(PersonTypeType::class, [
-            'is_staff' => $user->isStaff(),
-            'is_trainer' => $user->isTrainer(),
             'is_bookable' => $user->isBookable(),
         ], ['user_id' => $id]);
         $form->handleRequest($request);
@@ -1896,20 +1900,6 @@ final class AdminController extends AbstractController
 
         /** @var array<string, mixed> $data */
         $data = $form->getData();
-
-        // 🔴 **S159e — « staff » et « formateur » s'écrivent désormais dans le
-        // GROUPE, et la ligne de rôle héritée part avec.** C'est la première
-        // moitié du contract : la table `UTILISATEUR_ROLE` cesse d'être écrite
-        // pour ces deux-là, une personne à la fois, au moment où l'opérateur
-        // touche la case.
-        //
-        // ⚠️ **Retirer la ligne de rôle n'est pas un extra, c'est ce qui rend la
-        // case capable de dire NON.** `getRoles()` rend l'union : tant qu'une
-        // ligne de rôle subsiste, décocher la case laisserait la personne staff.
-        // Et c'est aussi ce qui redonne son bouton « Retirer » à la fiche du
-        // groupe, qui le cache tant qu'un rôle est une seconde raison.
-        $this->setPersonTypeGroup($user, 'staff', (bool) $data['is_staff'], $userGroups);
-        $this->setPersonTypeGroup($user, 'trainers', (bool) $data['is_trainer'], $userGroups);
 
         // Being bookable is the admin's call; the person then owns their own
         // slots and durations. Turning it off cancels what was already booked —
@@ -1927,60 +1917,6 @@ final class AdminController extends AbstractController
         $this->addFlash('success', 'flash.type_de_personne_mis_a_jour');
 
         return $this->redirectToRoute('app_admin_user_detail', ['id' => $id]);
-    }
-
-    /**
-     * Poser ou retirer « staff » / « formateur », dans le GROUPE (S159e).
-     *
-     * 🔴 **Et en retirant la ligne de rôle héritée, toujours.** `getRoles()` rend
-     * l'union des deux sources : laisser la ligne de `UTILISATEUR_ROLE` en place
-     * rendrait la case incapable de dire NON — on décocherait « staff » et la
-     * personne resterait staff, par l'autre source, sans que rien ne le dise.
-     *
-     * ⚠️ **C'est le contract, fait une personne à la fois.** Chaque passage sur
-     * cette case déplace un compte de l'ancienne source vers la nouvelle. Rien
-     * n'oblige à tout migrer d'un coup, et l'union couvre ceux qui n'ont pas
-     * encore bougé.
-     *
-     * ⚠️ **L'écriture du groupe passe par `UserGroupRepository`**, jamais par
-     * l'ORM : c'est lui qui porte les gardes, et une seconde surface d'écriture
-     * sur la même table est la faute que cette phase entière range.
-     */
-    private function setPersonTypeGroup(
-        Utilisateur $user,
-        string $groupKey,
-        bool $shouldHave,
-        UserGroupRepository $userGroups,
-    ): void {
-        $group = null;
-        foreach ($userGroups->all() as $row) {
-            if ($row['key'] === $groupKey) {
-                $group = $row;
-                break;
-            }
-        }
-
-        if ($group !== null) {
-            $stored = \in_array((int) $user->getId(), $userGroups->storedMemberIds($group['id']), true);
-            try {
-                if ($shouldHave && !$stored) {
-                    $userGroups->addMember($group['id'], (int) $user->getId());
-                } elseif (!$shouldHave && $stored) {
-                    $userGroups->removeMember($group['id'], (int) $user->getId());
-                }
-            } catch (\Throwable $e) {
-                // La garde du dernier administrateur, ou une table absente. On le
-                // dit plutôt que d'écrire à moitié — mais on ne casse pas les
-                // deux autres cases du formulaire pour autant.
-                $this->addFlash('error', $e->getMessage());
-
-                return;
-            }
-        }
-
-        // ⚠️ **S159f — plus de ligne de rôle à retirer.** `getRoles()` ne lit plus
-        // `UTILISATEUR_ROLE` et la migration `Version20260902100000` la supprime :
-        // le groupe est la seule source, donc décocher la case suffit à dire non.
     }
 
     #[Route('/utilisateurs/{userId}/formations/{formationId}/validation-physique', name: 'app_admin_validate_physical_training', requirements: ['userId' => '\d+', 'formationId' => '\d+'], methods: ['POST'])]

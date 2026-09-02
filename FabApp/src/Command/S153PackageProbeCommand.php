@@ -459,16 +459,21 @@ final class S153PackageProbeCommand extends Command
      * La case « staff » de la fiche d'un membre écrit-elle vraiment le GROUPE, et
      * la personne cesse-t-elle d'être staff quand on la décoche ? (S159e)
      *
-     * 🔴 **C'est la question que le contract rend piégeuse.** `getRoles()` rend
-     * l'UNION : tant qu'une ligne de `UTILISATEUR_ROLE` subsiste, retirer
-     * l'appartenance au groupe ne retire rien du tout — la personne reste staff
-     * par l'autre source, et l'écran a l'air de mentir. Le contrôleur retire donc
-     * les deux ; cette sonde vérifie que le NON est un vrai non.
+     * 🔴 **C'était la question que le contract rendait piégeuse**, du temps où
+     * `getRoles()` rendait l'UNION : tant qu'une ligne de `UTILISATEUR_ROLE`
+     * subsistait, retirer l'appartenance au groupe ne retirait rien du tout. La
+     * table a disparu avec `Version20260902100000`, et le groupe est la seule
+     * source — mais la sonde reste, parce que c'est exactement l'invariant que
+     * personne ne doit pouvoir casser en repassant par une autre surface.
      *
-     * ⚠️ Elle reproduit ce que fait `AdminController::setPersonTypeGroup()` au
-     * niveau des services, pas par un vrai POST : la validité du formulaire et le
-     * jeton CSRF ne sont pas couverts ici. Ce qui l'est, c'est la sémantique —
-     * la seule chose qui vienne de changer.
+     * ⚠️ **Et cette sonde est devenue le SEUL témoin du « staff » écrit.** La
+     * revue R5 a retiré les cases « Équipe » et « Formateur » de la fiche de la
+     * personne — elles doublonnaient le panneau Groupes — donc l'écriture ne
+     * passe plus que par `UserGroupRepository`, que voici mesuré.
+     *
+     * ⚠️ Elle travaille au niveau des SERVICES, pas par un vrai POST : la
+     * validité du formulaire et le jeton CSRF ne sont pas couverts ici. Ce qui
+     * l'est, c'est la sémantique.
      */
     private function probePersonType(SymfonyStyle $io): int
     {

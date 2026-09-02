@@ -77,7 +77,7 @@ final class UsageRightsAdminController extends AbstractController
     }
 
     #[Route('/{id<\d+>}/edit', name: 'app_admin_usage_rights_edit', methods: ['GET', 'POST'])]
-    public function edit(int $id, Request $request, UsagePackageRepository $packages, SiteFeatureService $features, UsageCapabilityRegistry $capabilities, SiteSettingService $settings, VenueRepository $venues, AudienceResolver $audiences, MachineRepository $machines, PlaceRepository $places, MachineCategoryRepository $categories, UsageAllowanceRepository $allowances, PackageSpecCompiler $compiler): Response
+    public function edit(int $id, Request $request, UsagePackageRepository $packages, SiteFeatureService $features, UsageCapabilityRegistry $capabilities, VenueRepository $venues, AudienceResolver $audiences, MachineRepository $machines, PlaceRepository $places, MachineCategoryRepository $categories, UsageAllowanceRepository $allowances, PackageSpecCompiler $compiler): Response
     {
         $package = $packages->find($id);
         if ($package === null) {
@@ -172,7 +172,6 @@ final class UsageRightsAdminController extends AbstractController
         ));
 
         $available = $capabilities->all();
-        $zone = new \DateTimeZone($settings->getTimezone());
 
         // 🔴 **Chaque liste arrive TRADUITE et `choice_translation_domain` est
         // `false`.** Un `ChoiceType` passe ses libellés au traducteur, et la
@@ -219,7 +218,6 @@ final class UsageRightsAdminController extends AbstractController
         $assignGroupForm = $this->createForm(PackageAssignGroupType::class, null, [
             'package_key' => (string) $id,
             'group_choices' => $groupChoices,
-            'lab_timezone' => $settings->getTimezone(),
         ]);
 
         // ⚠️ **LA SAISIE (S153), et elle passe AVANT l'éditeur détaillé.**
@@ -321,11 +319,16 @@ final class UsageRightsAdminController extends AbstractController
             $data = $assignGroupForm->getData();
             try {
                 $actor = $this->getUser();
+                // 🔴 Deux `null` : l'attribution à un groupe est SANS BORNES
+                // depuis la revue R3. La date qui limite un accès se pose sur
+                // l'APPARTENANCE, où elle concerne une personne. Le dépôt accepte
+                // toujours deux dates — c'est le chemin du module commerce, pas
+                // celui d'un humain devant cet écran.
                 $packages->assignGroup(
                     $id,
                     trim((string) $data['group_key']),
-                    $this->date($data['valid_from'] ?? null, $zone),
-                    $this->date($data['valid_until'] ?? null, $zone),
+                    null,
+                    null,
                     $actor instanceof Utilisateur ? $actor->getId() : null,
                 );
                 $this->addFlash('success', $this->translator->trans('usage_rights.group_assignment_created'));
@@ -480,12 +483,5 @@ final class UsageRightsAdminController extends AbstractController
         }
 
         return $names;
-    }
-
-
-    private function date(mixed $raw, \DateTimeZone $zone): ?\DateTimeImmutable
-    {
-        $value = trim((string) $raw);
-        return $value === '' ? null : new \DateTimeImmutable($value, $zone);
     }
 }
