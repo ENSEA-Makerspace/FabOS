@@ -765,6 +765,20 @@ passant : elle mérite sa propre phase, après S159.
 **Demandé par l'opérateur le 2026-09-01**, dans le même mouvement : ne garder que
 ce qui EST. Inventaire, et ce que je propose pour chacun.
 
+✅ **FAIT le 2026-09-02.** Les quatre écrans marqués « supprimer » ci-dessous sont
+partis — routes, gabarits, entrées de menu et libellés. `/admin/design/structure`
+est parti aussi : les trois redirections héritées des portails visent désormais
+`/admin/lieux`, qui est ce qui a remplacé les portails et répond donc à la
+question. Le service `UsageRightsShadow` et `UsageRightsService::legacyPackages()`
+sont supprimés avec eux, devenus orphelins.
+
+🔴 **Et le retour en arrière de la v2 est parti avec l'écran d'ombre, délibérément.**
+`moveChokepoint()` savait remettre une capacité sur la v1 — mais le lecteur v1 ne
+regarde que `a.userId` et ne voit pas les attributions par GROUPE. Rétrograder
+aujourd'hui retirerait en silence les droits de tous ceux qui les tiennent d'un
+groupe : une issue de secours qui casse ce qu'elle devait sauver. Le réglage
+`usage_rights_v2_<capacité>` existe toujours en base, pour une écriture explicite.
+
 | Écran | Ce que c'est | Proposition |
 |---|---|---|
 | `/admin/design/droits-quotas` | maquette « Accès & responsabilités ». Porte `prototype_notice` : *« Cette maquette… n'enregistre rien »* | 🔴 **supprimer** — les droits sont construits, la maquette décrit ce qui aurait pu être |

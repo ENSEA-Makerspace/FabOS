@@ -319,17 +319,13 @@ final class NavBuilder
             ]),
         ]);
 
-        // ⚠️ **The shadow is a real destination (S133b), not a dev tool.** It is
-        // the screen an operator has to read before S134 turns grants v2 on, so
-        // burying it behind the development flag — where `/admin/design` and the
-        // three vision pages live — would have made the one prerequisite of the
-        // activation invisible on any installation that had switched that flag
-        // off, which is every production one.
+        // ⚠️ **S159 — « Aperçu grants v2 » est parti d'ici avec son écran.** Il
+        // était le prérequis de l'activation des chokepoints ; les quatre sont
+        // activés. Le raisonnement vit dans `HISTORY.md`, pas dans un menu.
         $sections[] = $this->adminSection('admin_nav.section.packages', [
             $this->adminItem('admin_nav.entry.app_admin_usage_rights', 'app_admin_usage_rights', 'usage', [
                 'app_admin_usage_rights_new', 'app_admin_usage_rights_edit',
             ]),
-            $this->adminItem('admin_nav.entry.app_admin_usage_rights_shadow', 'app_admin_usage_rights_shadow', 'usage'),
         ]);
 
         // Réglages first: it is the entry an operator means when they say
@@ -368,10 +364,11 @@ final class NavBuilder
         // production launch (tracked in docs/PROJECT_STATE.md).
         if ($this->settings->isDevelopmentMode()) {
             $sections[] = $this->adminSection('admin_nav.section.development', [
+                // ⚠️ **S159 — les trois maquettes sont parties.** `workspaces`,
+                // `droits-quotas` et `structure` décrivaient ce qui POURRAIT être et
+                // portaient « cette maquette n'enregistre rien ». Une proposition
+                // implémentée se supprime ; ce qui reste ici décrit ce qui EST.
                 $this->adminItem('admin_nav.entry.app_admin_design', 'app_admin_design', 'dashboard'),
-                $this->adminItem('admin_nav.entry.app_admin_workspace_vision', 'app_admin_workspace_vision', 'dashboard'),
-                $this->adminItem('admin_nav.entry.app_admin_usage_rights_vision', 'app_admin_usage_rights_vision', 'usage'),
-                $this->adminItem('admin_nav.entry.app_admin_structure_vision', 'app_admin_structure_vision', 'dashboard'),
                 $this->adminItem('admin_nav.entry.app_admin_missing_pages', 'app_admin_missing_pages', 'logs'),
             ]);
         }

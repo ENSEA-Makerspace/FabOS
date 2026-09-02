@@ -2460,75 +2460,8 @@ final class AdminController extends AbstractController
         ]);
     }
 
-    /**
-     * Read-only S103 matrix. It exposes the target metadata contract without
-     * changing live routes, grants or enforcement.
-     */
-    #[Route('/design/workspaces', name: 'app_admin_workspace_vision', methods: ['GET'])]
-    public function workspaceVision(FeatureWorkspaceRegistry $registry): Response
-    {
-        return $this->render('site/admin-workspace-vision.html.twig', [
-            'workspaces' => $registry->all(),
-            'themeContract' => $registry->themeContract(),
-        ]);
-    }
 
-    /**
-     * Read-only product prototype for the next access/responsibility phases. It
-     * reads the real role/category catalogues, but deliberately persists nothing: the
-     * target model must be reviewed before a migration changes live access.
-     */
-    #[Route('/design/droits-quotas', name: 'app_admin_usage_rights_vision', methods: ['GET'])]
-    public function usageRightsVision(
-        RoleRepository $roles,
-        MachineRepository $machines,
-    ): Response {
-        $categories = [];
-        foreach ($machines->findBy([], ['categoryLabel' => 'ASC']) as $machine) {
-            $slug = $machine->getStoredCategorySlug() ?: 'uncategorized';
-            $categories[$slug] ??= [
-                'slug' => $slug,
-                'label' => $machine->getStoredCategoryLabel(),
-                'count' => 0,
-            ];
-            ++$categories[$slug]['count'];
-        }
 
-        return $this->render('site/admin-usage-rights-vision.html.twig', [
-            'roleRows' => $roles->findBy([], ['nom' => 'ASC']),
-            'categories' => array_values($categories),
-        ]);
-    }
-
-    /** Current-domain map: a venue is the physical booking scope. */
-    #[Route('/design/structure', name: 'app_admin_structure_vision', methods: ['GET'])]
-    public function structureVision(
-        MachineRepository $machines,
-        PlaceRepository $places,
-        SiteSettingService $settings,
-    ): Response {
-        $machineRows = $machines->findAll();
-        $categories = [];
-        foreach ($machineRows as $machine) {
-            $slug = $machine->getStoredCategorySlug() ?: 'uncategorized';
-            $categories[$slug] ??= [
-                'slug' => $slug,
-                'label' => $machine->getStoredCategoryLabel(),
-                'count' => 0,
-            ];
-            ++$categories[$slug]['count'];
-        }
-
-        return $this->render('site/admin-structure-vision.html.twig', [
-            'categories' => array_values($categories),
-            'machineCount' => count($machineRows),
-            'placeCount' => $places->count([]),
-            'orgName' => $settings->getOrgName(),
-            'venueLabel' => $settings->getVenueLabel(),
-            'address' => $settings->getLabAddress(),
-            'timezone' => $settings->getTimezone(),
-        ]);
-    }
 
     /**
      * The questions a new install needs answered, in one place.
@@ -2672,7 +2605,11 @@ final class AdminController extends AbstractController
     public function portals(): Response
     {
         $this->addFlash('info', 'flash.les_portails_ont_ete_retires_cette');
-        return $this->redirectToRoute('app_admin_structure_vision', [], Response::HTTP_MOVED_PERMANENTLY);
+        // ⚠️ **S159 — la cible a changé, pas le sens** : la page « structure » était une
+        // MAQUETTE, retirée avec les autres. Les portails ayant été remplacés par les
+        // LIEUX, c'est la liste des lieux qui répond à « où sont passés les portails ».
+        // La redirection reste permanente : ces URLs n'ont jamais cessé d'être mortes.
+        return $this->redirectToRoute('app_admin_venues', [], Response::HTTP_MOVED_PERMANENTLY);
 
         /*
         if ($request->isMethod('POST')) {
@@ -2714,7 +2651,11 @@ final class AdminController extends AbstractController
     #[Route('/portals/consolidation', name: 'app_admin_portal_consolidation', methods: ['GET'])]
     public function portalConsolidation(): Response
     {
-        return $this->redirectToRoute('app_admin_structure_vision', [], Response::HTTP_MOVED_PERMANENTLY);
+        // ⚠️ **S159 — la cible a changé, pas le sens** : la page « structure » était une
+        // MAQUETTE, retirée avec les autres. Les portails ayant été remplacés par les
+        // LIEUX, c'est la liste des lieux qui répond à « où sont passés les portails ».
+        // La redirection reste permanente : ces URLs n'ont jamais cessé d'être mortes.
+        return $this->redirectToRoute('app_admin_venues', [], Response::HTTP_MOVED_PERMANENTLY);
     }
 
     /**
@@ -2729,7 +2670,11 @@ final class AdminController extends AbstractController
     #[Route('/portals/{id<\d+>}', name: 'app_admin_portal_edit', methods: ['GET'])]
     public function portalEdit(int $id): Response
     {
-        return $this->redirectToRoute('app_admin_structure_vision', [], Response::HTTP_MOVED_PERMANENTLY);
+        // ⚠️ **S159 — la cible a changé, pas le sens** : la page « structure » était une
+        // MAQUETTE, retirée avec les autres. Les portails ayant été remplacés par les
+        // LIEUX, c'est la liste des lieux qui répond à « où sont passés les portails ».
+        // La redirection reste permanente : ces URLs n'ont jamais cessé d'être mortes.
+        return $this->redirectToRoute('app_admin_venues', [], Response::HTTP_MOVED_PERMANENTLY);
 
         /*
         $portal = $portals->find($id);

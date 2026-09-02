@@ -12,7 +12,6 @@ use App\UsageRights\PackageSpecCompiler;
 use App\Form\UsageRights\PackageSpecType;
 use App\UsageRights\UsageCapabilityRegistry;
 use App\UsageRights\AudienceResolver;
-use App\UsageRights\UsageRightsShadow;
 use App\UsageRights\UsageAllowance;
 use App\UsageRights\UsageAllowanceRepository;
 use App\Repository\MachineCategoryRepository;
@@ -37,7 +36,6 @@ final class UsageRightsAdminController extends AbstractController
     public function __construct(
         private readonly TranslatorInterface $translator,
         private readonly SiteSettingService $settings,
-        private readonly UsageCapabilityRegistry $capabilityRegistry,
     ) {
     }
     #[Route('', name: 'app_admin_usage_rights', methods: ['GET'])]
@@ -56,113 +54,23 @@ final class UsageRightsAdminController extends AbstractController
         ]);
     }
 
-    /**
-     * Grants v2, side by side with what is actually in force (S133b).
-     *
-     * ⚠️ **This page decides nothing and is the entire point.** The roadmap's
-     * requirement is a shadow that is "visible et explicable" *before* S134 turns
-     * any of it on. What makes it explicable rather than a wall of mismatches is
-     * that every row is classified: agreement, admin recovery, "the live yes comes
-     * from enforcement being off", and the one that matters —
-     * `shadow_would_deny`, a member who would lose access the day enforcement is
-     * switched on. That list is the work S134 has to finish before it starts.
-     *
-     * ⚠️ The counts are over **the members shown**, and the page says so. A
-     * summary computed from one page and printed as a total is how a fabricated
-     * number once framed a whole session.
-     */
-    #[Route('/shadow', name: 'app_admin_usage_rights_shadow', methods: ['GET', 'POST'])]
-    public function shadow(Request $request, UtilisateurRepository $users, UsageRightsShadow $shadow, AudienceResolver $audiences): Response
-    {
-        if ($request->isMethod('POST')) {
-            return $this->moveChokepoint($request, $users, $shadow);
-        }
+    // 🔴 **S159 — « Aperçu grants v2 » est RETIRÉ, et sa raison d'être était
+    // épuisée.** Cet écran existait pour préparer et déclencher le basculement des
+    // chokepoints sur grants v2 ; **les quatre sont basculés** (`usage_rights_v2_*`
+    // = 1, mesuré). Il comparait donc deux modèles dont l'un n'est plus consulté :
+    // une page qui n'a plus de second terme.
+    //
+    // 🔴 **Et il portait un retour en arrière qui était devenu un PIÈGE.**
+    // `moveChokepoint()` savait remettre une capacité sur la v1 — mais le lecteur
+    // v1, `UsagePackageRepository::grantingPackages()`, ne regarde que
+    // `a.userId` : il ne voit pas les attributions par GROUPE. Rétrograder
+    // aujourd'hui retirerait donc, en silence, les droits de tous ceux qui les
+    // tiennent d'un groupe. Un bouton présenté comme une issue de secours et qui
+    // casse ce qu'il devait sauver ne se garde pas.
+    // ⚠️ Le réglage existe toujours en base (`usage_rights_v2_<capacité>`) : une
+    // rétrogradation reste possible par une écriture explicite, délibérée, qui
+    // n'a pas l'air d'un bouton.
 
-        // Bounded on purpose: this builds one verdict pair per member per
-        // capability, and an unbounded sweep of an installation with thousands of
-        // accounts is a page that times out rather than a page that informs.
-        $limit = min(max($request->query->getInt('limit', 50), 10), 200);
-        $members = array_slice($users->findBy([], ['lastName' => 'ASC', 'firstName' => 'ASC']), 0, $limit);
-
-        $rows = [];
-        foreach ($members as $member) {
-            $verdicts = $shadow->forUser($member);
-            $rows[] = [
-                'user' => $member,
-                'audiences' => $shadow->audiencesOf($member),
-                'verdicts' => $verdicts,
-                // The row is worth the operator's attention only if something on
-                // it would change. Sorting on this is what keeps the page a
-                // worklist instead of a directory.
-                'attention' => \count(array_filter($verdicts, static fn (array $v): bool => $v['status'] === 'shadow_would_deny')),
-            ];
-        }
-        usort($rows, static fn (array $a, array $b): int => $b['attention'] <=> $a['attention']);
-
-        return $this->render('site/admin-usage-rights-shadow.html.twig', [
-            'rows' => $rows,
-            'summary' => $shadow->summary($members),
-            'shown' => \count($members),
-            'totalMembers' => \count($users->findAll()),
-            'groups' => $audiences->catalogue(),
-            'ready' => $shadow->isReady(),
-            'enforced' => $this->settings->isUsageRightsEnforced(),
-            'chokepoints' => $shadow->chokepoints($users->findAll()),
-        ]);
-    }
-
-    /**
-     * Move one chokepoint onto grants v2, or move it back (S134).
-     *
-     * ⚠️ **Enabling is refused while anybody would lose access.** That check is
-     * the difference between "activation graduelle sur les chokepoints audités"
-     * and a flag: the audit is not a document somebody wrote, it is this count
-     * being zero, computed over **every** account rather than over the page the
-     * operator happens to be looking at. A safety gate read from a sample is not
-     * a safety gate.
-     *
-     * ⚠️ **Disabling is never refused.** Rolling back must not require the
-     * installation to be in a good state — it is what an operator reaches for
-     * precisely when it is not.
-     */
-    private function moveChokepoint(Request $request, UtilisateurRepository $users, UsageRightsShadow $shadow): Response
-    {
-        if (!$this->isCsrfTokenValid('usage_rights_shadow', (string) $request->request->get('_token'))) {
-            $this->addFlash('error', $this->translator->trans('usage_rights.csrf_error'));
-
-            return $this->redirectToRoute('app_admin_usage_rights_shadow');
-        }
-
-        $capability = (string) $request->request->get('capability');
-        $enable = $request->request->getBoolean('enable');
-
-        if ($this->capabilityRegistry->get($capability) === null) {
-            $this->addFlash('error', $this->translator->trans('usage_rights.shadow_unknown_capability'));
-
-            return $this->redirectToRoute('app_admin_usage_rights_shadow');
-        }
-
-        if (!$enable) {
-            $this->settings->setUsageRightsV2Active($capability, false);
-            $this->addFlash('success', $this->translator->trans('usage_rights.shadow_moved_back', ['%capability%' => $capability]));
-
-            return $this->redirectToRoute('app_admin_usage_rights_shadow');
-        }
-
-        $deniers = $shadow->deniersFor($capability, $users->findAll());
-        if ($deniers > 0) {
-            $this->addFlash('error', $this->translator->trans('usage_rights.shadow_refused', [
-                'capability' => $capability, 'count' => $deniers,
-            ]));
-
-            return $this->redirectToRoute('app_admin_usage_rights_shadow');
-        }
-
-        $this->settings->setUsageRightsV2Active($capability, true);
-        $this->addFlash('success', $this->translator->trans('usage_rights.shadow_moved', ['%capability%' => $capability]));
-
-        return $this->redirectToRoute('app_admin_usage_rights_shadow');
-    }
 
     #[Route('/new', name: 'app_admin_usage_rights_new', methods: ['GET', 'POST'])]
     public function new(Request $request, UsagePackageRepository $packages, SiteFeatureService $features, UsageCapabilityRegistry $capabilities): Response

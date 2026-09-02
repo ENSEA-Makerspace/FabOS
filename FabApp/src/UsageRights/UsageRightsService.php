@@ -28,30 +28,6 @@ final class UsageRightsService
         return $this->verdict($user, $feature)->allowed;
     }
 
-    /**
-     * What the LEGACY store holds for this person, with no policy applied (S134).
-     *
-     * ⚠️ **The counterfactual the shadow page needs, and it cannot be got from
-     * `verdict()`.** With enforcement off — the state every installation is in
-     * today — `verdict()` short-circuits to `not_enforced` and answers "allowed"
-     * for everybody, so a shadow comparing against it reports nobody at risk on
-     * exactly the installations the activation gate exists to protect. This
-     * answers the narrower question the comparison actually needs: does this
-     * member hold a package covering this feature, right now, regardless of
-     * whether anything is being enforced.
-     *
-     * ⚠️ Read-only and unused by any authorisation path.
-     *
-     * @return list<string>
-     */
-    public function legacyPackages(?Utilisateur $user, string $featureKey, ?\DateTimeImmutable $at = null): array
-    {
-        if (!$user instanceof Utilisateur) {
-            return [];
-        }
-
-        return $this->packages->grantingPackages($user, $featureKey, $at ?? $this->now(), null);
-    }
 
     /**
      * ⚠️ **S134 — where the packages come from is now per capability.**
