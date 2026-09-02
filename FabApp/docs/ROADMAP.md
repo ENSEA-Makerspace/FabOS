@@ -535,10 +535,11 @@ plus exprimable pour une personne.
 ⚠️ `AudienceResolver` devient alors dépendant de l'INSTANT : sa mémoïsation par
 requête reste juste, une mémoïsation plus longue ne le serait plus.
 
-**3. Convertir les attributions personnelles en groupes** — 🔴 **mais NE PAS
-retirer le chemin `userId` du modèle.** Voir le commerce ci-dessous : c'est le cas
-qui l'interdit. Ce qui disparaît est la surface HUMAINE ; la colonne reste, pour
-ce qu'une machine écrit.
+**3. Convertir les attributions personnelles en groupes**, puis retirer le chemin
+`userId`. ⚠️ **Possible seulement une fois l'appartenance sourcée** (voir
+ci-dessous) : tant que le commerce n'a pas où écrire, la colonne reste. L'ordre
+est donc : appartenance datée **et sourcée** d'abord, conversion ensuite, retrait
+en dernier.
 ⚠️ Sur la boîte : **3 lignes** écrites à la main (forfaits 1, 2 et 21). La
 conversion doit être une commande avec un plan et une vérification avant/après,
 comme `app:s158:backfill-groups`.
@@ -574,27 +575,66 @@ revokedAt, revokedById` — **aucune `source`**. La « source d'attribution uniq
 que S152 exige n'existe pas encore ; elle se posera sur une attribution
 individuelle, pas sur un groupe.
 
-✅ **Donc la conclusion, et elle est meilleure que l'idée de départ** : le chemin
-personnel n'est pas un doublon, c'est **le chemin des attributions écrites par une
-MACHINE** — une commande, demain un abonnement. Ce qu'on supprime est la surface
-d'écriture **humaine**, pas la colonne.
+### ✅ LA RÉPONSE, et elle vient de l'opérateur (2026-09-01)
 
-Ce qui donne la règle à tenir, et elle est simple à dire :
+> *« Pourquoi ne pas acheter le fait de FAIRE PARTIE d'un groupe ? Le groupe*
+> *« week-end » a le droit d'utiliser le lab le week-end ; UserA paie, et entre*
+> *dans le groupe pour X temps. »*
 
-| Qui écrit | Chemin |
-|---|---|
-| un opérateur | **le groupe**, toujours |
-| le commerce, une machine | l'attribution individuelle, avec sa source |
+**Ça règle le problème, et mieux que la solution ci-dessus** — parce que le
+commerce cesse d'être un cas particulier. Ce qui se vend n'est pas un forfait
+attribué à quelqu'un, c'est **une appartenance datée**. Il reste alors **un seul
+chemin pour tout le monde** : humains et machines écrivent la même chose, une
+ligne d'appartenance.
 
-⚠️ **Le lecteur garde donc les deux chemins pour toujours**, et l'allègement de
-code espéré en étape 3 n'aura pas lieu. Le gain réel est ailleurs, et il reste
-entier : **une seule façon pour un humain d'accorder un droit**, et une réponse
-unique à « pourquoi ai-je ce droit ? » — *parce que tu es dans ce groupe*, ou
-*parce que tu l'as acheté*.
+Trois conséquences, toutes bonnes :
 
-🅿️ **À faire quand la Phase H arrivera** : ajouter `source` à
-`USAGE_RIGHT_ASSIGNMENT` (migration additive), et refuser à l'écran humain
-d'écrire une attribution individuelle — l'API du commerce, elle, y a droit.
+- ✅ **L'expiration cesse d'être un problème**, elle devient le sujet.
+  L'abonnement EST l'appartenance datée — la dépendance dure de l'étape 2 n'est
+  plus un obstacle à contourner, c'est le mécanisme.
+- ✅ **La compensation redevient exprimable.** Ce que la commande a créé est une
+  ligne d'appartenance, précise et nominative ; la rembourser la retire. On ne
+  révoque plus « un droit venu d'un groupe » — on retire l'entrée DANS le groupe,
+  ce que la vision n'interdit pas.
+- ✅ **Les quotas suivent sans rien changer.** Une allocation est comptée PAR
+  PERSONNE (`UsageAllowanceRepository::activeFor($user)`) : dix membres d'un
+  groupe vendu « 10 h par mois » ont chacun leurs 10 h, ils ne les partagent pas.
+
+### 🔴 Mais la difficulté se DÉPLACE, elle ne disparaît pas
+
+**`USER_GROUP_MEMBER` a pour clé primaire `(groupId, userId)`** — vérifié en base.
+**Une personne ne peut appartenir à un groupe qu'UNE fois.** Donc :
+
+> quelqu'un que l'opérateur a ajouté à la main au groupe « week-end », **et** qui
+> achète ensuite ce même groupe, n'a qu'**une seule ligne**. Le remboursement la
+> supprimerait — et lui retirerait du même coup l'appartenance que l'opérateur
+> lui avait donnée.
+
+C'est exactement le défaut que la vision décrit (« révoquer un droit qui ne vient
+pas de cette ligne »), reparu un étage plus bas. Il ne se contourne pas par
+prudence : il se règle dans le schéma.
+
+**Ce qu'il faut donc, et c'est le vrai coût de cette idée :**
+
+1. une **`source`** sur la ligne d'appartenance — nulle quand un humain l'écrit,
+   la clé unique de la ligne de commande quand une machine l'écrit ;
+2. **abandonner la clé primaire composite** au profit d'un `id`, pour que deux
+   sources puissent coexister sur la même paire (personne, groupe) ;
+3. et donc que l'appartenance porte **ses propres dates**, une par source.
+
+⚠️ **C'est un `DROP PRIMARY KEY` : une étape de CONTRACT, pas d'expand.** Elle
+demande la discipline complète — le code qui tolère les deux formes déployé
+d'abord, la migration ensuite, et jamais l'inverse. Voir
+`feedback_fabos_migration_hazard`.
+
+⚠️ **Et la durée appartient à l'OFFRE, pas au forfait.** « X temps » ne peut pas
+vivre sur le forfait, sinon le même groupe ne peut pas se vendre au mois ET à
+l'année. C'est la ligne de commande qui dit combien de temps l'appartenance dure.
+
+🅿️ **Ce que ça change pour la Phase H** : une offre ne vend plus « un forfait »
+mais « une appartenance à un groupe, pour une durée ». Le fulfillment devient une
+seule opération — écrire une ligne d'appartenance datée et sourcée — au lieu de
+deux chemins à tenir d'accord.
 
 ---
 

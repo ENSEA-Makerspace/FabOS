@@ -40,14 +40,18 @@ que la commande vérifie et annulerait sinon.
 s'attribuent qu'à des GROUPES*, plus le **nettoyage** des maquettes qui restent à
 l'écran (idée de l'opérateur, 2026-09-01) — voir `ROADMAP.md`. ✅ Viable : les
 quatre chokepoints sont sur grants v2, donc le chemin groupe est vivant.
-🔴 **Mais le COMMERCE est le cas qui n'est pas géré** : un achat est individuel, et
-la vision exige qu'un remboursement révoque *« jamais un droit équivalent venu
-d'un groupe »*. Le chemin personnel n'est donc pas un doublon — c'est celui des
-attributions écrites par une MACHINE. On supprime la surface humaine, pas la
-colonne.
-🔴 Et les dates de validité sont portées par l'ATTRIBUTION : *OpenLab* court
-jusqu'en 2029 pour une seule personne, donc l'appartenance datée est une
-dépendance dure.
+✅ **Et l'opérateur a réglé l'objection du commerce** : ce qui se vend n'est pas un
+forfait attribué à quelqu'un, c'est **une appartenance datée à un groupe**. Un
+seul chemin pour tout le monde, humains et machines, et l'expiration devient le
+mécanisme au lieu d'un obstacle.
+🔴 **La difficulté se déplace dans le SCHÉMA** : `USER_GROUP_MEMBER` a pour clé
+primaire `(groupId, userId)` — une personne ne peut appartenir à un groupe
+qu'UNE fois. Quelqu'un ajouté à la main **et** qui achète le même groupe n'a
+qu'une ligne, et un remboursement effacerait aussi l'appartenance donnée par
+l'opérateur. Il faut une `source` sur la ligne et **abandonner la clé composite** —
+un `DROP PRIMARY KEY`, donc une étape de CONTRACT avec toute sa discipline.
+⚠️ Et la durée appartient à l'OFFRE, pas au forfait : sinon le même groupe ne peut
+pas se vendre au mois ET à l'année.
 
 🔴 **La décision qui bloque les deux : le CONTRACT** — après lui, un rôle donné
 doit-il encore inscrire dans le groupe, ou les deux divergent-ils ? ⚠️ Et elle
