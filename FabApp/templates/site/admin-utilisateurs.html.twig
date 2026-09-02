@@ -28,10 +28,10 @@
    already on screen — four tiles, one number, and nothing to say there were more
    accounts elsewhere. `allUsers` is also where "3 sur 11" comes from.
 
-   ⚠️ The role menu is built with `keys|map`, not `map|values`. `roleChoices` is
-   keyed by role value and `map` preserves keys, so merging its result into a list
-   gives a hash with holes rather than a sequence — and this Twig has no `values`
-   filter to flatten it back. Mapping over the KEYS is what returns a plain list.
+   🔴 **S159f — le menu « Rôle » est parti : il faisait double emploi avec
+   « Groupe ».** Depuis la fusion, l'appartenance à un groupe intégré EST le rôle,
+   et le menu des rôles posait la même question moins bien : il joignait
+   `UTILISATEUR_ROLE`, donc il ne voyait pas quelqu'un rendu staff par son groupe.
 
    ⚠️ **Le filtre « groupe » (S158c) est le voisin du précédent, et il a la même
    raison de ne pas être une jointure** : l'appartenance est l'union des lignes
@@ -64,7 +64,7 @@
     list_route: 'app_admin_users',
     list_search: filters.q|default(''),
     list_search_placeholder: 'common.search_placeholder'|trans,
-    list_query: {statut: filters.statut, role: filters.role, package: filters.package, groupe: filters.groupe},
+    list_query: {statut: filters.statut, package: filters.package, groupe: filters.groupe},
     list_tiles_label: 'admin_list.facet_status'|trans,
     list_tiles: [
         {label: 'admin_list.all'|trans, count: allUsers|length, query: {statut: ''}},
@@ -72,9 +72,7 @@
         {label: 'admin_list.inactive'|trans, count: allUsers|filter(user => user.statut == 'inactif')|length, query: {statut: 'inactif'}},
         {label: 'admin_list.pending'|trans, count: allUsers|filter(user => user.statut == 'pending')|length, query: {statut: 'pending'}},
     ],
-    list_refine: [
-        {name: 'role', label: 'workspace.filter.role'|trans, value: filters.role, options: [{value: '', label: 'admin_list.all'|trans}]|merge(roleChoices|keys|map(value => {value: value, label: roleChoices[value]}))},
-    ]|merge(groupChoices|length > 0 ? [
+    list_refine: []|merge(groupChoices|length > 0 ? [
         {name: 'groupe', label: 'admin_users.filter_group'|trans, value: filters.groupe, options: [{value: '', label: 'admin_list.all'|trans}]|merge(groupChoices|map(g => {value: g.id, label: g.label}))},
     ] : [])|merge(packageChoices|length > 0 ? [
         {name: 'package', label: 'admin_users.filter_package'|trans, value: filters.package, options: [{value: '', label: 'admin_list.all'|trans}]|merge(packageChoices|map(p => {value: p.id, label: p.name}))},

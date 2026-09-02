@@ -41,13 +41,10 @@ use App\Reservation\Verb\BookingVerbService;
 use App\Repository\SectionRepository;
 use App\Repository\QuizRepository;
 use App\Repository\QuestionRepository;
-use App\Repository\RoleRepository;
 use App\Repository\UtilisateurBadgeRepository;
 use App\Entity\Formation;
 use App\Entity\Machine;
-use App\Entity\Role;
 use App\Entity\Utilisateur;
-use App\Entity\UtilisateurRole;
 use App\Repository\UtilisateurRepository;
 use App\Service\BookingIdentityPolicy;
 use App\Service\FormationPageContentService;
@@ -2066,7 +2063,6 @@ final class SiteController extends AbstractController
         EntityManagerInterface $entityManager,
         UserPasswordHasherInterface $passwordHasher,
         UtilisateurRepository $users,
-        RoleRepository $roles,
     ): Response
     {
         if ($this->getUser() instanceof Utilisateur) {
@@ -2128,18 +2124,16 @@ final class SiteController extends AbstractController
 
                 $user->setPassword($passwordHasher->hashPassword($user, $password));
 
-                $role = $roles->findOneBySecurityRole('ROLE_USER');
-                if (!$role instanceof Role) {
-                    $role = (new Role())->setNom('ROLE_USER');
-                    $entityManager->persist($role);
-                }
-
-                $userRole = (new UtilisateurRole())
-                    ->setUtilisateur($user)
-                    ->setRole($role);
-
+                // 🔴 **S159f — l'inscription n'écrit plus de ligne de rôle, parce
+                // qu'elle était REDONDANTE avant même la fusion.**
+                // `Utilisateur::getRoles()` commence par `['ROLE_USER']` : tout
+                // compte l'a, ligne ou pas. On écrivait donc une rangée dans
+                // `UTILISATEUR_ROLE` pour dire ce que le code disait déjà — et
+                // qu'un compte sans cette ligne aurait eu quand même.
+                // ⚠️ C'est aussi la traduction exacte de l'audience `user` :
+                // « tout compte actif », sans ligne d'appartenance à créer, à
+                // retirer, ou à oublier au provisioning.
                 $entityManager->persist($user);
-                $entityManager->persist($userRole);
                 $entityManager->flush();
 
                 $this->addFlash('success', 'flash.votre_compte_a_ete_cree_vous');

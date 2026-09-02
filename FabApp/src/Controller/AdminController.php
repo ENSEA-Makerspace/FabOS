@@ -30,11 +30,9 @@ use App\Entity\MachineBadge;
 use App\Entity\OpeningHour;
 use App\Entity\Progression;
 use App\Entity\RfidReader;
-use App\Entity\Role;
 use App\Account\AccountAnonymiser;
 use App\Account\AccountGuard;
 use App\Entity\Utilisateur;
-use App\Entity\UtilisateurRole;
 use App\Event\EventRegistrationService;
 use App\Event\EventShareQr;
 use App\Event\TicketLinker;
@@ -103,7 +101,6 @@ use App\Reservation\ReservationMailer;
 use App\Reporting\ReportScope;
 use App\Reporting\ReportingRegistry;
 use App\Repository\RfidReaderRepository;
-use App\Repository\RoleRepository;
 use App\Repository\UtilisateurBadgeRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\VenueRepository;
@@ -235,10 +232,22 @@ final class AdminController extends AbstractController
         Request $request,
         HomepageVisibilityService $homepageVisibility,
         HomepageSectionVisibilityRepository $homepageSections,
-        RoleRepository $roles,
         EntityManagerInterface $entityManager,
+        UserGroupRepository $userGroups,
     ): Response {
-        $showStaffColumn = $roles->findOneBySecurityRole('ROLE_STAFF') !== null;
+        // ⚠️ **S159f — la question se pose aux GROUPES.** Elle demandait « la table
+        // des rôles connaît-elle staff ? » ; elle demande maintenant « le groupe
+        // staff existe-t-il ? ». Il est intégré, donc la réponse est oui sur toute
+        // installation migrée — et non sur une installation sans la migration
+        // S133b, ce qui est le repli honnête : pas de colonne pour un groupe qui
+        // n'existe pas.
+        $showStaffColumn = false;
+        foreach ($userGroups->all() as $group) {
+            if ($group['key'] === 'staff') {
+                $showStaffColumn = true;
+                break;
+            }
+        }
 
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('admin_homepage', (string) $request->request->get('_token'))) {
@@ -1471,13 +1480,17 @@ final class AdminController extends AbstractController
         UtilisateurRepository $users,
         AccessRfidLogRepository $logs,
         ProgressionRepository $progressions,
-        RoleRepository $roles,
         UsagePackageRepository $packages,
         UserGroupRepository $userGroups,
         AudienceResolver $audiences,
         LabClock $clock,
     ): Response {
-        $filters = $this->extractFilters($request, ['q', 'statut', 'role', 'package', 'groupe']);
+        // 🔴 **S159f — le filtre « rôle » est parti, il faisait double emploi.**
+        // Depuis la fusion, l'appartenance à un groupe intégré EST le rôle : deux
+        // menus côte à côte posaient la même question, et celui des rôles la
+        // posait moins bien — il joignait `UTILISATEUR_ROLE`, donc il ne voyait
+        // pas quelqu'un rendu staff par son groupe.
+        $filters = $this->extractFilters($request, ['q', 'statut', 'package', 'groupe']);
         $logCounts = [];
         foreach ($logs->createQueryBuilder('log')
             ->select('IDENTITY(log.utilisateur) AS userId, COUNT(log.id) AS logCount')
@@ -1492,7 +1505,7 @@ final class AdminController extends AbstractController
         // list BEFORE filtering. The template used to count `users`, which is the
         // filtered result — so with a status selected every tile reported the
         // same number, the number of rows already on screen.
-        $allUsers = $users->findForAdminFilters(['q' => '', 'statut' => '', 'role' => '', 'package' => '', 'groupe' => '']);
+        $allUsers = $users->findForAdminFilters(['q' => '', 'statut' => '', 'package' => '', 'groupe' => '']);
 
         // ⚠️ Les deux filtres se composent, et dans cet ordre parce qu'il n'en a
         // aucune importance : chacun ne fait que retirer des lignes.
@@ -1515,7 +1528,6 @@ final class AdminController extends AbstractController
             'logCounts' => $logCounts,
             'progressionCounts' => $this->buildUserProgressionStats($progressions),
             'filters' => $filters,
-            'roleChoices' => $this->buildAdminRoleChoices($roles),
             // ⚠️ Tous les packages, actifs ou non : un package désactivé garde ses
             // attributions, et « qui avait ce forfait » est justement la question
             // qu'on pose le jour où on le désactive.
@@ -1624,9 +1636,9 @@ final class AdminController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         UtilisateurRepository $users,
-        RoleRepository $roles,
         UserPasswordHasherInterface $passwordHasher,
         LocaleCatalog $locales,
+        UserGroupRepository $userGroups,
     ): Response {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
@@ -1639,7 +1651,7 @@ final class AdminController extends AbstractController
             ->setLangue('fr')
             ->setIsVerified(true);
 
-        $roleChoices = $this->buildAdminRoleChoices($roles);
+        $roleChoices = $this->buildAdminRoleChoices($userGroups);
         $form = $this->createForm(UserAdminType::class, $user, [
             'role_choices' => $roleChoices,
             'locale_choices' => $locales->choices(),
@@ -1672,24 +1684,33 @@ final class AdminController extends AbstractController
                 $form->get('confirmPassword')->addError(new FormError('La confirmation ne correspond pas au mot de passe.'));
             }
 
-            $selectedRole = (string) $form->get('role')->getData();
-            $role = $roles->findOneBySecurityRole($selectedRole);
-            if ($role === null || !in_array($selectedRole, array_values($roleChoices), true)) {
-                $form->get('role')->addError(new FormError('Rôle invalide.'));
+            // ⚠️ La valeur est désormais une clé de GROUPE, et le refus se fait
+            // contre la liste offerte — plus contre la table `ROLE`.
+            $selectedGroup = (string) $form->get('role')->getData();
+            if (!in_array($selectedGroup, array_values($roleChoices), true)) {
+                $form->get('role')->addError(new FormError('Groupe invalide.'));
             }
         }
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $selectedRole = (string) $form->get('role')->getData();
-            $role = $roles->findOneBySecurityRole($selectedRole);
-            if ($role === null) {
-                throw new \LogicException('Rôle validé introuvable.');
-            }
-
             $user->setPassword($passwordHasher->hashPassword($user, (string) $form->get('plainPassword')->getData()));
             $entityManager->persist($user);
-            $entityManager->persist((new UtilisateurRole())->setUtilisateur($user)->setRole($role));
             $entityManager->flush();
+
+            // 🔴 **S159f — la création écrit une APPARTENANCE, plus une ligne de
+            // rôle.** Après le `flush()`, parce qu'il faut l'identifiant du
+            // compte : `UserGroupRepository` écrit en DBAL, il ne connaît pas
+            // l'objet en attente.
+            // ⚠️ **Et rien n'est écrit pour « utilisateur »** : c'est une audience
+            // RÉSOLUE, tout compte actif en fait partie sans ligne. C'est
+            // précisément ce que l'ancienne inscription écrivait en double.
+            $selectedGroup = (string) $form->get('role')->getData();
+            foreach ($userGroups->all() as $group) {
+                if ($group['key'] === $selectedGroup && !$group['virtual']) {
+                    $userGroups->addMember($group['id'], (int) $user->getId());
+                    break;
+                }
+            }
 
             $this->addFlash('success', ['flash.utilisateur_cree', ['%p1%' => $user->getEmail()]]);
 
@@ -1852,7 +1873,6 @@ final class AdminController extends AbstractController
         int $id,
         Request $request,
         UtilisateurRepository $users,
-        RoleRepository $roles,
         ReservationRepository $reservations,
         ReservationMailer $reservationMails,
         EntityManagerInterface $entityManager,
@@ -1894,8 +1914,8 @@ final class AdminController extends AbstractController
         // ligne de rôle subsiste, décocher la case laisserait la personne staff.
         // Et c'est aussi ce qui redonne son bouton « Retirer » à la fiche du
         // groupe, qui le cache tant qu'un rôle est une seconde raison.
-        $this->setPersonTypeGroup($user, 'staff', (bool) $data['is_staff'], $userGroups, $roles, $entityManager);
-        $this->setPersonTypeGroup($user, 'trainers', (bool) $data['is_trainer'], $userGroups, $roles, $entityManager);
+        $this->setPersonTypeGroup($user, 'staff', (bool) $data['is_staff'], $userGroups);
+        $this->setPersonTypeGroup($user, 'trainers', (bool) $data['is_trainer'], $userGroups);
 
         // Being bookable is the admin's call; the person then owns their own
         // slots and durations. Turning it off cancels what was already booked —
@@ -1937,8 +1957,6 @@ final class AdminController extends AbstractController
         string $groupKey,
         bool $shouldHave,
         UserGroupRepository $userGroups,
-        RoleRepository $roles,
-        EntityManagerInterface $entityManager,
     ): void {
         $group = null;
         foreach ($userGroups->all() as $row) {
@@ -1966,17 +1984,9 @@ final class AdminController extends AbstractController
             }
         }
 
-        // ⚠️ La ligne de rôle héritée part dans les DEUX cas : quand on coche,
-        // parce que le groupe la remplace ; quand on décoche, parce qu'elle
-        // survivrait au refus.
-        // ⚠️ `trainers` est la clé du groupe, `trainer` le nom de la ligne de
-        // rôle — la même différence de nommage que dans `Utilisateur`.
-        $roleName = $groupKey === 'trainers' ? 'trainer' : $groupKey;
-        foreach ($user->getUtilisateurRoles() as $utilisateurRole) {
-            if (strtolower((string) $utilisateurRole->getRole()?->getNom()) === $roleName) {
-                $entityManager->remove($utilisateurRole);
-            }
-        }
+        // ⚠️ **S159f — plus de ligne de rôle à retirer.** `getRoles()` ne lit plus
+        // `UTILISATEUR_ROLE` et la migration `Version20260902100000` la supprime :
+        // le groupe est la seule source, donc décocher la case suffit à dire non.
     }
 
     #[Route('/utilisateurs/{userId}/formations/{formationId}/validation-physique', name: 'app_admin_validate_physical_training', requirements: ['userId' => '\d+', 'formationId' => '\d+'], methods: ['POST'])]
@@ -2182,11 +2192,11 @@ final class AdminController extends AbstractController
     public function settings(
         Request $request,
         SiteSettingService $siteSettings,
-        RoleRepository $roles,
         UsagePackageRepository $usagePackages,
         UsageCapabilityRegistry $usageCapabilities,
         TranslatorInterface $translator,
         LocaleCatalog $locales,
+        UserGroupRepository $userGroups,
     ): Response
     {
         $availableLocales = $locales->choices();
@@ -2198,13 +2208,23 @@ final class AdminController extends AbstractController
         // firewall will later be asked about, so the two cannot drift.
         // ⚠️ Remonté au-dessus des formulaires en S147 : la carte « Exploitation » en a
         // besoin pour construire ses cases, pas seulement le rendu.
-        $assignableRoles = array_map(
-            static fn (Role $role): array => [
-                'label' => $role->getNom(),
-                'securityRole' => Utilisateur::securityRoleFor($role->getNom()),
-            ],
-            $roles->findBy([], ['nom' => 'ASC']),
-        );
+        // 🔴 **S159f — construits depuis les GROUPES intégrés.** La table `ROLE`
+        // n'accorde plus rien ; la lire ici aurait offert un réglage portant sur
+        // des noms que plus personne ne détient.
+        // ⚠️ La valeur reste le rôle de SÉCURITÉ (`securityRole`) : c'est ce que
+        // `BookingIdentityPolicy` compare, et ce n'est pas ce pas-ci qui change
+        // son vocabulaire.
+        $assignableRoles = [];
+        foreach ($userGroups->all() as $group) {
+            if ($group['builtin'] && !$group['virtual']) {
+                $assignableRoles[] = [
+                    'label' => $group['label'],
+                    'securityRole' => Utilisateur::securityRoleFor(
+                        $group['key'] === 'trainers' ? 'trainer' : $group['key'],
+                    ),
+                ];
+            }
+        }
 
         // ⚠️ **S147, J-22 — cinq cartes, cinq formulaires, et c'était déjà le cas.**
         // La page n'a jamais été un seul gros formulaire depuis S132 : chaque carte
@@ -4914,19 +4934,27 @@ final class AdminController extends AbstractController
     }
 
     /** @return array<string, string> */
-    private function buildAdminRoleChoices(RoleRepository $roles): array
+    /**
+     * Les groupes intégrés qu'un écran peut proposer comme « rôle » (S159f).
+     *
+     * 🔴 **Construit depuis les GROUPES, plus depuis la table `ROLE`.** Depuis la
+     * fusion, l'appartenance à un groupe intégré EST le rôle ; lire l'ancienne
+     * table ici aurait laissé un écran proposer un choix que plus rien n'écrit.
+     *
+     * ⚠️ **La valeur reste la clé du GROUPE**, pas un `ROLE_*` : c'est elle que
+     * `UserGroupRepository` attend, et traduire au dernier moment est ce qui a
+     * produit les orthographes divergentes qu'on vient de ranger.
+     *
+     * @return array<string, string> libellé => clé de groupe
+     */
+    private function buildAdminRoleChoices(UserGroupRepository $groups): array
     {
         $available = [];
-        foreach ($roles->findBy([], ['nom' => 'ASC']) as $role) {
-            $securityRole = $this->toSecurityRole($role->getNom());
-            if (in_array($securityRole, ['ROLE_USER', 'ROLE_ADMIN', 'ROLE_STAFF'], true)) {
-                $available[$securityRole] = $securityRole;
-            }
-        }
-
-        foreach (['ROLE_USER', 'ROLE_ADMIN'] as $requiredRole) {
-            if (!isset($available[$requiredRole]) && $roles->findOneBySecurityRole($requiredRole) !== null) {
-                $available[$requiredRole] = $requiredRole;
+        foreach ($groups->all() as $group) {
+            // ⚠️ Les audiences résolues n'ont pas de membres à inscrire : les
+            // offrir serait un choix qui n'écrit rien.
+            if ($group['builtin'] && !$group['virtual']) {
+                $available[$group['label']] = $group['key'];
             }
         }
 

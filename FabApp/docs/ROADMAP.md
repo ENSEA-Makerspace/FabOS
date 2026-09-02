@@ -744,14 +744,25 @@ garde de ce genre.
 personne ? » cesse d'avoir une réponse unique. C'est une simplification du modèle
 et un changement de l'écran.
 
-### L'ordre, si on la fait
+### ✅ FAIT le 2026-09-02, dans cet ordre
 
-1. **La garde du dernier admin sur le RETRAIT DE GROUPE** — avant tout le reste,
-   parce que c'est elle qui empêche le verrouillage.
-2. **`USER_GROUP` devient une entité**, pour que `getRoles()` puisse la lire.
-3. **`getRoles()` lit les groupes** — avec une passe d'ombre compte par compte,
-   comme le backfill : les rôles rendus doivent être identiques avant/après.
-4. **Alors seulement** retirer `UTILISATEUR_ROLE` et l'amorçage de `compute()`.
+1. ✅ **La garde du dernier admin sur le retrait de groupe** — posée avant d'en
+   avoir besoin, donc sans effet visible au moment où elle a été écrite.
+2. ✅ **`USER_GROUP` / `USER_GROUP_MEMBER` deviennent des entités**, sans
+   migration, en lecture seule.
+3. ✅ **`getRoles()` rend l'UNION**, puis **les groupes seuls** — chaque pas
+   mesuré par une passe d'ombre compte par compte, neutre à chaque fois.
+4. ✅ **Les écritures passent aux groupes** : les cases « staff »/« formateur », la
+   création d'un compte, et l'inscription publique — qui écrivait une ligne
+   `ROLE_USER` **déjà redondante**, `getRoles()` l'accordant sans ligne.
+5. ✅ **Les lecteurs restants suivent** : le filtre « rôle » de la liste (double
+   emploi avec « groupe »), les annuaires Équipe et Formateurs, la colonne staff
+   de l'accueil, les rôles assignables des réglages.
+6. 🅿️ **La migration `Version20260902100000` reste à jouer** — elle supprime
+   `UTILISATEUR_ROLE`. Son `down()` reconstruit les lignes depuis les groupes.
+
+⚠️ **`ROLE` n'est pas supprimée** : elle n'accorde plus rien, mais le `down()` de
+la migration en a besoin pour reconstruire. La retirer est un ménage à part.
 
 🅿️ **Mon avis** : oui, c'est la bonne destination — c'est celle que la vision
 décrit déjà — et elle simplifie plus qu'elle ne complique. Mais la complication

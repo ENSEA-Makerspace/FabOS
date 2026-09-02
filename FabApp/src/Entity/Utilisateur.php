@@ -111,10 +111,6 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'bookingNote', length: 500, nullable: true)]
     private ?string $bookingNote = null;
 
-    /** @var Collection<int, UtilisateurRole> */
-    #[ORM\OneToMany(mappedBy: 'utilisateur', targetEntity: UtilisateurRole::class)]
-    private Collection $utilisateurRoles;
-
     /**
      * Les groupes de cette personne (S159b).
      *
@@ -126,7 +122,7 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'utilisateur', targetEntity: UserGroupMember::class)]
     private Collection $groupMemberships;
 
-    public function __construct() { $this->createdAt = new \DateTimeImmutable(); $this->utilisateurRoles = new ArrayCollection(); $this->groupMemberships = new ArrayCollection(); }
+    public function __construct() { $this->createdAt = new \DateTimeImmutable(); $this->groupMemberships = new ArrayCollection(); }
     public function getId(): ?int { return $this->id; }
     public function getEmail(): string { return $this->email; }
     public function setEmail(string $email): self { $this->email = $email; return $this; }
@@ -136,16 +132,20 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPassword(string $password): self { $this->password = $password; return $this; }
     public function getUserIdentifier(): string { return $this->email; }
     /**
-     * 🔴 **S159b — les rôles viennent désormais des DEUX sources, en UNION.**
+     * 🔴 **S159f — les rôles viennent des GROUPES, et d'eux seuls.**
      *
-     * La table `UTILISATEUR_ROLE`, comme toujours ; **et** l'appartenance aux
-     * groupes intégrés, qui sont les mêmes cinq noms (`admin`, `manager`,
-     * `staff`, `superuser`, `trainers`). C'est l'étape « expand » de la fusion
-     * rôle → groupe : **personne ne perd rien**, puisqu'on ajoute une source sans
-     * en retirer une. Le backfill de S158c a écrit les lignes que les rôles
-     * produisaient déjà, donc l'union est aujourd'hui **égale** à ce que la seule
-     * table des rôles rendait — ce que `app:s159:roles-shadow` vérifie compte par
-     * compte.
+     * L'appartenance aux cinq groupes intégrés (`admin`, `manager`, `staff`,
+     * `superuser`, `trainers`) est ce qui accorde un rôle de sécurité. La table
+     * `UTILISATEUR_ROLE` n'est plus lue.
+     *
+     * Le chemin qui a mené ici, parce qu'il explique pourquoi c'était sûr :
+     * S158c a écrit les lignes d'appartenance que les rôles produisaient déjà
+     * (backfill, purement additif) ; S159b a fait rendre l'UNION des deux
+     * sources, en prouvant qu'elle était neutre ; et ce pas-ci retire l'ancienne
+     * moitié, une fois la correspondance vérifiée personne par personne.
+     * `app:s159:roles-shadow` reste le témoin : il compare ce que l'ancienne
+     * table rendrait à ce que cette méthode rend, et **sort en erreur si
+     * quelqu'un perd un rôle**.
      *
      * ⚠️ **Sans cette étape, ajouter quelqu'un au groupe `staff` ne lui donnait
      * pas `ROLE_STAFF`** : le groupe portait des forfaits, le rôle ouvrait des
@@ -161,14 +161,18 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getRoles(): array
     {
+        // 🔴 **S159f — `UTILISATEUR_ROLE` n'est PLUS LU. Les groupes sont la
+        // seule source.** C'est l'étape de contract, et elle n'a été franchie
+        // qu'après avoir prouvé, ligne par ligne, que les deux disaient la même
+        // chose : `admin` {1,3,4,5,7,9}, `staff` {5,7}, `trainer` {5,7,9} des
+        // deux côtés, et les deux lignes de rôle `user` couvertes par le
+        // `ROLE_USER` inconditionnel ci-dessous.
+        //
+        // ⚠️ **`ROLE_USER` reste accordé à tout compte, sans ligne.** C'est
+        // l'audience RÉSOLUE `user` : « tout compte actif », que rien n'écrit et
+        // que personne ne peut oublier de créer ou de retirer.
+
         $roles = ['ROLE_USER'];
-        foreach ($this->utilisateurRoles as $utilisateurRole) {
-            $roleName = $utilisateurRole->getRole()?->getNom();
-            if (!$roleName) {
-                continue;
-            }
-            $roles[] = self::securityRoleFor($roleName);
-        }
 
         foreach ($this->groupMemberships as $membership) {
             $group = $membership->getGroup();
@@ -232,8 +236,6 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
         };
     }
     public function eraseCredentials(): void {}
-    /** @return Collection<int, UtilisateurRole> */
-    public function getUtilisateurRoles(): Collection { return $this->utilisateurRoles; }
     public function getFirstName(): ?string { return $this->firstName; }
     public function setFirstName(?string $firstName): self { $this->firstName = $firstName; return $this; }
     public function getLastName(): ?string { return $this->lastName; }

@@ -48,16 +48,32 @@ class UtilisateurRepository extends ServiceEntityRepository
         return $this->findByRoleName('trainer');
     }
 
-    /** @return Utilisateur[] */
+    /**
+     * Les comptes actifs qui tiennent ce rôle — **par leur GROUPE** (S159f).
+     *
+     * 🔴 La requête joignait `UTILISATEUR_ROLE`, qui n'existe plus. Elle joint
+     * désormais l'appartenance, qui est la source des rôles depuis la fusion.
+     *
+     * ⚠️ **`trainers` la clé, `trainer` le nom demandé** : la même différence de
+     * nommage qu'ailleurs, traduite ici plutôt que laissée aux appelants —
+     * `findTrainers()` demande « trainer » et doit continuer de le faire.
+     *
+     * ⚠️ Le `catch` reste : une installation sans la migration S133b n'a pas
+     * `USER_GROUP`, et un annuaire vide vaut mieux qu'une page en erreur.
+     *
+     * @return Utilisateur[]
+     */
     private function findByRoleName(string $roleName): array
     {
+        $groupKey = strtolower($roleName) === 'trainer' ? 'trainers' : strtolower($roleName);
+
         try {
             return $this->createQueryBuilder('utilisateur')
-                ->join('utilisateur.utilisateurRoles', 'utilisateurRole')
-                ->join('utilisateurRole.role', 'role')
-                ->andWhere('LOWER(role.nom) = :roleName')
+                ->join('utilisateur.groupMemberships', 'membership')
+                ->join('membership.group', 'userGroup')
+                ->andWhere('userGroup.groupKey = :groupKey')
                 ->andWhere("utilisateur.statut = 'actif'")
-                ->setParameter('roleName', strtolower($roleName))
+                ->setParameter('groupKey', $groupKey)
                 ->orderBy('utilisateur.firstName', 'ASC')
                 ->addOrderBy('utilisateur.lastName', 'ASC')
                 ->getQuery()
@@ -70,10 +86,14 @@ class UtilisateurRepository extends ServiceEntityRepository
     /** @return Utilisateur[] */
     public function findForAdminFilters(array $filters): array
     {
+        // 🔴 **S159f — la jointure sur les rôles est partie avec la relation.**
+        // `UTILISATEUR_ROLE` n'est plus lue : les rôles viennent des groupes, et
+        // le filtre correspondant est le menu « Groupe », qui passe par
+        // `AudienceResolver` parce que l'appartenance n'est pas une jointure.
+        // ⚠️ Cette jointure préchargeait aussi les rôles pour la liste ; ce qui
+        // les précharge désormais est `AudienceResolver::primeFor()`, appelé par
+        // le contrôleur — une requête pour toute la page, comme avant.
         $qb = $this->createQueryBuilder('utilisateur')
-            ->leftJoin('utilisateur.utilisateurRoles', 'utilisateurRole')
-            ->leftJoin('utilisateurRole.role', 'role')
-            ->addSelect('utilisateurRole', 'role')
             ->orderBy('utilisateur.createdAt', 'DESC');
 
         $q = trim((string) ($filters['q'] ?? ''));
@@ -90,24 +110,9 @@ class UtilisateurRepository extends ServiceEntityRepository
                 ->setParameter('statut', $statut);
         }
 
-        $roleFilter = trim((string) ($filters['role'] ?? ''));
-        if ($roleFilter !== '' && $roleFilter !== 'all') {
-            $roleName = self::normalizeRoleFilter($roleFilter);
-            $qb
-                ->andWhere('LOWER(role.nom) = :roleName OR LOWER(role.nom) = :roleSecurityName')
-                ->setParameter('roleName', $roleName)
-                ->setParameter('roleSecurityName', 'role_' . $roleName);
-        }
-
         return $qb->getQuery()->getResult();
     }
 
-    private static function normalizeRoleFilter(string $role): string
-    {
-        $role = mb_strtolower(trim($role));
-
-        return str_starts_with($role, 'role_') ? substr($role, 5) : $role;
-    }
 
     private static function escapeLike(string $value): string
     {
