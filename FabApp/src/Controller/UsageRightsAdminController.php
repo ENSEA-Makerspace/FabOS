@@ -10,13 +10,11 @@ use App\UsageRights\PackageSpec;
 use App\UsageRights\PackageSpecCompiler;
 use App\Form\UsageRights\PackageSpecType;
 use App\UsageRights\UsageCapabilityRegistry;
-use App\UsageRights\AudienceResolver;
 use App\UsageRights\UsageAllowance;
 use App\UsageRights\UsageAllowanceRepository;
 use App\Repository\MachineCategoryRepository;
 use App\Repository\MachineRepository;
 use App\Repository\PlaceRepository;
-use App\Form\UsageRights\PackageAssignGroupType;
 use App\Form\UsageRights\PackageDetailsType;
 use App\Service\SiteSettingService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -77,7 +75,7 @@ final class UsageRightsAdminController extends AbstractController
     }
 
     #[Route('/{id<\d+>}/edit', name: 'app_admin_usage_rights_edit', methods: ['GET', 'POST'])]
-    public function edit(int $id, Request $request, UsagePackageRepository $packages, SiteFeatureService $features, UsageCapabilityRegistry $capabilities, VenueRepository $venues, AudienceResolver $audiences, MachineRepository $machines, PlaceRepository $places, MachineCategoryRepository $categories, UsageAllowanceRepository $allowances, PackageSpecCompiler $compiler): Response
+    public function edit(int $id, Request $request, UsagePackageRepository $packages, SiteFeatureService $features, UsageCapabilityRegistry $capabilities, VenueRepository $venues, MachineRepository $machines, PlaceRepository $places, MachineCategoryRepository $categories, UsageAllowanceRepository $allowances, PackageSpecCompiler $compiler): Response
     {
         $package = $packages->find($id);
         if ($package === null) {
@@ -162,15 +160,6 @@ final class UsageRightsAdminController extends AbstractController
             $categories->allOrdered(false),
         )));
         $venueList = $venues->findBy(['active' => true], ['name' => 'ASC']);
-        // ⚠️ `guest` is filtered out here as well as refused in the repository.
-        // The rule is enforced server-side either way; keeping it out of the
-        // picker is so nobody is offered a choice that can only be answered with
-        // an error message.
-        $groupList = array_values(array_filter(
-            $audiences->catalogue(),
-            static fn (array $group): bool => $group['key'] !== AudienceResolver::GUEST,
-        ));
-
         $available = $capabilities->all();
 
         // 🔴 **Chaque liste arrive TRADUITE et `choice_translation_domain` est
@@ -200,25 +189,12 @@ final class UsageRightsAdminController extends AbstractController
         }
 
 
-        $groupChoices = [];
-        foreach ($groupList as $group) {
-            $suffix = $group['virtual']
-                ? $trans('usage_rights.group_everyone')
-                : $this->translator->trans('usage_rights.group_members', ['count' => $group['members']]);
-            $groupChoices[$group['label'] . ' — ' . $suffix] = $group['key'];
-        }
-
         $categoryChoices = array_combine($categoryList, $categoryList);
 
 
 
         // Les quatre périodes, pour la ligne « combien » de la saisie.
         $periodChoices = [];
-
-        $assignGroupForm = $this->createForm(PackageAssignGroupType::class, null, [
-            'package_key' => (string) $id,
-            'group_choices' => $groupChoices,
-        ]);
 
         // ⚠️ **LA SAISIE (S153), et elle passe AVANT l'éditeur détaillé.**
         // Quatre lignes de restriction plus une d'extension, qui se lisent comme
@@ -314,31 +290,6 @@ final class UsageRightsAdminController extends AbstractController
         // être retirées, sans quoi on aurait supprimé le seul moyen de défaire ce
         // que l'écran avait laissé faire.
 
-        $assignGroupForm->handleRequest($request);
-        if ($assignGroupForm->isSubmitted() && $assignGroupForm->isValid()) {
-            $data = $assignGroupForm->getData();
-            try {
-                $actor = $this->getUser();
-                // 🔴 Deux `null` : l'attribution à un groupe est SANS BORNES
-                // depuis la revue R3. La date qui limite un accès se pose sur
-                // l'APPARTENANCE, où elle concerne une personne. Le dépôt accepte
-                // toujours deux dates — c'est le chemin du module commerce, pas
-                // celui d'un humain devant cet écran.
-                $packages->assignGroup(
-                    $id,
-                    trim((string) $data['group_key']),
-                    null,
-                    null,
-                    $actor instanceof Utilisateur ? $actor->getId() : null,
-                );
-                $this->addFlash('success', $this->translator->trans('usage_rights.group_assignment_created'));
-
-                return $this->redirectToRoute('app_admin_usage_rights_edit', ['id' => $id]);
-            } catch (\Throwable $e) {
-                $this->addFlash('error', $e->getMessage());
-            }
-        }
-
         return $this->form($request, $packages, $features, $capabilities, $package, [
             // ⚠️ Machines and places by (name, id) only. The picker needs a label
             // and an id; handing whole entities to a template is how a list screen
@@ -356,9 +307,12 @@ final class UsageRightsAdminController extends AbstractController
             // serait silencieusement `null` et la carte disparaîtrait sans que
             // rien ne le dise. Piège n°7 de la reprise.
             'specFits' => $spec !== null,
+            // Le résumé VRAI, calculé depuis le spec décompilé — voir
+            // `specSummary()`. `null` quand le forfait sort de ce que les cinq
+            // lignes savent dire : mieux vaut pas de résumé qu'un faux.
+            'specSummary' => $spec === null ? null : $this->specSummary($spec, $featureChoices, $dayChoices, $venueChoices, $categoryChoices),
         ], [
             'specForm' => $specForm,
-            'assignGroupForm' => $assignGroupForm,
         ]);
     }
 
@@ -442,7 +396,7 @@ final class UsageRightsAdminController extends AbstractController
             // à quoi les accrocher. `new()` enregistre puis redirige ici.
             'specForm' => ($extraForms['specForm'] ?? null)?->createView(),
             'specFits' => $resources['specFits'] ?? false,
-            'assignGroupForm' => $extraForms['assignGroupForm']?->createView(),
+            'specSummary' => $resources['specSummary'] ?? null,
             // ⚠️ **Quel repli rouvrir.** Les deux éditeurs d'attribution sont
             // repliés derrière un `<details>` : replié, l'opérateur n'y verrait ni
             // ce qu'il vient de taper ni pourquoi c'est refusé. On atteint ce rendu
@@ -483,5 +437,85 @@ final class UsageRightsAdminController extends AbstractController
         }
 
         return $names;
+    }
+
+    /**
+     * Le résumé VRAI d'un forfait, en lignes label → valeur pour
+     * `_admin_meta_grid` (revue de design, 2026-09-03).
+     *
+     * 🔴 **Il remplace une phrase qui MENTAIT.** `usage_rights.spec_sentence`
+     * était une chaîne de traduction fixe : « donne accès à tout, tout le temps,
+     * partout, sans limite », rendue à l'identique sur les quatre forfaits de la
+     * boîte — y compris OpenLab, qui est restreint. Un résumé qui ne lit pas ce
+     * qu'il résume n'est pas un résumé, c'est une décoration ; et placé en tête
+     * de l'éditeur, il enseignait le contraire de ce que l'écran contenait.
+     *
+     * ⚠️ **Il se calcule depuis le SPEC décompilé**, la même valeur qui remplit
+     * le formulaire juste en dessous. Les deux ne peuvent donc pas diverger : ce
+     * qui est affiché est ce qui est coché.
+     *
+     * ⚠️ Les libellés arrivent déjà traduits dans les tableaux de choix (voir la
+     * note de `$trans` plus haut) — on inverse `label => valeur` pour retrouver
+     * le nom d'un identifiant, plutôt que de retraduire une donnée.
+     *
+     * @param array<string, string> $featureChoices
+     * @param array<string, string> $dayChoices
+     * @param array<string, string> $venueChoices
+     * @param array<string, string> $categoryChoices
+     * @return list<array{label: string, value: string}>
+     */
+    private function specSummary(
+        PackageSpec $spec,
+        array $featureChoices,
+        array $dayChoices,
+        array $venueChoices,
+        array $categoryChoices,
+    ): array {
+        $name = static function (array $choices, array $values): string {
+            $labels = array_flip($choices);
+            $out = [];
+            foreach ($values as $value) {
+                $out[] = $labels[(string) $value] ?? (string) $value;
+            }
+
+            return implode(', ', $out);
+        };
+        $all = fn (string $key): string => $this->translator->trans($key);
+
+        $where = $spec->venuesAll
+            ? $all('usage_rights.summary_all_venues')
+            : $name($venueChoices, $spec->venues);
+        if (!$spec->categoriesAll) {
+            // ⚠️ La catégorie est un « avancé » replié dans le formulaire : si
+            // elle restreint, le résumé doit la dire, sinon la seule trace d'une
+            // restriction réelle serait derrière un pli fermé.
+            $where .= ' · ' . $name($categoryChoices, $spec->categories);
+        }
+
+        $when = $spec->daysAll
+            ? $all('usage_rights.summary_any_time')
+            : $name($dayChoices, $spec->days) . ' · ' . $spec->startTime . '–' . $spec->endTime;
+
+        $items = [
+            ['label' => $all('usage_rights.spec_axis_what'), 'value' => $spec->featuresAll
+                ? $all('usage_rights.summary_all_features')
+                : $name($featureChoices, $spec->features)],
+            ['label' => $all('usage_rights.spec_axis_when'), 'value' => $when],
+            ['label' => $all('usage_rights.spec_axis_where'), 'value' => $where],
+            ['label' => $all('usage_rights.spec_axis_how_much'), 'value' => $spec->quotaUnlimited
+                ? $all('usage_rights.summary_no_quota')
+                : $this->translator->trans('usage_rights.summary_quota', [
+                    '%hours%' => rtrim(rtrim(number_format($spec->quotaHours, 2, ',', ' '), '0'), ','),
+                    '%period%' => $this->translator->trans('usage_rights.allowance_period_' . $spec->quotaPeriod),
+                ])],
+        ];
+
+        // ⚠️ La cinquième ligne n'apparaît que si elle AJOUTE un pouvoir. Une
+        // ligne « non » sur une exemption que personne n'a demandée est du bruit.
+        if ($spec->hoursExempt) {
+            $items[] = ['label' => $all('usage_rights.spec_axis_hours'), 'value' => $all('usage_rights.summary_hours_exempt')];
+        }
+
+        return $items;
     }
 }

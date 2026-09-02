@@ -8,6 +8,7 @@ use App\Entity\Utilisateur;
 use App\Repository\UtilisateurRepository;
 use App\UsageRights\AudienceResolver;
 use App\Service\SiteSettingService;
+use App\UsageRights\UsagePackageRepository;
 use App\UsageRights\UserGroupRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -87,6 +88,7 @@ final class UserGroupAdminController extends AbstractController
         UserGroupRepository $groups,
         UtilisateurRepository $users,
         AudienceResolver $audiences,
+        UsagePackageRepository $packages,
     ): Response {
         $group = $groups->find($id);
         if ($group === null) {
@@ -94,7 +96,7 @@ final class UserGroupAdminController extends AbstractController
         }
 
         if ($request->isMethod('POST')) {
-            return $this->handle($request, $groups, 'app_admin_group_edit', $id);
+            return $this->handle($request, $groups, 'app_admin_group_edit', $id, $packages);
         }
 
         $all = $users->findForAdminFilters(['q' => '', 'statut' => '', 'role' => '']);
@@ -122,10 +124,27 @@ final class UserGroupAdminController extends AbstractController
             $candidates[] = $user;
         }
 
+        // 🔴 **Les forfaits du groupe, et c'est ici qu'ils s'écrivent
+        // désormais** (revue de design, 2026-09-03). « Qui est dans ce groupe »
+        // et « ce que ce groupe donne » sont les deux moitiés d'une même
+        // question ; les séparer sur deux écrans obligeait à retenir un nom de
+        // groupe en traversant la page des forfaits.
+        $held = $packages->assignmentsForGroup($id);
+        $taken = array_flip(array_map(static fn (array $row): int => $row['packageId'], $held));
+        $offer = array_values(array_filter(
+            $packages->findAll(),
+            static fn (array $package): bool => !isset($taken[(int) $package['id']]),
+        ));
+
         return $this->render('site/admin-group-form.html.twig', [
             'group' => $group,
             'members' => $members,
             'candidates' => $candidates,
+            'bundles' => $held,
+            // ⚠️ Ce qu'on peut encore ajouter, pas le catalogue entier : proposer
+            // un forfait déjà attribué mènerait au refus de recouvrement du
+            // dépôt, c'est-à-dire à un choix qui ne peut qu'échouer.
+            'offerable' => $offer,
         ]);
     }
 
@@ -204,8 +223,13 @@ final class UserGroupAdminController extends AbstractController
      * rien à y valider. La création et le renommage, eux, ont des champs, et ils
      * sont refusés au dépôt qui seul connaît les longueurs et l'unicité de clé.
      */
-    private function handle(Request $request, UserGroupRepository $groups, string $route, ?int $id = null): Response
-    {
+    private function handle(
+        Request $request,
+        UserGroupRepository $groups,
+        string $route,
+        ?int $id = null,
+        ?UsagePackageRepository $packages = null,
+    ): Response {
         $back = $id === null ? [] : ['id' => $id];
         if (!$this->isCsrfTokenValid('admin_groups', (string) $request->request->get('_token'))) {
             $this->addFlash('error', $this->translator->trans('groups.csrf_error'));
@@ -258,6 +282,35 @@ final class UserGroupAdminController extends AbstractController
                 case 'remove_member':
                     $groups->removeMember($request->request->getInt('id'), $request->request->getInt('user_id'));
                     $this->addFlash('success', $this->translator->trans('groups.member_removed'));
+                    break;
+
+                case 'assign_bundle':
+                case 'revoke_bundle':
+                    // ⚠️ **Un refus PLUTÔT qu'un succès silencieux.** Ces deux
+                    // actions n'existent que sur la fiche du groupe ; postées
+                    // ailleurs, `$packages` est absent, et un `?->` qui ne fait
+                    // rien suivi d'un flash « enregistré » serait un mensonge.
+                    if ($packages === null) {
+                        $this->addFlash('error', $this->translator->trans('groups.unknown_action'));
+                        break;
+                    }
+                    if ($action === 'revoke_bundle') {
+                        $packages->revoke($request->request->getInt('assignment_id'), $this->getUser() instanceof Utilisateur ? $this->getUser()->getId() : null);
+                        $this->addFlash('success', $this->translator->trans('groups.bundle_revoked'));
+                        break;
+                    }
+                    // ⚠️ **Sans dates, et volontairement.** Ce qui limite un
+                    // accès dans le temps se pose sur l'APPARTENANCE, où cela
+                    // concerne une personne (revue R3). Un forfait attribué à un
+                    // groupe l'est tant que l'attribution vit.
+                    $packages->assignGroup(
+                        $request->request->getInt('package_id'),
+                        (string) ($groups->find($request->request->getInt('id'))['key'] ?? ''),
+                        null,
+                        null,
+                        $this->getUser() instanceof Utilisateur ? $this->getUser()->getId() : null,
+                    );
+                    $this->addFlash('success', $this->translator->trans('groups.bundle_assigned'));
                     break;
 
                 default:

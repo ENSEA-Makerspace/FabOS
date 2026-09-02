@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 {% block title %}{{ group.label }} · FabOS{% endblock %}
-{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260903-s159' }}">{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260903-design' }}">{% endblock %}
 {% block body %}
 {# UN GROUPE (S158a) : son identité, et qui est dedans.
 
@@ -140,6 +140,72 @@
                 {% else %}
                     <p class="usage-empty">{{ 'groups.no_members'|trans }}</p>
                 {% endif %}
+            {% endif %}
+        </section>
+
+        {# ============================================================
+           LES FORFAITS DE CE GROUPE — l'attribution vit ICI depuis la revue
+           de design du 2026-09-03.
+
+           🔴 **Un forfait DÉFINIT des droits ; un groupe dit QUI les a.** La
+           fiche du forfait portait les deux, et sa page en était devenue
+           longue au point d'être illisible. Ici, « qui est dans ce groupe » et
+           « ce que ce groupe donne » sont l'un sous l'autre : les deux moitiés
+           d'une même question.
+
+           ⚠️ **Le menu ne propose que ce qui N'EST PAS déjà attribué.** Le
+           dépôt refuse un recouvrement ; proposer un forfait déjà là serait un
+           choix qui ne peut qu'échouer.
+
+           ⚠️ **Pas de dates ici** — voir la revue R3 : ce qui limite un accès
+           dans le temps se pose sur l'APPARTENANCE, où cela concerne une
+           personne. Deux endroits pour une date était le doublon que la phase
+           S158/S159 a supprimé.
+           ============================================================ #}
+        <section class="usage-assignments">
+            <div class="admin-panel-header"><h2>{{ 'groups.bundles_heading'|trans }}</h2></div>
+            <p class="settings-hint">{{ 'groups.bundles_help'|trans }}</p>
+
+            {% if bundles %}
+                <div class="usage-assignment-list">
+                    {% for bundle in bundles %}
+                        <div class="usage-assignment">
+                            <span>
+                                <strong><a href="{{ path('app_admin_usage_rights_edit', {id: bundle.packageId}) }}">{{ bundle.name }}</a></strong>
+                                {# ⚠️ Un forfait INACTIF n'accorde rien : le dire ici
+                                   évite de chercher pourquoi le groupe « a » un
+                                   droit qui ne s'applique pas. #}
+                                {% if not bundle.active %}
+                                    {% include 'site/_cell_state.html.twig' with {label: 'groups.bundle_inactive'|trans, signal: 'stop'} only %}
+                                {% endif %}
+                            </span>
+                            <form method="post"
+                                  data-controller="confirm" data-action="submit->confirm#ask"
+                                  data-confirm-message-value="{{ 'groups.bundle_revoke_confirm'|trans({'%name%': bundle.name}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('admin_groups') }}">
+                                <input type="hidden" name="action" value="revoke_bundle">
+                                <input type="hidden" name="id" value="{{ group.id }}">
+                                <input type="hidden" name="assignment_id" value="{{ bundle.id }}">
+                                <button class="admin-action danger" type="submit">{{ 'usage_rights.revoke'|trans }}</button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="usage-empty">{{ 'groups.no_bundles'|trans }}</p>
+            {% endif %}
+
+            {% if offerable %}
+                <form method="post" class="usage-assignment-form">
+                    <input type="hidden" name="_token" value="{{ csrf_token('admin_groups') }}">
+                    <input type="hidden" name="action" value="assign_bundle">
+                    <input type="hidden" name="id" value="{{ group.id }}">
+                    <label class="sr-only" for="g-bundle">{{ 'groups.assign_bundle'|trans }}</label>
+                    <select id="g-bundle" name="package_id" required>
+                        {% for package in offerable %}<option value="{{ package.id }}">{{ package.name }}</option>{% endfor %}
+                    </select>
+                    <button class="btn-link btn-primary-admin" type="submit">{{ 'groups.assign_bundle'|trans }}</button>
+                </form>
             {% endif %}
         </section>
 

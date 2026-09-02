@@ -267,6 +267,10 @@ final class UsagePackageRepository
                     'id' => (int) $row['id'],
                     'kind' => $isGroup ? 'group' : 'member',
                     'userId' => $row['userId'] !== null ? (int) $row['userId'] : null,
+                    // ⚠️ Rendu pour que la fiche du forfait puisse RENVOYER vers
+                    // le groupe : depuis la revue de design, l'attribution ne
+                    // s'écrit plus ici, elle se lit et on suit le lien.
+                    'groupId' => $row['groupId'] !== null ? (int) $row['groupId'] : null,
                     'name' => $isGroup
                         ? (string) $row['groupLabel']
                         : (trim((string) ($row['firstName'] ?? '') . ' ' . (string) ($row['lastName'] ?? '')) ?: (string) $row['username']),
@@ -302,7 +306,7 @@ final class UsagePackageRepository
         }
     }
 
-    /** @return list<array{id:int,kind:string,userId:?int,name:string,detail:string,members:?int,validFrom:?string,validUntil:?string}> */
+    /** @return list<array{id:int,kind:string,userId:?int,groupId:?int,name:string,detail:string,members:?int,validFrom:?string,validUntil:?string}> */
     private function memberAssignmentsOnly(int $packageId): array
     {
         try {
@@ -310,6 +314,7 @@ final class UsagePackageRepository
                 'id' => (int) $row['id'],
                 'kind' => 'member',
                 'userId' => (int) $row['userId'],
+                'groupId' => null,
                 'name' => trim((string) ($row['firstName'] ?? '') . ' ' . (string) ($row['lastName'] ?? '')) ?: (string) $row['username'],
                 'detail' => (string) $row['email'],
                 'members' => null,
@@ -323,6 +328,45 @@ final class UsagePackageRepository
                 ['package' => $packageId],
             ));
         } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    /**
+     * Les forfaits attribués à UN GROUPE (revue de design, 2026-09-03).
+     *
+     * 🔴 **C'est la moitié qui manquait pour déplacer l'attribution.** La fiche
+     * du forfait portait la seule surface d'écriture ; la fiche du groupe savait
+     * seulement COMPTER ses forfaits, pour prévenir avant une suppression. Sans
+     * cette lecture, retirer l'éditeur de la fiche du forfait aurait laissé le
+     * modèle sans aucune surface — le demi-modèle exact que S158 a réparé.
+     *
+     * ⚠️ Les attributions RÉVOQUÉES sont exclues : la ligne reste en base pour
+     * l'historique, elle n'accorde plus rien.
+     *
+     * @return list<array{id:int,packageId:int,name:string,active:bool,validFrom:?string,validUntil:?string}>
+     */
+    public function assignmentsForGroup(int $groupId): array
+    {
+        try {
+            return array_map(static fn (array $row): array => [
+                'id' => (int) $row['id'],
+                'packageId' => (int) $row['packageId'],
+                'name' => (string) $row['name'],
+                'active' => (bool) $row['active'],
+                'validFrom' => $row['validFrom'] !== null ? (string) $row['validFrom'] : null,
+                'validUntil' => $row['validUntil'] !== null ? (string) $row['validUntil'] : null,
+            ], $this->db->fetchAllAssociative(
+                'SELECT a.id, a.packageId, a.validFrom, a.validUntil, p.name, p.active
+                 FROM USAGE_RIGHT_ASSIGNMENT a
+                 INNER JOIN USAGE_PACKAGE p ON p.id = a.packageId
+                 WHERE a.groupId = :group AND a.revokedAt IS NULL
+                 ORDER BY p.name',
+                ['group' => $groupId],
+            ));
+        } catch (\Throwable) {
+            // Une installation sans la migration S133b n'a pas de colonne
+            // `groupId` : aucun forfait de groupe, ce qui est la vérité chez elle.
             return [];
         }
     }

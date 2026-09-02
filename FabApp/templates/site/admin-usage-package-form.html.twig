@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}{{ package.id|default(false) ? 'usage_rights.edit'|trans : 'usage_rights.create'|trans }} · FabOS{% endblock %}
-{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260903-s159' }}">{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260903-design' }}">{% endblock %}
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
     page_title: package.id|default(false) ? 'usage_rights.edit'|trans : 'usage_rights.create'|trans,
@@ -61,9 +61,22 @@
                     <div class="admin-panel-header"><h2>{{ 'usage_rights.spec_heading'|trans }}</h2></div>
                     {{ form_start(specForm, {attr: {class: 'pkg-spec'}}) }}
                         {% form_theme specForm 'form/admin_theme.html.twig' %}
-                        {# La phrase du haut est la ligne de CONSÉQUENCE, pas un
-                           résumé posé à côté qui pourrait diverger. #}
-                        <p class="pkg-spec-sentence">{{ 'usage_rights.spec_sentence'|trans|raw }}</p>
+                        {# 🔴 **La phrase du haut MENTAIT, et elle est remplacée
+                           par un résumé CALCULÉ.** `usage_rights.spec_sentence`
+                           était une chaîne fixe — « donne accès à tout, tout le
+                           temps, partout, sans limite » — rendue à l'identique
+                           sur les quatre forfaits de la boîte, OpenLab compris,
+                           qui est restreint. Elle était présentée comme la ligne
+                           de conséquence de la carte ; elle n'en lisait rien.
+
+                           ✅ Ce qui la remplace vient de `specSummary()`, calculé
+                           depuis le MÊME spec décompilé qui coche les cases juste
+                           en dessous : les deux ne peuvent pas diverger. Et c'est
+                           `_admin_meta_grid`, la grille label → valeur du système
+                           de design, au lieu d'une phrase à `|raw`. #}
+                        {% if specSummary %}
+                            {% include 'site/_admin_meta_grid.html.twig' with {items: specSummary} only %}
+                        {% endif %}
 
                         <div class="pkg-axis">
                             <div class="pkg-axis-head">
@@ -157,9 +170,40 @@
                S134b/S144b/S149 ; il n'existe plus (voir juste en dessous), et les
                garder aurait laissé un commentaire qui décrit un écran absent. Le
                raisonnement de ces trois sessions vit dans `HISTORY.md`. #}
+            {# ============================================================
+               CE QUI EST ÉCRIT EN BASE — la SORTIE du compilateur, repliée.
+
+               🔴 **« Grants v2 » était un mot de firmware dans un titre.** Et
+               sous ce titre, six lignes identiques — même action, « tout lieu »,
+               « à toute heure » — qui répétaient une par une ce que la carte du
+               dessus dit en quatre. Ce n'est pas une seconde information : c'est
+               la première, décompressée.
+
+               🔴 **Le pli est CONDITIONNEL, et c'est tout le raisonnement.**
+               Quand la carte du dessus sait exprimer le forfait (`specFits`),
+               ces lignes sont dérivées : les lire est une vérification, pas une
+               tâche, et les SUPPRIMER créerait la divergence que S153 a
+               supprimée — la saisie les réécrirait à la sauvegarde suivante.
+               Quand elle ne le sait PAS, ce bloc est la seule prise sur le
+               forfait : il s'ouvre, et les suppressions reviennent avec lui.
+
+               ⚠️ **L'issue de secours n'apparaît donc que quand on est
+               coincé.** C'est la règle, dite une fois ici : un bouton qui défait
+               ce qu'un autre écran vient d'écrire n'est pas une option avancée,
+               c'est un piège — sauf quand il est le seul chemin.
+               ============================================================ #}
             <section class="usage-assignments">
-                <div class="admin-panel-header"><h2>{{ 'usage_rights.grants'|trans }}</h2></div>
-                <p class="settings-hint">{{ 'usage_rights.grants_help'|trans }}</p>
+                <details class="pkg-compiled"{{ specFits ? '' : ' open' }}>
+                    <summary>
+                        <span class="pkg-compiled-title">{{ 'usage_rights.compiled_heading'|trans }}</span>
+                        {% include 'site/_cell_state.html.twig' with {
+                            label: 'usage_rights.compiled_count'|trans({'%grants%': grants|length, '%allowances%': allowances|length}),
+                            signal: 'muted',
+                        } only %}
+                    </summary>
+                    <div class="pkg-compiled-body">
+                <p class="settings-hint">{{ (specFits ? 'usage_rights.compiled_help_derived' : 'usage_rights.compiled_help_escape')|trans }}</p>
+                <h3 class="pkg-compiled-sub">{{ 'usage_rights.grants'|trans }}</h3>
 
                 {# 🔴 **S153b — l'éditeur « Ajouter un grant » est PARTI, et c'est
                    l'aboutissement de la phase.** Neuf champs qui écrivaient les
@@ -239,15 +283,13 @@
                 {% else %}
                     <p class="usage-empty">{{ 'usage_rights.no_grants'|trans }}</p>
                 {% endif %}
-            </section>
 
-            {# ⚠️ **The one editor on this page where adding NARROWS access
-               (S144c).** A package with no allowance is unlimited; the first row
-               turns "as much as you like" into "ten hours a week". Its own
-               section and its own token, so it never reads as another grant. #}
-            <section class="usage-assignments">
-                <div class="admin-panel-header"><h2>{{ 'usage_rights.allowances'|trans }}</h2></div>
-                <p class="settings-hint">{{ 'usage_rights.allowances_help'|trans }}</p>
+                {# ⚠️ Les allocations rejoignent le même pli : elles sont la
+                   sortie de la ligne « combien », exactement comme les grants
+                   sont celle des quatre autres. Deux sections de premier niveau
+                   pour deux moitiés d'une même chose donnaient à la page deux
+                   titres de plus que ce qu'elle contient. #}
+                <h3 class="pkg-compiled-sub">{{ 'usage_rights.allowances'|trans }}</h3>
 
                 {# 🔴 **S153b — l'éditeur « Ajouter une allocation » est PARTI.**
                    Les quotas se saisissent ligne « combien » de la carte du haut, et
@@ -297,47 +339,34 @@
                 {% else %}
                     <p class="usage-empty">{{ 'usage_rights.no_allowances'|trans }}</p>
                 {% endif %}
+                    </div>
+                </details>
             </section>
 
+            {# ============================================================
+               QUI A CE FORFAIT — en LECTURE, et l'écriture est sur le groupe.
+
+               🔴 **Un forfait DÉFINIT des droits ; un groupe dit QUI les a.**
+               Cette page portait les deux, et c'est ce qui la rendait longue :
+               on venait décrire ce qu'un forfait autorise et on repartait avec
+               une liste de groupes à gérer. L'attribution vit maintenant sur la
+               fiche du GROUPE, à côté de ses membres — les deux moitiés d'une
+               même question, « qui, et avec quoi », enfin au même endroit.
+
+               ⚠️ **Et la contrepartie est réelle** : attribuer demande un écran
+               de plus depuis ici. C'est le prix pour que « les droits de ce
+               groupe » se lisent en un seul endroit au lieu d'être répartis sur
+               autant de fiches de forfait qu'il en tient.
+
+               ⚠️ **Les lignes PERSONNELLES gardent leur révocation ici**, et
+               elles seules : elles n'ont pas de fiche de groupe où aller. C'est
+               le chemin qu'écrira le module commerce — un achat est individuel,
+               et son remboursement doit pouvoir retirer exactement ce que cette
+               commande-là a donné.
+               ============================================================ #}
             <section class="usage-assignments">
                 <div class="admin-panel-header"><h2>{{ 'usage_rights.assignments'|trans }}</h2></div>
-                {# 🔴 **S159 étape 1 — l'attribution à UNE PERSONNE est retirée de
-                   l'écran.** Un opérateur donne désormais un forfait à un GROUPE,
-                   et fait entrer la personne dans le groupe. Une seule façon
-                   d'accorder un droit, et une seule réponse à « pourquoi ai-je ce
-                   droit ? » — parce que je suis dans ce groupe.
-
-                   ⚠️ **Le LECTEUR, lui, accepte toujours les attributions
-                   personnelles**, et la colonne reste : c'est le chemin de ce
-                   qu'une MACHINE écrit — une commande du module commerce, qui est
-                   individuelle par nature et dont le remboursement doit pouvoir
-                   révoquer exactement ce que cette commande-là a donné. Ce qui
-                   disparaît est la surface d'écriture humaine, pas le modèle.
-
-                   ⚠️ **Les lignes personnelles existantes continuent d'accorder ce
-                   qu'elles accordent**, et la liste plus bas les montre avec leur
-                   bouton de révocation. Aucune migration, rien de perdu.
-
-                   🔴 **REVUE R2 — l'éditeur n'est plus REPLIÉ.** Le `<details>`
-                   se justifiait quand quatre « ajouter » se disputaient la place.
-                   Il n'en reste qu'un depuis l'étape 1 de S159, et c'est l'action
-                   que cette page existe pour permettre : la replier ajoutait un
-                   clic au geste le plus fréquent de l'écran.
-
-                   🔴 **REVUE R3 — les deux DATES sont retirées.** « Jusqu'à
-                   quand » s'écrivait ici ET sur l'appartenance au groupe, sans
-                   que rien ne dise lequel répondait à « Sofia jusqu'au 30 juin ».
-                   La date va sur l'APPARTENANCE, où elle concerne une personne.
-                   Mesuré avant de retirer : les trois attributions de groupe
-                   vivantes n'ont aucune date. #}
-                <div class="usage-assign-group">
-                    {{ form_start(assignGroupForm, {attr: {class: 'usage-assignment-form'}}) }}
-                        {% form_theme assignGroupForm 'form/admin_theme.html.twig' %}
-                        {{ form_row(assignGroupForm.group_key) }}
-                        <button class="btn-link btn-primary-admin" type="submit">{{ 'usage_rights.assign_group'|trans }}</button>
-                    {{ form_end(assignGroupForm) }}
-                </div>
-                <p class="settings-hint">{{ 'usage_rights.assign_group_help'|trans }}</p>
+                <p class="settings-hint">{{ 'usage_rights.assignments_read_help'|trans }}</p>
 
                 {% if assignments %}
                     <div class="usage-assignment-list">
@@ -347,30 +376,36 @@
                                     <strong>{{ assignment.name }}</strong>
                                     <small>
                                         {% if assignment.kind == 'group' %}
-                                            {{ 'usage_rights.assignment_group'|trans }}
-                                            · {{ assignment.members is null ? 'usage_rights.group_everyone'|trans : 'usage_rights.group_members'|trans({'count': assignment.members}) }}
+                                            {{ assignment.members is null ? 'usage_rights.group_everyone'|trans : 'usage_rights.group_members'|trans({'count': assignment.members}) }}
                                         {% else %}
                                             {{ assignment.detail }}
+                                            · {{ assignment.validFrom ?: 'usage_rights.now'|trans }} → {{ assignment.validUntil ?: 'usage_rights.no_end'|trans }}
                                         {% endif %}
-                                        · {{ assignment.validFrom ?: 'usage_rights.now'|trans }} → {{ assignment.validUntil ?: 'usage_rights.no_end'|trans }}
                                     </small>
                                 </span>
-                                <form method="post">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('usage_package_revoke_' ~ package.id) }}">
-                                    <input type="hidden" name="action" value="revoke">
-                                    <input type="hidden" name="assignment_id" value="{{ assignment.id }}">
-                                    <button class="admin-action danger" type="submit">{{ 'usage_rights.revoke'|trans }}</button>
-                                </form>
+                                {% if assignment.kind == 'group' %}
+                                    {# La sortie est un LIEN, pas un bouton : ce qu'on
+                                       veut faire d'un groupe se fait sur sa fiche, où
+                                       ses membres sont visibles. #}
+                                    {% if assignment.groupId|default(null) %}
+                                        <a class="admin-action" href="{{ path('app_admin_group_edit', {id: assignment.groupId}) }}">{{ 'usage_rights.open_group'|trans }}</a>
+                                    {% endif %}
+                                {% else %}
+                                    <form method="post">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('usage_package_revoke_' ~ package.id) }}">
+                                        <input type="hidden" name="action" value="revoke">
+                                        <input type="hidden" name="assignment_id" value="{{ assignment.id }}">
+                                        <button class="admin-action danger" type="submit">{{ 'usage_rights.revoke'|trans }}</button>
+                                    </form>
+                                {% endif %}
                             </div>
                         {% endfor %}
                     </div>
                 {% else %}
-                    {# 🔴 **REVUE R6 — le chemin manquant.** Le modèle groupes-seuls
-                       coûte 3 écrans au lieu d'1 pour une personne unique, et
-                       c'est assumé ; mais rien ne menait d'ici vers « créer le
-                       groupe qui va le porter » — on sortait, on créait, on
-                       revenait. Le nom du forfait part en paramètre, la page des
-                       groupes ouvre son formulaire déjà rempli. #}
+                    {# 🅿️ **Le chemin manquant, gardé de la revue R6** : rien ne
+                       menait d'ici vers « créer le groupe qui va le porter ». Le
+                       nom part en paramètre, la page des groupes ouvre son
+                       formulaire déjà rempli. #}
                     <p class="usage-empty">
                         {{ 'usage_rights.no_assignments'|trans }}
                         <a class="btn-link" href="{{ path('app_admin_groups', {'nom': package.name}) }}">{{ 'usage_rights.create_group_for_package'|trans }}</a>

@@ -542,11 +542,27 @@
    ⚠️ **Et il CACHE, il ne désactive pas** : une liste repliée poste quand même
    son contenu. C'est la case qui décide, côté serveur. */
 .pkg-spec { padding: 18px 24px 24px; }
-.pkg-spec-sentence {
-    font-size: var(--font-size-lg); line-height: 1.6; margin: 0 0 var(--spacing-lg);
-    padding-bottom: var(--spacing-md); border-bottom: 1px solid var(--border-color);
+/* 🔴 `.pkg-spec-sentence` a disparu avec la phrase qu'elle habillait : elle
+   était fixe et donc fausse sur tout forfait restreint. Le résumé est maintenant
+   `_admin_meta_grid`, qui a déjà ses règles plus bas — c'est le but d'un système
+   de design : une div existante plutôt qu'une classe de plus. */
+.pkg-spec .readonly-grid { margin: 0 0 var(--spacing-lg); }
+
+/* LE PLI « ce qui est écrit en base » — la SORTIE du compilateur. Fermé quand la
+   carte du dessus sait exprimer le forfait, ouvert quand elle ne le sait pas et
+   qu'il est la seule prise. */
+.pkg-compiled { border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); }
+.pkg-compiled > summary {
+    display: flex; align-items: center; gap: var(--spacing-md); flex-wrap: wrap;
+    padding: var(--spacing-md); cursor: pointer;
 }
-.pkg-spec-sentence b { color: var(--color-primary-text); }
+.pkg-compiled-title { font-weight: 600; }
+.pkg-compiled-body { padding: 0 var(--spacing-md) var(--spacing-md); }
+.pkg-compiled-sub {
+    margin: var(--spacing-lg) 0 var(--spacing-sm); font-size: var(--font-size-sm);
+    text-transform: uppercase; letter-spacing: .04em; color: var(--color-text-light);
+}
+.pkg-compiled-sub:first-of-type { margin-top: var(--spacing-md); }
 
 .pkg-axis { padding: var(--spacing-md) 0; border-bottom: 1px solid var(--border-color); }
 .pkg-axis:last-of-type { border-bottom: 0; }
