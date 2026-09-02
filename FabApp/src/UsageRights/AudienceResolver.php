@@ -49,8 +49,17 @@ final class AudienceResolver
     /** @var array<string, list<string>> */
     private array $memo = [];
 
-    public function __construct(private readonly Connection $db)
-    {
+    /**
+     * ⚠️ **S159g — le résolveur dépend désormais de L'INSTANT.** Une appartenance
+     * peut être datée, donc « dans quels groupes est cette personne » n'a de
+     * réponse que « maintenant ». Sa mémoïsation PAR REQUÊTE reste juste — une
+     * requête ne dure pas assez pour qu'une date bascule — mais une mémoïsation
+     * plus longue, sur un worker par exemple, ne le serait plus.
+     */
+    public function __construct(
+        private readonly Connection $db,
+        private readonly UserGroupSchema $schema,
+    ) {
     }
 
     /**
@@ -105,8 +114,8 @@ final class AudienceResolver
             $rows = $this->db->fetchAllAssociative(
                 'SELECT m.userId, g.groupKey FROM USER_GROUP_MEMBER m
                  INNER JOIN USER_GROUP g ON g.id = m.groupId
-                 WHERE m.userId IN (:ids)',
-                ['ids' => array_keys($pending)],
+                 WHERE m.userId IN (:ids)' . $this->schema->activeClause('m'),
+                ['ids' => array_keys($pending)] + $this->schema->activeParams(new \DateTimeImmutable()),
                 ['ids' => \Doctrine\DBAL\ArrayParameterType::INTEGER],
             );
             foreach ($rows as $row) {
@@ -221,8 +230,9 @@ final class AudienceResolver
     {
         try {
             return array_map('strval', $this->db->fetchFirstColumn(
-                'SELECT g.groupKey FROM USER_GROUP_MEMBER m INNER JOIN USER_GROUP g ON g.id = m.groupId WHERE m.userId = :user',
-                ['user' => $userId],
+                'SELECT g.groupKey FROM USER_GROUP_MEMBER m INNER JOIN USER_GROUP g ON g.id = m.groupId
+                 WHERE m.userId = :user' . $this->schema->activeClause('m'),
+                ['user' => $userId] + $this->schema->activeParams(new \DateTimeImmutable()),
             ));
         } catch (\Throwable) {
             return [];

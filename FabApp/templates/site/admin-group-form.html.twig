@@ -75,6 +75,17 @@
                                 <option value="{{ person.id }}">{{ person.displayName }} — {{ person.email }}</option>
                             {% endfor %}
                         </select>
+                        {# ⚠️ **Les deux dates sont FACULTATIVES, et vides veulent dire
+                           « sans limite »** — pas « à partir de maintenant », pas
+                           « jusqu'à jamais ». C'est ce que sont toutes les
+                           appartenances écrites jusqu'ici, et le cas courant.
+                           🔴 Le groupe des administrateurs refuse une date de fin,
+                           côté serveur : une appartenance `admin` qui expire
+                           verrouillerait l'installation le jour dit. #}
+                        <label class="afp-select"><span class="afp-k">{{ 'groups.valid_from'|trans }}</span>
+                            <input type="date" name="valid_from"></label>
+                        <label class="afp-select"><span class="afp-k">{{ 'groups.valid_until'|trans }}</span>
+                            <input type="date" name="valid_until"></label>
                         <button class="btn-link btn-primary-admin" type="submit">{{ 'groups.add_member'|trans }}</button>
                     </form>
                 {% endif %}

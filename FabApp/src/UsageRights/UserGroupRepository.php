@@ -38,8 +38,10 @@ final class UserGroupRepository
     /** ⚠️ Un `groupKey` fait 60 caractères en base ; le libellé 120, la description 255. */
     private const KEY_MAX = 60;
 
-    public function __construct(private readonly Connection $db)
-    {
+    public function __construct(
+        private readonly Connection $db,
+        private readonly UserGroupSchema $schema,
+    ) {
     }
 
     /**
@@ -50,7 +52,7 @@ final class UserGroupRepository
      * et peut afficher 0 ici tout en couvrant tout le monde. L'écran doit montrer
      * les deux, sans quoi il ment — voir `admin-groups.html.twig`.
      *
-     * @return list<array{id:int,key:string,label:string,description:?string,builtin:bool,virtual:bool,stored:int,bundles:int}>
+     * @return list<array{id:int,key:string,label:string,description:?string,builtin:bool,virtual:bool,stored:int,active:int,bundles:int}>
      */
     public function all(): array
     {
@@ -58,10 +60,13 @@ final class UserGroupRepository
             $rows = $this->db->fetchAllAssociative(
                 'SELECT g.id, g.groupKey, g.label, g.description, g.builtin, g.virtual,
                         (SELECT COUNT(*) FROM USER_GROUP_MEMBER m WHERE m.groupId = g.id) AS stored,
+                        (SELECT COUNT(*) FROM USER_GROUP_MEMBER m
+                          WHERE m.groupId = g.id' . $this->schema->activeClause('m') . ') AS activeNow,
                         (SELECT COUNT(*) FROM USAGE_RIGHT_ASSIGNMENT a
                           WHERE a.groupId = g.id AND a.revokedAt IS NULL) AS bundles
                  FROM USER_GROUP g
                  ORDER BY g.builtin DESC, g.label ASC',
+                $this->schema->activeParams(new \DateTimeImmutable()),
             );
         } catch (\Throwable) {
             // ⚠️ Repli honnête pour une installation sans la migration S133b :
@@ -77,6 +82,14 @@ final class UserGroupRepository
             'builtin' => (bool) $row['builtin'],
             'virtual' => (bool) $row['virtual'],
             'stored' => (int) $row['stored'],
+            // 🔴 **`active` et `stored` ne sont PAS le même nombre** depuis que
+            // l'appartenance peut être datée : une ligne expirée reste en base et
+            // n'accorde plus rien. L'écran montre `active` — c'est ce qui décide —
+            // et signale l'écart, sinon un opérateur croirait avoir retiré
+            // quelqu'un qui figure encore dans la liste.
+            // ⚠️ Sans les colonnes de dates, les deux sont égaux : `activeClause()`
+            // est vide, donc la sous-requête compte tout.
+            'active' => (int) $row['activeNow'],
             // 🔴 Combien de forfaits perdraient leur attribution si on supprimait
             // ce groupe : `USAGE_RIGHT_ASSIGNMENT.groupId` est en `ON DELETE
             // CASCADE`, donc supprimer un groupe RETIRE des droits. L'écran doit
@@ -85,7 +98,7 @@ final class UserGroupRepository
         ], $rows);
     }
 
-    /** @return array{id:int,key:string,label:string,description:?string,builtin:bool,virtual:bool,stored:int,bundles:int}|null */
+    /** @return array{id:int,key:string,label:string,description:?string,builtin:bool,virtual:bool,stored:int,active:int,bundles:int}|null */
     public function find(int $id): ?array
     {
         foreach ($this->all() as $row) {
@@ -219,8 +232,12 @@ final class UserGroupRepository
      * une appartenance que le résolveur n'utilise pas, donc un contrôle qui a
      * l'air d'agir et n'agit pas.
      */
-    public function addMember(int $groupId, int $userId): void
-    {
+    public function addMember(
+        int $groupId,
+        int $userId,
+        ?\DateTimeImmutable $from = null,
+        ?\DateTimeImmutable $until = null,
+    ): void {
         $group = $this->find($groupId);
         if ($group === null) {
             throw new \InvalidArgumentException('Groupe introuvable.');
@@ -229,12 +246,32 @@ final class UserGroupRepository
             throw new \InvalidArgumentException("Cette audience est résolue depuis le compte : elle n'a pas de membres à inscrire.");
         }
 
+        // 🔴 **On ne met pas de date de fin sur le groupe des administrateurs.**
+        // La garde du dernier administrateur regarde ce qu'une écriture fait ;
+        // elle ne peut rien contre l'HORLOGE. Une appartenance `admin` qui expire
+        // verrouillerait l'installation le jour dit, sans que personne n'ait rien
+        // fait — le pire moment pour découvrir qu'on n'a plus d'accès.
+        if ($until !== null && $group['key'] === AudienceResolver::ADMIN) {
+            throw new \InvalidArgumentException(
+                "Une appartenance au groupe des administrateurs ne peut pas expirer : l'installation deviendrait inaccessible à la date dite.",
+            );
+        }
+
+        // ⚠️ Les dates ne s'écrivent que si la base sait les porter. Sans les
+        // colonnes, l'appartenance est sans limite — ce qu'étaient toutes les
+        // appartenances avant. Le repli va vers l'ancien comportement, jamais
+        // vers le neuf.
+        $dates = $this->schema->hasDateColumns() ? [
+            'validFrom' => $from?->format('Y-m-d H:i:s'),
+            'validUntil' => $until?->format('Y-m-d H:i:s'),
+        ] : [];
+
         try {
             $this->db->insert('USER_GROUP_MEMBER', [
                 'groupId' => $groupId,
                 'userId' => $userId,
                 'addedAt' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
-            ]);
+            ] + $dates);
         } catch (\Throwable) {
             // La clé primaire (groupId, userId) est la garde ; réajouter
             // quelqu'un n'est pas une erreur qui mérite d'arrêter l'opérateur.
@@ -266,7 +303,10 @@ final class UserGroupRepository
     public function removeMember(int $groupId, int $userId): void
     {
         $group = $this->find($groupId);
-        if ($group !== null && $group['key'] === AudienceResolver::ADMIN && $group['stored'] <= 1) {
+        // ⚠️ **`active`, pas `stored`** : une appartenance expirée ne protège
+        // personne, donc la compter laisserait retirer le dernier administrateur
+        // effectif au motif qu'une ligne périmée traîne encore.
+        if ($group !== null && $group['key'] === AudienceResolver::ADMIN && $group['active'] <= 1) {
             throw new \InvalidArgumentException(
                 "Impossible de retirer la dernière personne du groupe des administrateurs : l'installation deviendrait inaccessible.",
             );

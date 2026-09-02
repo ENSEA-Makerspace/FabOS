@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Entity\Utilisateur;
 use App\Repository\UtilisateurRepository;
 use App\UsageRights\AudienceResolver;
+use App\Service\SiteSettingService;
 use App\UsageRights\UserGroupRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -43,8 +44,10 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 #[IsGranted('ROLE_ADMIN')]
 final class UserGroupAdminController extends AbstractController
 {
-    public function __construct(private readonly TranslatorInterface $translator)
-    {
+    public function __construct(
+        private readonly TranslatorInterface $translator,
+        private readonly SiteSettingService $settings,
+    ) {
     }
 
     #[Route('', name: 'app_admin_groups', methods: ['GET', 'POST'])]
@@ -169,6 +172,33 @@ final class UserGroupAdminController extends AbstractController
     }
 
     /**
+     * Une date de formulaire, dans le fuseau du LABO (S159g).
+     *
+     * 🔴 **Jamais `new \DateTimeImmutable($raw)` tout seul.** Sans fuseau
+     * explicite, PHP prend le sien — UTC ici — et « jusqu'au 30 juin » devient
+     * une expiration décalée de deux heures. C'est la même leçon que
+     * `UsageRightsAdminController::date()` pour les attributions, et le piège
+     * n°4 de la reprise.
+     *
+     * ⚠️ Vide rend `null`, qui veut dire « sans limite ». Une saisie illisible
+     * aussi : mieux vaut une appartenance sans limite qu'une exception sur un
+     * écran d'administration — et la ligne se corrige.
+     */
+    private function momentOf(mixed $raw): ?\DateTimeImmutable
+    {
+        $value = trim((string) $raw);
+        if ($value === '') {
+            return null;
+        }
+
+        try {
+            return new \DateTimeImmutable($value, new \DateTimeZone($this->settings->getTimezone()));
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /**
      * Les cinq écritures, toutes derrière le même jeton.
      *
      * ⚠️ **Chaque action porte un identifiant, pas une liste de champs** — même
@@ -214,7 +244,16 @@ final class UserGroupAdminController extends AbstractController
                     return $this->redirectToRoute('app_admin_groups');
 
                 case 'add_member':
-                    $groups->addMember($request->request->getInt('id'), $request->request->getInt('user_id'));
+                    // ⚠️ **Les deux dates sont facultatives, et vides veulent dire
+                    // « sans limite »** — pas « maintenant », pas « jamais ». C'est
+                    // ce que sont toutes les appartenances écrites jusqu'ici, et
+                    // le cas de loin le plus courant.
+                    $groups->addMember(
+                        $request->request->getInt('id'),
+                        $request->request->getInt('user_id'),
+                        $this->momentOf($request->request->get('valid_from')),
+                        $this->momentOf($request->request->get('valid_until')),
+                    );
                     $this->addFlash('success', $this->translator->trans('groups.member_added'));
                     break;
 

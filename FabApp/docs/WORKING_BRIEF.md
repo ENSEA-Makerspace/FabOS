@@ -89,7 +89,22 @@ conclue, R1 → R9 sont faits sauf R5/R6 qui sont des décisions.
   l'opérateur.
 - Déployé et vérifié par hachage sur CT 210, services redémarrés, site 200.
 - Cache-buster CSS courant : `?v=20260831-s153b`.
-- 🔴 **UNE MIGRATION EN ATTENTE : `Version20260902100000`** — elle supprime
+- 🔴 **UNE MIGRATION EN ATTENTE : `Version20260902160000`** — l'appartenance
+  DATÉE : deux colonnes nullables sur `USER_GROUP_MEMBER`. ✅ Purement additive,
+  et le code est **déjà déployé et tolérant** : `UserGroupSchema` sonde les
+  colonnes, et sans elles une appartenance est sans limite — le comportement
+  d'aujourd'hui. Vérifié avant la migration : les écrans et les annuaires rendent
+  exactement les mêmes nombres.
+  🔴 `NULL` vaut **sans limite des DEUX côtés** : un filtre qui prendrait les
+  onze lignes du backfill (sans dates) pour expirées retirerait `staff`, `admin`
+  et `trainers` à tout le monde. La clause est écrite UNE fois, dans
+  `UserGroupSchema`.
+  ⚠️ Une appartenance au groupe `admin` **ne peut pas expirer** : la garde du
+  dernier administrateur juge une écriture, elle ne peut rien contre l'horloge.
+  ⚠️ La section 7 de `app:s153:package-probe` se saute tant que la migration
+  n'est pas jouée, et le dit ; après, elle mesure les quatre cas.
+
+- ✅ **Jouée le 2026-09-02 : `Version20260902100000`** — elle supprime
   `UTILISATEUR_ROLE`. Le code déployé ne lit plus cette table : les rôles
   viennent des groupes. La migration est donc une étape de CONTRACT, à jouer
   APRÈS le code, ce qui est le cas.
@@ -97,8 +112,9 @@ conclue, R1 → R9 sont faits sauf R5/R6 qui sont des décisions.
   `staff` {5,7}, `trainer` {5,7,9} identiques des deux côtés ; les deux lignes de
   rôle `user` n'ont pas d'équivalent et n'en ont pas besoin (`ROLE_USER` est
   accordé sans ligne).
-  ✅ Et son `down()` **reconstruit** les lignes depuis les groupes — un retour en
-  arrière qui rendrait une table vide verrouillerait l'installation.
+  ✅ Son `down()` **reconstruit** les lignes depuis les groupes. Vérifié après
+  coup : `/formateurs` et `/equipe` rendent les bonnes personnes, `/admin` se
+  rend en administrateur, 107 routes à 200.
 - 🔴 **L'agent ne peut ni migrer, ni `git push`** : donner la ligne à l'opérateur.
 - ✅ **Déployé et vérifié par hachage sur CT 210 le 2026-08-27**, deux fois :
   la passe navigateur (112 fichiers, balayage de 106 pages) puis la paire D

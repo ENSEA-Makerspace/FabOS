@@ -17,6 +17,7 @@ use App\UsageRights\PackageSpecCompiler;
 use App\UsageRights\UsageAllowanceRepository;
 use App\UsageRights\UsagePackageRepository;
 use App\UsageRights\UserGroupRepository;
+use App\UsageRights\UserGroupSchema;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -75,6 +76,7 @@ final class S153PackageProbeCommand extends Command
             $failures += $this->probeGroupReach($io);
             $failures += $this->probeGroupWrites($io);
             $failures += $this->probePersonType($io);
+            $failures += $this->probeDatedMembership($io);
         } finally {
             // ⚠️ `rollBack()` dans un `finally` : une exception au milieu ne doit
             // pas laisser un package de sonde en base.
@@ -353,7 +355,9 @@ final class S153PackageProbeCommand extends Command
 
         // 🔴 Un résolveur NEUF : celui de la sonde a déjà répondu pour cette
         // personne et rendrait sa réponse mémoïsée, d'avant l'écriture.
-        $fresh = new AudienceResolver($this->em->getConnection());
+        // ⚠️ Le schéma se sonde sur la même connexion : dans la transaction de la
+        // sonde, il doit voir la base telle qu'elle est ici.
+        $fresh = new AudienceResolver($this->em->getConnection(), new UserGroupSchema($this->em->getConnection()));
         $failures += $this->check(
             $io,
             'et `AudienceResolver` la voit — donc un forfait la suivrait',
@@ -516,6 +520,101 @@ final class S153PackageProbeCommand extends Command
         $this->em->clear();
         $again = $this->users->find((int) $member->getId());
         $failures += $this->check($io, 'retirée du groupe, elle ne l’est plus', $again !== null && !$again->isStaff(), 'isStaff');
+
+        return $failures;
+    }
+
+    /**
+     * L'appartenance DATÉE fait-elle ce qu'elle dit ? (S159g)
+     *
+     * 🔴 **Trois questions, et la première est la plus dangereuse.**
+     *   1. Une appartenance SANS dates accorde toujours — c'est le cas des onze
+     *      lignes du backfill, et un filtre qui les prendrait pour expirées
+     *      retirerait `staff`, `admin` et `trainers` à tout le monde.
+     *   2. Une appartenance EXPIRÉE n'accorde plus.
+     *   3. Une appartenance PAS ENCORE COMMENCÉE n'accorde pas encore.
+     *
+     * ⚠️ **Elle se saute d'elle-même tant que la migration n'est pas jouée**, et
+     * le dit : sans les colonnes, il n'y a rien à mesurer, et une sonde qui
+     * afficherait vert dans ce cas mentirait sur ce qui a été vérifié.
+     */
+    private function probeDatedMembership(SymfonyStyle $io): int
+    {
+        $io->section('7. L’appartenance datée');
+
+        $schema = new UserGroupSchema($this->em->getConnection());
+        if (!$schema->hasDateColumns()) {
+            $io->warning('Colonnes de dates absentes : migration Version20260902160000 pas encore jouée. Rien mesuré ici.');
+
+            return 0;
+        }
+
+        $member = null;
+        foreach ($this->users->findBy([], ['id' => 'ASC']) as $candidate) {
+            if ($candidate instanceof Utilisateur) {
+                $member = $candidate;
+                break;
+            }
+        }
+        if ($member === null) {
+            return 0;
+        }
+
+        $id = $this->groups->create('Sonde S159 — daté', 'Créé par la sonde, annulé avec elle.');
+        $group = $this->groups->find($id);
+        if ($group === null) {
+            return 1;
+        }
+        $now = $this->clock->now();
+        $failures = 0;
+
+        $sees = function () use ($group, $member): bool {
+            $fresh = new AudienceResolver($this->em->getConnection(), new UserGroupSchema($this->em->getConnection()));
+
+            return in_array($group['key'], $fresh->keysFor($member), true);
+        };
+
+        // 1. Sans dates : accorde.
+        $this->groups->addMember($id, (int) $member->getId());
+        $failures += $this->check($io, 'sans dates, l’appartenance accorde', $sees(), 'sans limite');
+        $this->groups->removeMember($id, (int) $member->getId());
+
+        // 2. Expirée : n'accorde plus.
+        $this->groups->addMember($id, (int) $member->getId(), $now->modify('-2 days'), $now->modify('-1 day'));
+        $failures += $this->check($io, 'expirée hier, elle n’accorde plus', !$sees(), 'expirée');
+        $this->groups->removeMember($id, (int) $member->getId());
+
+        // 3. Pas encore commencée : n'accorde pas encore.
+        $this->groups->addMember($id, (int) $member->getId(), $now->modify('+1 day'), null);
+        $failures += $this->check($io, 'commençant demain, elle n’accorde pas encore', !$sees(), 'à venir');
+        $this->groups->removeMember($id, (int) $member->getId());
+
+        // 4. En cours : accorde.
+        $this->groups->addMember($id, (int) $member->getId(), $now->modify('-1 day'), $now->modify('+1 day'));
+        $failures += $this->check($io, 'en cours, elle accorde', $sees(), 'en cours');
+        $this->groups->removeMember($id, (int) $member->getId());
+
+        // 5. 🔴 Le groupe des administrateurs refuse une date de fin : la garde du
+        //    dernier administrateur juge une écriture, elle ne peut rien contre
+        //    l'horloge.
+        $adminGroup = null;
+        foreach ($this->groups->all() as $row) {
+            if ($row['key'] === 'admin') {
+                $adminGroup = $row;
+                break;
+            }
+        }
+        if ($adminGroup !== null) {
+            $refused = false;
+            try {
+                $this->groups->addMember($adminGroup['id'], (int) $member->getId(), null, $now->modify('+1 year'));
+            } catch (\Throwable) {
+                $refused = true;
+            }
+            $failures += $this->check($io, 'une appartenance « admin » ne peut pas expirer', $refused, 'garde serveur');
+        }
+
+        $this->groups->delete($id);
 
         return $failures;
     }

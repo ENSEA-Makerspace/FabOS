@@ -531,11 +531,21 @@ supprimé le seul moyen de défaire ce que l'écran avait laissé faire.
 dise ce qui est réellement en base, et l'issue de secours. Même partage qu'en
 S153b.
 
-**2. L'appartenance datée** 🅿️ **PROCHAINE ÉTAPE** (déjà listée en Phase S158, étape 5) — une colonne sur
-`USER_GROUP_MEMBER`, migration additive. Sans elle, « jusqu'au 30 juin » n'est
-plus exprimable pour une personne.
-⚠️ `AudienceResolver` devient alors dépendant de l'INSTANT : sa mémoïsation par
-requête reste juste, une mémoïsation plus longue ne le serait plus.
+**2. L'appartenance datée** — ✅ **PRÉPARÉE le 2026-09-02** (S159g). Code déployé
+et tolérant, migration `Version20260902160000` en attente.
+✅ Deux colonnes nullables, purement additives ; `UserGroupSchema` les sonde et,
+sans elles, une appartenance est sans limite — le comportement d'aujourd'hui.
+🔴 `NULL` vaut « sans limite » des DEUX côtés, et la clause est écrite UNE fois :
+prendre les onze lignes du backfill pour expirées retirerait `staff`, `admin` et
+`trainers` à tout le monde.
+⚠️ `AudienceResolver` dépend désormais de l'INSTANT : sa mémoïsation par requête
+reste juste, une mémoïsation plus longue ne le serait plus.
+⚠️ Une appartenance `admin` ne peut pas expirer — la garde du dernier
+administrateur juge une écriture, pas l'horloge.
+🅿️ **Le JOURNAL n'est pas fait, et volontairement** : il n'a de sens que le jour
+où une MACHINE écrit — une commande dont le remboursement doit retirer exactement
+ce qu'elle a donné. Tant que seul un humain écrit, une ligne datée suffit, et une
+table de journal sans écrivain serait un demi-modèle de plus.
 
 **3. Convertir les attributions personnelles en groupes**, puis retirer le chemin
 `userId`. ⚠️ **Possible seulement une fois l'appartenance sourcée** (voir
