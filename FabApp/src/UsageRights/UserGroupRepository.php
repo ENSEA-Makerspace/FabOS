@@ -242,8 +242,36 @@ final class UserGroupRepository
         }
     }
 
+    /**
+     * 🔴 **LA GARDE DU DERNIER ADMINISTRATEUR, posée AVANT d'en avoir besoin
+     * (S159b).**
+     *
+     * Aujourd'hui, retirer quelqu'un du groupe `admin` ne lui retire pas
+     * `ROLE_ADMIN` : le rôle est la source, le groupe n'en est qu'un reflet. La
+     * garde est donc sans effet visible — et c'est exactement pourquoi elle se
+     * pose maintenant. Le jour où `getRoles()` lira les groupes, **retirer le
+     * dernier membre du groupe `admin` verrouillerait l'installation hors de
+     * son propre administrateur**, et ce jour-là il sera trop tard pour y penser.
+     *
+     * ⚠️ **Elle vit dans le dépôt, pas dans un gabarit.** Les deux écrans qui
+     * retirent une appartenance — la fiche du groupe et la fiche du membre —
+     * passent par ici, et un POST ne se laisse pas convaincre par un bouton
+     * absent. C'est le même choix que le refus de supprimer un groupe intégré.
+     *
+     * ⚠️ **Elle compte les lignes STOCKÉES du groupe `admin`**, pas les
+     * détenteurs de `ROLE_ADMIN` : c'est la chose que ce retrait va modifier, et
+     * la seule dont il puisse répondre. `AccountGuard` garde l'autre bout —
+     * l'anonymisation d'un compte — et les deux resteront nécessaires.
+     */
     public function removeMember(int $groupId, int $userId): void
     {
+        $group = $this->find($groupId);
+        if ($group !== null && $group['key'] === AudienceResolver::ADMIN && $group['stored'] <= 1) {
+            throw new \InvalidArgumentException(
+                "Impossible de retirer la dernière personne du groupe des administrateurs : l'installation deviendrait inaccessible.",
+            );
+        }
+
         $this->db->delete('USER_GROUP_MEMBER', ['groupId' => $groupId, 'userId' => $userId]);
     }
 

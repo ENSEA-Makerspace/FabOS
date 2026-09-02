@@ -398,6 +398,47 @@ final class S153PackageProbeCommand extends Command
             'aller-retour',
         );
 
+        // 🔴 **La garde du dernier administrateur** (S159b). Elle est sans effet
+        // visible aujourd'hui — le rôle est la source — et c'est pour ça qu'elle
+        // se vérifie ici : le jour où `getRoles()` lira les groupes, c'est elle
+        // qui empêchera un verrouillage, et une garde qu'on n'a jamais vue
+        // refuser est une garde dont on ne sait pas si elle refuse.
+        $adminGroup = null;
+        foreach ($this->groups->all() as $row) {
+            if ($row['key'] === 'admin') {
+                $adminGroup = $row;
+                break;
+            }
+        }
+        if ($adminGroup !== null && $adminGroup['stored'] > 0) {
+            $admins = $this->groups->storedMemberIds($adminGroup['id']);
+            $last = $admins[count($admins) - 1];
+            $others = array_slice($admins, 0, count($admins) - 1);
+
+            // ⚠️ **On remet les lignes AVANT de sortir, dans la transaction.**
+            // Elle est annulée de toute façon — mais une sonde qui compte sur son
+            // propre `rollBack()` pour ne pas avoir vidé le groupe des
+            // administrateurs d'une installation vivante demande trop de
+            // confiance à une seule ligne de `finally`. Deux filets valent mieux
+            // qu'un quand ce qui est en jeu est l'accès à sa propre installation.
+            foreach ($others as $extra) {
+                $this->groups->removeMember($adminGroup['id'], $extra);
+            }
+            $refusedLast = false;
+            try {
+                $this->groups->removeMember($adminGroup['id'], $last);
+            } catch (\Throwable) {
+                $refusedLast = true;
+            }
+            foreach ($others as $extra) {
+                $this->groups->addMember($adminGroup['id'], $extra);
+            }
+            $restored = count($this->groups->storedMemberIds($adminGroup['id'])) === count($admins);
+
+            $failures += $this->check($io, 'le dernier administrateur ne peut pas être retiré de son groupe', $refusedLast, 'garde serveur');
+            $failures += $this->check($io, 'et la sonde a tout remis avant de rendre la main', $restored, count($admins) . ' ligne(s)');
+        }
+
         $this->groups->removeMember($id, (int) $member->getId());
         $failures += $this->check($io, 'et la ligne se retire', $this->groups->storedMemberIds($id) === [], 'retrait');
         $failures += $this->check($io, 'des deux côtés', !in_array($id, $this->groups->storedGroupIdsFor((int) $member->getId()), true), 'aller-retour');

@@ -115,7 +115,18 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'utilisateur', targetEntity: UtilisateurRole::class)]
     private Collection $utilisateurRoles;
 
-    public function __construct() { $this->createdAt = new \DateTimeImmutable(); $this->utilisateurRoles = new ArrayCollection(); }
+    /**
+     * Les groupes de cette personne (S159b).
+     *
+     * 🔴 Lus par `getRoles()`, donc sur le chemin de la SÉCURITÉ. En lecture
+     * seule : l'écriture reste dans `UserGroupRepository`, qui porte les gardes.
+     *
+     * @var Collection<int, UserGroupMember>
+     */
+    #[ORM\OneToMany(mappedBy: 'utilisateur', targetEntity: UserGroupMember::class)]
+    private Collection $groupMemberships;
+
+    public function __construct() { $this->createdAt = new \DateTimeImmutable(); $this->utilisateurRoles = new ArrayCollection(); $this->groupMemberships = new ArrayCollection(); }
     public function getId(): ?int { return $this->id; }
     public function getEmail(): string { return $this->email; }
     public function setEmail(string $email): self { $this->email = $email; return $this; }
@@ -124,6 +135,30 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     public function getPassword(): string { return $this->password; }
     public function setPassword(string $password): self { $this->password = $password; return $this; }
     public function getUserIdentifier(): string { return $this->email; }
+    /**
+     * 🔴 **S159b — les rôles viennent désormais des DEUX sources, en UNION.**
+     *
+     * La table `UTILISATEUR_ROLE`, comme toujours ; **et** l'appartenance aux
+     * groupes intégrés, qui sont les mêmes cinq noms (`admin`, `manager`,
+     * `staff`, `superuser`, `trainers`). C'est l'étape « expand » de la fusion
+     * rôle → groupe : **personne ne perd rien**, puisqu'on ajoute une source sans
+     * en retirer une. Le backfill de S158c a écrit les lignes que les rôles
+     * produisaient déjà, donc l'union est aujourd'hui **égale** à ce que la seule
+     * table des rôles rendait — ce que `app:s159:roles-shadow` vérifie compte par
+     * compte.
+     *
+     * ⚠️ **Sans cette étape, ajouter quelqu'un au groupe `staff` ne lui donnait
+     * pas `ROLE_STAFF`** : le groupe portait des forfaits, le rôle ouvrait des
+     * écrans, et les deux ne se parlaient pas. C'est ce que la fusion répare.
+     *
+     * 🅿️ **Le « contract » — retirer `UTILISATEUR_ROLE` — est une étape séparée**,
+     * qui demande que plus rien n'écrive dans cette table. Tant qu'elle existe,
+     * l'union la respecte.
+     *
+     * ⚠️ **Seuls les groupes INTÉGRÉS deviennent des rôles.** Un groupe libre —
+     * « Bénévoles », « week-end » — ne doit pas fabriquer un `ROLE_BENEVOLES` que
+     * personne ne teste : il porte des forfaits, pas des écrans d'administration.
+     */
     public function getRoles(): array
     {
         $roles = ['ROLE_USER'];
@@ -135,8 +170,48 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
             $roles[] = self::securityRoleFor($roleName);
         }
 
+        foreach ($this->groupMemberships as $membership) {
+            $group = $membership->getGroup();
+            if ($group === null || !$group->isBuiltin()) {
+                continue;
+            }
+            $roleName = self::ROLE_FOR_GROUP[$group->getGroupKey()] ?? null;
+            if ($roleName !== null) {
+                // 🔴 **On repasse par `securityRoleFor()`, jamais par une chaîne
+                // écrite ici.** C'est elle qui décide de l'orthographe d'un rôle
+                // de sécurité ; une seconde table de correspondance produirait
+                // une TROISIÈME orthographe, et une permission qui ne s'applique
+                // plus est exactement ce que le commentaire de cette méthode
+                // met en garde. La table ci-dessous ne fait que le passage
+                // clé de groupe → nom de rôle, là où les deux diffèrent.
+                $roles[] = self::securityRoleFor($roleName);
+            }
+        }
+
         return array_values(array_unique($roles));
     }
+
+    /**
+     * Clé de groupe → **nom de rôle** (celui de la table `ROLE`), pour les cinq
+     * intégrés qui SONT des rôles.
+     *
+     * ⚠️ Ce n'est pas une table de rôles de sécurité : la valeur repasse par
+     * `securityRoleFor()`. Elle n'existe que parce que les deux nommages
+     * diffèrent d'un côté — le groupe est `trainers`, la ligne de rôle est
+     * `trainer`.
+     *
+     * ⚠️ `user` et `guest` n'y sont pas : ce sont des audiences résolues.
+     * `ROLE_USER` est déjà accordé plus haut à tout compte, et `guest` est
+     * l'absence de compte — les faire figurer ici accorderait un rôle à partir
+     * d'une ligne qui n'existe jamais.
+     */
+    private const ROLE_FOR_GROUP = [
+        'admin' => 'admin',
+        'manager' => 'manager',
+        'staff' => 'staff',
+        'superuser' => 'superuser',
+        'trainers' => 'trainer',
+    ];
 
     /**
      * The security role a `ROLE` table row maps to.
