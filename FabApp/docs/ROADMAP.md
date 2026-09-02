@@ -388,9 +388,11 @@ identiques au jeton près. `--write` est obligatoire ; sans lui elle montre le p
 🔴 **Et le backfill a créé un défaut qu'il fallait réparer avec lui** : « stocké »
 et « venu d'un rôle » ne s'excluent plus, donc l'écran offrait un « Retirer » qui
 supprimait la ligne sans sortir la personne du groupe — le rôle l'y remettait.
-`AudienceResolver::roleKeysFor()` pose maintenant la question au lieu de la
-déduire, et le bouton n'apparaît que si la ligne est la SEULE raison. 🅿️ Il
-réapparaîtra tout seul après le contract.
+`AudienceResolver::roleKeysFor()` a posé la question au lieu de la déduire.
+🔴 **Et cette rustine s'est retournée après le contract** (revue R1, 2026-09-03) :
+`getRoles()` DÉRIVANT désormais des appartenances, la question est devenue
+circulaire et répondait toujours oui — plus aucun bouton « Retirer » sur les
+groupes intégrés. La méthode est SUPPRIMÉE : il n'y a plus de source à distinguer.
 
 **4. Le contract : la moitié rôle sort de `compute()`.** 🅿️ **PROCHAINE ÉTAPE, et elle demande une DÉCISION.**
 🔴 **Seulement après une passe d'ombre qui prouve, compte par compte, que les deux
@@ -1019,6 +1021,57 @@ d'entrées traduites · ⚠️ plafond d'entrées (le menu principal en a déjà
   `/admin/rfid-readers` porte « Cancel », « Close » et « Delete permanently », tous
   distincts et venant de sa modale ; `/admin/access-rfid-logs` porte un seul
   « Confirm ». **Aucun doublon.** Rien à corriger — l'item est clos par la mesure.
+
+## 🅿️ TODO (opérateur, 2026-09-03) — contrôle d'accès aux LIEUX
+
+> « Dans le module lieux, on pourrait rajouter de l'access control. Avec des
+> boîtiers identiques à ceux des machines mais connectés à des gâches
+> électriques. Idem, les droits d'accès au lieu seraient déduits comme ceux des
+> machines. »
+
+**Consigné, pas construit.** Ce qui suit est ce que le dépôt dit déjà de l'idée.
+
+### ✅ Ce qui existe et se réutilise tel quel
+
+Le **boîtier** : `RfidReader` porte `readerToken` (unique), `isActive`,
+`lastSeenAt`. Le firmware appelle `MachineAccessService::authorize($machineToken,
+$rfid)`, qui rend un verdict + une raison + un journal. Rien de tout ça n'est
+spécifique à une machine, sauf la cible.
+
+### 🔴 « Déduits comme ceux des machines » serait un RECUL, et c'est le point
+
+L'accès **machine** se décide sur les **badges** (formations) :
+`findRequiredForMachine` ∩ badges de la personne, booléen. Il ne sait rien des
+jours ni des heures — « aucun badge requis » ouvre à 3 h du matin.
+
+L'accès **lieu**, lui, est déjà entièrement décrit par le forfait : `PackageSpec`
+porte `venuesAll/venues`, `daysAll/days`, `startTime/endTime`, `hoursExempt`. Un
+verdict de porte est donc **déjà calculable** — appartenance aux groupes (S158/9)
+→ forfaits → axes lieu + jours + horaires. C'est plus riche que le chemin machine,
+et c'est exactement ce que le compilateur de S153 a été écrit pour dire.
+🅿️ La vraie question n'est pas « comment copier les machines » mais **si les
+machines doivent rejoindre ce chemin-là**. À trancher avant d'écrire une ligne.
+
+### ⚠️ Ce qu'une PORTE a de plus qu'une machine
+
+- 🔴 **Fail-safe / fail-secure est une question de sécurité incendie, pas de
+  logiciel.** Une gâche doit libérer sur alarme, quoi que dise le serveur. Cette
+  décision se prend avec l'installateur, et le code ne doit jamais pouvoir la
+  contredire.
+- 🔴 **Hors ligne, une machine reste éteinte ; une porte enferme.** Le modèle
+  actuel est un appel HTTP en direct. Il faut dire ce que fait le boîtier quand
+  le réseau tombe — avant de poser le premier.
+- ⚠️ **La sortie n'est pas l'entrée.** Rien dans le modèle ne distingue les deux
+  sens.
+- ⚠️ **Les bornes horaires sont dans le fuseau du labo** (`LabClock`) : une porte
+  qui ferme à 22 h se trompe silencieusement d'une heure deux fois par an.
+- ⚠️ `RfidReader.machine` est la SEULE cible. Un lecteur sans cible, ou avec deux,
+  doit refuser — pas ouvrir.
+
+### ⚠️ Et ça change une ligne de ce fichier
+
+« RFID physique et 2FA restent hors scope » (§ Travaux transversaux). Le boîtier
+machine existe déjà côté logiciel ; c'est la **gâche** qui est neuve.
 
 ## Travaux transversaux conservés
 
