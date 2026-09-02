@@ -687,6 +687,79 @@ deux chemins à tenir d'accord.
 
 ---
 
+## 🅿️ ET SI LE RÔLE DEVENAIT UN GROUPE QU'ON NE PEUT PAS SUPPRIMER ?
+
+**Question de l'opérateur, 2026-09-02.** Elle remplace avantageusement la décision
+du « contract » de la Phase S158, qui devient sans objet : les rôles ne
+*produisent* plus des groupes, **ils en sont**.
+
+### ✅ Le cumul, d'abord : ça marche déjà, exactement comme décrit
+
+> *« UserA est dans le groupe prof, peut-être ajouté au groupe staff et au groupe*
+> *week-end. Il cumule les droits des différents groupes aux horaires concernés. »*
+
+C'est le comportement actuel, sans une ligne à écrire : les grants se combinent en
+**OU**, chaque groupe apporte les siens, et chacun porte ses propres fenêtres
+hebdomadaires.
+
+⚠️ **Une seule subtilité, et elle est réelle** : une réservation doit être couverte
+**entièrement par UN grant**, pas par un assemblage de plusieurs
+(`GrantWindowSet::covers()` reçoit « les fenêtres d'UN grant »). Donc si le groupe
+week-end ouvre samedi 9 h–12 h et le groupe prof samedi 12 h–18 h, une réservation
+de 11 h à 13 h est refusée par les deux. Ce n'est pas un défaut — c'est ce qui
+empêche un patchwork de fenêtres d'ouvrir une plage que personne n'a accordée —
+mais ça se dit à l'opérateur, sinon il croira à un bug.
+
+### Ce que la fusion simplifie
+
+- **Un seul endroit pour ranger quelqu'un.** Aujourd'hui on pose un rôle sur la
+  fiche ET on gère des groupes : deux écrans pour une idée.
+- **`AudienceResolver::compute()` perd sa table rôle → clé.** L'union à trois
+  sources retombe à deux : les lignes, et l'audience résolue `user`. C'est le
+  « contract » de S158, rendu trivial.
+- **Un seul vocabulaire.** Plus de « rôle ou groupe ? » à l'écran comme dans le code.
+- ✅ Et les cinq intégrés *sont déjà* les rôles (`admin`, `manager`, `staff`,
+  `superuser`, `trainers`). La fusion ne crée rien : elle retire un doublon.
+
+### 🔴 Ce qu'elle complique, et le coût est concentré là
+
+**`Utilisateur::getRoles()` est sur le chemin de la SÉCURITÉ.** Symfony l'appelle à
+chaque requête, et il lit aujourd'hui la relation Doctrine `utilisateurRoles →
+Role`. Or **`USER_GROUP` n'est pas une entité** — la table est en DBAL pur
+(`UserGroupRepository`, `AudienceResolver`). Faire lire les groupes à `getRoles()`
+demande donc d'abord d'en faire une entité, ou de renoncer à ce que les rôles
+soient dérivables du compte seul. **C'est le vrai coût, et il n'est pas
+cosmétique** : un `getRoles()` qui échoue, c'est une session sans droits.
+
+🔴 **Et un DANGER qu'il faut traiter AVANT, pas après.** `AccountGuard` protège le
+dernier administrateur — mais il s'exprime en `getRoles()` et il garde
+l'anonymisation, **pas le retrait d'un groupe**. Aujourd'hui c'est sans
+conséquence : retirer quelqu'un du groupe `admin` ne lui retire pas `ROLE_ADMIN`,
+puisque le rôle est la source. **Après la fusion, ce serait un verrouillage hors
+de sa propre installation** — et l'écran des groupes livré en S158a n'a aucune
+garde de ce genre.
+
+⚠️ Autre changement de sens à assumer : la fiche d'un membre porte **un** rôle
+(un `<select>`) ; une appartenance est **multiple**. « Quel rôle a cette
+personne ? » cesse d'avoir une réponse unique. C'est une simplification du modèle
+et un changement de l'écran.
+
+### L'ordre, si on la fait
+
+1. **La garde du dernier admin sur le RETRAIT DE GROUPE** — avant tout le reste,
+   parce que c'est elle qui empêche le verrouillage.
+2. **`USER_GROUP` devient une entité**, pour que `getRoles()` puisse la lire.
+3. **`getRoles()` lit les groupes** — avec une passe d'ombre compte par compte,
+   comme le backfill : les rôles rendus doivent être identiques avant/après.
+4. **Alors seulement** retirer `UTILISATEUR_ROLE` et l'amorçage de `compute()`.
+
+🅿️ **Mon avis** : oui, c'est la bonne destination — c'est celle que la vision
+décrit déjà — et elle simplifie plus qu'elle ne complique. Mais la complication
+qu'elle apporte est sur le chemin de la sécurité, donc elle ne se fait pas en
+passant : elle mérite sa propre phase, après S159.
+
+---
+
 ## Le nettoyage — ce qui reste de temporaire à l'écran
 
 **Demandé par l'opérateur le 2026-09-01**, dans le même mouvement : ne garder que

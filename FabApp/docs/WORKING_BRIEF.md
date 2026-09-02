@@ -58,10 +58,16 @@ l'air juste.
 ⚠️ Et la durée appartient à l'OFFRE, pas au forfait : sinon le même groupe ne peut
 pas se vendre au mois ET à l'année.
 
-🔴 **La décision qui bloque les deux : le CONTRACT** — après lui, un rôle donné
-doit-il encore inscrire dans le groupe, ou les deux divergent-ils ? ⚠️ Et elle
-n'est plus indépendante : en groupes-seuls, un rôle qui n'inscrit plus dans le
-groupe ne donne plus **aucun** forfait. Plan complet dans `ROADMAP.md` § « Phase S158 ».
+🅿️ **Et la décision du « contract » est peut-être sans objet** : l'opérateur
+propose que le RÔLE DEVIENNE un groupe non supprimable (2026-09-02). Les cinq
+intégrés *sont* déjà les rôles, donc la fusion ne crée rien — elle retire un
+doublon, et `AudienceResolver` retombe à deux sources.
+🔴 **Mais le coût est sur le chemin de la SÉCURITÉ** : `getRoles()` lit une
+relation Doctrine, et `USER_GROUP` n'est **pas une entité**. Et surtout, la garde
+du dernier admin s'exprime en `getRoles()` et protège l'anonymisation, **pas le
+retrait d'un groupe** : après la fusion, retirer le dernier membre du groupe
+`admin` verrouillerait l'installation. **Cette garde se pose AVANT.** Détail et
+ordre dans `ROADMAP.md` § S159. Plan complet dans `ROADMAP.md` § « Phase S158 ».
 ✅ Le mot est fait aussi : « package » → **forfait / bundle**.
 🅿️ Deux décisions y attendent encore l'opérateur : quelles extensions de groupe
 (appartenance datée, groupes à règle), et ce que devient le lien rôle→groupe
