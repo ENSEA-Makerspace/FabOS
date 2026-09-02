@@ -1750,24 +1750,18 @@ final class AdminController extends AbstractController
         // et c'est le même dépôt qui écrit : deux vues, pas deux surfaces.
         // 🔴 L'appartenance est l'UNION des lignes stockées, des rôles et de
         // l'audience `user` — `AudienceResolver` seul sait la calculer, et chaque
-        // ligne dit PAR OÙ elle passe. Seul le stocké se retire d'ici.
+        // ligne est une appartenance écrite, et elle se retire d'ici.
         $memberKeys = array_flip($audiences->keysFor($user));
         $storedGroupIds = array_flip($userGroups->storedGroupIdsFor((int) $user->getId()));
-        // 🔴 **Ce que les rôles donneraient SANS aucune ligne** (S158c). Depuis
-        // le backfill, une appartenance est souvent stockée ET produite par un
-        // rôle : déduire la seconde de l'absence de la première n'est plus
-        // possible, et l'écran offrait un « Retirer » qui supprimait la ligne
-        // sans sortir la personne du groupe.
-        $roleKeys = array_flip($audiences->roleKeysFor($user));
 
         $groupRows = [];
         $joinable = [];
         foreach ($userGroups->all() as $row) {
             if (isset($memberKeys[$row['key']])) {
-                $groupRows[] = $row + [
-                    'stored' => isset($storedGroupIds[$row['id']]),
-                    'role' => isset($roleKeys[$row['key']]),
-                ];
+                // ⚠️ **Plus de distinction de source depuis S159h** : pour un
+                // groupe non virtuel, l'appartenance est toujours une ligne — les
+                // rôles ne sont plus une source indépendante, ils en dérivent.
+                $groupRows[] = $row + ['stored' => isset($storedGroupIds[$row['id']])];
                 continue;
             }
             // ⚠️ Une audience virtuelle ne s'ajoute pas : elle se résout depuis le

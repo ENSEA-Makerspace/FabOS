@@ -95,11 +95,10 @@
                                 {% for row in groupRows %}
                                     <li>
                                         <a href="{{ path('app_admin_group_edit', {id: row.id}) }}">{{ row.label }}</a>
-                                        <small>{{ (row.virtual ? 'groups.source_resolved' : (row.role ? (row.stored ? 'groups.source_both' : 'groups.source_role') : 'groups.source_stored'))|trans }}</small>
-                                        {# 🔴 Même règle que la fiche du groupe : le
-                                           bouton n'existe que si la ligne est la SEULE
-                                           raison de l'appartenance. #}
-                                        {% if row.stored and not row.role %}
+                                        <small>{{ (row.virtual ? 'groups.source_resolved' : 'groups.source_stored')|trans }}</small>
+                                        {# ✅ Même règle que la fiche du groupe : depuis
+                                           le contract, la ligne est la seule raison. #}
+                                        {% if row.stored %}
                                             <form method="post" action="{{ path('app_admin_group_member', {userId: user.id}) }}"
                                                   data-controller="confirm" data-action="submit->confirm#ask"
                                                   data-confirm-message-value="{{ 'groups.remove_confirm'|trans({'%name%': user.displayName}) }}">

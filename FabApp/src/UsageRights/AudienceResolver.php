@@ -131,38 +131,27 @@ final class AudienceResolver
         }
     }
 
-    /**
-     * Les audiences qu'une personne aurait SANS aucune ligne d'appartenance —
-     * celles que ses rôles et la résolution lui donnent (S158c).
+    /*
+     * 🔴 **`roleKeysFor()` a été RETIRÉE en S159h, et son retrait est une
+     * correction, pas un ménage.**
      *
-     * 🔴 **Pourquoi cette question existe, et elle est née d'un défaut.** Avant le
-     * backfill, « stocké » et « venu d'un rôle » s'excluaient, et un écran pouvait
-     * déduire l'un de l'autre. Après, une appartenance est souvent **les deux** —
-     * et l'écran des groupes s'est mis à offrir un bouton « Retirer » qui
-     * supprimait bien la ligne, sans sortir la personne du groupe, puisque le rôle
-     * l'y remet. Un contrôle qui tient sa promesse à moitié.
+     * Elle répondait « cette personne resterait-elle dans ce groupe si la ligne
+     * disparaissait ? », en calculant les audiences que les RÔLES donnent. Elle
+     * avait un sens tant que les rôles étaient une source indépendante. Après le
+     * contract, `getRoles()` dérive des appartenances : la question devenait
+     * CIRCULAIRE — elle répondait toujours oui pour un groupe intégré, parce que
+     * le rôle venait de la ligne même dont on demandait si elle était nécessaire.
      *
-     * La question juste est donc : *cette personne resterait-elle dans ce groupe
-     * si la ligne disparaissait ?* Elle ne se déduit pas, elle se pose.
+     * Conséquence mesurée à l'écran : le bouton « Retirer » disparaissait de
+     * TOUTES les appartenances aux groupes intégrés, et la ligne affichait
+     * « par son rôle » — une phrase devenue fausse, `UTILISATEUR_ROLE` n'existant
+     * plus. Plus personne ne pouvait être retiré de `staff` depuis l'écran des
+     * groupes.
      *
-     * ⚠️ **Non mémoïsée**, et volontairement : elle est posée une fois par écran,
-     * et la mémoire de cette classe porte l'union — y ranger une seconde réponse
-     * sous la même clé les ferait se remplacer l'une l'autre.
-     *
-     * 🅿️ Le jour du « contract », quand l'amorçage par les rôles sortira de
-     * `compute()`, cette méthode rendra `['user']` et rien d'autre : les boutons
-     * « Retirer » réapparaîtront d'eux-mêmes, sans qu'un écran ait à changer.
-     *
-     * @return list<string>
+     * ⚠️ Il n'y a plus de distinction de source à faire : pour un groupe non
+     * virtuel, l'appartenance est toujours une ligne, et elle se retire.
      */
-    public function roleKeysFor(?Utilisateur $user): array
-    {
-        if (!$user instanceof Utilisateur || $user->getId() === null) {
-            return [self::GUEST];
-        }
 
-        return $this->compute($user, []);
-    }
 
     /**
      * L'union des trois appartenances : l'audience résolue `user`, celles que les

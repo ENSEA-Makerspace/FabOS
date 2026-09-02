@@ -8,6 +8,7 @@
 | Comment le produit marche, et les pièges | [`PROJECT_STATE.md`](/roadmap) |
 | Le détail des défauts de la Phase J | `S147-REVUE.md` |
 | ✅ La revue de sortie, **conclue** | `S149-REVUE.md` |
+| 🅿️ La revue de fin de phase S158/S159 | `S159-REVUE.md` |
 | Ce qui est livré, phase par phase | [`HISTORY.md`](/roadmap/historique) |
 | Modèle cible des droits | [`USAGE_RIGHTS_VISION.md`](/roadmap/droits-usage) |
 | Déployer | `ARTEMIS_DEPLOYMENT.md` |
@@ -72,6 +73,14 @@ ordre dans `ROADMAP.md` § S159. Plan complet dans `ROADMAP.md` § « Phase S158
 🅿️ Deux décisions y attendent encore l'opérateur : quelles extensions de groupe
 (appartenance datée, groupes à règle), et ce que devient le lien rôle→groupe
 après le contract.
+
+🅿️ **La revue de fin de phase est faite** (`S159-REVUE.md`) : **R1 corrigé sur
+place** — on ne pouvait plus retirer personne d'un groupe intégré, et la mention
+« par son rôle » était devenue fausse. **R2 à R6 attendent une décision** : l'action
+principale de la fiche d'un forfait est repliée ; une date se met à deux endroits ;
+« dont N inscrits ici » ne dit plus rien ; deux contrôles pour le même fait sur la
+fiche d'un membre ; et le nouveau modèle coûte 3 écrans au lieu d'1 pour un cas
+unique.
 
 **Décisions opérateur toujours en attente :**
 - 🔴🔴 **J-25** — aucun membre ne peut réserver (voir plus bas). ⚠️ À réexaminer

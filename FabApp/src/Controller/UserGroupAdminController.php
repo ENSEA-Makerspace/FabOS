@@ -109,15 +109,13 @@ final class UserGroupAdminController extends AbstractController
         foreach ($all as $user) {
             $isMember = in_array($group['key'], $audiences->keysFor($user), true);
             if ($isMember) {
-                // 🔴 **Les deux faits, pas l'un déduit de l'autre** (S158c).
-                // Depuis le backfill, une appartenance est souvent stockée ET
-                // produite par un rôle : retirer la ligne ne sortirait alors
-                // personne du groupe, puisque le rôle l'y remet. Le bouton
-                // n'apparaît donc que si la ligne est la SEULE raison.
+                // ⚠️ **Plus de distinction de source depuis S159h.** Elle avait un
+                // sens tant que les rôles étaient une source indépendante ; ils
+                // dérivent désormais des appartenances, donc pour un groupe non
+                // virtuel la ligne est la seule raison — et elle se retire.
                 $members[] = [
                     'user' => $user,
                     'stored' => isset($stored[(int) $user->getId()]),
-                    'role' => in_array($group['key'], $audiences->roleKeysFor($user), true),
                 ];
                 continue;
             }
