@@ -429,42 +429,102 @@ final class UsagePackageRepository
      * @param list<string> $capabilities
      * @return array{packages:int,members:int,coverage:array<string,int>}
      */
+    /**
+     * L'aperçu d'activation : combien de PERSONNES un forfait actif atteint (S144e).
+     *
+     * 🔴 **Il comptait des lignes, et depuis S159 il comptait ZÉRO.** La requête
+     * faisait `COUNT(DISTINCT a.userId)` — les seules attributions personnelles.
+     * Or l'écran n'attribue plus qu'à des GROUPES depuis S159 étape 1, et la
+     * conversion a déplacé les trois dernières lignes personnelles : toutes les
+     * attributions vivantes ont `userId = NULL`, et `COUNT(DISTINCT NULL)` vaut
+     * zéro. Mesuré le 2026-09-03 sur `/admin/settings` : « 4 forfaits actifs
+     * couvrent 0 membres », zéro pour les quatre capacités, pendant que les
+     * quatre chokepoints décident réellement sur grants v2. L'écran portait bien
+     * un avertissement — « les attributions de GROUPE ne sont pas comptées » —
+     * mais un aperçu qui annonce toujours zéro n'est pas prudent : il est mort.
+     *
+     * ✅ **La question posée est maintenant celle qu'on croyait poser** : l'union
+     * des personnes atteintes, par attribution personnelle OU par appartenance à
+     * un groupe attribué, à l'instant demandé.
+     *
+     * ⚠️ **Et l'appartenance n'est PAS réécrite ici** : `reachOf()` dit quelles
+     * clés et quels comptes un forfait vise, `AudienceResolver::memberIdsFor()`
+     * dit qui est derrière une clé. Une troisième copie de la règle est
+     * exactement ce que cette phase a passé trois jours à supprimer.
+     *
+     * @param list<string> $capabilities
+     * @return array{packages: int, members: int, coverage: array<string, int>}
+     */
     public function readiness(array $capabilities, \DateTimeImmutable $now): array
     {
-        $moment = $now->format('Y-m-d H:i:s');
         try {
-            $packages = (int) $this->db->fetchOne(
-                'SELECT COUNT(*) FROM USAGE_PACKAGE WHERE active = 1',
+            $packages = (int) $this->db->fetchOne('SELECT COUNT(*) FROM USAGE_PACKAGE WHERE active = 1');
+
+            // Les forfaits actifs, et pour chacun la liste des capacités qu'il
+            // ouvre — `fullAccess` les ouvre toutes.
+            $rows = $this->db->fetchAllAssociative(
+                'SELECT p.id, p.fullAccess, GROUP_CONCAT(f.featureKey) AS features
+                 FROM USAGE_PACKAGE p
+                 LEFT JOIN USAGE_PACKAGE_FEATURE f ON f.packageId = p.id
+                 WHERE p.active = 1 GROUP BY p.id',
             );
-            $members = (int) $this->db->fetchOne(
-                'SELECT COUNT(DISTINCT a.userId) FROM USAGE_RIGHT_ASSIGNMENT a
-                 INNER JOIN USAGE_PACKAGE p ON p.id = a.packageId
-                 WHERE p.active = 1 AND a.revokedAt IS NULL
-                   AND (a.validFrom IS NULL OR a.validFrom <= :now)
-                   AND (a.validUntil IS NULL OR a.validUntil >= :now)',
-                ['now' => $moment],
-            );
-            $coverage = [];
-            foreach ($capabilities as $capability) {
-                $coverage[$capability] = (int) $this->db->fetchOne(
-                    'SELECT COUNT(DISTINCT a.userId) FROM USAGE_RIGHT_ASSIGNMENT a
-                     INNER JOIN USAGE_PACKAGE p ON p.id = a.packageId
-                     LEFT JOIN USAGE_PACKAGE_FEATURE f ON f.packageId = p.id AND f.featureKey = :feature
-                     WHERE p.active = 1 AND a.revokedAt IS NULL
-                       AND (p.fullAccess = 1 OR f.featureKey IS NOT NULL)
-                       AND (a.validFrom IS NULL OR a.validFrom <= :now)
-                       AND (a.validUntil IS NULL OR a.validUntil >= :now)',
-                    ['feature' => $capability, 'now' => $moment],
-                );
+
+            $all = [];
+            $coverage = array_fill_keys($capabilities, []);
+            foreach ($rows as $row) {
+                $reached = $this->peopleReached((int) $row['id'], $now);
+                foreach ($reached as $id) {
+                    $all[$id] = true;
+                }
+
+                $opens = (bool) $row['fullAccess']
+                    ? $capabilities
+                    : array_filter(explode(',', (string) ($row['features'] ?? '')));
+                foreach ($opens as $capability) {
+                    if (!array_key_exists($capability, $coverage)) {
+                        continue;
+                    }
+                    foreach ($reached as $id) {
+                        $coverage[$capability][$id] = true;
+                    }
+                }
             }
 
-            return ['packages' => $packages, 'members' => $members, 'coverage' => $coverage];
+            return [
+                'packages' => $packages,
+                'members' => count($all),
+                'coverage' => array_map('count', $coverage),
+            ];
         } catch (\Throwable) {
             return ['packages' => 0, 'members' => 0, 'coverage' => array_fill_keys($capabilities, 0)];
         }
     }
 
-    /** @return list<string> package names granting the capability right now */
+    /**
+     * Les identifiants des personnes qu'un forfait atteint, par les DEUX chemins.
+     *
+     * ⚠️ `reachOf()` porte déjà la fenêtre de validité des attributions ; c'est
+     * `memberIdsFor()` qui porte celle des appartenances. Les deux s'appliquent,
+     * et l'accès s'arrête à la première échéance atteinte.
+     *
+     * @return list<int>
+     */
+    private function peopleReached(int $packageId, \DateTimeImmutable $at): array
+    {
+        $reach = $this->reachOf($packageId, $at);
+        $ids = [];
+        foreach ($reach['userIds'] as $id) {
+            $ids[(int) $id] = true;
+        }
+        foreach ($reach['groupKeys'] as $key) {
+            foreach ($this->audiences->memberIdsFor((string) $key, $at) as $id) {
+                $ids[$id] = true;
+            }
+        }
+
+        return array_map('intval', array_keys($ids));
+    }
+
     public function grantingPackages(Utilisateur $user, string $feature, \DateTimeImmutable $from, ?\DateTimeImmutable $until = null): array
     {
         if ($user->getId() === null) {

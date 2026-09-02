@@ -214,6 +214,57 @@ final class AudienceResolver
         ], $rows);
     }
 
+    /**
+     * L'INVERSE de `keysFor()` : qui est dans ce groupe ? (S144e)
+     *
+     * 🔴 **Pourquoi il fallait l'écrire, et pourquoi maintenant.** L'aperçu
+     * d'activation de `/admin/settings` comptait `COUNT(DISTINCT a.userId)` sur
+     * les attributions — c'est-à-dire les seules attributions PERSONNELLES. Depuis
+     * S159, la seule surface d'écriture humaine est l'attribution à un GROUPE, et
+     * la conversion a déplacé les trois dernières lignes personnelles : toutes les
+     * attributions vivantes ont donc `userId = NULL`, et `COUNT(DISTINCT NULL)`
+     * vaut **zéro**. Mesuré à l'écran le 2026-09-03 : « 4 forfaits actifs couvrent
+     * 0 membres », et zéro pour les quatre capacités, pendant que l'enforcement
+     * décide réellement. Un aperçu d'activation qui annonce toujours zéro n'est
+     * pas prudent, il est mort — et il invite à conclure de travers.
+     *
+     * 🔴 **Et c'est un INVERSE, pas une seconde règle d'appartenance.** Écrire ici
+     * un second tableau rôle → groupe, ou une seconde clause de dates, ferait
+     * exactement ce que l'en-tête de cette classe interdit : deux copies qui
+     * dérivent. La sonde `app:s153:package-probe` vérifie donc les DEUX sens sur
+     * chaque compte — `k ∈ keysFor(p)` ⟺ `p ∈ memberIdsFor(k)` — et c'est ce
+     * contrôle, pas ce commentaire, qui tient la promesse.
+     *
+     * ⚠️ `guest` ne rend JAMAIS personne : c'est l'audience de qui n'a pas de
+     * compte. Rendre la liste des comptes serait l'exact contraire de son sens.
+     * ⚠️ `user` rend TOUS les comptes, sans ligne d'appartenance — `compute()`
+     * l'accorde à toute personne qu'on lui passe, sans condition.
+     *
+     * @return list<int>
+     */
+    public function memberIdsFor(string $groupKey, ?\DateTimeImmutable $at = null): array
+    {
+        if ($groupKey === self::GUEST) {
+            return [];
+        }
+
+        try {
+            if ($groupKey === self::USER) {
+                return array_map('intval', $this->db->fetchFirstColumn('SELECT id FROM UTILISATEUR'));
+            }
+
+            return array_map('intval', $this->db->fetchFirstColumn(
+                'SELECT m.userId FROM USER_GROUP_MEMBER m INNER JOIN USER_GROUP g ON g.id = m.groupId
+                 WHERE g.groupKey = :key' . $this->schema->activeClause('m'),
+                ['key' => $groupKey] + $this->schema->activeParams($at ?? new \DateTimeImmutable()),
+            ));
+        } catch (\Throwable) {
+            // Même repli que `storedKeysFor()` : une installation d'avant la
+            // migration S133b rend « personne », pas une erreur sur un écran.
+            return [];
+        }
+    }
+
     /** @return list<string> */
     private function storedKeysFor(int $userId): array
     {

@@ -77,6 +77,7 @@ final class S153PackageProbeCommand extends Command
             $failures += $this->probeGroupWrites($io);
             $failures += $this->probePersonType($io);
             $failures += $this->probeDatedMembership($io);
+            $failures += $this->probeInverse($io);
         } finally {
             // ⚠️ `rollBack()` dans un `finally` : une exception au milieu ne doit
             // pas laisser un package de sonde en base.
@@ -543,6 +544,83 @@ final class S153PackageProbeCommand extends Command
      * le dit : sans les colonnes, il n'y a rien à mesurer, et une sonde qui
      * afficherait vert dans ce cas mentirait sur ce qui a été vérifié.
      */
+    /**
+     * `memberIdsFor()` est-il l'inverse EXACT de `keysFor()` ? (S144e)
+     *
+     * 🔴 **C'est la seule chose qui tienne la promesse du commentaire.** Deux
+     * fonctions qui répondent à la même question par les deux bouts finissent par
+     * diverger — c'est le motif de toute la phase S158/S159, écrit noir sur blanc
+     * dans son journal. Un commentaire disant « ne réécrivez pas la règle » n'a
+     * jamais empêché personne ; un contrôle qui échoue, si.
+     *
+     * ⚠️ **Les DEUX sens sont vérifiés**, et c'est le point : ne tester que
+     * « chaque membre a bien la clé » laisserait passer un membre OUBLIÉ, qui est
+     * précisément le défaut coûteux — un forfait annoncé à N personnes alors
+     * qu'il en atteint N+1.
+     *
+     * ⚠️ Mesuré sur TOUS les comptes et TOUTES les clés du catalogue, pas sur un
+     * échantillon : la boîte en a neuf, ça se paie.
+     */
+    private function probeInverse(SymfonyStyle $io): int
+    {
+        $io->section('8. « Qui est dans ce groupe » est l’inverse exact de « dans quels groupes est cette personne »');
+
+        $failures = 0;
+        $now = $this->clock->now();
+        $people = array_values(array_filter(
+            $this->users->findBy([], ['id' => 'ASC']),
+            static fn ($u): bool => $u instanceof Utilisateur && $u->getId() !== null,
+        ));
+
+        // ⚠️ Résolveur NEUF et non mémoïsé par une écriture précédente de la
+        // sonde : même piège que le backfill de S158c.
+        $resolver = new AudienceResolver($this->em->getConnection(), new UserGroupSchema($this->em->getConnection()));
+        $resolver->primeFor($people);
+
+        foreach ($resolver->catalogue() as $group) {
+            $key = (string) $group['key'];
+            $inverse = array_flip($resolver->memberIdsFor($key, $now));
+
+            $missing = [];
+            $extra = [];
+            foreach ($people as $person) {
+                $id = (int) $person->getId();
+                $hasKey = in_array($key, $resolver->keysFor($person), true);
+                $listed = isset($inverse[$id]);
+                if ($hasKey && !$listed) {
+                    $missing[] = $id;
+                } elseif (!$hasKey && $listed) {
+                    $extra[] = $id;
+                }
+            }
+
+            if ($missing === [] && $extra === []) {
+                $io->writeln(sprintf(' ✅ %s — %d personne(s), des deux côtés', $key, count($inverse)));
+                continue;
+            }
+
+            ++$failures;
+            $io->writeln(sprintf(
+                ' ❌ %s — oubliés : %s · en trop : %s',
+                $key,
+                $missing === [] ? '—' : implode(',', $missing),
+                $extra === [] ? '—' : implode(',', $extra),
+            ));
+        }
+
+        // ⚠️ `guest` est le seul cas où l'inverse doit rendre le VIDE alors que
+        // personne ne porte la clé : la boucle ci-dessus le vérifie déjà, mais
+        // l'énoncé mérite d'être lisible dans la sortie.
+        if ($resolver->memberIdsFor(AudienceResolver::GUEST, $now) !== []) {
+            ++$failures;
+            $io->writeln(' ❌ guest rend des comptes, alors que c’est l’audience de qui n’en a pas');
+        } else {
+            $io->writeln(' ✅ guest ne rend personne — audience de qui n’a pas de compte');
+        }
+
+        return $failures;
+    }
+
     private function probeDatedMembership(SymfonyStyle $io): int
     {
         $io->section('7. L’appartenance datée');

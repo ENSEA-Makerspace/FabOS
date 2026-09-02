@@ -1582,7 +1582,7 @@ usage_rights:
     settings_enabled: "Require an active bundle to book or register for an event"
     settings_hint: "Off by default: existing access stays unchanged. When enabled, administrators remain allowed and guests still follow the event policy."
     settings_preflight: "Activation preview"
-    settings_preflight_summary: "%packages% active bundles currently cover %members% members by individual assignment. ⚠️ GROUP assignments are not counted here: a bundle held only through a group shows as 0."
+    settings_preflight_summary: "%packages% active bundles currently reach %members% people, counting both individual assignments and group memberships."
     settings_confirm_enable: "I understand that members without a covered right will be denied."
     settings_not_ready: "Activation was refused: create at least one active bundle and assign it to a member."
     settings_confirmation_required: "Confirm the impact on members before enabling usage rights."
