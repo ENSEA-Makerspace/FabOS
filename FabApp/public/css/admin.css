@@ -570,7 +570,10 @@
 .pkg-axis-key { flex: 0 0 8rem; color: var(--color-text-light); font-size: var(--font-size-sm); }
 .pkg-axis-head label { font-weight: 600; }
 
-.pkg-detail { display: none; margin: var(--spacing-md) 0 0 8rem; }
+/* ⚠️ Alignée sur la PASTILLE de l'axe, pas sur la largeur du mot : `8rem` seuls
+   laissaient la colonne de détail 9 px à gauche de l'interrupteur qu'elle
+   détaille. La clé fait `8rem` et l'en-tête pose un `gap`. */
+.pkg-detail { display: none; margin: var(--spacing-md) 0 0 calc(8rem + var(--spacing-md)); }
 .pkg-axis:has(.pkg-axis-head input[type="checkbox"]:not(:checked)) .pkg-detail { display: block; }
 /* ⚠️ La cinquième ligne est l'INVERSE des quatre autres : elle ajoute un
    pouvoir, elle ne se révèle donc que si les quatre autres sont ouvertes. Un bit
@@ -581,10 +584,89 @@
 
 /* Les listes rendues par `expanded: true` sont des `<div>` de cases : la règle
    les remet en ligne, comme la phrase le demande. */
-.pkg-detail > div, .pkg-detail-cat > div { display: flex; flex-wrap: wrap; gap: .4rem 1.2rem; }
-.pkg-detail label, .pkg-detail-cat label { display: inline-flex; align-items: center; gap: .4rem; font-weight: 400; }
+/* ============================================================
+   LA CARTE DE SAISIE PREND LE VOCABULAIRE DU SITE (2026-09-03).
+
+   🔴 **La hiérarchie était INVERSÉE.** Le nom de l'axe — « donne accès à »,
+   « quand » — était en 14 px, 400, gris ; l'interrupteur qui porte sa valeur —
+   « tout », « tout le temps » — en 16 px, 600, presque blanc. Le mot qui crie
+   était donc la valeur, pas la question, et la carte se lisait comme une liste
+   de gros mots sans sujet. Les deux échangent : l'axe reprend le style de
+   `.readonly-label`, celui du résumé qui est JUSTE AU-DESSUS, et la carte se lit
+   comme la version modifiable de ce résumé.
+
+   🔴 **Et les choix étaient des cases nues**, collées à leur mot, sans coquille.
+   Ils deviennent des pastilles `.afp-select` — le même objet que les filtres de
+   `/admin/horaires` et de la page de design, pas un sosie : mêmes jetons, même
+   hauteur de 38 px, même bordure primaire au survol.
+
+   ⚠️ **L'état « coché » est en CSS pur** (`:has()`), comme la révélation des
+   axes juste en dessous : `.is-set` est posé par du JS ailleurs sur le site, et
+   ici il n'y a pas de JS à faire tourner. Un contrôleur Stimulus rendrait la
+   carte dépendante de son exécution pour seulement PARAÎTRE juste.
+   ============================================================ */
+.pkg-detail > div, .pkg-detail-cat > div { display: flex; flex-wrap: wrap; gap: .5rem; }
+
+/* La pastille : reprise de `.afp-select`, valeurs comprises.
+
+   ⚠️ **`.pkg-toggle` est une enveloppe posée dans le GABARIT, pas une marge
+   négative.** Le thème rend la case et son étiquette en FRÈRES ; les faire tenir
+   dans une même coquille en tirant l'une sous l'autre tenait tant que les deux
+   gardaient leur largeur — c'est-à-dire jusqu'à la première traduction plus
+   longue. C'est le même raisonnement que `.choice-item`, qui existe pour
+   exactement cette raison dans `choice_widget_expanded`. */
+.pkg-axis .choice-item,
+.pkg-toggle {
+    display: inline-flex; align-items: center; gap: .45rem;
+    min-height: 38px; padding: .25rem .7rem;
+    border: 1px solid var(--border-color); border-radius: var(--border-radius);
+    background: var(--theme-surface); font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold); cursor: pointer; margin: 0;
+}
+.pkg-axis .choice-item:hover, .pkg-toggle:hover { border-color: var(--color-primary); }
+.pkg-axis .choice-item:focus-within,
+.pkg-toggle:focus-within { outline: 2px solid var(--color-primary); outline-offset: 1px; }
+/* ⚠️ `:has()` plutôt que `.is-set` : aucun JS ne tourne sur cette carte, et un
+   contrôleur Stimulus la rendrait dépendante de son exécution pour seulement
+   PARAÎTRE juste. Même parti pris que la révélation des axes, juste en dessous. */
+.pkg-axis .choice-item:has(input:checked),
+.pkg-toggle:has(input:checked) {
+    border-color: var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 12%, var(--theme-surface));
+}
+.pkg-detail label, .pkg-detail-cat label,
+.pkg-toggle label { font-weight: inherit; margin: 0; cursor: pointer; }
+.pkg-axis .choice-item input[type="checkbox"],
+.pkg-toggle input[type="checkbox"] { margin: 0; cursor: pointer; }
+
+/* L'axe redevient le titre de sa ligne — même style que `.readonly-label` du
+   résumé au-dessus, pour que l'oeil relie les deux. */
+.pkg-axis-key {
+    font-size: var(--font-size-xs, 12px); font-weight: 700;
+    text-transform: uppercase; letter-spacing: .04em;
+}
 .pkg-hint { color: var(--color-text-light); font-size: var(--font-size-sm); margin: .4rem 0 0; }
-.pkg-hint input, .pkg-hint select { border: 1px solid var(--border-color); background: var(--theme-input); color: var(--color-text); border-radius: 8px; padding: 4px 8px; font: inherit; }
+/* 🔴 **Les deux champs d'heure étaient les derniers contrôles nus de la carte.**
+   Ils gardaient la boîte du navigateur — 26 px de haut au milieu de pastilles de
+   38 — donc la ligne « quand » avait deux hauteurs. Même remède que
+   `/admin/horaires` en S149 : la pastille EST la coquille, le champ n'est que la
+   valeur. `.pkg-hint` sert aussi de ligne d'aide en texte, d'où le ciblage sur
+   les contrôles et non sur le paragraphe. */
+/* ⚠️ **Seulement les lignes qui PORTENT un contrôle.** `.pkg-hint` habille aussi
+   les phrases d'aide (« la restriction la plus probable est… ») : leur poser un
+   `display:flex` ferait de chaque bloc de texte un élément de flex, ce qui tient
+   pour une phrase d'un seul tenant et casse dès qu'on y met une balise. */
+.pkg-hint:has(input, select) { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.pkg-hint label { color: var(--color-text-light); font-size: var(--font-size-sm); font-weight: 400; margin: 0; }
+.pkg-hint input, .pkg-hint select {
+    display: inline-flex; align-items: center; min-height: 38px;
+    border: 1px solid var(--border-color); background: var(--theme-surface);
+    color: var(--color-text); border-radius: var(--border-radius);
+    padding: .25rem .7rem; font: inherit;
+    font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold);
+}
+.pkg-hint input:hover, .pkg-hint select:hover { border-color: var(--color-primary); }
+.pkg-hint input:focus, .pkg-hint select:focus { outline: 2px solid var(--color-primary); outline-offset: 1px; }
 .pkg-adv { margin-top: var(--spacing-md); }
 .pkg-adv summary { cursor: pointer; color: var(--color-text-light); font-size: var(--font-size-sm); }
 .pkg-detail-cat { margin-top: .5rem; }

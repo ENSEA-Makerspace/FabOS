@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}{{ package.id|default(false) ? 'usage_rights.edit'|trans : 'usage_rights.create'|trans }} · FabOS{% endblock %}
-{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260903-design' }}">{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260903-design2' }}">{% endblock %}
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
     page_title: package.id|default(false) ? 'usage_rights.edit'|trans : 'usage_rights.create'|trans,
@@ -81,7 +81,7 @@
                         <div class="pkg-axis">
                             <div class="pkg-axis-head">
                                 <span class="pkg-axis-key">{{ 'usage_rights.spec_axis_what'|trans }}</span>
-                                {{ form_widget(specForm.features_all) }}{{ form_label(specForm.features_all) }}
+                                <span class="pkg-toggle">{{ form_widget(specForm.features_all) }}{{ form_label(specForm.features_all) }}</span>
                             </div>
                             <div class="pkg-detail">
                                 {{ form_widget(specForm.features) }}
@@ -92,7 +92,7 @@
                         <div class="pkg-axis">
                             <div class="pkg-axis-head">
                                 <span class="pkg-axis-key">{{ 'usage_rights.spec_axis_when'|trans }}</span>
-                                {{ form_widget(specForm.days_all) }}{{ form_label(specForm.days_all) }}
+                                <span class="pkg-toggle">{{ form_widget(specForm.days_all) }}{{ form_label(specForm.days_all) }}</span>
                             </div>
                             <div class="pkg-detail">
                                 {{ form_widget(specForm.days) }}
@@ -107,7 +107,7 @@
                         <div class="pkg-axis">
                             <div class="pkg-axis-head">
                                 <span class="pkg-axis-key">{{ 'usage_rights.spec_axis_where'|trans }}</span>
-                                {{ form_widget(specForm.venues_all) }}{{ form_label(specForm.venues_all) }}
+                                <span class="pkg-toggle">{{ form_widget(specForm.venues_all) }}{{ form_label(specForm.venues_all) }}</span>
                             </div>
                             <div class="pkg-detail">
                                 {{ form_widget(specForm.venues) }}
@@ -117,7 +117,7 @@
                                 <details class="pkg-adv">
                                     <summary>{{ 'usage_rights.spec_categories_summary'|trans }}</summary>
                                     <div>
-                                        {{ form_widget(specForm.categories_all) }}{{ form_label(specForm.categories_all) }}
+                                        <span class="pkg-toggle">{{ form_widget(specForm.categories_all) }}{{ form_label(specForm.categories_all) }}</span>
                                         <div class="pkg-detail-cat">{{ form_widget(specForm.categories) }}</div>
                                     </div>
                                 </details>
@@ -127,7 +127,7 @@
                         <div class="pkg-axis">
                             <div class="pkg-axis-head">
                                 <span class="pkg-axis-key">{{ 'usage_rights.spec_axis_how_much'|trans }}</span>
-                                {{ form_widget(specForm.quota_unlimited) }}{{ form_label(specForm.quota_unlimited) }}
+                                <span class="pkg-toggle">{{ form_widget(specForm.quota_unlimited) }}{{ form_label(specForm.quota_unlimited) }}</span>
                             </div>
                             <div class="pkg-detail">
                                 <p class="pkg-hint">
@@ -148,7 +148,7 @@
                         <div class="pkg-axis pkg-axis-exempt">
                             <div class="pkg-axis-head">
                                 <span class="pkg-axis-key">{{ 'usage_rights.spec_axis_hours'|trans }}</span>
-                                {{ form_widget(specForm.hours_exempt) }}{{ form_label(specForm.hours_exempt) }}
+                                <span class="pkg-toggle">{{ form_widget(specForm.hours_exempt) }}{{ form_label(specForm.hours_exempt) }}</span>
                             </div>
                             <p class="pkg-hint">{{ 'usage_rights.spec_hours_hint'|trans }}</p>
                         </div>
