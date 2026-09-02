@@ -829,10 +829,16 @@ se SUPPRIME — page, route, lien, section*, et son raisonnement va dans
 `HISTORY.md`. Ces trois maquettes sont dans ce cas ; le guide de style et la
 feuille de route n'y sont pas, ils décrivent ce qui existe.
 
-⚠️ **Et il reste le vocabulaire** : `USAGE_RIGHTS_VISION.md` s'appelle « vision »
-mais décrit désormais un modèle en grande partie construit. Le relire pour en
-sortir ce qui est FAIT est un travail de doc, pas d'écran — à faire une fois cette
-phase close, pas avant.
+✅ **Et le vocabulaire est réglé le 2026-09-03**, la phase étant close.
+`USAGE_RIGHTS_VISION.md` s'appelait « vision » et se lisait comme si tout y restait
+futur, alors que les groupes, les grants v2 et l'enforcement sont en service : la
+même famille de défaut que les écrans qu'on range ici — **deux vérités, dont la
+plus visible est la périmée**. Il porte maintenant, en tête, ce qui est CONSTRUIT
+(mesuré sur la boîte, pas déduit du plan), ce qui reste à faire, et surtout **les
+trois décisions que l'opérateur a changées depuis** : un forfait ne s'attribue
+plus qu'à un groupe, le rôle EST devenu un groupe indélébile, et on n'achète pas
+un forfait mais une appartenance datée. ⚠️ Au passage, il citait une table
+`USER_GROUP_MEMBERSHIP` qui n'existe pas — elle s'appelle `USER_GROUP_MEMBER`.
 
 ---
 

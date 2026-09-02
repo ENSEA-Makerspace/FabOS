@@ -1,8 +1,65 @@
 # FabOS multi-lieux, droits et réseau — vision cible
 
-**Statut :** décisions produit approuvées, architecture et migrations à construire · **Mise à jour :** 2026-08-09
+**Statut :** décisions produit approuvées · **une grande partie du modèle des droits est CONSTRUITE et en service** · **Mise à jour :** 2026-09-03
 
-Ce document remplace la vision S100–S101 qui associait encore les packages et certains scopes aux portails. Le code actif reste celui de S97–S99 tant que chaque migration n'a pas été construite, comparée en mode simulation, déployée et explicitement activée.
+Ce document remplace la vision S100–S101 qui associait encore les packages et certains scopes aux portails.
+
+🔴 **Il ne dit plus « à construire » partout, et c'est le point de cette mise à
+jour.** Écrit le 2026-08-09 comme une cible, il a été lu ensuite comme si tout y
+restait futur — alors que les groupes, les grants v2 et l'enforcement sont en
+service. Un document de vision qui décrit comme à venir ce qui tourne déjà est la
+même famille de défaut que les écrans que ce projet passe son temps à ranger :
+**deux vérités, dont la plus visible est la périmée.**
+
+⚠️ **Ce qui suit est mesuré sur la boîte, pas déduit du plan.** Ce qui n'est pas
+listé comme construit ne l'est pas.
+
+---
+
+## Ce qui est CONSTRUIT, et les trois décisions qui ont CHANGÉ
+
+### ✅ Construit et en service (mesuré le 2026-09-03)
+
+- **Les groupes existent, s'écrivent et décident.** `/admin/groupes` crée, renomme,
+  supprime ; la fiche d'un membre et celle du groupe sont deux VUES du même dépôt.
+  Sur la boîte : **7 groupes intégrés** (`admin`, `manager`, `staff`, `superuser`,
+  `trainers`, plus `user` et `guest` **virtuels**) et 4 groupes libres.
+- **Les audiences `user` et `guest` sont résolues, jamais stockées** — exactement
+  ce que la décision 7 demandait.
+- **Le dernier administrateur ne peut pas être retiré**, et une appartenance
+  `admin` ne peut pas porter de date de fin : une garde ne peut rien contre
+  l'horloge.
+- **Grants v2 décide pour les QUATRE chokepoints** — `usage_rights_v2_events`,
+  `_machines`, `_person_booking`, `_places` valent tous `1`. L'enforcement est
+  réel, ce n'est plus une simulation.
+- **La saisie d'un forfait est compilée** : cinq axes (quoi / quand / où /
+  combien / horaires) écrits par un compilateur dans les cinq tables, avec un
+  refus qui sert de garde quand le forfait sort de ce que les axes savent dire.
+- **L'appartenance est DATÉE** (`validFrom` / `validUntil`, `NULL` = sans limite).
+
+### 🔴 Trois décisions que l'opérateur a CHANGÉES depuis
+
+1. **Décision 5 — « un package est attribuable à un individu OU à un groupe » :
+   plus par un humain.** Depuis S159, la seule surface d'écriture est
+   l'attribution à un GROUPE, et depuis la revue de design du 2026-09-03 elle vit
+   sur la fiche du groupe. ⚠️ Le MODÈLE garde les deux chemins : la colonne
+   `userId` reste, parce que c'est celui qu'écrira le commerce — un achat est
+   individuel et son remboursement doit retirer exactement ce qu'il a donné.
+2. **Décision 7 — le rôle EST devenu un groupe qu'on ne peut pas supprimer.**
+   `UTILISATEUR_ROLE` est supprimée (`Version20260902100000`) : `getRoles()` dérive
+   des appartenances, et il n'y a plus deux sources à réconcilier.
+3. **Décision 17 — on n'achète pas un forfait, on achète une APPARTENANCE datée.**
+   Tranché par l'opérateur le 2026-09-01, et c'est ce qui supprime le cas
+   particulier du commerce au lieu de le contourner : un seul chemin pour les
+   humains et pour les machines, l'expiration devient le mécanisme.
+
+### 🅿️ Ce qui reste franchement à construire
+
+Sous-lieux comme scope réel des grants, fédération d'identité (S121+), profils
+publics et QR (S122–S124), réseau inter-FabOS (S123–S126), commerce (S150–S154),
+messagerie Formation (S155–S157). Le « Plan de livraison » plus bas les garde.
+
+---
 
 ## Décisions produit enregistrées
 
@@ -10,9 +67,9 @@ Ce document remplace la vision S100–S101 qui associait encore les packages et 
 2. **Une installation gère plusieurs sous-lieux physiques uniquement quand tout le reste est commun.** Un sous-lieu partage gouvernance, comptes locaux, données, règles, packages, réservation et audit ; il ne sert pas à isoler un service autonome.
 3. **Le sous-lieu est un contexte visible.** Un membre peut choisir ses sous-lieux préférés dans son profil et les remplacer sur une page. La préférence n'est jamais une autorisation.
 4. **Un package appartient au FabOS.** Ses grants peuvent être limités à un ou plusieurs sous-lieux et à des scopes métier plus fins.
-5. **Un package est attribuable à un individu ou à un groupe.** Les droits effectifs sont l'union des grants actifs ; il n'existe pas de deny implicite.
+5. **Un package est attribuable à un individu ou à un groupe.** Les droits effectifs sont l'union des grants actifs ; il n'existe pas de deny implicite. 🔴 **Modifié depuis (S159, 2026-09-02) : un HUMAIN ne peut plus l'attribuer qu'à un GROUPE** — voir « les trois décisions qui ont changé », plus haut. Le modèle garde les deux chemins pour le commerce.
 6. **L'administration de récupération est hors packages.** Un administrateur global ne peut pas perdre l'accès de récupération à cause d'un package supprimé ou mal configuré.
-7. **Les groupes intégrés sont protégés et extensibles.** Admin, Manager, Staff, Super user, User, Guest et Formateurs ont des clés stables et ne sont pas supprimables ; un lab peut modifier leurs libellés/descriptions et ajouter Stagiaire, Bénévoles ou tout autre groupe métier. Guest reste une audience anonyme virtuelle.
+7. **Les groupes intégrés sont protégés et extensibles.** ✅ Construit. 🔴 Et étendu depuis (S159) : **le rôle est devenu un groupe qu'on ne peut pas supprimer**, `UTILISATEUR_ROLE` n'existe plus. Admin, Manager, Staff, Super user, User, Guest et Formateurs ont des clés stables et ne sont pas supprimables ; un lab peut modifier leurs libellés/descriptions et ajouter Stagiaire, Bénévoles ou tout autre groupe métier. Guest reste une audience anonyme virtuelle.
 8. **Les packages présentent deux types de droit :** Use et Manage. Le reporting est inclus dans Manage sur le même scope ; il n'existe aucun droit Report séparé.
 9. **Les droits suivent les features et leurs sous-sections.** Une source centrale décrit navigation, scopes, filtres, réservations, quotas et reporting.
 10. **Les réservations et quotas apparaissent dans chaque workspace de feature**, tout en conservant des services et modèles communs derrière les écrans.
@@ -59,7 +116,7 @@ OIDC valide issuer, audience, redirect URI, signature/algorithme, horloge, state
 - **User authentifié :** audience système de tout compte local actif, sans ligne de membership à créer, retirer ou oublier lors du provisioning.
 - **Groupes libres :** Stagiaires, Bénévoles ou toute organisation du lab. Un compte peut appartenir à plusieurs groupes.
 
-L'interface affiche les sept entrées intégrées avec leur statut protégé. Admin conserve son invariant de recovery ; User et Guest sont résolus comme audiences système et n'ont jamais de ligne `USER_GROUP_MEMBERSHIP`. Manager, Staff, Super user et Formateurs ont des membres et peuvent recevoir des packages, sans pouvoir être supprimés.
+L'interface affiche les sept entrées intégrées avec leur statut protégé. Admin conserve son invariant de recovery ; User et Guest sont résolus comme audiences système et n'ont jamais de ligne d'appartenance (la table s'appelle `USER_GROUP_MEMBER`, pas `USER_GROUP_MEMBERSHIP` : un lecteur qui grepe le nom cité ici ne trouvait rien). Manager, Staff, Super user et Formateurs ont des membres et peuvent recevoir des packages, sans pouvoir être supprimés.
 
 ### Packages et grants
 
@@ -248,4 +305,4 @@ S104 corrige explicitement deux défauts live avant les packages v2 : les compte
 
 ## Hors scope maintenu
 
-RFID, cartes physiques et 2FA restent différés. Le commerce est planifié après le socle et ne bloque aucune session S103–S128. La réservation par pool de machines n'est pas impliquée par les catégories ou scopes. Les calendriers, quotas, tickets/check-in, waitlists et réservations distribués entre plusieurs FabOS restent hors scope : l'instance propriétaire demeure la seule autorité et les autres redirigent vers elle.
+RFID, cartes physiques et 2FA restent différés. 🅿️ **Une demande opérateur du 2026-09-03 rouvre la question pour les LIEUX** : des boîtiers identiques à ceux des machines, reliés à des gâches électriques — consignée dans `ROADMAP.md`, avec le point qui la change (les axes lieu/jours/horaires d'un forfait décrivent déjà un verdict de porte, bien mieux que les badges des machines) et ce qu'une porte a de plus qu'une machine. Le commerce est planifié après le socle et ne bloque aucune session S103–S128. La réservation par pool de machines n'est pas impliquée par les catégories ou scopes. Les calendriers, quotas, tickets/check-in, waitlists et réservations distribués entre plusieurs FabOS restent hors scope : l'instance propriétaire demeure la seule autorité et les autres redirigent vers elle.
