@@ -440,8 +440,8 @@ final class UsageRightsAdminController extends AbstractController
     }
 
     /**
-     * Le résumé VRAI d'un forfait, en lignes label → valeur pour
-     * `_admin_meta_grid` (revue de design, 2026-09-03).
+     * Le résumé VRAI d'un forfait, une valeur PAR AXE (revue de design,
+     * 2026-09-03).
      *
      * 🔴 **Il remplace une phrase qui MENTAIT.** `usage_rights.spec_sentence`
      * était une chaîne de traduction fixe : « donne accès à tout, tout le temps,
@@ -462,7 +462,16 @@ final class UsageRightsAdminController extends AbstractController
      * @param array<string, string> $dayChoices
      * @param array<string, string> $venueChoices
      * @param array<string, string> $categoryChoices
-     * @return list<array{label: string, value: string}>
+     * 🔴 **Rendu PAR AXE, et non plus en grille séparée, et c'est la deuxième
+     * moitié de la correction.** Première version : une grille `_admin_meta_grid`
+     * posée au-dessus de l'éditeur. Elle disait vrai, mais elle mettait les
+     * quatre mêmes libellés — « donne accès à », « quand », « où », « combien » —
+     * DEUX FOIS à l'écran, à 120 px l'un de l'autre, une fois comme réponse et
+     * une fois comme contrôle. Le lecteur devait deviner lequel des deux blocs
+     * était lequel : c'est ce qui rendait la page décousue. La valeur va donc sur
+     * la LIGNE de son axe, à côté de ce qui la règle.
+     *
+     * @return array{what: string, when: string, where: string, quota: string, hours: ?string}
      */
     private function specSummary(
         PackageSpec $spec,
@@ -496,26 +505,21 @@ final class UsageRightsAdminController extends AbstractController
             ? $all('usage_rights.summary_any_time')
             : $name($dayChoices, $spec->days) . ' · ' . $spec->startTime . '–' . $spec->endTime;
 
-        $items = [
-            ['label' => $all('usage_rights.spec_axis_what'), 'value' => $spec->featuresAll
+        return [
+            'what' => $spec->featuresAll
                 ? $all('usage_rights.summary_all_features')
-                : $name($featureChoices, $spec->features)],
-            ['label' => $all('usage_rights.spec_axis_when'), 'value' => $when],
-            ['label' => $all('usage_rights.spec_axis_where'), 'value' => $where],
-            ['label' => $all('usage_rights.spec_axis_how_much'), 'value' => $spec->quotaUnlimited
+                : $name($featureChoices, $spec->features),
+            'when' => $when,
+            'where' => $where,
+            'quota' => $spec->quotaUnlimited
                 ? $all('usage_rights.summary_no_quota')
                 : $this->translator->trans('usage_rights.summary_quota', [
                     '%hours%' => rtrim(rtrim(number_format($spec->quotaHours, 2, ',', ' '), '0'), ','),
                     '%period%' => $this->translator->trans('usage_rights.allowance_period_' . $spec->quotaPeriod),
-                ])],
+                ]),
+            // ⚠️ `null` quand l'exemption n'est pas demandée : une ligne « non »
+            // sur un pouvoir que personne n'a réclamé est du bruit.
+            'hours' => $spec->hoursExempt ? $all('usage_rights.summary_hours_exempt') : null,
         ];
-
-        // ⚠️ La cinquième ligne n'apparaît que si elle AJOUTE un pouvoir. Une
-        // ligne « non » sur une exemption que personne n'a demandée est du bruit.
-        if ($spec->hoursExempt) {
-            $items[] = ['label' => $all('usage_rights.spec_axis_hours'), 'value' => $all('usage_rights.summary_hours_exempt')];
-        }
-
-        return $items;
     }
 }

@@ -2789,6 +2789,28 @@ body {
    La préférence provient de UTILISATEUR.theme et est appliquée sur <html>.
    =================================================================== */
 :root {
+    /* 🔴 **La moitié CLAIRE de `color-scheme` manquait, et ça se voyait.**
+       `html[data-theme="dark"]` déclare `color-scheme: dark` juste en dessous
+       depuis toujours ; le clair, lui, restait sur `normal`. Or `normal` ne veut
+       pas dire « clair » : il veut dire « demande au SYSTÈME ». Sur une machine
+       réglée en sombre, le navigateur peignait donc ses propres contrôles —
+       champs de texte, dates, heures, listes déroulantes, barres de défilement —
+       en SOMBRE, par-dessus le fond blanc de nos règles. Mesuré au navigateur le
+       2026-09-03 sur `/admin/usage-rights/21/edit` : « Name », « Description » et
+       les deux champs d'heure rendaient une boîte sombre à texte clair au milieu
+       d'une page blanche, alors que leur `background-color` calculé valait bien
+       `rgb(255,255,255)`. La feuille disait vrai ; c'est le navigateur qui
+       peignait par-dessus.
+
+       ⚠️ **`light` et pas `light dark`**, et c'est délibéré : la préférence par
+       défaut du site est `light` (`main.js`, `normalise()` replie sur `light`, et
+       aucune règle sombre ne s'applique sans `data-theme`). Écrire `light dark`
+       ferait suivre l'OS aux seuls contrôles natifs pendant que le reste de la
+       page resterait clair — le défaut d'aujourd'hui, dans l'autre sens.
+
+       ⚠️ Et c'est bien `:root` : `html[data-theme="dark"]` pèse (0,1,1) contre
+       (0,1,0), donc le sombre continue de gagner quand il est demandé. */
+    color-scheme: light;
     --theme-surface: #ffffff;
     --theme-surface-elevated: #ffffff;
     --theme-input: #ffffff;

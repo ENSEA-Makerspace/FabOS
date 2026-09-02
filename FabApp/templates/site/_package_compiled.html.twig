@@ -1,0 +1,188 @@
+{#
+   CE QUI EST ÉCRIT EN BASE — la SORTIE du compilateur, repliée.
+
+   🔴 **« Grants v2 » était un mot de firmware dans un titre.** Et sous ce titre,
+   six lignes identiques — même action, « tout lieu », « à toute heure » — qui
+   répétaient une par une ce que la carte de saisie dit en quatre. Ce n'est pas
+   une seconde information : c'est la première, décompressée.
+
+   🔴 **Le pli est CONDITIONNEL, et c'est tout le raisonnement.** Quand la carte
+   sait exprimer le forfait (`specFits`), ces lignes sont DÉRIVÉES : les lire est
+   une vérification, pas une tâche. Quand elle ne le sait pas, ce bloc est la
+   seule prise sur le forfait : il s'ouvre.
+
+   🔴 **Et c'est pourquoi les SUPPRESSIONS suivent la même condition** (question
+   de l'opérateur, 2026-09-03 : « doit-on pouvoir les supprimer ? »). Réponse :
+   NON quand la carte tient. Supprimer un grant qu'elle sait écrire ne le retire
+   pas vraiment — la première sauvegarde de la carte le réécrit, sans un mot.
+   C'est exactement la divergence que S153 a passé une phase à supprimer, offerte
+   sous forme de bouton. ⚠️ Quand la carte NE tient PAS, ces boutons sont le seul
+   chemin : retirer le grant qu'elle ne sait pas lire — un `Manage`, une machine
+   nommée — la fait rouvrir. L'issue de secours n'existe que quand on est coincé.
+
+   ⚠️ **C'est un PARTIEL, et pas par goût de découper** : le pli doit paraître
+   dans les DEUX branches de `specFits`, et c'est dans la branche « ne tient
+   pas » qu'il compte le plus. Le laisser dans une seule l'aurait retiré
+   précisément au cas qu'il sert.
+
+   Paramètres : `grants`, `allowances`, `allowancesReady`, `specFits`, `package`,
+   `availableFeatures`, `resourceNames`.
+#}
+<details class="pkg-compiled"{{ specFits ? '' : ' open' }}>
+    <summary>
+        <span class="pkg-compiled-title">{{ 'usage_rights.compiled_heading'|trans }}</span>
+        {% include 'site/_cell_state.html.twig' with {
+            label: 'usage_rights.compiled_count'|trans({'%grants%': grants|length, '%allowances%': allowances|length}),
+            signal: 'muted',
+        } only %}
+    </summary>
+    <div class="pkg-compiled-body">
+<p class="settings-hint">{{ (specFits ? 'usage_rights.compiled_help_derived' : 'usage_rights.compiled_help_escape')|trans }}</p>
+<h3 class="pkg-compiled-sub">{{ 'usage_rights.grants'|trans }}</h3>
+
+{# 🔴 **S153b — l'éditeur « Ajouter un grant » est PARTI, et c'est
+   l'aboutissement de la phase.** Neuf champs qui écrivaient les
+   mêmes lignes que la carte du haut : deux surfaces d'écriture pour
+   un même fait, exactement ce que la mesure du 2026-08-28 avait
+   trouvé EN BASE (un package portant `fullAccess = 1` ET quatorze
+   grants, sans que rien ne dise laquelle des deux vérités l'écran
+   croyait).
+
+   ⚠️ Et les deux ne cohabitaient pas : la saisie REMPLACE les grants
+   du package. Un grant tapé ici aurait disparu sans un mot à la
+   sauvegarde suivante de la carte du haut — un piège, pas une option
+   avancée.
+
+   ⚠️ **La liste ci-dessous reste, et sa suppression aussi.** Elle
+   montre ce que la saisie a compilé — c'est le seul endroit qui dise
+   ce qui est réellement en base — et supprimer un grant est l'issue
+   de secours qui fait re-rentrer dans la saisie un package qu'elle
+   refuse (voir `PackageSpecCompiler::decompile()`). #}
+
+{% if grants %}
+    <div class="usage-assignment-list">
+        {% for grant in grants %}
+            <div class="usage-assignment">
+                <span>
+                    <strong>{{ availableFeatures[grant.featureKey].labelKey|default(grant.featureKey)|trans }}</strong>
+                    <small>
+                        {{ ('usage_rights.grant_' ~ grant.action)|trans }}
+                        · {{ grant.venueName ?: 'usage_rights.grant_any_venue'|trans }}
+                        {%- if grant.sectionKey %} · {{ grant.sectionKey }}{% endif %}
+                        {%- if grant.reservableId %} · {{ resourceNames[grant.reservableType ~ ':' ~ grant.reservableId]|default('#' ~ grant.reservableId) }}
+                        {%- elseif grant.reservableType %} · {{ ('usage_rights.grant_all_' ~ grant.reservableType ~ 's')|trans }}{% endif %}
+                        {%- if grant.categoryLabel %} · {{ grant.categoryLabel }}{% endif %}
+                        {# ⚠️ Said in words, because "no window" means
+                           "any time" and an empty list would read as
+                           "never". #}
+                        · {% if grant.windows is empty %}{{ 'usage_rights.window_none'|trans }}{% else %}
+                            {%- for window in grant.windows %}{{ ('usage_rights.day_' ~ window.dayOfWeek)|trans }} {{ window.label }}{% if not loop.last %}, {% endif %}{% endfor %}
+                        {%- endif %}
+                    </small>
+                </span>
+                {# 🔴 **LES SUPPRESSIONS N'EXISTENT QUE SI LA CARTE NE TIENT
+                   PAS** (question de l'opérateur, 2026-09-03 : « doit-on pouvoir
+                   les supprimer ? »). Quand elle tient, supprimer un grant ne le
+                   retire pas vraiment : la première sauvegarde de la carte le
+                   RÉÉCRIT, sans un mot. Un bouton qui a l'air de défaire et qui
+                   ne défait pas est pire que pas de bouton. #}
+                {% if not specFits %}
+                <div class="usage-grant-controls">
+                    {# 🔴 **S153b — le formulaire « Ajouter une plage »
+                       est parti d'ici aussi**, pour la même raison que
+                       les deux autres : la semaine d'un package se dit
+                       ligne « quand », en un seul endroit. Retirer une
+                       plage reste possible juste en dessous — c'est
+                       l'issue de secours, pas une seconde saisie. #}
+                    {% for window in grant.windows %}
+                        {# ⚠️ Removing the last window WIDENS the grant
+                           to the whole week — the one delete here that
+                           grants more than it takes, so it says which
+                           way it goes. #}
+                        <form method="post"
+                              data-controller="confirm" data-action="submit->confirm#ask"
+                              data-confirm-message-value="{{ 'usage_rights.window_delete_confirm'|trans }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('usage_package_grants_' ~ package.id) }}">
+                            <input type="hidden" name="action" value="window_delete">
+                            <input type="hidden" name="window_id" value="{{ window.id }}">
+                            <button class="admin-action" type="submit">{{ 'usage_rights.window_remove'|trans({'%window%': ('usage_rights.day_' ~ window.dayOfWeek)|trans ~ ' ' ~ window.label}) }}</button>
+                        </form>
+                    {% endfor %}
+                    {# Deleting can narrow access, so it confirms; adding
+                       only ever widens it, so it does not. #}
+                    <form method="post"
+                          data-controller="confirm" data-action="submit->confirm#ask"
+                          data-confirm-message-value="{{ 'usage_rights.grant_delete_confirm'|trans }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('usage_package_grants_' ~ package.id) }}">
+                        <input type="hidden" name="action" value="grant_delete">
+                        <input type="hidden" name="grant_id" value="{{ grant.id }}">
+                        <button class="admin-action danger" type="submit">{{ 'common.delete'|trans }}</button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p class="usage-empty">{{ 'usage_rights.no_grants'|trans }}</p>
+{% endif %}
+
+{# ⚠️ Les allocations rejoignent le même pli : elles sont la
+   sortie de la ligne « combien », exactement comme les grants
+   sont celle des quatre autres. Deux sections de premier niveau
+   pour deux moitiés d'une même chose donnaient à la page deux
+   titres de plus que ce qu'elle contient. #}
+<h3 class="pkg-compiled-sub">{{ 'usage_rights.allowances'|trans }}</h3>
+
+{# 🔴 **S153b — l'éditeur « Ajouter une allocation » est PARTI.**
+   Les quotas se saisissent ligne « combien » de la carte du haut, et
+   nulle part ailleurs. Le garder aurait laissé deux surfaces
+   d'écriture pour un même fait — et la pire des deux, parce que la
+   saisie REMPLACE les allocations : une ligne ajoutée ici aurait
+   disparu sans un mot à la sauvegarde suivante.
+   ⚠️ La liste et sa suppression restent : elle montre ce que la
+   saisie a compilé, et supprimer est l'issue de secours. #}
+{% if not allowancesReady %}
+    <p class="usage-empty">{{ 'usage_rights.allowances_migration_pending'|trans }}</p>
+{% endif %}
+
+{% if allowances %}
+    <div class="usage-assignment-list">
+        {% for allowance in allowances %}
+            <div class="usage-assignment">
+                <span>
+                    <strong>
+                        {%- if allowance.unit == 'minutes' -%}
+                            {{ 'usage_rights.allowance_hours_value'|trans({'%hours%': (allowance.amount / 60)|round(2)}) }}
+                        {%- else -%}
+                            {{ 'usage_rights.allowance_count_value'|trans({'count': allowance.amount}) }}
+                        {%- endif %}
+                        {{ ('usage_rights.allowance_period_' ~ allowance.period)|trans }}
+                    </strong>
+                    <small>
+                        {{ allowance.featureKey ? availableFeatures[allowance.featureKey].labelKey|default(allowance.featureKey)|trans : 'usage_rights.allowance_any_feature'|trans }}
+                        · {{ allowance.reservableType ? ('usage_rights.grant_all_' ~ allowance.reservableType ~ 's')|trans : 'usage_rights.grant_any_resource'|trans }}
+                    </small>
+                </span>
+                {% if not specFits %}
+                {# ⚠️ Deleting an allowance WIDENS access — it gives
+                   the hours back. The opposite of every other
+                   confirmation on this page, so it says which way
+                   it goes rather than just "are you sure". #}
+                <form method="post"
+                      data-controller="confirm" data-action="submit->confirm#ask"
+                      data-confirm-message-value="{{ 'usage_rights.allowance_delete_confirm'|trans }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('usage_package_allowances_' ~ package.id) }}">
+                    <input type="hidden" name="action" value="allowance_delete">
+                    <input type="hidden" name="allowance_id" value="{{ allowance.id }}">
+                    <button class="admin-action danger" type="submit">{{ 'common.delete'|trans }}</button>
+                </form>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p class="usage-empty">{{ 'usage_rights.no_allowances'|trans }}</p>
+{% endif %}
+    </div>
+</details>

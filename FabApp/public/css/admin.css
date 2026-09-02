@@ -551,18 +551,28 @@
 /* LE PLI « ce qui est écrit en base » — la SORTIE du compilateur. Fermé quand la
    carte du dessus sait exprimer le forfait, ouvert quand elle ne le sait pas et
    qu'il est la seule prise. */
-.pkg-compiled { border: 1px solid var(--border-color); border-radius: var(--radius-md, 8px); }
+/* 🔴 **Le pli était la SEULE boîte encadrée de la page**, donc il se lisait comme
+   une île posée sur le panneau et non comme le pied de la carte qu'il documente —
+   c'est ce qui restait de « décousu » une fois le doublon des libellés réglé. Il
+   devient un simple repli sous une ligne de séparation, à la même marge que les
+   axes, dans le ton assourdi de ce qu'on ne consulte qu'en cas de doute. */
+.pkg-compiled { border-top: 1px solid var(--border-color); margin-top: var(--spacing-lg); }
 .pkg-compiled > summary {
     display: flex; align-items: center; gap: var(--spacing-md); flex-wrap: wrap;
-    padding: var(--spacing-md); cursor: pointer;
+    padding: var(--spacing-md) 0; cursor: pointer;
+    color: var(--color-text-light); font-size: var(--font-size-sm);
 }
+.pkg-compiled > summary:hover { color: var(--color-text); }
 .pkg-compiled-title { font-weight: 600; }
-.pkg-compiled-body { padding: 0 var(--spacing-md) var(--spacing-md); }
+.pkg-compiled-body { padding: 0 0 var(--spacing-md); }
 .pkg-compiled-sub {
     margin: var(--spacing-lg) 0 var(--spacing-sm); font-size: var(--font-size-sm);
     text-transform: uppercase; letter-spacing: .04em; color: var(--color-text-light);
 }
 .pkg-compiled-sub:first-of-type { margin-top: var(--spacing-md); }
+/* ⚠️ Le bouton de la carte ne doit pas se retrouver collé au repli qui le suit :
+   il conclut la SAISIE, le repli n'en est que la trace. */
+.pkg-spec .admin-actions { margin-top: var(--spacing-lg); }
 
 .pkg-axis { padding: var(--spacing-md) 0; border-bottom: 1px solid var(--border-color); }
 .pkg-axis:last-of-type { border-bottom: 0; }
@@ -639,12 +649,32 @@
 .pkg-axis .choice-item input[type="checkbox"],
 .pkg-toggle input[type="checkbox"] { margin: 0; cursor: pointer; }
 
-/* L'axe redevient le titre de sa ligne — même style que `.readonly-label` du
-   résumé au-dessus, pour que l'oeil relie les deux. */
+/* L'axe est le titre de sa ligne. */
 .pkg-axis-key {
     font-size: var(--font-size-xs, 12px); font-weight: 700;
     text-transform: uppercase; letter-spacing: .04em;
 }
+
+/* 🔴 **LA VALEUR DE L'AXE VIT SUR SA LIGNE**, et c'est ce qui recoud la page.
+   Elle était d'abord en grille séparée au-dessus de l'éditeur : les quatre mêmes
+   libellés paraissaient DEUX FOIS à 120 px d'écart, une fois comme réponse et
+   une fois comme contrôle, sans que rien ne dise lequel était lequel.
+
+   ⚠️ **Masquée quand l'axe est SANS RESTRICTION** : l'interrupteur porte alors
+   déjà le mot — « tout », « tout le temps » — et afficher « Toutes les
+   fonctionnalités » à côté de « tout » recréerait le doublon d'un cran plus bas.
+   En `:has()`, comme le reste de la carte : aucun JS ne tourne ici. */
+.pkg-axis-value {
+    flex: 1 1 12rem; min-width: 0;
+    color: var(--color-text); font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+}
+.pkg-axis:has(.pkg-toggle input:checked) .pkg-axis-value { display: none; }
+/* ⚠️ L'interrupteur reste à DROITE de la valeur : il est le raccourci de la
+   ligne, pas son titre. `order` plutôt qu'un déplacement dans le gabarit, pour
+   que l'ordre du DOM reste celui de la lecture — clé, valeur, contrôle. */
+.pkg-axis-head { flex-wrap: wrap; }
+.pkg-axis-head .pkg-toggle { margin-left: auto; }
 .pkg-hint { color: var(--color-text-light); font-size: var(--font-size-sm); margin: .4rem 0 0; }
 /* 🔴 **Les deux champs d'heure étaient les derniers contrôles nus de la carte.**
    Ils gardaient la boîte du navigateur — 26 px de haut au milieu de pastilles de
