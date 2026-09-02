@@ -79,6 +79,29 @@ final class S159RolesShadowCommand extends Command
 
         $io->text(sprintf('%d compte(s) inchangé(s).', $identical));
 
+        // 🔴 **Le palier de quota, parce que c'est la conséquence qui se voit le
+        // moins.** `hasRoleNamed()` est désormais dérivée de `getRoles()`, donc
+        // `BookingTier::forUser()` suit l'union — et un palier qui change, c'est
+        // un plafond de réservation qui change, en silence. Neutre par
+        // construction si les rôles le sont ; mesuré quand même.
+        $tierMoves = [];
+        foreach ($this->users->findBy([], ['id' => 'ASC']) as $person) {
+            if (!$person instanceof Utilisateur) {
+                continue;
+            }
+            $was = $this->tierFrom($this->fromRoleTable($person));
+            $now = $this->tierFrom($person->getRoles());
+            if ($was !== $now) {
+                $tierMoves[] = sprintf('#%d %s : %s → %s', $person->getId(), $person->getDisplayName(), $was, $now);
+            }
+        }
+        if ($tierMoves === []) {
+            $io->text('Palier de réservation : aucun changement.');
+        } else {
+            $io->section(sprintf('⚠️ %d palier(s) de réservation changent', count($tierMoves)));
+            $io->listing($tierMoves);
+        }
+
         if ($added !== []) {
             $io->section(sprintf('%d compte(s) GAGNENT un rôle par leur groupe', count($added)));
             $io->listing($added);
@@ -98,6 +121,23 @@ final class S159RolesShadowCommand extends Command
         }
 
         return Command::SUCCESS;
+    }
+
+    /**
+     * Le palier qu'une liste de rôles donne, sans passer par l'entité — le
+     * témoin doit rester indépendant de ce qu'il mesure.
+     *
+     * @param list<string> $roles
+     */
+    private function tierFrom(array $roles): string
+    {
+        foreach (['admin', 'staff', 'trainer'] as $tier) {
+            if (\in_array(Utilisateur::securityRoleFor($tier), $roles, true)) {
+                return $tier;
+            }
+        }
+
+        return 'member';
     }
 
     /**

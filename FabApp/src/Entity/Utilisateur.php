@@ -335,14 +335,19 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     }
     public function hasRoleNamed(string $name): bool
     {
-        $name = strtolower($name);
-        foreach ($this->utilisateurRoles as $utilisateurRole) {
-            if (strtolower((string) $utilisateurRole->getRole()?->getNom()) === $name) {
-                return true;
-            }
-        }
-
-        return false;
+        // 🔴 **S159d — cette méthode DOIT répondre comme `getRoles()`, et elle ne
+        // le faisait plus.** Elle ne lisait que `UTILISATEUR_ROLE` : depuis que
+        // les rôles sont l'union des deux sources (S159b), quelqu'un ajouté au
+        // groupe `staff` obtenait `ROLE_STAFF` — donc les écrans — pendant que
+        // `isStaff()` répondait NON. Deux réponses à « cette personne est-elle
+        // du staff », et elles décidaient de choses différentes : les écrans
+        // d'un côté, le PALIER DE QUOTA (`BookingTier::forUser()`) de l'autre.
+        //
+        // La formuler en fonction de `getRoles()` ferme la question pour de bon :
+        // il n'y a plus qu'un endroit qui sache ce qu'une personne est.
+        // ⚠️ Et elle passe par `securityRoleFor()`, comme tout le reste, pour que
+        // l'orthographe d'un rôle n'ait jamais deux définitions.
+        return \in_array(self::securityRoleFor($name), $this->getRoles(), true);
     }
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
     public function setCreatedAt(\DateTimeImmutable $createdAt): self { $this->createdAt = $createdAt; return $this; }
