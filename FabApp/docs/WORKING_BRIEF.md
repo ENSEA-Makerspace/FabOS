@@ -44,12 +44,15 @@ quatre chokepoints sont sur grants v2, donc le chemin groupe est vivant.
 forfait attribué à quelqu'un, c'est **une appartenance datée à un groupe**. Un
 seul chemin pour tout le monde, humains et machines, et l'expiration devient le
 mécanisme au lieu d'un obstacle.
-🔴 **La difficulté se déplace dans le SCHÉMA** : `USER_GROUP_MEMBER` a pour clé
-primaire `(groupId, userId)` — une personne ne peut appartenir à un groupe
-qu'UNE fois. Quelqu'un ajouté à la main **et** qui achète le même groupe n'a
-qu'une ligne, et un remboursement effacerait aussi l'appartenance donnée par
-l'opérateur. Il faut une `source` sur la ligne et **abandonner la clé composite** —
-un `DROP PRIMARY KEY`, donc une étape de CONTRACT avec toute sa discipline.
+✅ **Et appartenir à PLUSIEURS groupes marche déjà** : acheter le week-end ET le
+jeudi soir, c'est deux groupes, deux lignes, les deux droits — le lecteur compare
+l'attribution à toutes les clés de la personne.
+🔴 **La difficulté se déplace dans le SCHÉMA, et elle est étroite** : la clé
+primaire `(groupId, userId)` empêche **deux raisons simultanées d'être dans le
+MÊME groupe** — ajouté à la main *puis* acheté, ou renouvelé avant la fin. Deux
+sorties : étendre la ligne (sans migration, mais un remboursement partiel devient
+flou), ou plusieurs lignes sourcées — un `DROP PRIMARY KEY`, donc une étape de
+CONTRACT. À trancher quand la Phase H se construira.
 ⚠️ Et la durée appartient à l'OFFRE, pas au forfait : sinon le même groupe ne peut
 pas se vendre au mois ET à l'année.
 

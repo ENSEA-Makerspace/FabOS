@@ -602,30 +602,45 @@ Trois conséquences, toutes bonnes :
 
 ### 🔴 Mais la difficulté se DÉPLACE, elle ne disparaît pas
 
-**`USER_GROUP_MEMBER` a pour clé primaire `(groupId, userId)`** — vérifié en base.
-**Une personne ne peut appartenir à un groupe qu'UNE fois.** Donc :
+✅ **D'abord, ce qui n'est PAS un problème, parce que la question s'est posée :
+une personne appartient à AUTANT DE GROUPES qu'on veut.** C'est le cas depuis
+S133b, la vision le dit (« Un compte peut appartenir à plusieurs groupes »), et le
+lecteur le fait : `ug.groupKey IN (:keys)` compare l'attribution à **toutes** les
+clés de la personne, et les grants se combinent en OU.
+
+> *Acheter l'accès week-end ET le jeudi soir = deux groupes, deux lignes
+> d'appartenance, les deux droits.* Ça marche aujourd'hui, sans rien changer.
+
+**Ce que la clé primaire `(groupId, userId)` empêche est bien plus étroit** :
+**deux raisons SIMULTANÉES d'être dans le MÊME groupe.** Vérifié en base. Le cas
+n'apparaît que si un même groupe peut être à la fois donné et vendu :
 
 > quelqu'un que l'opérateur a ajouté à la main au groupe « week-end », **et** qui
 > achète ensuite ce même groupe, n'a qu'**une seule ligne**. Le remboursement la
 > supprimerait — et lui retirerait du même coup l'appartenance que l'opérateur
 > lui avait donnée.
+>
+> Même famille : un **renouvellement anticipé**, acheté avant la fin du
+> précédent — deux commandes, un seul créneau de ligne.
 
-C'est exactement le défaut que la vision décrit (« révoquer un droit qui ne vient
-pas de cette ligne »), reparu un étage plus bas. Il ne se contourne pas par
-prudence : il se règle dans le schéma.
+C'est le défaut que la vision décrit (« révoquer un droit qui ne vient pas de
+cette ligne »), reparu un étage plus bas.
 
-**Ce qu'il faut donc, et c'est le vrai coût de cette idée :**
+**Deux sorties, et le choix se fera quand la Phase H se construira, pas avant :**
 
-1. une **`source`** sur la ligne d'appartenance — nulle quand un humain l'écrit,
-   la clé unique de la ligne de commande quand une machine l'écrit ;
-2. **abandonner la clé primaire composite** au profit d'un `id`, pour que deux
-   sources puissent coexister sur la même paire (personne, groupe) ;
-3. et donc que l'appartenance porte **ses propres dates**, une par source.
+- **(a) Une ligne, qu'on ÉTEND.** Un renouvellement repousse `validUntil` ; aucune
+  migration. ⚠️ Mais rembourser une commande sur deux devient flou : rien ne dit
+  quelle part de la date venait de laquelle.
+- **(b) Plusieurs lignes, chacune avec sa `source` et ses dates** — donc un `id`
+  à la place de la clé composite, et l'appartenance effective devient l'union des
+  lignes vivantes. ⚠️ C'est un `DROP PRIMARY KEY` : une étape de **CONTRACT**, pas
+  d'expand — code tolérant déployé d'abord, migration ensuite, jamais l'inverse
+  (voir `feedback_fabos_migration_hazard`).
 
-⚠️ **C'est un `DROP PRIMARY KEY` : une étape de CONTRACT, pas d'expand.** Elle
-demande la discipline complète — le code qui tolère les deux formes déployé
-d'abord, la migration ensuite, et jamais l'inverse. Voir
-`feedback_fabos_migration_hazard`.
+🅿️ **Ma recommandation : (b)**, et elle rejoint une ligne déjà au plan — le
+« ledger append-only des crédits de temps et achats » de S153. Une appartenance
+n'est pas un état, c'est la somme de ce qui l'a accordée ; c'est la seule forme où
+un remboursement sait exactement quoi retirer.
 
 ⚠️ **Et la durée appartient à l'OFFRE, pas au forfait.** « X temps » ne peut pas
 vivre sur le forfait, sinon le même groupe ne peut pas se vendre au mois ET à
