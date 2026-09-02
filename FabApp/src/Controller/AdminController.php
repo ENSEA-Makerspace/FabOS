@@ -1856,6 +1856,7 @@ final class AdminController extends AbstractController
         ReservationRepository $reservations,
         ReservationMailer $reservationMails,
         EntityManagerInterface $entityManager,
+        UserGroupRepository $userGroups,
     ): Response {
         $user = $users->find($id);
         if (!$user instanceof Utilisateur) {
@@ -1882,9 +1883,19 @@ final class AdminController extends AbstractController
         /** @var array<string, mixed> $data */
         $data = $form->getData();
 
-        // Person-type is stored as ROLE membership (roles are created on demand).
-        $this->setPersonTypeRole($user, 'staff', (bool) $data['is_staff'], $roles, $entityManager);
-        $this->setPersonTypeRole($user, 'trainer', (bool) $data['is_trainer'], $roles, $entityManager);
+        // 🔴 **S159e — « staff » et « formateur » s'écrivent désormais dans le
+        // GROUPE, et la ligne de rôle héritée part avec.** C'est la première
+        // moitié du contract : la table `UTILISATEUR_ROLE` cesse d'être écrite
+        // pour ces deux-là, une personne à la fois, au moment où l'opérateur
+        // touche la case.
+        //
+        // ⚠️ **Retirer la ligne de rôle n'est pas un extra, c'est ce qui rend la
+        // case capable de dire NON.** `getRoles()` rend l'union : tant qu'une
+        // ligne de rôle subsiste, décocher la case laisserait la personne staff.
+        // Et c'est aussi ce qui redonne son bouton « Retirer » à la fiche du
+        // groupe, qui le cache tant qu'un rôle est une seconde raison.
+        $this->setPersonTypeGroup($user, 'staff', (bool) $data['is_staff'], $userGroups, $roles, $entityManager);
+        $this->setPersonTypeGroup($user, 'trainers', (bool) $data['is_trainer'], $userGroups, $roles, $entityManager);
 
         // Being bookable is the admin's call; the person then owns their own
         // slots and durations. Turning it off cancels what was already booked —
@@ -1904,30 +1915,67 @@ final class AdminController extends AbstractController
         return $this->redirectToRoute('app_admin_user_detail', ['id' => $id]);
     }
 
-    private function setPersonTypeRole(
+    /**
+     * Poser ou retirer « staff » / « formateur », dans le GROUPE (S159e).
+     *
+     * 🔴 **Et en retirant la ligne de rôle héritée, toujours.** `getRoles()` rend
+     * l'union des deux sources : laisser la ligne de `UTILISATEUR_ROLE` en place
+     * rendrait la case incapable de dire NON — on décocherait « staff » et la
+     * personne resterait staff, par l'autre source, sans que rien ne le dise.
+     *
+     * ⚠️ **C'est le contract, fait une personne à la fois.** Chaque passage sur
+     * cette case déplace un compte de l'ancienne source vers la nouvelle. Rien
+     * n'oblige à tout migrer d'un coup, et l'union couvre ceux qui n'ont pas
+     * encore bougé.
+     *
+     * ⚠️ **L'écriture du groupe passe par `UserGroupRepository`**, jamais par
+     * l'ORM : c'est lui qui porte les gardes, et une seconde surface d'écriture
+     * sur la même table est la faute que cette phase entière range.
+     */
+    private function setPersonTypeGroup(
         Utilisateur $user,
-        string $roleName,
+        string $groupKey,
         bool $shouldHave,
+        UserGroupRepository $userGroups,
         RoleRepository $roles,
         EntityManagerInterface $entityManager,
     ): void {
-        $existing = null;
-        foreach ($user->getUtilisateurRoles() as $utilisateurRole) {
-            if (strtolower((string) $utilisateurRole->getRole()?->getNom()) === $roleName) {
-                $existing = $utilisateurRole;
+        $group = null;
+        foreach ($userGroups->all() as $row) {
+            if ($row['key'] === $groupKey) {
+                $group = $row;
                 break;
             }
         }
 
-        if ($shouldHave && $existing === null) {
-            $role = $roles->findOneBy(['nom' => $roleName]);
-            if ($role === null) {
-                $role = (new Role())->setNom($roleName);
-                $entityManager->persist($role);
+        if ($group !== null) {
+            $stored = \in_array((int) $user->getId(), $userGroups->storedMemberIds($group['id']), true);
+            try {
+                if ($shouldHave && !$stored) {
+                    $userGroups->addMember($group['id'], (int) $user->getId());
+                } elseif (!$shouldHave && $stored) {
+                    $userGroups->removeMember($group['id'], (int) $user->getId());
+                }
+            } catch (\Throwable $e) {
+                // La garde du dernier administrateur, ou une table absente. On le
+                // dit plutôt que d'écrire à moitié — mais on ne casse pas les
+                // deux autres cases du formulaire pour autant.
+                $this->addFlash('error', $e->getMessage());
+
+                return;
             }
-            $entityManager->persist((new UtilisateurRole())->setUtilisateur($user)->setRole($role));
-        } elseif (!$shouldHave && $existing !== null) {
-            $entityManager->remove($existing);
+        }
+
+        // ⚠️ La ligne de rôle héritée part dans les DEUX cas : quand on coche,
+        // parce que le groupe la remplace ; quand on décoche, parce qu'elle
+        // survivrait au refus.
+        // ⚠️ `trainers` est la clé du groupe, `trainer` le nom de la ligne de
+        // rôle — la même différence de nommage que dans `Utilisateur`.
+        $roleName = $groupKey === 'trainers' ? 'trainer' : $groupKey;
+        foreach ($user->getUtilisateurRoles() as $utilisateurRole) {
+            if (strtolower((string) $utilisateurRole->getRole()?->getNom()) === $roleName) {
+                $entityManager->remove($utilisateurRole);
+            }
         }
     }
 

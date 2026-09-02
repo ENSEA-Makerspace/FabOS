@@ -6,6 +6,7 @@ use App\Entity\Utilisateur;
 use App\Repository\MachineRepository;
 use App\Repository\UtilisateurRepository;
 use App\Reservation\LabClock;
+use App\Reservation\Policy\BookingTier;
 use App\Reservation\ReservableResolver;
 use App\Reservation\ReservableType;
 use App\Reservation\ReservationService;
@@ -73,6 +74,7 @@ final class S153PackageProbeCommand extends Command
             $failures += $this->probeHoursExemption($io);
             $failures += $this->probeGroupReach($io);
             $failures += $this->probeGroupWrites($io);
+            $failures += $this->probePersonType($io);
         } finally {
             // ⚠️ `rollBack()` dans un `finally` : une exception au milieu ne doit
             // pas laisser un package de sonde en base.
@@ -445,6 +447,75 @@ final class S153PackageProbeCommand extends Command
 
         $this->groups->delete($id);
         $failures += $this->check($io, 'le groupe libre se supprime', $this->groups->find($id) === null, 'suppression');
+
+        return $failures;
+    }
+
+    /**
+     * La case « staff » de la fiche d'un membre écrit-elle vraiment le GROUPE, et
+     * la personne cesse-t-elle d'être staff quand on la décoche ? (S159e)
+     *
+     * 🔴 **C'est la question que le contract rend piégeuse.** `getRoles()` rend
+     * l'UNION : tant qu'une ligne de `UTILISATEUR_ROLE` subsiste, retirer
+     * l'appartenance au groupe ne retire rien du tout — la personne reste staff
+     * par l'autre source, et l'écran a l'air de mentir. Le contrôleur retire donc
+     * les deux ; cette sonde vérifie que le NON est un vrai non.
+     *
+     * ⚠️ Elle reproduit ce que fait `AdminController::setPersonTypeGroup()` au
+     * niveau des services, pas par un vrai POST : la validité du formulaire et le
+     * jeton CSRF ne sont pas couverts ici. Ce qui l'est, c'est la sémantique —
+     * la seule chose qui vienne de changer.
+     */
+    private function probePersonType(SymfonyStyle $io): int
+    {
+        $io->section('6. « Staff » écrit le groupe, et le NON est un vrai non');
+
+        $group = null;
+        foreach ($this->groups->all() as $row) {
+            if ($row['key'] === 'staff') {
+                $group = $row;
+                break;
+            }
+        }
+        // ⚠️ **Quelqu'un qui n'est NI staff NI d'un palier supérieur.** Première
+        // version : « quelqu'un qui n'est pas staff » — et elle est tombée sur un
+        // ADMIN, dont le palier reste `admin` une fois staff, puisque le palier
+        // prend le plus élevé. L'assertion était fausse, pas le code. Un témoin
+        // mal choisi accuse la mesure.
+        $member = null;
+        foreach ($this->users->findBy([], ['id' => 'ASC']) as $candidate) {
+            if ($candidate instanceof Utilisateur
+                && BookingTier::forUser($candidate) === BookingTier::Member) {
+                $member = $candidate;
+                break;
+            }
+        }
+        if ($group === null || $member === null) {
+            $io->warning('Pas de groupe « staff », ou aucun compte au palier « membre » : rien à mesurer ici.');
+
+            return 0;
+        }
+
+        $failures = 0;
+        $this->groups->addMember($group['id'], (int) $member->getId());
+
+        // ⚠️ L'entité porte une collection déjà chargée : sans la vider, elle
+        // répondrait la photo d'avant l'écriture. C'est le même piège que le
+        // résolveur mémoïsé, un étage plus bas.
+        $this->em->clear();
+        $reloaded = $this->users->find((int) $member->getId());
+        $failures += $this->check($io, 'ajouté au groupe staff, la personne EST staff', $reloaded !== null && $reloaded->isStaff(), 'isStaff');
+        $failures += $this->check(
+            $io,
+            'et le palier de réservation suit',
+            $reloaded !== null && BookingTier::forUser($reloaded) === BookingTier::Staff,
+            $reloaded === null ? '—' : BookingTier::forUser($reloaded)->value,
+        );
+
+        $this->groups->removeMember($group['id'], (int) $member->getId());
+        $this->em->clear();
+        $again = $this->users->find((int) $member->getId());
+        $failures += $this->check($io, 'retirée du groupe, elle ne l’est plus', $again !== null && !$again->isStaff(), 'isStaff');
 
         return $failures;
     }
