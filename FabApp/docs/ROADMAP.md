@@ -626,21 +626,55 @@ n'apparaît que si un même groupe peut être à la fois donné et vendu :
 C'est le défaut que la vision décrit (« révoquer un droit qui ne vient pas de
 cette ligne »), reparu un étage plus bas.
 
-**Deux sorties, et le choix se fera quand la Phase H se construira, pas avant :**
+### ✅ LA FORME RETENUE (opérateur, 2026-09-02) : une ligne, et un JOURNAL
 
-- **(a) Une ligne, qu'on ÉTEND.** Un renouvellement repousse `validUntil` ; aucune
-  migration. ⚠️ Mais rembourser une commande sur deux devient flou : rien ne dit
-  quelle part de la date venait de laquelle.
-- **(b) Plusieurs lignes, chacune avec sa `source` et ses dates** — donc un `id`
-  à la place de la clé composite, et l'appartenance effective devient l'union des
-  lignes vivantes. ⚠️ C'est un `DROP PRIMARY KEY` : une étape de **CONTRACT**, pas
-  d'expand — code tolérant déployé d'abord, migration ensuite, jamais l'inverse
-  (voir `feedback_fabos_migration_hazard`).
+> *« Garder une seule ligne en repoussant la date de fin fonctionne si on garde la*
+> *trace de chaque modification dans des logs. User1 renouvelle avant la fin d'un*
+> *abo d'un mois, on ajoute le mois suivant ; il annule, on voit sa date de*
+> *commande et sa durée dans les logs. »*
 
-🅿️ **Ma recommandation : (b)**, et elle rejoint une ligne déjà au plan — le
-« ledger append-only des crédits de temps et achats » de S153. Une appartenance
-n'est pas un état, c'est la somme de ce qui l'a accordée ; c'est la seule forme où
-un remboursement sait exactement quoi retirer.
+**C'est la bonne forme, et elle coûte MOINS cher que ce que j'avais recommandé.**
+`USER_GROUP_MEMBER` garde sa clé `(groupId, userId)` : **plus de `DROP PRIMARY
+KEY`, plus d'étape de contract.** Tout devient additif —
+
+- deux colonnes de dates sur `USER_GROUP_MEMBER` (`validFrom`, `validUntil`),
+  aujourd'hui absentes : la table porte `groupId, userId, addedAt` et rien d'autre ;
+- une table de journal, neuve, qui n'existe pas encore.
+
+🔴 **MAIS À UNE CONDITION, et c'est toute la différence entre les deux lectures de
+l'idée : la ligne doit être DÉRIVÉE du journal, jamais modifiée en place.**
+
+Si le journal n'est qu'une *trace* posée à côté d'une ligne qu'on édite, on a deux
+vérités — et c'est la ligne qui décide pendant que le journal a l'air juste. C'est
+exactement le défaut que toute cette phase a poursuivi (`fullAccess` à 1 ET
+quatorze grants). Si au contraire `validUntil` est **recalculée** depuis les
+entrées à chaque écriture, alors ce n'est plus « une ligne plus un journal », c'est
+**un journal avec sa réponse mise en cache** — une seule vérité, et un cache qu'on
+peut toujours reconstruire.
+
+✅ Et c'est un vrai avantage sur des lignes multiples : le lecteur ne change pas.
+`AudienceResolver` continue de faire une jointure sur une ligne par (personne,
+groupe).
+
+⚠️ **Chaque entrée du journal porte SES PROPRES dates, pas une durée.** Le cas qui
+le prouve : il renouvelle (+1 mois), puis se fait rembourser le **premier** mois,
+déjà consommé. Retrancher « un mois » à la fin lui retirerait le mois qu'il a payé
+et gardé. Recalculer depuis les entrées non remboursées donne la bonne réponse, et
+elle seule.
+
+⚠️ **Ce que le journal doit contenir** pour que le recalcul soit possible :
+`(personne, groupe, du, au, source, acteur, quand, révoquée)`. La `source` est
+nulle quand un opérateur écrit, et porte la clé de la ligne de commande quand une
+machine écrit — c'est elle qui rend un remboursement chirurgical, et c'est elle qui
+protège une appartenance donnée à la main d'être emportée par l'annulation d'un
+achat.
+
+🔴 **Le piège au moment d'ajouter les dates** : `AudienceResolver::storedKeysFor()`
+lit aujourd'hui **sans aucun filtre de date**. Y ajouter un filtre doit traiter
+`NULL` comme « sans limite », sinon les 11 lignes du backfill — qui n'ont pas de
+dates — disparaîtraient d'un coup, et avec elles les audiences `staff`, `admin` et
+`trainers` de tout le monde. Expand, toujours : le filtre est permissif sur ce
+qu'il ne sait pas.
 
 ⚠️ **Et la durée appartient à l'OFFRE, pas au forfait.** « X temps » ne peut pas
 vivre sur le forfait, sinon le même groupe ne peut pas se vendre au mois ET à

@@ -49,10 +49,12 @@ jeudi soir, c'est deux groupes, deux lignes, les deux droits — le lecteur comp
 l'attribution à toutes les clés de la personne.
 🔴 **La difficulté se déplace dans le SCHÉMA, et elle est étroite** : la clé
 primaire `(groupId, userId)` empêche **deux raisons simultanées d'être dans le
-MÊME groupe** — ajouté à la main *puis* acheté, ou renouvelé avant la fin. Deux
-sorties : étendre la ligne (sans migration, mais un remboursement partiel devient
-flou), ou plusieurs lignes sourcées — un `DROP PRIMARY KEY`, donc une étape de
-CONTRACT. À trancher quand la Phase H se construira.
+MÊME groupe** — ajouté à la main *puis* acheté, ou renouvelé avant la fin. ✅ **Tranché par l'opérateur le 2026-09-02** : une seule ligne dont on repousse la
+date, plus un **journal** de chaque modification — donc **aucun contract**, tout
+est additif (deux colonnes de dates, une table de journal).
+🔴 **À la condition que la ligne soit DÉRIVÉE du journal**, jamais éditée en
+place : sinon deux vérités, et c'est la ligne qui décide pendant que le journal a
+l'air juste.
 ⚠️ Et la durée appartient à l'OFFRE, pas au forfait : sinon le même groupe ne peut
 pas se vendre au mois ET à l'année.
 
