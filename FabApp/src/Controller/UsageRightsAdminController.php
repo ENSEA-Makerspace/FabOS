@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Utilisateur;
 use App\Feature\SiteFeatureService;
-use App\Repository\UtilisateurRepository;
 use App\Repository\VenueRepository;
 use App\UsageRights\UsagePackageRepository;
 use App\UsageRights\PackageSpec;
@@ -18,7 +17,6 @@ use App\Repository\MachineCategoryRepository;
 use App\Repository\MachineRepository;
 use App\Repository\PlaceRepository;
 use App\Form\UsageRights\PackageAssignGroupType;
-use App\Form\UsageRights\PackageAssignType;
 use App\Form\UsageRights\PackageDetailsType;
 use App\Service\SiteSettingService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -79,7 +77,7 @@ final class UsageRightsAdminController extends AbstractController
     }
 
     #[Route('/{id<\d+>}/edit', name: 'app_admin_usage_rights_edit', methods: ['GET', 'POST'])]
-    public function edit(int $id, Request $request, UsagePackageRepository $packages, SiteFeatureService $features, UsageCapabilityRegistry $capabilities, UtilisateurRepository $users, SiteSettingService $settings, VenueRepository $venues, AudienceResolver $audiences, MachineRepository $machines, PlaceRepository $places, MachineCategoryRepository $categories, UsageAllowanceRepository $allowances, PackageSpecCompiler $compiler): Response
+    public function edit(int $id, Request $request, UsagePackageRepository $packages, SiteFeatureService $features, UsageCapabilityRegistry $capabilities, SiteSettingService $settings, VenueRepository $venues, AudienceResolver $audiences, MachineRepository $machines, PlaceRepository $places, MachineCategoryRepository $categories, UsageAllowanceRepository $allowances, PackageSpecCompiler $compiler): Response
     {
         $package = $packages->find($id);
         if ($package === null) {
@@ -172,7 +170,6 @@ final class UsageRightsAdminController extends AbstractController
             $audiences->catalogue(),
             static fn (array $group): bool => $group['key'] !== AudienceResolver::GUEST,
         ));
-        $userList = $users->findBy([], ['lastName' => 'ASC', 'firstName' => 'ASC']);
 
         $available = $capabilities->all();
         $zone = new \DateTimeZone($settings->getTimezone());
@@ -204,11 +201,6 @@ final class UsageRightsAdminController extends AbstractController
         }
 
 
-        $memberChoices = [];
-        foreach ($userList as $member) {
-            $memberChoices[$member->getDisplayName() . ' — ' . $member->getEmail()] = (string) $member->getId();
-        }
-
         $groupChoices = [];
         foreach ($groupList as $group) {
             $suffix = $group['virtual']
@@ -223,11 +215,6 @@ final class UsageRightsAdminController extends AbstractController
 
         // Les quatre périodes, pour la ligne « combien » de la saisie.
         $periodChoices = [];
-        $assignForm = $this->createForm(PackageAssignType::class, null, [
-            'package_key' => (string) $id,
-            'member_choices' => $memberChoices,
-            'lab_timezone' => $settings->getTimezone(),
-        ]);
 
         $assignGroupForm = $this->createForm(PackageAssignGroupType::class, null, [
             'package_key' => (string) $id,
@@ -319,36 +306,16 @@ final class UsageRightsAdminController extends AbstractController
         }
 
         
-        $assignForm->handleRequest($request);
-        if ($assignForm->isSubmitted() && $assignForm->isValid()) {
-            $data = $assignForm->getData();
-            try {
-                $member = $users->find((int) $data['user_id']);
-                if (!$member instanceof Utilisateur) {
-                    throw new \InvalidArgumentException($this->translator->trans('usage_rights.member_required'));
-                }
-                // 🔴 Les deux dates sont des CHAÎNES et le sont restées : c'est
-                // ce helper qui les construit dans le fuseau du labo. Laisser le
-                // formulaire hydrater un `DateTimeImmutable` l'aurait fait dans
-                // le fuseau PHP — UTC ici — et décalé toute validité sans rien
-                // dire à l'écran.
-                $from = $this->date($data['valid_from'] ?? null, $zone);
-                $until = $this->date($data['valid_until'] ?? null, $zone);
-                $actor = $this->getUser();
-                $packages->assign($id, $member, $from, $until, $actor instanceof Utilisateur ? $actor->getId() : null);
-                $this->addFlash('success', $this->translator->trans('usage_rights.assignment_created'));
+        // 🔴 **S159 étape 1 — plus de traitement pour l'attribution
+        // personnelle : l'écran ne l'offre plus.** Un opérateur passe par le
+        // GROUPE. Le lecteur, lui, accepte toujours les lignes personnelles — la
+        // colonne reste, c'est le chemin de ce qu'une machine écrit (une commande
+        // du commerce, individuelle par nature). Ce qui a disparu est la surface
+        // d'écriture humaine, pas le modèle.
+        // ⚠️ Et la révocation reste, plus bas : les lignes déjà là doivent pouvoir
+        // être retirées, sans quoi on aurait supprimé le seul moyen de défaire ce
+        // que l'écran avait laissé faire.
 
-                return $this->redirectToRoute('app_admin_usage_rights_edit', ['id' => $id]);
-            } catch (\Throwable $e) {
-                $this->addFlash('error', $e->getMessage());
-            }
-        }
-
-        // ⚠️ **Assigning to a group (S144a).** Deliberately its own form and its
-        // own CSRF token rather than a "member or group" switch on the one above:
-        // the two write different columns, refuse for different reasons, and a
-        // single form that silently ignores one of its two selects is exactly the
-        // kind of control an operator cannot reason about.
         $assignGroupForm->handleRequest($request);
         if ($assignGroupForm->isSubmitted() && $assignGroupForm->isValid()) {
             $data = $assignGroupForm->getData();
@@ -388,7 +355,6 @@ final class UsageRightsAdminController extends AbstractController
             'specFits' => $spec !== null,
         ], [
             'specForm' => $specForm,
-            'assignForm' => $assignForm,
             'assignGroupForm' => $assignGroupForm,
         ]);
     }
@@ -473,7 +439,6 @@ final class UsageRightsAdminController extends AbstractController
             // à quoi les accrocher. `new()` enregistre puis redirige ici.
             'specForm' => ($extraForms['specForm'] ?? null)?->createView(),
             'specFits' => $resources['specFits'] ?? false,
-            'assignForm' => $extraForms['assignForm']?->createView(),
             'assignGroupForm' => $extraForms['assignGroupForm']?->createView(),
             // ⚠️ **Quel repli rouvrir.** Les deux éditeurs d'attribution sont
             // repliés derrière un `<details>` : replié, l'opérateur n'y verrait ni

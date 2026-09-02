@@ -301,27 +301,27 @@
 
             <section class="usage-assignments">
                 <div class="admin-panel-header"><h2>{{ 'usage_rights.assignments'|trans }}</h2></div>
-                {# 🔴 Les deux dates rendent une CHAÎNE : c'est le contrôleur qui
+                {# 🔴 **S159 étape 1 — l'attribution à UNE PERSONNE est retirée de
+                   l'écran.** Un opérateur donne désormais un forfait à un GROUPE,
+                   et fait entrer la personne dans le groupe. Une seule façon
+                   d'accorder un droit, et une seule réponse à « pourquoi ai-je ce
+                   droit ? » — parce que je suis dans ce groupe.
+
+                   ⚠️ **Le LECTEUR, lui, accepte toujours les attributions
+                   personnelles**, et la colonne reste : c'est le chemin de ce
+                   qu'une MACHINE écrit — une commande du module commerce, qui est
+                   individuelle par nature et dont le remboursement doit pouvoir
+                   révoquer exactement ce que cette commande-là a donné. Ce qui
+                   disparaît est la surface d'écriture humaine, pas le modèle.
+
+                   ⚠️ **Les lignes personnelles existantes continuent d'accorder ce
+                   qu'elles accordent**, et la liste plus bas les montre avec leur
+                   bouton de révocation. Aucune migration, rien de perdu.
+
+                   🔴 Les deux dates rendent une CHAÎNE : c'est le contrôleur qui
                    les construit dans le fuseau du LABO. Laisser le formulaire
                    hydrater un `DateTimeImmutable` le ferait dans le fuseau PHP —
                    UTC ici — et décalerait toute validité sans rien dire. #}
-                <details class="settings-danger settings-danger--neutral"{{ refusedEditor|default(null) == 'assignForm' ? ' open' : '' }}>
-                    <summary>{{ 'usage_rights.assign'|trans }}</summary>
-                    <div>
-                        {{ form_start(assignForm, {attr: {class: 'usage-assignment-form'}}) }}
-                            {% form_theme assignForm 'form/admin_theme.html.twig' %}
-                            {{ form_row(assignForm.user_id) }}
-                            {{ form_row(assignForm.valid_from) }}
-                            {{ form_row(assignForm.valid_until) }}
-                            <button class="btn-link btn-primary-admin" type="submit">{{ 'usage_rights.assign'|trans }}</button>
-                        {{ form_end(assignForm) }}
-                    </div>
-                </details>
-                {# ⚠️ **A second form, not a second field (S144a).** Giving a package
-                   to a group writes a different column, refuses for different
-                   reasons and reaches people who do not exist yet — a member/group
-                   toggle on one form would have to ignore one of its two selects
-                   on every submission. #}
                 <details class="settings-danger settings-danger--neutral"{{ refusedEditor|default(null) == 'assignGroupForm' ? ' open' : '' }}>
                     <summary>{{ 'usage_rights.assign_group'|trans }}</summary>
                     <div>

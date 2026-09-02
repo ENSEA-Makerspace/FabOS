@@ -520,16 +520,18 @@ capacité qui est utilisée aujourd'hui. C'est la dépendance, et elle est dure.
 ## L'ordre, et pourquoi
 
 **1. Retirer le formulaire « attribuer à un membre » de la fiche forfait.**
-C'est le gros du gain, et il ne coûte rien : une seule surface d'écriture, comme
-pour les droits eux-mêmes en S153b. **Le lecteur reste tolérant** — les lignes
-personnelles existantes continuent d'accorder ce qu'elles accordent. Aucune
-migration, réversible, et ça change le geste quotidien (« j'ajoute la personne au
-groupe ») sans rien retirer.
+✅ **FAIT le 2026-09-02.** La fiche d'un forfait ne porte plus que trois
+formulaires : son identité, ce qu'il autorise, et l'attribution à un GROUPE.
+✅ **Le lecteur reste tolérant, et c'est mesuré** : `?package=1` rend toujours
+Cédric et `?package=21` toujours Alvaro, par leurs attributions personnelles
+existantes — qui gardent aussi leur bouton de révocation, sans quoi on aurait
+supprimé le seul moyen de défaire ce que l'écran avait laissé faire.
+⚠️ La colonne `userId` reste : c'est le chemin de ce qu'une MACHINE écrit.
 ⚠️ La liste des attributions et sa révocation RESTENT : c'est le seul endroit qui
 dise ce qui est réellement en base, et l'issue de secours. Même partage qu'en
 S153b.
 
-**2. L'appartenance datée** (déjà listée en Phase S158, étape 5) — une colonne sur
+**2. L'appartenance datée** 🅿️ **PROCHAINE ÉTAPE** (déjà listée en Phase S158, étape 5) — une colonne sur
 `USER_GROUP_MEMBER`, migration additive. Sans elle, « jusqu'au 30 juin » n'est
 plus exprimable pour une personne.
 ⚠️ `AudienceResolver` devient alors dépendant de l'INSTANT : sa mémoïsation par
