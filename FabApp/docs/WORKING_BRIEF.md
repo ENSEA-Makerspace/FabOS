@@ -89,7 +89,8 @@ conclue, R1 → R9 sont faits sauf R5/R6 qui sont des décisions.
   l'opérateur.
 - Déployé et vérifié par hachage sur CT 210, services redémarrés, site 200.
 - Cache-buster CSS courant : `?v=20260831-s153b`.
-- 🔴 **UNE MIGRATION EN ATTENTE : `Version20260902160000`** — l'appartenance
+- ✅ **Aucune migration en attente** (61/61).
+- ✅ **Jouée le 2026-09-02 : `Version20260902160000`** — l'appartenance
   DATÉE : deux colonnes nullables sur `USER_GROUP_MEMBER`. ✅ Purement additive,
   et le code est **déjà déployé et tolérant** : `UserGroupSchema` sonde les
   colonnes, et sans elles une appartenance est sans limite — le comportement

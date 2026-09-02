@@ -547,11 +547,21 @@ où une MACHINE écrit — une commande dont le remboursement doit retirer exact
 ce qu'elle a donné. Tant que seul un humain écrit, une ligne datée suffit, et une
 table de journal sans écrivain serait un demi-modèle de plus.
 
-**3. Convertir les attributions personnelles en groupes**, puis retirer le chemin
-`userId`. ⚠️ **Possible seulement une fois l'appartenance sourcée** (voir
-ci-dessous) : tant que le commerce n'a pas où écrire, la colonne reste. L'ordre
-est donc : appartenance datée **et sourcée** d'abord, conversion ensuite, retrait
-en dernier.
+**3. Convertir les attributions personnelles en groupes** — ✅ **FAIT le
+2026-09-03** (`app:s159:convert-assignments`). Les **trois** lignes de la boîte
+sont devenues trois groupes — `acces-complet-24-7-365`, `prof`, `openlab` — et
+**plus une seule attribution personnelle ne subsiste**.
+🔴 **La DATE a suivi la personne, pas le groupe** : *OpenLab* courait jusqu'au
+2029-09-01 pour Alvaro ; cette date est désormais sur son APPARTENANCE, donc
+quelqu'un ajouté au groupe demain n'en hérite pas. C'est exactement pour ça que
+l'appartenance datée était une dépendance dure.
+✅ Un groupe PAR FORFAIT, contenant qui le tient — réutiliser `staff` aurait donné
+le forfait à des gens qui ne l'avaient pas. Vérifié après coup : `?package=1` rend
+toujours Cédric, `2` Tolga, `21` Alvaro.
+
+🅿️ **Le retrait du chemin `userId` n'est PAS fait, et ne doit pas l'être** : c'est
+le chemin de ce qu'une machine écrit, et le commerce en a besoin. Voir l'effet de
+bord plus haut.
 ⚠️ Sur la boîte : **3 lignes** écrites à la main (forfaits 1, 2 et 21). La
 conversion doit être une commande avec un plan et une vérification avant/après,
 comme `app:s158:backfill-groups`.
