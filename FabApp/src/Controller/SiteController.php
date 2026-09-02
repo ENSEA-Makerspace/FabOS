@@ -1900,12 +1900,14 @@ final class SiteController extends AbstractController
         $search = trim((string) $request->query->get('q', ''));
         $member = $this->getUser() instanceof Utilisateur ? $this->getUser() : null;
 
-        // ⚠️ The bare /events is NOT "everything" — it is upcoming, which is what
-        // anyone arriving on an events page came for. So the page's default is
-        // itself a filter, and "all" has to be spelled out; `filter_all_value` on
-        // the shell is what stops the all-tile from lighting up on the bare URL
-        // while showing a subset.
-        $when = (string) $request->query->get('when', EventRepository::WHEN_UPCOMING);
+        // 🔴 **S159c — le défaut est « tout », et c'est un RENVERSEMENT assumé.**
+        // La note précédente disait l'inverse : « /events nu n'est PAS tout, c'est
+        // à venir, ce pour quoi on arrive sur une page d'événements ». L'opérateur
+        // a tranché autrement le 2026-09-02 — la page s'ouvre sur l'ensemble.
+        // ⚠️ **Le défaut n'est donc plus un filtre**, ce qui rend
+        // `filter_all_value` cohérent avec l'URL nue : la tuile « Tous » s'allume
+        // sur `/events`, et elle a raison de s'allumer.
+        $when = (string) $request->query->get('when', 'all');
         if (!in_array($when, [EventRepository::WHEN_UPCOMING, EventRepository::WHEN_PAST, 'all'], true)) {
             $when = EventRepository::WHEN_UPCOMING;
         }

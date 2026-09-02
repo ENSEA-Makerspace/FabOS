@@ -30,6 +30,11 @@
    ⚠️ And this note lives HERE, not beside the key, for the reason given twice
    over the card hash below: a comment between two keys of an argument hash is a
    parse error. That applies to THIS `{% embed %}` hash too.
+
+   🔴 **S159c — la page s'ouvre désormais sur TOUT, et du plus récent au plus
+   ancien** (décision de l'opérateur, 2026-09-02). Le `empty_text` suit : la
+   phrase « aucun événement à venir » ne vaut que pour un écran qui montrait les
+   à-venir, elle est donc réservée au cas où le filtre le demande vraiment.
 #}
 
 {% block stylesheets %}
@@ -62,7 +67,7 @@
     headline_count: countUpcoming,
     headline_label: 'events.headline_upcoming'|trans,
     available_word: 'events.headline_upcoming'|trans,
-    empty_text: (search or when != 'upcoming') ? 'events.empty'|trans : 'events.none_upcoming'|trans,
+    empty_text: (search or when == 'past') ? 'events.empty'|trans : 'events.none_upcoming'|trans,
     card_min: '29rem',
 } %}
     {% block cards %}

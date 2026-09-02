@@ -131,7 +131,15 @@ class EventRepository extends ServiceEntityRepository
                 ->setParameter('q', '%' . $search . '%');
         }
 
-        return $qb->orderBy('e.dateDebut', $when === self::WHEN_PAST ? 'DESC' : 'ASC')
+        // 🔴 **S159c — les plus RÉCENTS en premier, quel que soit le filtre**
+        // (décision de l'opérateur, 2026-09-02). L'ordre était `ASC` sauf pour
+        // « passés » ; il est désormais `DESC` partout, donc la liste s'ouvre sur
+        // ce qui vient d'être publié ou programmé.
+        // ⚠️ **Ce que ça change, et il faut le savoir** : sur « à venir », un
+        // événement dans six mois passe AVANT celui de demain. C'est le sens de
+        // « plus récent d'abord » et c'est ce qui a été demandé ; le regroupement
+        // par mois rend l'ordre lisible, mais il ne le corrige pas.
+        return $qb->orderBy('e.dateDebut', 'DESC')
             ->getQuery()
             ->getResult();
     }
