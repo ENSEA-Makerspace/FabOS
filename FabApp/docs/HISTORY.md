@@ -95,6 +95,13 @@ remplacement sur les vraies cartes, la bande du tableau de bord qui porte un fai
 Trois propositions supprimées du guide de style. Détail →
 `history/phase-S153-saisie.md`.
 
+**S158–S159 — les groupes deviennent le modèle (2026-09-01/03).** Parti d'un fait
+mesuré : `USER_GROUP_MEMBER` n'était écrit par RIEN. Arrivé aux groupes comme
+SEULE source des rôles (`UTILISATEUR_ROLE` supprimée) et des forfaits (plus une
+attribution personnelle), avec l'appartenance datée. « package » devient
+**forfait**. Quatre écrans obsolètes retirés. Détail →
+`history/phase-S158-S159-groupes.md`.
+
 **Phase J — boutonner (en cours).** S147 la revue : 146 pages rendues et mesurées
 + passe navigateur → 25 défauts J-1…J-25. Corrigés à ce jour : J-1, J-11, J-12,
 J-13, J-20, J-21, J-24, et J-22 pour 5 formulaires sur 6. Détail →

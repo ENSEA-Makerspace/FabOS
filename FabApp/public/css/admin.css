@@ -497,6 +497,20 @@
 .usage-assignment small { color: var(--color-text-light); line-height: 1.35; }
 .usage-assignments { border-top: 1px solid var(--border-color); }
 
+/* --- Les dates d'une appartenance (S159g) ------------------------------------
+   Deux champs dans la rangée d'ajout d'un membre. ⚠️ Ils ont leur propre classe
+   plutôt que d'emprunter `.afp-select` : celle-ci appartient à la rangée
+   « Affiner », où `input[type="date"]` est délibérément SANS bordure ni fond — et
+   à (0,2,1) elle bat la règle de ce formulaire. Empruntée, elle rendait deux
+   champs nus de 24 px à côté d'un menu de 43.
+   ✅ Ici, l'input n'est habillé par rien de local : `.usage-assignment-form input`
+   s'en charge, comme pour tous les autres contrôles de la rangée. */
+.usage-assignment-form .group-window { display: grid; gap: 4px; align-content: center; }
+.usage-assignment-form .group-window span {
+    font-size: var(--font-size-xs); color: var(--color-text-light);
+    text-transform: uppercase; letter-spacing: .04em;
+}
+
 /* --- Les groupes d'une personne, sur sa fiche (S158b) ------------------------
    Une ligne par groupe : son nom, par où l'appartenance passe, et le bouton
    seulement quand elle est retirable d'ici. ⚠️ `flex-wrap` parce que la source

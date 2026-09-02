@@ -96,14 +96,20 @@ final class UserAdminType extends AbstractType
                 'empty_data' => '',
                 'constraints' => [new Assert\NotBlank(message: 'La confirmation est obligatoire.')],
             ])
+            // 🔴 **S159 — ce champ écrit une APPARTENANCE, pas un rôle.** Il garde
+            // son nom `role` parce que le renommer casserait les gabarits et les
+            // jetons pour une valeur d'exactitude interne ; mais son LIBELLÉ dit
+            // « groupe », parce que c'est ce que l'opérateur choisit et ce que le
+            // contrôleur écrit. Un champ dont l'étiquette nomme autre chose que ce
+            // qu'il fait est la première marche vers un écran qui ment.
             ->add('role', ChoiceType::class, [
                 'label' => 'admin_user_form.role',
                 'mapped' => false,
                 'choices' => $options['role_choices'],
                 'placeholder' => 'admin_user_form.ph_role',
                 'constraints' => [
-                    new Assert\NotBlank(message: 'Le rôle est obligatoire.'),
-                    new Assert\Choice(choices: array_values($options['role_choices']), message: 'Rôle invalide.'),
+                    new Assert\NotBlank(message: 'Le groupe est obligatoire.'),
+                    new Assert\Choice(choices: array_values($options['role_choices']), message: 'Groupe invalide.'),
                 ],
             ])
             ->add('identifiantRfid', TextType::class, [

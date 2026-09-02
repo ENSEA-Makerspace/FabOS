@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 {% block title %}{{ group.label }} · FabOS{% endblock %}
-{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260901-s158' }}">{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260903-s159' }}">{% endblock %}
 {% block body %}
 {# UN GROUPE (S158a) : son identité, et qui est dedans.
 
@@ -82,9 +82,20 @@
                            🔴 Le groupe des administrateurs refuse une date de fin,
                            côté serveur : une appartenance `admin` qui expire
                            verrouillerait l'installation le jour dit. #}
-                        <label class="afp-select"><span class="afp-k">{{ 'groups.valid_from'|trans }}</span>
+                        {# 🔴 **Surtout PAS `.afp-select` ici.** Cette classe
+                           appartient à la rangée « Affiner », où
+                           `.afp-select input[type="date"]` retire exprès bordure
+                           et fond pour que le champ ait l'air d'une pastille — et
+                           à (0,2,1) elle bat `.usage-assignment-form input`. La
+                           première version l'avait empruntée : les deux champs
+                           rendaient **nus, 24 px de haut, à côté d'un menu de
+                           43** — mesuré au navigateur, invisible au lint.
+                           C'est le défaut que le guide de style décrit déjà
+                           (« n'enveloppez pas une rangée de pastilles dans la
+                           grille d'un autre écran »), pris par l'autre bout. #}
+                        <label class="group-window"><span>{{ 'groups.valid_from'|trans }}</span>
                             <input type="date" name="valid_from"></label>
-                        <label class="afp-select"><span class="afp-k">{{ 'groups.valid_until'|trans }}</span>
+                        <label class="group-window"><span>{{ 'groups.valid_until'|trans }}</span>
                             <input type="date" name="valid_until"></label>
                         <button class="btn-link btn-primary-admin" type="submit">{{ 'groups.add_member'|trans }}</button>
                     </form>
