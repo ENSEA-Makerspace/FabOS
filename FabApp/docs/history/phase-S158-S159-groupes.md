@@ -89,6 +89,100 @@ dans `UserGroupSchema`.
   sans `DROP PRIMARY KEY`. ⚠️ À la condition que la ligne soit **dérivée** du
   journal, sinon ce sont deux vérités de plus.
 
+## La revue de DESIGN qui a suivi (2026-09-03)
+
+L'opérateur a demandé une passe sur `/admin/usage-rights/{id}/edit` — « bien trop
+complexe », puis « décousu », puis « ça ne ressemble pas au reste du site ». Elle a
+trouvé plus qu'un problème d'apparence.
+
+🔴 **Le résumé en tête de page était une chaîne de traduction FIXE.** « Donne accès
+à tout, tout le temps, partout, sans limite », rendu à l'identique sur les QUATRE
+forfaits de la boîte — OpenLab compris, qui ouvre deux fonctionnalités le jeudi de
+13:30 à 21:00. Présenté comme la ligne de conséquence de l'éditeur, il enseignait le
+contraire de ce que l'écran contenait. C'est la famille « demi-modèle » vue par un
+autre bout : **un résumé qui ne lit pas ce qu'il résume est une décoration.**
+
+🔴 **Et la première correction a créé le défaut suivant** — encore le motif de la
+phase. Le résumé calculé, posé en grille au-dessus de l'éditeur, mettait les quatre
+mêmes libellés DEUX FOIS à 120 px d'écart, une fois comme réponse et une fois comme
+contrôle. La valeur a fini sur la LIGNE de son axe, à côté de ce qui la règle.
+
+🔴 **« Doit-on pouvoir supprimer un droit compilé ? » — non, sauf quand c'est le
+seul chemin.** Supprimer un droit que la carte sait écrire ne le retire pas : la
+sauvegarde suivante le réécrit. Les suppressions n'existent donc que pour un forfait
+que la carte REFUSE, où elles sont ce qui la rouvre. **L'issue de secours
+n'apparaît que quand on est coincé** — et les deux branches ont été mesurées, un
+grant `manage` inséré sur OpenLab puis retiré.
+
+⚠️ **Un forfait DÉFINIT des droits ; un groupe dit QUI les a.** L'attribution a
+déménagé sur la fiche du groupe, sous ses membres. ⚠️ Vérifié AVANT de retirer :
+la fiche du groupe savait seulement COMPTER ses forfaits — retirer l'éditeur sans
+construire l'autre côté aurait recréé le demi-modèle que cette phase a réparé.
+
+⚠️ **`color-scheme` n'avait que sa moitié sombre**, depuis toujours. En thème clair
+sur un OS réglé en sombre, le navigateur peignait ses propres contrôles — champs,
+dates, heures, listes — par-dessus nos fonds blancs, sur TOUT le site. La feuille
+disait vrai ; c'est le navigateur qui peignait par-dessus. Une ligne dans
+`style.css`.
+
+🔴 **Et deux leçons d'outillage payées comptant :**
+- **`app:render` + grep ne dit rien des pixels.** J'ai passé la moitié de la passe à
+  greper du HTML pendant que la plainte portait sur l'apparence. Ce qui a débloqué :
+  rapatrier le rendu, réécrire les URLs d'assets, servir en local, REGARDER.
+- **`git diff --name-only` ne voit pas un fichier NEUF.** Le partiel extrait n'est
+  jamais parti dans le tar et la page a rendu une `LoaderError` en prod. `lint:twig`
+  ne l'a pas vu : il vérifie la syntaxe, il ne résout pas les `include`. La liste se
+  fait depuis `git add -A && git diff --cached --name-only --diff-filter=d`.
+
+---
+
+## La revue de DESIGN qui a suivi (2026-09-03)
+
+L'opérateur a demandé une passe sur `/admin/usage-rights/{id}/edit` — « bien trop
+complexe », puis « décousu », puis « ça ne ressemble pas au reste du site ». Elle a
+trouvé plus qu'un problème d'apparence.
+
+🔴 **Le résumé en tête de page était une chaîne de traduction FIXE.** « Donne accès
+à tout, tout le temps, partout, sans limite », rendu à l'identique sur les QUATRE
+forfaits de la boîte — OpenLab compris, qui ouvre deux fonctionnalités le jeudi de
+13:30 à 21:00. Présenté comme la ligne de conséquence de l'éditeur, il enseignait le
+contraire de ce que l'écran contenait. C'est la famille « demi-modèle » vue par un
+autre bout : **un résumé qui ne lit pas ce qu'il résume est une décoration.**
+
+🔴 **Et la première correction a créé le défaut suivant** — encore le motif de la
+phase. Le résumé calculé, posé en grille au-dessus de l'éditeur, mettait les quatre
+mêmes libellés DEUX FOIS à 120 px d'écart, une fois comme réponse et une fois comme
+contrôle. La valeur a fini sur la LIGNE de son axe, à côté de ce qui la règle.
+
+🔴 **« Doit-on pouvoir supprimer un droit compilé ? » — non, sauf quand c'est le
+seul chemin.** Supprimer un droit que la carte sait écrire ne le retire pas : la
+sauvegarde suivante le réécrit. Les suppressions n'existent donc que pour un forfait
+que la carte REFUSE, où elles sont ce qui la rouvre. **L'issue de secours
+n'apparaît que quand on est coincé** — et les deux branches ont été mesurées, un
+grant `manage` inséré sur OpenLab puis retiré.
+
+⚠️ **Un forfait DÉFINIT des droits ; un groupe dit QUI les a.** L'attribution a
+déménagé sur la fiche du groupe, sous ses membres. ⚠️ Vérifié AVANT de retirer :
+la fiche du groupe savait seulement COMPTER ses forfaits — retirer l'éditeur sans
+construire l'autre côté aurait recréé le demi-modèle que cette phase a réparé.
+
+⚠️ **`color-scheme` n'avait que sa moitié sombre**, depuis toujours. En thème clair
+sur un OS réglé en sombre, le navigateur peignait ses propres contrôles — champs,
+dates, heures, listes — par-dessus nos fonds blancs, sur TOUT le site. La feuille
+disait vrai ; c'est le navigateur qui peignait par-dessus. Une ligne dans
+`style.css`.
+
+🔴 **Et deux leçons d'outillage payées comptant :**
+- **`app:render` + grep ne dit rien des pixels.** La moitié de la passe est partie à
+  greper du HTML pendant que la plainte portait sur l'apparence. Ce qui a débloqué :
+  rapatrier le rendu, réécrire les URLs d'assets, servir en local, REGARDER.
+- **`git diff --name-only` ne voit pas un fichier NEUF.** Le partiel extrait n'est
+  jamais parti dans le tar et la page a rendu une `LoaderError` en prod. `lint:twig`
+  ne l'a pas vu : il vérifie la syntaxe, il ne résout pas les `include`. La liste se
+  fait depuis `git add -A && git diff --cached --name-only --diff-filter=d`.
+
+---
+
 ## 🅿️ Ce qui reste
 
 - **Le journal des appartenances** — il n'a de sens que le jour où une MACHINE

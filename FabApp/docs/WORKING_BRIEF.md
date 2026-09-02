@@ -1,4 +1,4 @@
-# Où on en est — 2026-09-01
+# Où on en est — 2026-09-03
 
 **Lire ceci en premier.** Une page. Le reste se lit à la demande :
 
@@ -8,7 +8,7 @@
 | Comment le produit marche, et les pièges | [`PROJECT_STATE.md`](/roadmap) |
 | Le détail des défauts de la Phase J | `S147-REVUE.md` |
 | ✅ La revue de sortie, **conclue** | `S149-REVUE.md` |
-| 🅿️ La revue de fin de phase S158/S159 | `S159-REVUE.md` |
+| ✅ La revue de fin de phase S158/S159, **soldée** | `S159-REVUE.md` |
 | Ce qui est livré, phase par phase | [`HISTORY.md`](/roadmap/historique) |
 | Modèle cible des droits | [`USAGE_RIGHTS_VISION.md`](/roadmap/droits-usage) |
 | Déployer | `ARTEMIS_DEPLOYMENT.md` |
@@ -31,6 +31,27 @@ par la v1. Sur la boîte, « Accès complet » porte déjà ce bit : ses porteur
 gagnent la réservation hors grille hebdomadaire (jamais hors d'une fermeture
 datée). C'est le cas n°1 de la liste de l'opérateur, mais c'est un
 **élargissement d'accès** — à confirmer package par package.
+
+✅ **Phases S158 & S159 LIVRÉES, revue de fin de phase SOLDÉE le 2026-09-03.**
+Les groupes sont la seule source des rôles et des forfaits ; les six points de la
+revue (R1 à R6) sont appliqués. Détail → `history/phase-S158-S159-groupes.md` et
+`S159-REVUE.md`.
+
+🅿️ **Et une revue de DESIGN a suivi, sur `/admin/usage-rights/{id}/edit`**
+(demande opérateur, 2026-09-03), qui a trouvé plus qu'un problème d'apparence :
+- 🔴 **le résumé en tête de page était une chaîne FIXE** — « donne accès à tout,
+  tout le temps, partout, sans limite » sur les quatre forfaits, OpenLab compris,
+  qui ouvre en réalité deux fonctionnalités le jeudi de 13:30 à 21:00. Il est
+  maintenant calculé depuis le spec décompilé, et posé sur la ligne de chaque axe ;
+- 🔴 **l'attribution a déménagé sur la fiche du GROUPE** — un forfait DÉFINIT des
+  droits, un groupe dit QUI les a. ⚠️ Vérifié avant de retirer : la fiche du groupe
+  savait seulement les COMPTER, donc l'autre côté a été construit d'abord ;
+- 🔴 **les suppressions de droits n'apparaissent que si la carte de saisie REFUSE
+  le forfait.** Sinon elles ne défont rien : la sauvegarde suivante réécrit. Les
+  deux branches sont mesurées, grant `manage` inséré puis retiré ;
+- ⚠️ **`color-scheme` n'avait que sa moitié sombre**, donc en thème clair sur un OS
+  sombre le navigateur peignait TOUS les champs du site en sombre. Corrigé dans
+  `style.css`, une ligne, tout le site.
 
 🅿️ **Phase S158 ouverte le 2026-09-01 — les étapes 1 à 3 sont LIVRÉES.** `/admin/groupes`
 existe : on peut enfin créer un groupe et y mettre quelqu'un, ce que rien ne
