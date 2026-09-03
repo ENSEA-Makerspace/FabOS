@@ -396,6 +396,16 @@ Recette complète : `ARTEMIS_DEPLOYMENT.md`. L'essentiel :
 - **Lire la sortie du lint AVANT de redémarrer.** ⚠️ Un **nouveau filtre Twig exige
   `cache:clear` AVANT `lint:twig`**. ⚠️ `php -l` vert ne dit rien du conteneur (un
   `use` manquant sur un paramètre de contrôleur = 500).
+- 🔴 **`python3 tools/ctor_arity.py` — le seul contrôle qui voie un `new Foo()`
+  trop court.** `php -l` vérifie la syntaxe, pas les appels : un constructeur qui
+  gagne un paramètre laisse derrière lui des constructions manuelles qui ne
+  planteront qu'à l'exécution. Mesuré le 2026-09-03 :
+  `S158BackfillGroupsCommand` construisait `new AudienceResolver($conn)` avec UN
+  argument depuis que S159g en exigeait deux — sur le chemin `--write`, donc
+  **hors de portée de la sonde comme du balayage de routes**. C'est la commande
+  qui VÉRIFIE le backfill : un témoin cassé, pire qu'un témoin absent.
+  ⚠️ Il ignore volontairement les arguments nommés et les variadiques : un linter
+  qui crie à tort n'est plus lu.
 - En prod, gabarits et catalogues sont compilés : **`cache:clear` à chaque
   déploiement**. JS : `importmap:install` puis `asset-map:compile` (les dossiers
   `assets/vendor/` et `public/assets/` sont gitignorés).
