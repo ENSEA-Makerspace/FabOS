@@ -43,7 +43,7 @@
 {% block title %}{{ 'admin_emails.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=20260903-rev' }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">
     {{ importmap('app') }}
 {% endblock %}
 

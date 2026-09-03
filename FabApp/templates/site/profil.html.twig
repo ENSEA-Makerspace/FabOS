@@ -20,8 +20,8 @@
 {% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=20260903-rev' }}">
-    <link rel="stylesheet" href="{{ asset('css/badges.css') ~ '?v=20260903-rev' }}">
+    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/badges.css') ~ '?v=' ~ css_version }}">
 {% endblock %}
 
 {% block body %}
@@ -746,5 +746,5 @@
 {% endblock %}
 
 {% block javascripts %}
-    <script src="{{ asset('js/main.js') ~ '?v=20260811-s134c-i18n' }}"></script>
+    <script src="{{ asset('js/main.js') ~ '?v=' ~ js_version }}"></script>
 {% endblock %}

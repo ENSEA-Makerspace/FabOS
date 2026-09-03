@@ -3,7 +3,7 @@
 {% block title %}{{ quizData.title }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/quiz.css') ~ '?v=20260903-rev' }}">
+    <link rel="stylesheet" href="{{ asset('css/quiz.css') ~ '?v=' ~ css_version }}">
 {% endblock %}
 
 {% block body %}
@@ -192,6 +192,6 @@
         js_your_answer: 'quiz.js_your_answer'|trans,
         js_expected_answer: 'quiz.js_expected_answer'|trans,
     }|json_encode|raw }}</script>
-    <script src="{{ asset('js/main.js') ~ '?v=20260811-s134c-i18n' }}"></script>
-    {% if quizData.questionCount > 0 %}<script src="{{ asset('js/quiz.js') ~ '?v=20260811-s134c-i18n' }}"></script>{% endif %}
+    <script src="{{ asset('js/main.js') ~ '?v=' ~ js_version }}"></script>
+    {% if quizData.questionCount > 0 %}<script src="{{ asset('js/quiz.js') ~ '?v=' ~ js_version }}"></script>{% endif %}
 {% endblock %}

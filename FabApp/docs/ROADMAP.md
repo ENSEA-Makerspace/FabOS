@@ -1124,7 +1124,7 @@ chemin de la sécurité.
 ⚠️ Tant que rien n'est tranché, ne pas « améliorer » un seul des deux lecteurs :
 les faire diverger davantage est pire que l'écart actuel.
 
-## 🟡 Le cache-buster d'`admin.css` se pose dans 72 gabarits
+## ✅ Le cache-buster est centralisé — FAIT le 2026-09-03
 
 **Mesuré le 2026-09-03.** Chaque écran admin écrit son propre
 `asset('css/admin.css') ~ '?v=…'`. Toucher `admin.css` oblige donc à un `sed` sur
@@ -1140,12 +1140,18 @@ fichier — vérifié sur les quatre (`machine-historique`, `formation-suivi`,
 fonctionne. `style.css` n'est lié que dans 3 gabarits, dont `base.html.twig` :
 là non plus, rien à changer.
 
-🅿️ **La proposition, pour `admin.css` seulement** : une variable Twig globale
-(`admin_css_version`) posée dans `config/packages/twig.yaml`, et les 72 gabarits
-la lisent. Un seul endroit à bumper.
-⚠️ **À trancher, parce que ça touche 72 fichiers d'un coup** et qu'une globale
-absente d'un contexte de rendu casse la page qui la lit — les pages d'erreur en
-premier. À faire en une passe dédiée, pas au détour d'autre chose.
+✅ **Fait, et étendu au JS dans la foulée** : deux globales Twig dans
+`config/packages/twig.yaml`, `css_version` (158 références, 15 feuilles) et
+`js_version` (21 références). Séparées, pour qu'un changement de feuille
+n'invalide pas le JS et réciproquement.
+⚠️ **Le comportement ne change PAS** : les 179 références partageaient déjà la
+même valeur, posée au `sed`. La centralisation rend explicite ce qui était déjà
+vrai, et supprime les diffs de 120 fichiers qui cachaient les vrais changements.
+✅ **Le risque signalé a été MESURÉ** : sans `strict_variables` en prod, une
+globale absente rendrait un `?v=` vide en silence. Vérifié sur quatre pages plus
+la **page d'erreur 404** — toutes portent une vraie version, zéro `?v=` vide.
+🅿️ Les six busters restants sont volontairement littéraux : quatre feuilles
+propres à une page, `badges.js` et le logo.
 
 ## Travaux transversaux conservés
 

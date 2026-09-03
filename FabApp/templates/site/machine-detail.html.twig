@@ -6,9 +6,9 @@
 
 {% block stylesheets %}
     {# S146b — this page draws the calendar now. #}
-    <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=20260903-rev' }}">
-    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260903-rev' }}">
-    <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=20260903-rev' }}">
+    <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=' ~ css_version }}">
 {% endblock %}
 
 {% block page_styles %}
@@ -422,7 +422,7 @@
 {% endblock %}
 
 {% block javascripts %}
-    <script src="{{ asset('js/main.js') ~ '?v=20260811-s134c-i18n' }}"></script>
+    <script src="{{ asset('js/main.js') ~ '?v=' ~ js_version }}"></script>
     <script>
         // Gestion des onglets (sauf Calendrier et Historique qui redirigent)
         document.addEventListener('DOMContentLoaded', function() {

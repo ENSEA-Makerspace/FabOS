@@ -1,6 +1,33 @@
 twig:
     file_name_pattern: '*.twig'
 
+    # 🔴 **UN SEUL endroit pour le cache-buster des feuilles PARTAGÉES.**
+    # Avant : chaque gabarit écrivait `?v=20260903-…` en dur, donc toucher
+    # `admin.css` demandait un `sed` sur 72 fichiers, et 158 références au total
+    # partageaient déjà la même valeur — la centralisation ne change donc RIEN au
+    # comportement, elle rend explicite ce qui était déjà vrai.
+    # ⚠️ Le coût réel était la LISIBILITÉ : la revue de code du 2026-09-03 a dû
+    # écarter « ~120 changements de gabarit qui ne sont que des bumps » pour
+    # trouver les huit vrais points. C'est ainsi qu'un vrai changement se cache.
+    #
+    # ⚠️ **Une seule valeur pour les quinze feuilles partagées, et c'est assumé** :
+    # bumper l'une invalide le cache des autres. C'est exactement ce que le `sed`
+    # faisait déjà, et le surcoût est un chargement de feuille — bien moins cher
+    # qu'une feuille périmée qu'on ne remarque pas.
+    #
+    # ⚠️ **NE PAS y rattacher les feuilles propres à une PAGE**
+    # (`machine-historique`, `formation-suivi`, `home-deck`, `event-detail`) :
+    # elles portent un buster daté qui correspond exactement au dernier
+    # changement de leur fichier. Vérifié le 2026-09-03 — c'est la discipline qui
+    # marche, pas de la dérive.
+    globals:
+        css_version: '20260903-rev'
+        # ⚠️ Même raison, un cran plus petit : `main.js`, `section-journey.js` et
+        # `quiz.js` partageaient déjà cette valeur dans 19 gabarits. Séparée du
+        # CSS pour qu'un changement de feuille n'invalide pas le JS et
+        # réciproquement — les deux ne changent presque jamais ensemble.
+        js_version: '20260811-s134c-i18n'
+
 when@test:
     twig:
         strict_variables: true

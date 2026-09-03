@@ -3,9 +3,9 @@
 {% block title %}{{ 'fsui.title'|trans }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260903-rev' }}">
-    <link rel="stylesheet" href="{{ asset('css/badges.css') ~ '?v=20260903-rev' }}">
-    <link rel="stylesheet" href="{{ asset('css/section-journey.css') ~ '?v=20260903-rev' }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/badges.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/section-journey.css') ~ '?v=' ~ css_version }}">
 {% endblock %}
 
 {% block page_styles %}
@@ -360,7 +360,7 @@
 {% endblock %}
 
 {% block javascripts %}
-    <script src="{{ asset('js/main.js') ~ '?v=20260811-s134c-i18n' }}"></script>
+    <script src="{{ asset('js/main.js') ~ '?v=' ~ js_version }}"></script>
     <script src="{{ asset('js/badges.js') ~ '?v=20260707-1' }}" defer></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {

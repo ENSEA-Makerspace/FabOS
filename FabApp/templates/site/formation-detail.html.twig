@@ -5,10 +5,10 @@
 {% block title %}{{ formation.titre }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=20260903-rev' }}">
-    <link rel="stylesheet" href="{{ asset('css/formations-modern.css') ~ '?v=20260903-rev' }}">
-    <link rel="stylesheet" href="{{ asset('css/section-journey.css') ~ '?v=20260903-rev' }}">
-    <link rel="stylesheet" href="{{ asset('css/formation-admin-inline.css') ~ '?v=20260903-rev' }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/formations-modern.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/section-journey.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/formation-admin-inline.css') ~ '?v=' ~ css_version }}">
 {% endblock %}
 
 {% block body %}
@@ -342,7 +342,7 @@
 {% endblock %}
 
 {% block javascripts %}
-    <script src="{{ asset('js/main.js') ~ '?v=20260811-s134c-i18n' }}"></script>
+    <script src="{{ asset('js/main.js') ~ '?v=' ~ js_version }}"></script>
     {# Every sentence section-journey.js writes, translated server-side. See the note
        at the top of that file: it has no catalogue of its own. #}
     <script id="journey-i18n" type="application/json">{{ {
@@ -353,5 +353,5 @@
         js_section_validated: 'journey.js_section_validated'|trans,
         js_score_retry: 'journey.js_score_retry'|trans,
     }|json_encode|raw }}</script>
-    <script src="{{ asset('js/section-journey.js') ~ '?v=20260811-s134c-i18n' }}" defer></script>
+    <script src="{{ asset('js/section-journey.js') ~ '?v=' ~ js_version }}" defer></script>
 {% endblock %}

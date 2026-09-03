@@ -23,8 +23,8 @@
 {% block title %}{{ 'resv.title'|trans }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=20260903-rev' }}">
-    <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=20260903-rev' }}">
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=' ~ css_version }}">
 {% endblock %}
 
 {% block body %}
@@ -142,7 +142,7 @@
 {% endblock %}
 
 {% block javascripts %}
-<script src="{{ asset('js/main.js') ~ '?v=20260811-s134c-i18n' }}"></script>
+<script src="{{ asset('js/main.js') ~ '?v=' ~ js_version }}"></script>
     {# ⚠️ The ~50-line cancel-confirmation `<script>` that lived here is gone with
        the verb row: cancel is on `/reservations/{id}` now, where the page itself
        is the summary the modal used to re-state, and the confirmation is

@@ -51,11 +51,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}FabOS{% endblock %}</title>
     {%- block head %}{% endblock %}
-    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=20260903-rev' }}">
+    <link rel="stylesheet" href="{{ asset('css/style.css') ~ '?v=' ~ css_version }}">
     {# The S51 component set. Loaded for every public page rather than per page,
        because a component that has to be opted into is a component the next page
        reinvents. It is token-only and adds no literal colours. #}
-    <link rel="stylesheet" href="{{ asset('css/components.css') ~ '?v=20260903-rev' }}">
+    <link rel="stylesheet" href="{{ asset('css/components.css') ~ '?v=' ~ css_version }}">
     {%- block stylesheets %}{% endblock %}
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
     {%- block page_styles %}{% endblock %}
@@ -90,6 +90,6 @@
         the burger is wired up by `initMobileNavToggle()` in main.js, and **21
         of the 38 pages on this shell never loaded it**. Their menu button did
         nothing at all. A page that wants extra scripts uses `{{ parent() }}`. -#}
-    {%- block javascripts %}<script src="{{ asset('js/main.js') ~ '?v=20260811-s134c-i18n' }}"></script>{% endblock %}
+    {%- block javascripts %}<script src="{{ asset('js/main.js') ~ '?v=' ~ js_version }}"></script>{% endblock %}
 </body>
 </html>
