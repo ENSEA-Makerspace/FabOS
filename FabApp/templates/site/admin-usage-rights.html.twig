@@ -20,7 +20,7 @@
             columns: [
                 {label: 'adm.col_name'|trans, class: 'is-grow'},
                 {label: 'usage_rights.features'|trans},
-                {label: 'usage_rights.assignments'|trans, numeric: true},
+                {label: 'usage_rights.col_people'|trans, numeric: true},
                 {label: 'adm.col_status'|trans},
                 {label: 'adm.col_actions'|trans, class: 'is-actions'},
             ], rows: packages, empty: 'usage_rights.empty'|trans,
@@ -37,7 +37,9 @@
                             subtitle: package.description,
                         } only %}</td>
                         <td class="is-numeric">{{ package.fullAccess ? 'usage_rights.full_access'|trans : package.features|length }}</td>
-                        <td class="is-numeric">{{ package.assignments }}</td>
+                        {# 🔴 **Des PERSONNES, pas des lignes** (S144e) : un forfait
+                           attribué à un groupe de douze affichait « 1 ». #}
+                        <td class="is-numeric">{{ reach[package.id]|default(0) }}</td>
                         <td>{% include 'site/_cell_state.html.twig' with {
                             label: package.active ? 'usage_rights.active'|trans : 'usage_rights.inactive'|trans,
                             signal: package.active ? 'go' : 'muted',

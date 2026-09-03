@@ -910,13 +910,26 @@ explicite. **Aucun message privé ne bascule implicitement vers la cohorte.**
   modèle de packages : sécurité, pas commerce. Vendre « la formation laser » est
   une commande Phase H qui **inscrit à une session**, elle ne fabrique pas un badge.
 
-## S144e — « ce package touche N personnes »
+## ✅ S144e — « ce package touche N personnes » — FAIT le 2026-09-03
 
-`readiness()` et la liste comptent les attributions **directes** ; un package tenu
-seulement par un groupe annonce 0. Il faut un
-`AudienceResolver::memberIdsFor($groupKey)` **inverse exact** de `keysFor()` :
-rôles + lignes `USER_GROUP_MEMBER` + l'audience virtuelle `user`.
-⚠️ **Ne pas réécrire cette logique à côté.**
+🔴 **Et le défaut était devenu total, pas partiel.** L'aperçu d'activation de
+`/admin/settings` faisait `COUNT(DISTINCT a.userId)` ; or S159 a fait de
+l'attribution à un GROUPE la seule surface humaine et sa conversion a déplacé les
+trois dernières lignes personnelles, donc **toutes** les attributions vivantes ont
+`userId = NULL`. Mesuré à l'écran : « 4 forfaits actifs couvrent **0** membres »,
+et 0 pour les quatre capacités, pendant que les quatre chokepoints décidaient
+réellement. ⚠️ L'écran portait l'avertissement « les attributions de GROUPE ne
+sont pas comptées » — il ne mentait donc pas, il était **mort** : un aperçu qui
+annonce toujours zéro n'invite pas à la prudence, il invite à conclure de travers.
+
+✅ `AudienceResolver::memberIdsFor()` est écrit, et la liste comme l'aperçu
+comptent des PERSONNES. Mesuré après : « 4 forfaits atteignent 3 personnes »,
+2/2/3/3 selon la capacité, et la colonne de la liste s'appelle « Personnes ».
+🔴 **L'inverse est PROUVÉ, pas affirmé** — sonde section 8, les deux sens sur tous
+les comptes et toutes les clés : `k ∈ keysFor(p)` ⟺ `p ∈ memberIdsFor(k)`. Les
+deux sens, parce que ne tester qu'un seul laisserait passer un membre OUBLIÉ, qui
+est le défaut coûteux.
+⚠️ Requêtes bornées : une clé de groupe n'est résolue qu'une fois par page.
 
 ## Thèmes — le chantier entier (session dédiée, non planifiée)
 

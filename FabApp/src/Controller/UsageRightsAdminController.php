@@ -40,8 +40,19 @@ final class UsageRightsAdminController extends AbstractController
         $rows = $packages->findAll();
         $active = count(array_filter($rows, static fn (array $package): bool => $package['active']));
 
+        // 🔴 **La colonne comptait des LIGNES d'attribution, pas des gens** (S144e).
+        // Un forfait donné à un groupe de douze affichait « 1 » — et depuis S159,
+        // c'est le cas de tous. `reachCounts()` résout chaque clé de groupe une
+        // seule fois pour toute la page ; c'est pour ça qu'elle prend la liste
+        // entière plutôt que d'être appelée par ligne.
+        $reach = $packages->reachCounts(
+            array_map(static fn (array $package): int => (int) $package['id'], $rows),
+            new \DateTimeImmutable('now', new \DateTimeZone($this->settings->getTimezone())),
+        );
+
         return $this->render('site/admin-usage-rights.html.twig', [
             'packages' => $rows,
+            'reach' => $reach,
             'tiles' => [
                 ['label' => 'usage_rights.all_packages', 'label_is_key' => true, 'count' => count($rows), 'category' => 'all'],
                 ['label' => 'usage_rights.active_packages', 'label_is_key' => true, 'count' => $active, 'category' => 'active'],

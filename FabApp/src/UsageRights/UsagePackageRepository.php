@@ -470,9 +470,10 @@ final class UsagePackageRepository
             );
 
             $all = [];
+            $memo = [];
             $coverage = array_fill_keys($capabilities, []);
             foreach ($rows as $row) {
-                $reached = $this->peopleReached((int) $row['id'], $now);
+                $reached = $this->peopleReached((int) $row['id'], $now, $memo);
                 foreach ($reached as $id) {
                     $all[$id] = true;
                 }
@@ -501,15 +502,46 @@ final class UsagePackageRepository
     }
 
     /**
+     * Combien de PERSONNES chaque forfait atteint — pour la liste (S144e).
+     *
+     * 🔴 **La colonne comptait des LIGNES, pas des gens.** Un forfait attribué à
+     * un groupe de douze personnes affichait « 1 ». Depuis S159 c'est le cas de
+     * tous les forfaits, donc la colonne annonçait le nombre d'attributions en se
+     * faisant passer pour une portée — la roadmap l'appelait déjà « ce package
+     * touche N personnes ».
+     *
+     * ⚠️ **Les requêtes sont BORNÉES, et c'est pourquoi cette méthode existe au
+     * lieu d'une boucle dans le contrôleur** : une clé de groupe n'est résolue
+     * qu'UNE fois pour toute la page, même si dix forfaits la visent. Coût : une
+     * requête d'attributions par forfait, plus une par clé DISTINCTE. Sans ce
+     * cache, une liste de trente forfaits sur cinq groupes ferait soixante
+     * requêtes là où trente-cinq suffisent.
+     *
+     * @param list<int> $packageIds
+     * @return array<int, int>
+     */
+    public function reachCounts(array $packageIds, \DateTimeImmutable $at): array
+    {
+        $memo = [];
+        $out = [];
+        foreach ($packageIds as $packageId) {
+            $out[(int) $packageId] = count($this->peopleReached((int) $packageId, $at, $memo));
+        }
+
+        return $out;
+    }
+
+    /**
      * Les identifiants des personnes qu'un forfait atteint, par les DEUX chemins.
      *
      * ⚠️ `reachOf()` porte déjà la fenêtre de validité des attributions ; c'est
      * `memberIdsFor()` qui porte celle des appartenances. Les deux s'appliquent,
      * et l'accès s'arrête à la première échéance atteinte.
      *
+     * @param array<string, list<int>> $memo cache de clés déjà résolues, par référence
      * @return list<int>
      */
-    private function peopleReached(int $packageId, \DateTimeImmutable $at): array
+    private function peopleReached(int $packageId, \DateTimeImmutable $at, array &$memo = []): array
     {
         $reach = $this->reachOf($packageId, $at);
         $ids = [];
@@ -517,7 +549,9 @@ final class UsagePackageRepository
             $ids[(int) $id] = true;
         }
         foreach ($reach['groupKeys'] as $key) {
-            foreach ($this->audiences->memberIdsFor((string) $key, $at) as $id) {
+            $key = (string) $key;
+            $memo[$key] ??= $this->audiences->memberIdsFor($key, $at);
+            foreach ($memo[$key] as $id) {
                 $ids[$id] = true;
             }
         }
