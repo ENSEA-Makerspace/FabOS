@@ -5,7 +5,9 @@ namespace App\Command;
 use App\Entity\Utilisateur;
 use App\Repository\UtilisateurRepository;
 use App\UsageRights\AudienceResolver;
+use App\Reservation\LabClock;
 use App\UsageRights\UserGroupRepository;
+use App\UsageRights\UserGroupSchema;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -55,6 +57,7 @@ final class S158BackfillGroupsCommand extends Command
         private readonly UtilisateurRepository $users,
         private readonly UserGroupRepository $groups,
         private readonly AudienceResolver $audiences,
+        private readonly LabClock $clock,
     ) {
         parent::__construct();
     }
@@ -133,7 +136,10 @@ final class S158BackfillGroupsCommand extends Command
             // ⚠️ **Un résolveur NEUF.** Celui injecté a déjà répondu pour ces
             // comptes et rendrait sa réponse mémoïsée, c'est-à-dire la photo
             // d'avant l'écriture — la vérification se prouverait elle-même.
-            $after = $this->snapshot($people, new AudienceResolver($connection));
+            // 🔴 Deux arguments depuis S159g, plus l'horloge du labo : cette
+            // ligne n'en passait qu'UN et la commande aurait planté au lieu de
+            // vérifier — trouvé le 2026-09-03, après que le backfill a tourné.
+            $after = $this->snapshot($people, new AudienceResolver($connection, new UserGroupSchema($connection), $this->clock));
 
             $drift = [];
             foreach ($before as $userId => $keys) {

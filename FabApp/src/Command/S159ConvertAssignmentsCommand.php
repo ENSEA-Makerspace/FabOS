@@ -198,7 +198,7 @@ final class S159ConvertAssignmentsCommand extends Command
      */
     private function reachSnapshot(\DateTimeImmutable $at): array
     {
-        $resolver = new AudienceResolver($this->em->getConnection(), new UserGroupSchema($this->em->getConnection()));
+        $resolver = new AudienceResolver($this->em->getConnection(), new UserGroupSchema($this->em->getConnection()), $this->clock);
         $people = array_values(array_filter(
             $this->users->findBy([], ['id' => 'ASC']),
             static fn ($u): bool => $u instanceof Utilisateur && $u->getId() !== null,

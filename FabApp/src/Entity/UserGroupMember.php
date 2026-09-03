@@ -81,6 +81,11 @@ class UserGroupMember
      * Deux conventions pour une même donnée feraient diverger l'écran et le
      * rôle sur la dernière seconde, ce qui est exactement le genre d'écart que
      * personne ne reproduit.
+     *
+     * 🔴 **L'instant qu'on passe ici décide de la justesse.** Les bornes stockées
+     * sont l'heure MURALE du labo ; un `now` réel les décale de l'offset, dans le
+     * sens PERMISSIF — voir la note de `Utilisateur::getRoles()`, qui est le seul
+     * appelant à ne pas pouvoir fournir mieux.
      */
     public function isActiveAt(\DateTimeImmutable $at): bool
     {

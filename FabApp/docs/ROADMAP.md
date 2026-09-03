@@ -1092,6 +1092,38 @@ machines doivent rejoindre ce chemin-là**. À trancher avant d'écrire une lign
 « RFID physique et 2FA restent hors scope » (§ Travaux transversaux). Le boîtier
 machine existe déjà côté logiciel ; c'est la **gâche** qui est neuve.
 
+## 🟡 Une entité ne sait pas quelle heure il est au labo
+
+**Trouvé le 2026-09-03, borné, écrit — pas corrigé.**
+
+Les bornes d'appartenance (`USER_GROUP_MEMBER.validFrom/validUntil`) et celles des
+attributions sont de « convention B » au sens de `LabClock` : l'heure **murale**
+du labo, stockée telle quelle. `AudienceResolver` a reçu l'horloge et compare
+juste. `Utilisateur::getRoles()`, lui, est appelée par la sécurité sans argument
+et **ne peut pas atteindre `LabClock`** — une entité est hydratée par Doctrine,
+pas construite par le conteneur.
+
+🔴 **Conséquence mesurée : le rôle SURVIT jusqu'à l'offset du labo de trop** —
+deux heures à Paris en été, et jamais dans l'autre sens. Une appartenance `staff`
+qui finit le 30 juin à minuit accorde encore son rôle à 01:59. L'écran, lui, dit
+« expirée ». Deux heures de divergence, permissives.
+
+⚠️ **Ce n'est pas une régression** : c'est le balayage que `LabClock` déclare
+« consigné, pas fait » depuis S38b, dont `Event`, `OpeningHours` et la validité
+des passes font aussi partie. L'appartenance datée l'a simplement amené sur le
+chemin de la sécurité.
+
+🅿️ **Deux voies, et c'est une décision d'architecture :**
+- **donner l'heure du labo à l'entité** — horloge posée au démarrage et lue
+  statiquement. Marche pour tous les cas d'un coup, mais introduit un état global
+  que ce dépôt n'a nulle part ;
+- **stocker en UTC** ces colonnes-là et convertir à l'affichage. Exact et sans
+  état global, mais c'est une migration de données **et** un changement de
+  convention à propager aux attributions, sous peine d'une TROISIÈME convention.
+
+⚠️ Tant que rien n'est tranché, ne pas « améliorer » un seul des deux lecteurs :
+les faire diverger davantage est pire que l'écart actuel.
+
 ## Travaux transversaux conservés
 
 Sécurité restante de Phase H (**test réel du booking**, requêtes groupées) ·

@@ -358,7 +358,7 @@ final class S153PackageProbeCommand extends Command
         // personne et rendrait sa réponse mémoïsée, d'avant l'écriture.
         // ⚠️ Le schéma se sonde sur la même connexion : dans la transaction de la
         // sonde, il doit voir la base telle qu'elle est ici.
-        $fresh = new AudienceResolver($this->em->getConnection(), new UserGroupSchema($this->em->getConnection()));
+        $fresh = new AudienceResolver($this->em->getConnection(), new UserGroupSchema($this->em->getConnection()), $this->clock);
         $failures += $this->check(
             $io,
             'et `AudienceResolver` la voit — donc un forfait la suivrait',
@@ -574,7 +574,7 @@ final class S153PackageProbeCommand extends Command
 
         // ⚠️ Résolveur NEUF et non mémoïsé par une écriture précédente de la
         // sonde : même piège que le backfill de S158c.
-        $resolver = new AudienceResolver($this->em->getConnection(), new UserGroupSchema($this->em->getConnection()));
+        $resolver = new AudienceResolver($this->em->getConnection(), new UserGroupSchema($this->em->getConnection()), $this->clock);
         $resolver->primeFor($people);
 
         foreach ($resolver->catalogue() as $group) {
@@ -652,7 +652,7 @@ final class S153PackageProbeCommand extends Command
         $failures = 0;
 
         $sees = function () use ($group, $member): bool {
-            $fresh = new AudienceResolver($this->em->getConnection(), new UserGroupSchema($this->em->getConnection()));
+            $fresh = new AudienceResolver($this->em->getConnection(), new UserGroupSchema($this->em->getConnection()), $this->clock);
 
             return in_array($group['key'], $fresh->keysFor($member), true);
         };

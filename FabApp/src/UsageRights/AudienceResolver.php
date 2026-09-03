@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\UsageRights;
 
 use App\Entity\Utilisateur;
+use App\Reservation\LabClock;
 use Doctrine\DBAL\Connection;
 
 /**
@@ -56,10 +57,30 @@ final class AudienceResolver
      * requête ne dure pas assez pour qu'une date bascule — mais une mémoïsation
      * plus longue, sur un worker par exemple, ne le serait plus.
      */
+    /**
+     * 🔴 **`LabClock`, et pas `new \DateTimeImmutable()`.** Les bornes
+     * d'appartenance sont de « convention B » au sens de `LabClock` : l'heure
+     * MURALE du labo, stockée telle quelle. Les comparer à un `now` en UTC — ce
+     * que faisait `storedKeysFor()` — décale la fenêtre de l'offset du labo, deux
+     * heures à Paris en été, et **toujours dans le sens permissif** : une
+     * appartenance expirée reste vue comme valide pendant ces deux heures. C'est
+     * exactement le balayage que `LabClock` dit « consigné, pas fait ».
+     *
+     * ⚠️ Facultative pour que les commandes qui construisent un résolveur NEUF à
+     * la main continuent de marcher ; sans elle, on retombe sur l'ancien
+     * comportement — celui d'avant, jamais un neuf à moitié.
+     */
     public function __construct(
         private readonly Connection $db,
         private readonly UserGroupSchema $schema,
+        private readonly ?LabClock $clock = null,
     ) {
+    }
+
+    /** L'instant à comparer aux bornes stockées : heure murale du labo. */
+    private function now(): \DateTimeImmutable
+    {
+        return $this->clock?->now() ?? new \DateTimeImmutable();
     }
 
     /**
@@ -256,7 +277,7 @@ final class AudienceResolver
             return array_map('intval', $this->db->fetchFirstColumn(
                 'SELECT m.userId FROM USER_GROUP_MEMBER m INNER JOIN USER_GROUP g ON g.id = m.groupId
                  WHERE g.groupKey = :key' . $this->schema->activeClause('m'),
-                ['key' => $groupKey] + $this->schema->activeParams($at ?? new \DateTimeImmutable()),
+                ['key' => $groupKey] + $this->schema->activeParams($at ?? $this->now()),
             ));
         } catch (\Throwable) {
             // Même repli que `storedKeysFor()` : une installation d'avant la
@@ -272,7 +293,7 @@ final class AudienceResolver
             return array_map('strval', $this->db->fetchFirstColumn(
                 'SELECT g.groupKey FROM USER_GROUP_MEMBER m INNER JOIN USER_GROUP g ON g.id = m.groupId
                  WHERE m.userId = :user' . $this->schema->activeClause('m'),
-                ['user' => $userId] + $this->schema->activeParams(new \DateTimeImmutable()),
+                ['user' => $userId] + $this->schema->activeParams($this->now()),
             ));
         } catch (\Throwable) {
             return [];

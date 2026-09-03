@@ -138,9 +138,12 @@ sur le chemin où il coûte le plus cher, et posé par la phase elle-même.
 S159g interrogeaient le RÉSOLVEUR, jamais l'entité, et aucune appartenance de la
 boîte ne porte de dates. **Une garde datée se vérifie depuis CHACUN de ses
 lecteurs, pas depuis celui qu'on vient d'écrire.**
-🅿️ Reste connu et écrit : PHP et la base sont en UTC, `addMember()` écrit l'heure
-MURALE du labo. Une échéance à la journée est juste, une échéance à l'heure tombe
-deux heures trop tôt en été.
+🅿️ Reste connu, mesuré et écrit : les bornes sont l'heure MURALE du labo, et
+`getRoles()` les compare à un `now` réel. Le rôle **SURVIT deux heures de trop**
+en été — pas deux heures d'avance, ce que j'avais d'abord énoncé à l'envers, et
+c'est le sens permissif, donc celui qu'il ne faut pas se tromper à décrire.
+`AudienceResolver` a reçu `LabClock` et compare juste ; l'entité ne le peut pas.
+Les deux voies sont posées dans `ROADMAP.md`.
 
 🔴 **Et deux leçons d'outillage payées comptant :**
 - **`app:render` + grep ne dit rien des pixels.** J'ai passé la moitié de la passe à

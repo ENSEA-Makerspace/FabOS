@@ -187,15 +187,22 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
         // `staff` expirée hier et exige que `ROLE_STAFF` disparaisse. Elle
         // échouait.
         //
-        // ⚠️ **Le fuseau reste une approximation connue, et c'est écrit ici
-        // plutôt que tu** : PHP et la base sont en UTC sur cette boîte, mais
-        // `UserGroupRepository::addMember()` écrit l'heure MURALE du labo. La
-        // comparaison porte donc sur des chiffres décalés de l'offset du labo —
-        // une échéance « au 30 juin » tombe deux heures trop tôt en été. Sans
-        // conséquence sur une échéance à la journée, faux sur une à l'heure ;
-        // la corriger demande de choisir une convention de stockage et de
-        // migrer les lignes datées, ce qui n'est pas une décision à prendre au
-        // détour d'un correctif de sécurité.
+        // 🔴 **UN ÉCART DE FUSEAU SUBSISTE ICI, et il est PERMISSIF.** Les
+        // bornes sont de « convention B » au sens de `LabClock` : l'heure MURALE
+        // du labo, stockée telle quelle, que Doctrine rend étiquetée UTC. Les
+        // comparer à un `now` réel décale la fenêtre de l'offset du labo —
+        // mesuré : **deux heures de SURVIE en trop** à Paris en été, jamais deux
+        // heures d'avance. Une appartenance `staff` qui finit le 30 juin à minuit
+        // continue d'accorder son rôle jusqu'à 02:00.
+        //
+        // ⚠️ **Une entité ne peut pas atteindre `LabClock`** : elle est hydratée
+        // par Doctrine, pas construite par le conteneur, et `getRoles()` est
+        // appelée par la sécurité sans argument. `AudienceResolver`, lui, a reçu
+        // l'horloge et compare juste — donc l'écran et le rôle peuvent diverger
+        // pendant ces deux heures. **C'est une limite connue, bornée et écrite,
+        // pas un oubli** ; la lever demande de choisir comment une entité accède
+        // à l'heure du labo, ce qui est une décision d'architecture et pas un
+        // détour dans un correctif. Consignée dans `ROADMAP.md`.
         $now = new \DateTimeImmutable();
 
         foreach ($this->groupMemberships as $membership) {
