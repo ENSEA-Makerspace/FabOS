@@ -1124,6 +1124,29 @@ chemin de la sécurité.
 ⚠️ Tant que rien n'est tranché, ne pas « améliorer » un seul des deux lecteurs :
 les faire diverger davantage est pire que l'écart actuel.
 
+## 🟡 Le cache-buster d'`admin.css` se pose dans 72 gabarits
+
+**Mesuré le 2026-09-03.** Chaque écran admin écrit son propre
+`asset('css/admin.css') ~ '?v=…'`. Toucher `admin.css` oblige donc à un `sed` sur
+**72 fichiers**, et le diff de la session en devient illisible : la revue de code
+de cette nuit a dû écarter « ~120 changements de gabarit qui ne sont que des
+bumps » pour trouver les huit vrais. ⚠️ **C'est ainsi qu'un vrai changement se
+cache** — et une modification oubliée dans le lot ne se voit plus.
+
+✅ **Ce qui marche déjà et qu'il ne faut PAS casser** : les feuilles propres à une
+page portent un buster daté qui correspond exactement au dernier changement du
+fichier — vérifié sur les quatre (`machine-historique`, `formation-suivi`,
+`home-deck`, `event-detail`). Ce n'est pas de la dérive, c'est la discipline qui
+fonctionne. `style.css` n'est lié que dans 3 gabarits, dont `base.html.twig` :
+là non plus, rien à changer.
+
+🅿️ **La proposition, pour `admin.css` seulement** : une variable Twig globale
+(`admin_css_version`) posée dans `config/packages/twig.yaml`, et les 72 gabarits
+la lisent. Un seul endroit à bumper.
+⚠️ **À trancher, parce que ça touche 72 fichiers d'un coup** et qu'une globale
+absente d'un contexte de rendu casse la page qui la lit — les pages d'erreur en
+premier. À faire en une passe dédiée, pas au détour d'autre chose.
+
 ## Travaux transversaux conservés
 
 Sécurité restante de Phase H (**test réel du booking**, requêtes groupées) ·
