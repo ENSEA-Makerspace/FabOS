@@ -168,7 +168,12 @@ final class MachineDocumentController extends AbstractController
         $back = $this->redirectToRoute('app_admin_machine_edit', ['id' => $machine->getId()]);
 
         if (!$this->isCsrfTokenValid('machine_documents_' . $machine->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'flash.suppression_refusee_token_csrf');
+            // 🔴 La clé était `flash.suppression_refusee_token_csrf`, qui
+            // N'EXISTE PAS : un jeton invalide affichait donc la clé brute dans
+            // le bandeau rouge, au lieu d'une phrase. Les huit autres appels du
+            // dépôt utilisent le suffixe `_invalide` ; celui-ci l'avait perdu.
+            // Trouvé par `tools/i18n/parity.py`, pas à l'oeil.
+            $this->addFlash('error', 'flash.suppression_refusee_token_csrf_invalide');
 
             return $back;
         }
