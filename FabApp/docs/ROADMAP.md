@@ -886,6 +886,153 @@ explicite. **Aucun message privé ne bascule implicitement vers la cohorte.**
 
 ---
 
+# Phase K — les gabarits d'e-mail deviennent modifiables (S160–S162)
+
+**Demandé par l'opérateur le 2026-09-04**, sur la trouvaille du dépouillement
+Fabmanager : *« Customize email templates »*, **10 votes**, et le seul écart à la
+fois bien voté, petit, et absent de notre plan. Détail dans
+`FABMANAGER-ECARTS.md`.
+
+## Ce qui existe déjà, mesuré
+
+- **23 gabarits Twig** dans `templates/emails/`, tous héritant de
+  `_layout.html.twig`. Le sujet est un `{% block subject %}`.
+- 🔴 **Le texte n'est PAS dans les gabarits : il est en CLÉS DE TRADUCTION**
+  (`mail.event.registered.subject`), donc en cinq langues.
+- `Mailer::queue()` enregistre `template` + `context` + `locale` dans le journal ;
+  **le rendu a lieu plus tard, à l'envoi**, par le worker.
+- ✅ `sendNow()` avec `NotificationCategory::TEST` existe déjà — l'aperçu et le
+  « m'envoyer un test » sont donc à moitié construits.
+
+## 🔴 La tension à trancher AVANT d'écrire une ligne
+
+**Un texte modifié par l'opérateur est du CONTENU, pas de l'interface.** La règle
+de la maison est explicite : *on traduit l'UI, jamais le contenu*. Donc une
+surcharge est **par langue**, et les traductions livrées restent le repli. Il n'y
+a pas de version « une seule langue » qui tienne : un lab bilingue qui ne
+surcharge que le français casserait ses mails anglais s'il remplaçait la clé.
+
+🔴 **Et l'opérateur n'écrira JAMAIS de Twig.** Laisser saisir du Twig, c'est
+offrir l'exécution de code arbitraire dans un gabarit. Deux issues seulement :
+le bac à sable Twig, ou une syntaxe de champs restreinte (`{{ event }}`) validée
+à l'enregistrement. **La seconde est recommandée** : elle est vérifiable, elle
+n'a pas de surface d'évasion, et personne n'a demandé de boucles dans un e-mail.
+
+⚠️ **Le rendu a lieu à l'ENVOI, pas à la mise en file.** Un gabarit modifié entre
+les deux change le mail déjà en attente. À trancher : figer le rendu à la mise en
+file, ou rendre à l'envoi. Rendre à l'envoi est plus simple et cohérent avec
+l'existant — mais alors **une surcharge cassée ne doit jamais empêcher un mail
+transactionnel de partir**.
+
+| Session | Livre | Ce qu'on mesure |
+|---|---|---|
+| **S160** | Le modèle et le REPLI, sans éditeur. Une surcharge `(templateKey, locale, subject, body)`, lue à l'envoi, qui retombe sur le gabarit livré dès qu'elle manque, est vide ou lève | 🔴 **Sans aucune surcharge, les 23 mails rendent exactement ce qu'ils rendent aujourd'hui** — comparaison octet à octet, sinon la phase a déjà cassé quelque chose |
+| **S161** | L'éditeur : un écran par gabarit et par langue, la liste des champs disponibles **pour ce gabarit-là**, refus d'un champ inconnu, aperçu et envoi de test | Un champ inconnu est refusé avec une phrase ; l'aperçu rend le vrai gabarit, pas une approximation |
+| **S162** | L'en-tête et le pied (`_layout`) surchargeables séparément ; « revenir au texte livré » par gabarit ; la garde du transactionnel | 🔴 Une surcharge volontairement cassée sur `password_reset` : le mail part quand même, avec le texte livré, et l'incident est journalisé |
+
+## Critères de sortie
+
+- Aucune surcharge en base ⇒ aucun changement visible nulle part.
+- 🔴 **Un mot de passe oublié part toujours**, quelle que soit la bêtise saisie.
+- Une surcharge s'applique dans la langue du destinataire, et seulement là.
+- ⚠️ Le journal des mails dit **quelle version** a servi — livrée ou surchargée —
+  sans quoi « pourquoi ce mail dit ça ? » est insoluble.
+
+---
+
+# Phase L — annoncer un événement aux membres (S163–S164)
+
+**Demandé par l'opérateur le 2026-09-04.** C'est *« Notify members on event
+creation »*, **7 votes** chez Fabmanager.
+
+## Ce qui existe déjà, mesuré
+
+- ✅ **`NotificationCategory::NEWS` existe et est DÉSABONNABLE** (`OPTOUTABLE`),
+  et `UnsubscribeLinker` sait fabriquer le lien de désabonnement.
+- ✅ `Mailer::queueToUser(..., $transactional: false)` respecte déjà le refus.
+- `EventMailer` ne sait aujourd'hui qu'accompagner une inscription : inscrit,
+  liste d'attente, promu, annulé, événement décommandé. **Aucune diffusion.**
+
+## 🔴 Deux faits du code qui décident de toute la phase
+
+**1. L'annonce doit passer par `NEWS`, jamais par `EVENT`.** `EVENT` n'est pas
+dans `OPTOUTABLE` — et c'est juste, puisqu'il porte les mails d'inscription qu'on
+ne peut pas refuser. Annoncer sous `EVENT` rendrait l'annonce non refusable ;
+rendre `EVENT` refusable ferait perdre à un inscrit la confirmation de sa propre
+inscription. La catégorie existe déjà : il n'y a rien à inventer.
+
+**2. 🔴 Il n'y a AUCUN état « brouillon » sur un événement.** Les seuls champs de
+cycle de vie sont `cancelledAt` et `archivedAt` : un événement enregistré est en
+ligne. Une notification automatique « à la création » annoncerait donc à tout le
+labo les événements à moitié saisis, les titres provisoires et les erreurs de
+date — **et un e-mail parti ne se rattrape pas.**
+
+✅ **D'où la forme retenue, et elle diffère de la demande d'origine : l'annonce
+est un GESTE EXPLICITE, pas un effet de bord de l'enregistrement.** Un bouton
+« Annoncer aux membres » sur la fiche de l'événement, qui dit d'abord *combien de
+personnes* il va toucher et demande confirmation. C'est plus sûr, et beaucoup
+moins cher qu'ajouter un état de publication à tout le modèle.
+
+| Session | Livre | Ce qu'on mesure |
+|---|---|---|
+| **S163** | La diffusion : catégorie `NEWS`, une file par destinataire **dans SA langue**, lien de désabonnement, et une **trace par événement** qui rend l'envoi idempotent | 🔴 Deux clics sur « Annoncer » n'envoient qu'une fois ; un membre désabonné de `NEWS` ne reçoit rien et **garde** ses mails d'inscription |
+| **S164** | Le geste : compte avant envoi (« ceci écrira à N personnes »), confirmation, et l'état sur la fiche (« annoncé le … à N personnes ») | Le compte annoncé est celui réellement mis en file ; l'écran dit quand l'annonce a déjà eu lieu |
+
+🅿️ **Ce qui n'est PAS dans cette phase, volontairement** : le *digest* périodique
+(« un résumé hebdomadaire des événements à venir »), que la demande d'origine
+mentionne aussi. Il est moins intrusif et sans doute meilleur — mais c'est une
+autre mécanique (planification, fenêtre, regroupement) et il n'a de sens qu'une
+fois la diffusion unitaire éprouvée.
+
+⚠️ **Indépendante de la Phase K.** Si K est livrée d'abord, le texte de l'annonce
+est modifiable sans travail supplémentaire ; sinon il vit en clés de traduction
+comme les 23 autres.
+
+---
+
+# Phase M — les thèmes, en profondeur (S165–S168)
+
+**Demandé par l'opérateur le 2026-09-04.** Reprend le chantier « Thèmes » qui
+traînait sans plan (voir plus bas, section conservée pour le détail des
+intentions).
+
+## Ce qui existe déjà, mesuré
+
+- ✅ **Le cycle brouillon → aperçu → publication → abandon EXISTE**
+  (`ThemeManager`, `/admin/themes`), sur **quatre** valeurs : `orgName`,
+  `venueLabel`, `primaryColor`, `logoPath`.
+- 🔴 **Mais `logoPath` est une CHAÎNE : un nom de fichier**, validé par une regex,
+  qui doit déjà se trouver dans `public/images/`. Rien ne téléverse. Mettre un
+  logo demande donc un accès au serveur — ce qui n'est pas un thème, c'est un
+  déploiement.
+- ⚠️ **Mesuré le 2026-09-04 : `site_logo_path` n'a AUCUNE ligne en base**, donc le
+  site sert le `Logo_ENSEA.png` codé en dur. Le mécanisme marche, il n'a
+  simplement jamais servi.
+- ⚠️ Le nom est périmé : la fonction Twig s'appelle `portal_logo_path()` et le
+  commentaire de `_logo.html.twig` renvoie à l'« écran Portails », supprimé.
+
+| Session | Livre | Ce qu'on mesure |
+|---|---|---|
+| **S165** | La **médiathèque d'identité** : téléversement, validation, renommage serveur, identifiant stable, suppression refusée tant qu'un thème référence le fichier. Fin du chemin libre. Renommage `portal_logo_path` → `site_logo` | 🔴 On pose un logo **sans toucher au serveur** ; un fichier référencé ne se supprime pas ; ⚠️ l'orientation EXIF est lue AVANT les dimensions, et `exif_read_data()` ne lit pas le PNG |
+| **S166** | L'**éditeur guidé** : palette avec contrastes, rayon / typo / densité en préréglages, variantes de logo (clair, sombre, compact, favicon, image de partage) | 🔴 **Le contraste est MESURÉ, pas affirmé** — c'est déjà la pratique du dépôt (7,65:1 relevé sur une proposition de tableau de bord). Une palette qui échoue est refusée, pas signalée |
+| **S167** | L'**aperçu sur de VRAIES surfaces** : accueil, catalogue, détail, un écran admin, un kiosk — desktop et mobile, clair et sombre. Publication **atomique** des réglages ET des fichiers | 🔴 L'aperçu rend les vraies pages, pas des vignettes dessinées à la main : c'est la leçon de `feedback-fabos-verify-pixels`, où un balisage présent ne prouvait pas qu'on le voyait |
+| **S168** | **Kiosks et navigation** : aucun favicon, logo ou couleur en dur ne survit dans un kiosk ; ordre et visibilité des entrées de menu, destinations limitées aux routes autorisées, entrées système protégées | 🔴 Une page dépubliée rétablit l'accueil FabOS **avec trace**, sans page blanche ni boucle de redirection |
+
+## 🔴 Les pièges que cette phase va rencontrer, nommés d'avance
+
+- **Le badigeon `!important` de `style.css`** repeint tout `<span>` d'un
+  `.admin-panel` en gris. Tout jeton de couleur neuf se vérifie **au rendu**, pas
+  dans la feuille — trois écrans s'y sont déjà fait prendre, le dernier le
+  2026-09-03.
+- **`color-scheme`** vient d'être réglé (2026-09-03) : un thème qui repose sur les
+  contrôles natifs du navigateur doit le poser, sinon l'OS gagne.
+- ✅ **Le cache-buster est centralisé** depuis le 2026-09-03 : une publication de
+  thème doit bumper `css_version`, et c'est désormais **une ligne**.
+- ⚠️ **Publication atomique** veut dire réglages **et** fichiers : publier la
+  couleur avant que le logo ne soit en place laisse un site à moitié rhabillé.
+
+---
+
 # Restes ouverts, hors phase
 
 ## Packages — ce qu'ils ne savent toujours pas dire
@@ -931,7 +1078,12 @@ deux sens, parce que ne tester qu'un seul laisserait passer un membre OUBLIÉ, q
 est le défaut coûteux.
 ⚠️ Requêtes bornées : une clé de groupe n'est résolue qu'une fois par page.
 
-## Thèmes — le chantier entier (session dédiée, non planifiée)
+## Thèmes — le détail des intentions (le PLAN est la Phase M)
+
+⚠️ **Cette section n'est plus le plan** : la Phase M (S165–S168) le porte, avec
+ses sessions, ce qu'on mesure et les pièges nommés. Ce qui suit reste utile pour
+l'intention de chaque morceau — ne pas la traiter comme une liste de tâches
+parallèle, sous peine d'avoir deux plans pour un chantier.
 
 - **Médiathèque d'identité** au lieu du champ texte `logoPath` : logo
   clair/sombre/compact, favicon, image de partage. Validés, renommés serveur,

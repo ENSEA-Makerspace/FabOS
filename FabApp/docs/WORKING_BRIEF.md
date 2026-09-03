@@ -17,6 +17,15 @@
 
 ## Position
 
+🅿️ **Trois phases écrites le 2026-09-04, à faire :** **K** — les gabarits
+d'e-mail deviennent modifiables (S160–S162) ; **L** — annoncer un événement aux
+membres (S163–S164) ; **M** — les thèmes en profondeur (S165–S168). Les trois
+sont dans `ROADMAP.md`, chacune avec ce qui existe DÉJÀ (mesuré dans le dépôt),
+la tension à trancher, et ce qu'on mesure par session.
+🔴 Les deux premières viennent du dépouillement de Fabmanager
+(`FABMANAGER-ECARTS.md`) ; la troisième reprend un chantier qui traînait sans
+plan.
+
 ✅ **Phase S153 livrée le 2026-08-31.** Les quatre chantiers sont faits — la
 saisie des packages (le compilateur, la case « sans limite d'horaires », la
 sonde), le regroupement par mois de `/events`, les six affiches de remplacement
