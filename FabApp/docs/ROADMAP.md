@@ -1153,6 +1153,26 @@ la **page d'erreur 404** — toutes portent une vraie version, zéro `?v=` vide.
 🅿️ Les six busters restants sont volontairement littéraux : quatre feuilles
 propres à une page, `badges.js` et le logo.
 
+## 🅿️ Trois écarts venus du marché voisin (2026-09-03)
+
+Dépouillement des 99 demandes de <https://feedback.fab-manager.com> → détail et
+vérifications dans `FABMANAGER-ECARTS.md`. Sur les 22 mieux votées : **7 existent
+déjà chez nous**, **8 sont du commerce** (Phase H), **7 sont de vrais écarts**.
+
+🔴 **Leur demande n°1 est notre acquis** : le RFID (18 votes, *Planned* chez eux)
+tourne ici depuis longtemps — et l'opérateur en demande l'extension aux lieux.
+
+Les trois qui méritent une décision :
+- **Personnaliser les gabarits d'e-mail** (10 votes) — `/admin/emails` règle
+  l'ÉTAT du mail, pas son TEXTE. Petit, bien voté, **absent de notre plan** ;
+- **Prévenir les membres à la création d'un événement** (7) — `EventMailer` ne
+  sait qu'accompagner une inscription. Plus petit encore ;
+- **OpenBadge pour valider une formation** (14) — c'est notre S125 (badges
+  fédérés), très loin dans le plan. À faire remonter, ou pas : c'est une décision.
+
+⚠️ **Signal faible, à traiter comme tel** : le plus haut score du tableau est 18.
+Ça corrige des angles morts, ça ne réordonne pas une feuille de route.
+
 ## Travaux transversaux conservés
 
 Sécurité restante de Phase H (**test réel du booking**, requêtes groupées) ·

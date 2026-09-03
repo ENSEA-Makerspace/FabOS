@@ -13,6 +13,9 @@
 
 - `USAGE_RIGHTS_VISION.md` — modèle cible des droits, packages, réseau
 - `ARTEMIS_DEPLOYMENT.md` — la recette de déploiement, à suivre sans improviser
+- `FABMANAGER-ECARTS.md` — ce que les utilisateurs d'un produit VOISIN réclament,
+  et ce que FabOS en a déjà. ⚠️ Des données, pas un plan : le plus haut score du
+  tableau est 18 votes
 
 **Archive :**
 
