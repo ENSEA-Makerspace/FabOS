@@ -669,7 +669,12 @@
     color: var(--color-text); font-size: var(--font-size-sm);
     font-weight: var(--font-weight-semibold);
 }
-.pkg-axis:has(.pkg-toggle input:checked) .pkg-axis-value { display: none; }
+/* ⚠️ **Le toggle de L'EN-TÊTE, pas n'importe lequel de l'axe.** L'axe « où »
+   en contient DEUX : celui des lieux, et celui des catégories replié dans
+   `.pkg-adv`. Sans cette précision, cocher « toutes les catégories » suffisait à
+   masquer la valeur d'un axe dont les LIEUX sont restreints — c'est-à-dire
+   exactement le cas où elle sert. */
+.pkg-axis:has(.pkg-axis-head > .pkg-toggle input:checked) .pkg-axis-value { display: none; }
 /* ⚠️ L'interrupteur reste à DROITE de la valeur : il est le raccourci de la
    ligne, pas son titre. `order` plutôt qu'un déplacement dans le gabarit, pour
    que l'ordre du DOM reste celui de la lecture — clé, valeur, contrôle. */

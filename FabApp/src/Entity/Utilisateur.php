@@ -174,9 +174,33 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
 
         $roles = ['ROLE_USER'];
 
+        // 🔴 **L'appartenance DATÉE vaut aussi pour les rôles** (corrigé le
+        // 2026-09-03). Cette boucle ne filtrait rien : une appartenance `staff`
+        // expirée continuait d'accorder `ROLE_STAFF`, et avec lui `isStaff()`,
+        // le palier de réservation et toute route gardée par ce rôle.
+        // `AudienceResolver` filtrait déjà la fenêtre en SQL, donc les ÉCRANS
+        // disaient « plus membre » pendant que la sécurité disait « toujours
+        // staff » — deux lecteurs d'une même table dont un seul filtrait, le
+        // motif de toute la phase, ici sur le chemin de la sécurité.
+        //
+        // ⚠️ **Prouvé avant d'être corrigé** : la sonde pose une appartenance
+        // `staff` expirée hier et exige que `ROLE_STAFF` disparaisse. Elle
+        // échouait.
+        //
+        // ⚠️ **Le fuseau reste une approximation connue, et c'est écrit ici
+        // plutôt que tu** : PHP et la base sont en UTC sur cette boîte, mais
+        // `UserGroupRepository::addMember()` écrit l'heure MURALE du labo. La
+        // comparaison porte donc sur des chiffres décalés de l'offset du labo —
+        // une échéance « au 30 juin » tombe deux heures trop tôt en été. Sans
+        // conséquence sur une échéance à la journée, faux sur une à l'heure ;
+        // la corriger demande de choisir une convention de stockage et de
+        // migrer les lignes datées, ce qui n'est pas une décision à prendre au
+        // détour d'un correctif de sécurité.
+        $now = new \DateTimeImmutable();
+
         foreach ($this->groupMemberships as $membership) {
             $group = $membership->getGroup();
-            if ($group === null || !$group->isBuiltin()) {
+            if ($group === null || !$group->isBuiltin() || !$membership->isActiveAt($now)) {
                 continue;
             }
             $roleName = self::ROLE_FOR_GROUP[$group->getGroupKey()] ?? null;

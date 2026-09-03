@@ -131,7 +131,13 @@ final class UserGroupAdminController extends AbstractController
         // groupe en traversant la page des forfaits.
         $held = $packages->assignmentsForGroup($id);
         $taken = array_flip(array_map(static fn (array $row): int => $row['packageId'], $held));
-        $offer = array_values(array_filter(
+        // ⚠️ **`guest` ne reçoit RIEN, et le menu ne doit pas le proposer.**
+        // `assignGroup()` refuse l'audience anonyme — elle n'a pas de compte, donc
+        // un forfait ne peut rien lui accorder. Proposer le choix quand même
+        // afficherait un formulaire dont chaque envoi est refusé : une affordance
+        // morte, que l'ancien sélecteur de la fiche du forfait filtrait déjà pour
+        // cette raison exacte. Perdu au déménagement, remis ici.
+        $offer = ($group['key'] ?? '') === AudienceResolver::GUEST ? [] : array_values(array_filter(
             $packages->findAll(),
             static fn (array $package): bool => !isset($taken[(int) $package['id']]),
         ));
@@ -295,7 +301,30 @@ final class UserGroupAdminController extends AbstractController
                         break;
                     }
                     if ($action === 'revoke_bundle') {
-                        $packages->revoke($request->request->getInt('assignment_id'), $this->getUser() instanceof Utilisateur ? $this->getUser()->getId() : null);
+                        // 🔴 **L'attribution doit appartenir À CE GROUPE.**
+                        // `revoke()` ne connaît que l'identifiant : sans ce
+                        // contrôle, un identifiant posté depuis la fiche d'un
+                        // groupe retirerait le forfait d'un AUTRE, et l'écran
+                        // annoncerait un succès. L'écran est derrière une session
+                        // d'administrateur et un jeton, mais « seul un admin peut
+                        // le faire » n'a jamais voulu dire « il l'a voulu ».
+                        $assignmentId = $request->request->getInt('assignment_id');
+                        $groupId = $request->request->getInt('id');
+                        $owned = false;
+                        foreach ($packages->assignmentsForGroup($groupId) as $held) {
+                            if ((int) $held['id'] === $assignmentId) {
+                                $owned = true;
+                                break;
+                            }
+                        }
+                        if (!$owned) {
+                            // ⚠️ Un refus PLUTÔT qu'un succès muet : la ligne a pu
+                            // être révoquée depuis un autre onglet, et dire
+                            // « retiré » alors que rien n'a bougé est un mensonge.
+                            $this->addFlash('error', $this->translator->trans('groups.bundle_not_here'));
+                            break;
+                        }
+                        $packages->revoke($assignmentId, $this->getUser() instanceof Utilisateur ? $this->getUser()->getId() : null);
                         $this->addFlash('success', $this->translator->trans('groups.bundle_revoked'));
                         break;
                     }

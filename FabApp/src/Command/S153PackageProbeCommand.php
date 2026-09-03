@@ -677,6 +677,40 @@ final class S153PackageProbeCommand extends Command
         $failures += $this->check($io, 'en cours, elle accorde', $sees(), 'en cours');
         $this->groups->removeMember($id, (int) $member->getId());
 
+        // 6. 🔴 **ET LE RÔLE DOIT EXPIRER AUSSI.** `AudienceResolver` honore la
+        //    fenêtre ; `Utilisateur::getRoles()` lit la MÊME table par l'ORM. Si
+        //    l'un filtre et pas l'autre, une appartenance `staff` expirée continue
+        //    d'accorder `ROLE_STAFF` — donc `isStaff()`, le palier de réservation
+        //    et toute route gardée par ce rôle. Deux lecteurs d'une même table
+        //    dont un seul filtre : le motif exact de cette phase, et il vaut ici
+        //    pour la SÉCURITÉ. Les quatre assertions ci-dessus ne le voyaient pas,
+        //    parce qu'elles interrogent le résolveur et jamais l'entité.
+        $staff = null;
+        foreach ($this->groups->all() as $row) {
+            if ($row['key'] === AudienceResolver::STAFF) {
+                $staff = $row;
+                break;
+            }
+        }
+        if ($staff !== null) {
+            $wasStaff = in_array('ROLE_STAFF', $member->getRoles(), true);
+            if ($wasStaff) {
+                $io->writeln(' ⏭ témoin déjà staff : assertion de rôle sautée');
+            } else {
+                $this->groups->addMember((int) $staff['id'], (int) $member->getId(), $now->modify('-2 days'), $now->modify('-1 day'));
+                // ⚠️ L'entité est rechargée : Doctrine garde la collection
+                // d'appartenances en mémoire, et la relire sur l'instance déjà
+                // hydratée prouverait l'état d'AVANT l'écriture — même piège que
+                // le résolveur mémoïsé.
+                $this->em->clear();
+                $reloaded = $this->users->find((int) $member->getId());
+                $stillStaff = $reloaded instanceof Utilisateur && in_array('ROLE_STAFF', $reloaded->getRoles(), true);
+                $failures += $this->check($io, 'une appartenance « staff » EXPIRÉE n’accorde plus ROLE_STAFF', !$stillStaff, 'rôle expiré');
+                $this->groups->removeMember((int) $staff['id'], (int) $member->getId());
+                $this->em->clear();
+            }
+        }
+
         // 5. 🔴 Le groupe des administrateurs refuse une date de fin : la garde du
         //    dernier administrateur juge une écriture, elle ne peut rien contre
         //    l'horloge.

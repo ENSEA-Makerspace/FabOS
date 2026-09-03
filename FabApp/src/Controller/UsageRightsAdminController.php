@@ -204,8 +204,19 @@ final class UsageRightsAdminController extends AbstractController
 
 
 
-        // Les quatre périodes, pour la ligne « combien » de la saisie.
+        // 🔴 **La liste était VIDE, et la ligne « combien » était donc morte**
+        // (revue de code, 2026-09-03 — défaut PRÉ-EXISTANT, pas de cette phase).
+        // Le `<select>` ne rendait qu'une option vide : décocher « sans limite »
+        // donnait « 10 h par [rien] », et la sauvegarde était refusée par la
+        // garde du compilateur — « Période inconnue ». Une affordance qui ne peut
+        // que rater, ce qui est pire qu'absente : elle promet un réglage.
+        // ⚠️ Les quatre valeurs viennent de `UsageAllowance::PERIODS`, jamais
+        // recopiées ici : une cinquième période ajoutée là-bas doit apparaître
+        // dans cette liste sans que personne y pense.
         $periodChoices = [];
+        foreach (UsageAllowance::PERIODS as $period) {
+            $periodChoices[$trans('usage_rights.allowance_period_' . $period)] = $period;
+        }
 
         // ⚠️ **LA SAISIE (S153), et elle passe AVANT l'éditeur détaillé.**
         // Quatre lignes de restriction plus une d'extension, qui se lisent comme
@@ -321,7 +332,19 @@ final class UsageRightsAdminController extends AbstractController
             // Le résumé VRAI, calculé depuis le spec décompilé — voir
             // `specSummary()`. `null` quand le forfait sort de ce que les cinq
             // lignes savent dire : mieux vaut pas de résumé qu'un faux.
-            'specSummary' => $spec === null ? null : $this->specSummary($spec, $featureChoices, $dayChoices, $venueChoices, $categoryChoices),
+            //
+            // 🔴 **Et `null` AUSSI quand la saisie vient d'être REFUSÉE**, ce qui
+            // était le trou de la première version (revue de code, 2026-09-03).
+            // Sur ce chemin on REND au lieu de rediriger, pour que la saisie
+            // refusée reste à l'écran : les cases montrent donc ce que
+            // l'opérateur venait de soumettre, pendant que le résumé, lu depuis
+            // la base, montrerait l'état d'AVANT. Deux affirmations
+            // contradictoires à trois centimètres, et le commentaire de
+            // `specSummary()` promet précisément le contraire. Sans résumé, la
+            // page ne dit qu'une chose — la bonne.
+            'specSummary' => ($spec === null || ($specForm !== null && $specForm->isSubmitted()))
+                ? null
+                : $this->specSummary($spec, $featureChoices, $dayChoices, $venueChoices, $categoryChoices),
         ], [
             'specForm' => $specForm,
         ]);
@@ -482,7 +505,7 @@ final class UsageRightsAdminController extends AbstractController
      * était lequel : c'est ce qui rendait la page décousue. La valeur va donc sur
      * la LIGNE de son axe, à côté de ce qui la règle.
      *
-     * @return array{what: string, when: string, where: string, quota: string, hours: ?string}
+     * @return array{what: string, when: string, where: string, quota: string}
      */
     private function specSummary(
         PackageSpec $spec,
@@ -528,9 +551,13 @@ final class UsageRightsAdminController extends AbstractController
                     '%hours%' => rtrim(rtrim(number_format($spec->quotaHours, 2, ',', ' '), '0'), ','),
                     '%period%' => $this->translator->trans('usage_rights.allowance_period_' . $spec->quotaPeriod),
                 ]),
-            // ⚠️ `null` quand l'exemption n'est pas demandée : une ligne « non »
-            // sur un pouvoir que personne n'a réclamé est du bruit.
-            'hours' => $spec->hoursExempt ? $all('usage_rights.summary_hours_exempt') : null,
+            // 🅿️ **Pas de ligne « horaires » ici, et c'est délibéré.** Elle a
+            // été écrite puis retirée (revue de code, 2026-09-03) : aucun gabarit
+            // ne la lisait. Et elle n'aurait rien ajouté — l'interrupteur de cet
+            // axe est le seul des cinq à AJOUTER un pouvoir, donc son libellé
+            // coché dit déjà « hors des horaires d'ouverture ». Une valeur qui
+            // répète son propre contrôle est le doublon qu'on vient de retirer
+            // partout ailleurs sur cette page.
         ];
     }
 }
