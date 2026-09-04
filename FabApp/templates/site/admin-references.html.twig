@@ -20,7 +20,7 @@
    n'est pas de la surface produit, et la règle de la maison est de ne pas le
    faire entrer dans les cinq catalogues. #}
 
-{% block title %}Références Formations — Admin FabOS{% endblock %}
+{% block title %}Références — Admin FabOS{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">
@@ -47,12 +47,25 @@
             border: 1px solid var(--border-color); border-radius: var(--border-radius);
         }
         .tr-file { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+        .tr-family {
+            margin: var(--spacing-lg) 0 var(--spacing-md);
+            padding-top: var(--spacing-lg); border-top: 2px solid var(--border-color);
+            font-size: var(--font-size-xl);
+        }
+        .tr-doc { border: 1px solid var(--border-color); border-radius: var(--border-radius); margin-bottom: var(--spacing-md); }
+        .tr-doc > summary { padding: var(--spacing-md); cursor: pointer; font-weight: var(--font-weight-semibold); }
+        .tr-doc-body { padding: 0 var(--spacing-md) var(--spacing-md); max-width: 82ch; }
+        /* ⚠️ Le markdown rendu apporte ses propres tableaux : ils doivent pouvoir
+           défiler seuls plutôt que pousser la page en largeur. */
+        .tr-doc-body table { width: 100%; border-collapse: collapse; display: block; overflow-x: auto; }
+        .tr-doc-body th, .tr-doc-body td { border-bottom: 1px solid var(--border-color); padding: 6px 10px; text-align: left; }
+        .tr-doc-body code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
     </style>
 {% endblock %}
 
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
-    panel_title: 'Onze planches LMS, pour préparer la phase Formations',
+    panel_title: 'Les planches de référence des phases à venir',
 } %}
     {% block content %}
         <div class="tr-warn">
@@ -63,9 +76,12 @@
             n’enregistre quoi que ce soit.</p>
         </div>
 
-        <p class="tr-intro">Elles sont rangées dans l’ordre du <strong>parcours</strong>
-        — du catalogue jusqu’au badge, l’outil de construction en dernier — et non
-        par ordre de fichier : c’est ainsi qu’on lit une référence.</p>
+        <p class="tr-intro">Deux lots, l’un pour la phase <strong>Formations</strong>,
+        l’autre pour la phase <strong>Machines &amp; boîtiers</strong>. Chacun est rangé
+        dans l’ordre du <strong>parcours</strong>, et non par nom de fichier : c’est
+        ainsi qu’on lit une référence.</p>
+
+        <h2 class="tr-family">Formations — onze planches</h2>
 
         {% set legendes = {
             'catalogue':        {t: 'Catalogue des formations',                 d: 'Le point d’entrée public : ce qu’un membre voit avant de s’engager.'},
@@ -92,6 +108,56 @@
                     {% if l.d %}<p>{{ l.d }}</p>{% endif %}
                     <a href="{{ asset('images/references/formations/' ~ shot.file) }}" target="_blank" rel="noopener">
                         <img src="{{ asset('images/references/formations/' ~ shot.file) }}"
+                             alt="Maquette de référence : {{ l.t }}" loading="lazy" decoding="async">
+                    </a>
+                    <p class="tr-file" style="margin-top:6px">{{ shot.file }}</p>
+                </div>
+            {% endfor %}
+        </div>
+
+        <h2 class="tr-family">Machines &amp; boîtiers — huit planches, et deux documents</h2>
+
+        {# ⚠️ **Ce lot arrive avec des DOCUMENTS, pas seulement des images** : un
+           README qui donne l'ordre de lecture et les invariants, et une revue
+           UX/sécurité qui liste des constats P0. Ils sont RENDUS depuis
+           `docs/references/equipement/`, jamais recopiés ici — une page qui
+           recopie un document se met à mentir en une session, ce que
+           `StaticPageController` dit déjà de la feuille de route. #}
+        {% if equipmentReadme %}
+            <details class="tr-doc">
+                <summary>README — l’ordre de lecture et les invariants</summary>
+                <div class="tr-doc-body">{{ equipmentReadme|raw }}</div>
+            </details>
+        {% endif %}
+        {% if equipmentReview %}
+            <details class="tr-doc">
+                <summary>Revue Sol — parcours, P0 sécurité, direction recommandée</summary>
+                <div class="tr-doc-body">{{ equipmentReview|raw }}</div>
+            </details>
+        {% endif %}
+
+        {% set legendesEq = {
+            'overview':      {t: 'Vue d’ensemble Équipement',        d: 'L’entrée admin : ce qui demande une action — maintenance, machines indisponibles, lecteurs hors ligne, refus récents.'},
+            'incidents':     {t: 'Incidents d’accès RFID',           d: 'Des refus rendus ACTIONNABLES : une cause mène vers le membre, le badge, la formation, le lecteur ou la machine.'},
+            'commissioning': {t: 'Mise en service d’un lecteur',     d: 'Créer, associer, révéler le secret UNE fois, vérifier la première connexion.'},
+            'health':        {t: 'Santé d’un lecteur',               d: 'État, test, rotation et révocation du secret, événements récents.'},
+            'member_detail': {t: 'Fiche machine, côté membre',       d: 'Orientée tâche : ai-je le droit, quand puis-je réserver, avec quels matériaux, quelles consignes.'},
+            'material':      {t: 'Fiche d’un matériau',              d: 'Et les machines réellement compatibles — la relation, pas le champ texte.'},
+            'operations':    {t: 'Zone Exploitation d’une machine',  d: 'La moitié staff/admin : santé, maintenance, lecteur, derniers refus, corrections.'},
+            'kiosk':         {t: 'Kiosk public d’une machine',       d: 'Thémé, et SANS données personnelles.'},
+        } %}
+
+        <div class="tr-list">
+            {% for shot in equipment %}
+                {% set l = legendesEq[shot.key]|default({t: shot.file, d: ''}) %}
+                <div class="tr-item">
+                    <div class="tr-head">
+                        <span class="tr-num">{{ loop.index }} / {{ equipment|length }}</span>
+                        <h3>{{ l.t }}</h3>
+                    </div>
+                    {% if l.d %}<p>{{ l.d }}</p>{% endif %}
+                    <a href="{{ asset('images/references/equipement/' ~ shot.file) }}" target="_blank" rel="noopener">
+                        <img src="{{ asset('images/references/equipement/' ~ shot.file) }}"
                              alt="Maquette de référence : {{ l.t }}" loading="lazy" decoding="async">
                     </a>
                     <p class="tr-file" style="margin-top:6px">{{ shot.file }}</p>

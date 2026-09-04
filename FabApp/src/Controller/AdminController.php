@@ -106,6 +106,7 @@ use App\Repository\UtilisateurRepository;
 use App\Repository\VenueRepository;
 use App\Feature\SiteFeatureService;
 use App\Service\LocaleCatalog;
+use App\Service\MarkdownDocService;
 use App\Service\SiteSettingService;
 use App\Repository\ScheduleExceptionRepository;
 use App\Entity\ScheduleException;
@@ -2567,7 +2568,7 @@ final class AdminController extends AbstractController
      * you fix links from, so wiping it must be a deliberate click.
      */
     /**
-     * Les maquettes LMS qui serviront de RÉFÉRENCE à la phase Formations.
+     * Les planches de RÉFÉRENCE des phases à venir — Formations et Équipement.
      *
      * 🔴 **Ces images décrivent ce qui POURRAIT être, pas ce qui EST — et c'est
      * exactement ce que le menu Développement venait de se faire retirer.** S159
@@ -2586,8 +2587,8 @@ final class AdminController extends AbstractController
      * ⚠️ Route `ROLE_ADMIN` comme les deux autres outils de développement : c'est
      * la NAVIGATION que le drapeau cache, pas l'accès.
      */
-    #[Route('/references-formations', name: 'app_admin_training_references', methods: ['GET'])]
-    public function trainingReferences(): Response
+    #[Route('/references', name: 'app_admin_references', methods: ['GET'])]
+    public function references(MarkdownDocService $docs): Response
     {
         // ⚠️ La liste est écrite ici et pas devinée depuis le dossier : un
         // `glob()` afficherait n'importe quel fichier déposé là, dans l'ordre du
@@ -2608,7 +2609,27 @@ final class AdminController extends AbstractController
             ['file' => 'lms-training-builder.png', 'key' => 'builder'],
         ];
 
-        return $this->render('site/admin-training-references.html.twig', ['shots' => $shots]);
+        // ⚠️ **Équipement arrive avec DEUX documents**, pas seulement des images :
+        // un README qui donne l'ordre de lecture et une revue UX/sécurité. Ils
+        // sont rendus par `MarkdownDocService`, comme la feuille de route, plutôt
+        // que recopiés — une page qui recopie un document ment en une session.
+        $equipment = [
+            ['file' => 'equipment-operational-overview.png', 'key' => 'overview'],
+            ['file' => 'equipment-access-incidents.png', 'key' => 'incidents'],
+            ['file' => 'equipment-reader-commissioning.png', 'key' => 'commissioning'],
+            ['file' => 'equipment-reader-health.png', 'key' => 'health'],
+            ['file' => 'equipment-machine-member-detail.png', 'key' => 'member_detail'],
+            ['file' => 'equipment-material-detail.png', 'key' => 'material'],
+            ['file' => 'equipment-machine-operations.png', 'key' => 'operations'],
+            ['file' => 'equipment-machine-kiosk.png', 'key' => 'kiosk'],
+        ];
+
+        return $this->render('site/admin-references.html.twig', [
+            'shots' => $shots,
+            'equipment' => $equipment,
+            'equipmentReadme' => $docs->render('equipment-references'),
+            'equipmentReview' => $docs->render('equipment-review'),
+        ]);
     }
 
     #[Route('/missing-pages', name: 'app_admin_missing_pages', methods: ['GET', 'POST'])]

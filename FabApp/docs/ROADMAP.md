@@ -1033,12 +1033,55 @@ intentions).
 
 ---
 
+## 🔴 Trois constats de SÉCURITÉ sur les boîtiers, VÉRIFIÉS le 2026-09-04
+
+La revue apportée avec les planches Équipement (`docs/references/equipement/REVIEW-SOL.md`)
+énonce trois P0. **Je les ai vérifiés dans le code plutôt que de les recopier —
+les trois sont exacts.**
+
+**1. 🔴 L'API des boîtiers échoue en position OUVERTE.**
+`RfidMachineController::rejectUnauthorizedDevice()` fait
+`if ($expectedToken === '') { return null; }` : sans `FABOS_RFID_API_TOKEN`, la
+garde laisse passer. Mesuré sur la boîte : la variable n'est ni dans `.env` ni
+dans `.env.local`, et un POST sans en-tête `X-FABOS-DEVICE-TOKEN` rend **404
+« machine inconnue », pas 401** — donc la requête a franchi la garde.
+✅ **Et le correctif ne casserait rien aujourd'hui** : un seul lecteur existe, vu
+pour la dernière fois le **2026-07-10**. Aucun boîtier n'appelle.
+🅿️ Deux moitiés, et il faut les deux : poser le jeton **et** rendre la garde
+fail-closed, sinon la prochaine installation retombe dans le même trou.
+⚠️ **À trancher par l'opérateur** : fermer une API d'accès physique se fait en
+connaissance de cause, pas au détour d'une copie de fichiers.
+
+**2. ⚠️ `/kiosk/entries` est PUBLIC et montre qui est passé.** Aucun `IsGranted`,
+répond 200 sans session, et rend 49 références d'avatar — noms et passages RFID.
+⚠️ Le site entier est derrière une liste blanche NPM, donc ce n'est pas exposé à
+Internet aujourd'hui : c'est une protection d'INFRASTRUCTURE, pas une garde de
+l'application. À décider explicitement — signalétique anonymisée, ou kiosk
+authentifié par le boîtier.
+
+**3. 🔴 Le formulaire Lecteur apprend à donner la base de données à un boîtier.**
+`admin-rfid-reader-form.html.twig` affiche un exemple `.env` contenant
+`FABOS_DB_HOST`, `FABOS_DB_USER` et `FABOS_DB_PASSWORD`. Un boîtier mural ne doit
+jamais recevoir d'accès SQL. Ce n'est « que » de la documentation — c'est-à-dire
+une consigne de fabriquer le trou soi-même.
+
+⚠️ Ces trois-là sont des CONSTATS, pas la phase : la phase Équipement se planifiera
+avec les planches. Mais le n°1 et le n°3 n'ont pas à l'attendre.
+
+---
+
 ## 🅿️ Une planche de références, avec une DATE DE PÉREMPTION
 
-**Ajoutée le 2026-09-04 à la demande de l'opérateur** : onze maquettes LMS
-(catalogue, parcours, quiz, exercice pratique, validation par l'équipe, badge,
-constructeur de formation) dans `public/images/references/formations/`, visibles
-sur `/admin/references-formations`, derrière le drapeau de développement.
+**Ajoutée le 2026-09-04 à la demande de l'opérateur**, en DEUX lots sur
+`/admin/references`, derrière le drapeau de développement :
+- **Formations** — onze maquettes LMS (catalogue, parcours, quiz, exercice
+  pratique, validation par l'équipe, badge, constructeur) ;
+- **Machines & boîtiers** — huit maquettes plus DEUX documents (README et revue
+  UX/sécurité), rendus depuis `docs/references/equipement/` par le même service
+  que la feuille de route, jamais recopiés dans un gabarit.
+
+⚠️ **Un seul écran pour les deux**, et une seule entrée de menu : deux planches
+temporaires feraient deux choses à retirer. Chaque section part avec SA phase.
 
 🔴 **Elle enfreint à moitié une règle de la maison, et il faut le dire.** Le menu
 Développement s'est fait retirer trois maquettes en S159, parce qu'une

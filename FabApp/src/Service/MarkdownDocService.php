@@ -33,6 +33,14 @@ final class MarkdownDocService
         // and are deliberately NOT served: nobody should have to load the history to
         // find out what is left to do.
         'history' => 'HISTORY.md',
+        // 🅿️ **Deux documents de RÉFÉRENCE, pas du plan.** Ils accompagnent les
+        // planches Équipement de `/admin/references` et partent avec elles le
+        // jour où la phase correspondante est écrite. Ils sont rendus par ce
+        // service plutôt que recopiés dans un gabarit, pour la raison écrite
+        // plus haut : une page qui recopie un document se met à mentir en une
+        // session.
+        'equipment-references' => 'references/equipement/README.md',
+        'equipment-review' => 'references/equipement/REVIEW-SOL.md',
     ];
 
     public function __construct(private readonly string $projectDir)

@@ -375,7 +375,7 @@ final class NavBuilder
                 // ce menu venait justement de se faire retirer. Elle tient parce
                 // qu'elle s'annonce comme une planche et n'enregistre rien ; elle
                 // part le jour où la phase est écrite. Voir `ROADMAP.md`.
-                $this->adminItem('admin_nav.entry.app_admin_training_references', 'app_admin_training_references', 'formations'),
+                $this->adminItem('admin_nav.entry.app_admin_references', 'app_admin_references', 'formations'),
             ]);
         }
 
