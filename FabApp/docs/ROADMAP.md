@@ -871,7 +871,15 @@ commandes / paiements / rapprochement.
 
 ---
 
-# Phase I — messagerie Formation (S155–S157)
+# Phase I — messagerie Formation (S155–S157) 🅿️ ABSORBÉE PAR LA PHASE FORMATIONS
+
+⚠️ **Ne pas la planifier séparément** (opérateur, 2026-09-04) : *« attribue dans
+les phases correspondantes quand tu les planifieras, ex : messagerie de formation
+dans la phase formation »*. Elle attendait déjà le modèle Formation / session /
+cohorte — la planifier à côté de la phase qui construit ce modèle produirait deux
+plans pour un même chantier, la faute que ce dépôt range en permanence.
+✅ Ce qui suit reste le contenu de référence, à reprendre **dans** la phase
+Formations quand elle sera écrite.
 
 Très loin après le workspace Formation. FabOS est la source de vérité ; l'e-mail
 est une copie et une panne d'envoi ne perd jamais le message interne. Trois
@@ -1080,8 +1088,13 @@ avec les planches. Mais le n°1 et le n°3 n'ont pas à l'attendre.
   UX/sécurité), rendus depuis `docs/references/equipement/` par le même service
   que la feuille de route, jamais recopiés dans un gabarit.
 
-⚠️ **Un seul écran pour les deux**, et une seule entrée de menu : deux planches
-temporaires feraient deux choses à retirer. Chaque section part avec SA phase.
+- **Espaces & accès d'entrée** — huit maquettes plus DEUX documents. ⚠️ Cette
+  revue-ci introduit `AccessPoint`, **distinct de `Machine`** : c'est la réponse
+  au todo « contrôle d'accès aux lieux » du 2026-09-03, qui rejoint donc la phase
+  Espaces.
+
+⚠️ **Un seul écran pour les trois**, et une seule entrée de menu : trois planches
+temporaires feraient trois choses à retirer. Chaque section part avec SA phase.
 
 🔴 **Elle enfreint à moitié une règle de la maison, et il faut le dire.** Le menu
 Développement s'est fait retirer trois maquettes en S159, parce qu'une
@@ -1098,6 +1111,44 @@ menu, images. Si cette ligne est encore là dans trois mois, c'est que la règle
 ⚠️ Non traduite, comme `/admin/pages-manquantes` : un écran d'outillage caché
 derrière le drapeau n'entre pas dans les cinq catalogues. Seule l'entrée de menu
 l'est.
+
+# Phase N — le cleanup (S169–S170)
+
+**Demandée par l'opérateur le 2026-09-04** : *« le reste, fais une phase
+cleanup »*. Elle ramasse ce qui n'appartient à aucune autre phase — et rien
+d'autre. ⚠️ **Ce qui a une phase va dans SA phase** : la messagerie Formation est
+absorbée par la phase Formations, le contrôle d'accès aux lieux par la phase
+Espaces, les trois P0 des boîtiers par la phase Machines.
+
+## Ce qu'elle contient
+
+| | Ce qui reste, et pourquoi ça traîne |
+|---|---|
+| **J-5** | CSS local par page : 708 → **653 règles dans 37 gabarits**. ⚠️ **Commencer par MESURER si c'est encore un défaut** : les deux familles à duplication prouvée sont déjà rassemblées, et le reste est peut-être légitimement spécifique. Fermer sans mesurer serait aussi faux que le laisser ouvert |
+| **J-8** | **un seul** écran prouvé défaillant : la branche « profil public » de `/profil` fait ressaisir le formulaire. Les 9 autres sont prouvés sains par un POST refusé. C'est une correction, pas un chantier |
+| **J-10** | `admin-formation-content` (35 champs) et le taux d'aide de 20 %. ⚠️ Barème dans `S149-REVUE.md` |
+| **Suppression en masse** | 12 événements créés d'un envoi, retirés un par un. 🔴 **Une décision d'abord** : sélection multiple (aucune notion de série, réutilisable) ou identifiant de série (moins de clics, mais « que devient une séance déplacée ? »). ⚠️ Supprimer et annuler ne sont pas la même action quand des gens sont inscrits |
+| **Catégorie → entrée de menu** | Une entrée de menu EST un filtre enregistré ; `/events?category=<slug>` existe déjà. Donc un réglage de navigation, pas une page |
+| **Tableau de bord** | Quatre propositions comparables posées dans `/admin/design#tableau-de-bord` le 2026-08-27. 🔴 **Bloqué sur un choix, pas sur du travail** |
+| **Fuseau côté entité** | `getRoles()` ne peut pas atteindre `LabClock` : un rôle survit jusqu'à l'offset du labo de trop. Borné, permissif, **sans exposition réelle aujourd'hui** — aucune appartenance datée ne porte un groupe à rôle. Les deux voies sont écrites plus bas |
+| **`ROLE`** | La table n'accorde plus rien mais reste : le `down()` de `Version20260902100000` s'en sert pour reconstruire. À retirer quand ce retour arrière n'aura plus de sens |
+
+## L'ordre, et pourquoi
+
+| Session | Livre |
+|---|---|
+| **S169** | Les trois restes de J — **et J est close**, ce qui débloque la Phase H. J-8 puis J-10 (des corrections), J-5 en dernier parce qu'il commence par une mesure qui peut conclure « rien à faire » |
+| **S170** | Les décisions de l'opérateur, une fois prises : suppression en masse, catégorie → menu, tableau de bord. ⚠️ **Ne pas commencer S170 avant que les trois soient tranchées** — construire l'une des deux voies de la suppression en masse avant le choix, c'est jeter la moitié du travail |
+
+## Critères de sortie
+
+- 🔴 **Phase J close pour de bon**, donc la barrière du commerce tombe.
+- ⚠️ Chaque ligne fermée l'est **par une mesure**, pas par une relecture : deux
+  défauts J étaient déjà caducs depuis S159 et personne ne l'avait vu.
+- 🅿️ Le fuseau et `ROLE` peuvent rester ouverts en sortant : ils sont datés,
+  bornés, et sans exposition. Les fermer demande une décision d'architecture.
+
+---
 
 # Restes ouverts, hors phase
 
@@ -1259,7 +1310,15 @@ d'entrées traduites · ⚠️ plafond d'entrées (le menu principal en a déjà
   distincts et venant de sa modale ; `/admin/access-rfid-logs` porte un seul
   « Confirm ». **Aucun doublon.** Rien à corriger — l'item est clos par la mesure.
 
-## 🅿️ TODO (opérateur, 2026-09-03) — contrôle d'accès aux LIEUX
+## 🅿️ TODO (opérateur, 2026-09-03) — contrôle d'accès aux LIEUX → PHASE ESPACES
+
+✅ **Ce todo a trouvé sa phase le 2026-09-04.** Les planches « Espaces & accès »
+(`/admin/references`) et leur revue y répondent directement : elles introduisent
+un **`AccessPoint` distinct de `Machine`** — porte, portail, casier, zone — ce qui
+est exactement ce qui manquait, puisqu'un lecteur RFID est aujourd'hui rattaché
+OBLIGATOIREMENT à une machine et ne peut pas représenter une porte sans machine
+fictive. Le raisonnement ci-dessous reste valable ; il se planifiera **dans** la
+phase Espaces, pas à côté.
 
 > « Dans le module lieux, on pourrait rajouter de l'access control. Avec des
 > boîtiers identiques à ceux des machines mais connectés à des gâches

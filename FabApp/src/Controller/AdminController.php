@@ -2624,11 +2624,27 @@ final class AdminController extends AbstractController
             ['file' => 'equipment-machine-kiosk.png', 'key' => 'kiosk'],
         ];
 
+        // ⚠️ Troisième lot (2026-09-04). Numérotés à la source, donc l'ordre du
+        // fichier EST l'ordre de lecture — contrairement aux deux autres lots.
+        $spaces = [
+            ['file' => '01-catalogue-espaces.png', 'key' => 'catalogue'],
+            ['file' => '02-detail-espace-reservation.png', 'key' => 'detail'],
+            ['file' => '03-parcours-reservation.png', 'key' => 'booking'],
+            ['file' => '04-exploitation-espaces.png', 'key' => 'operations'],
+            ['file' => '05-mise-en-service-point-acces.png', 'key' => 'commissioning'],
+            ['file' => '06-incidents-acces.png', 'key' => 'incidents'],
+            ['file' => '07-kiosque-entree.png', 'key' => 'kiosk'],
+            ['file' => '08-mes-reservations.png', 'key' => 'mine'],
+        ];
+
         return $this->render('site/admin-references.html.twig', [
             'shots' => $shots,
             'equipment' => $equipment,
             'equipmentReadme' => $docs->render('equipment-references'),
             'equipmentReview' => $docs->render('equipment-review'),
+            'spaces' => $spaces,
+            'spacesReadme' => $docs->render('spaces-references'),
+            'spacesReview' => $docs->render('spaces-review'),
         ]);
     }
 

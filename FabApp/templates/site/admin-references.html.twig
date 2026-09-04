@@ -76,8 +76,8 @@
             n’enregistre quoi que ce soit.</p>
         </div>
 
-        <p class="tr-intro">Deux lots, l’un pour la phase <strong>Formations</strong>,
-        l’autre pour la phase <strong>Machines &amp; boîtiers</strong>. Chacun est rangé
+        <p class="tr-intro">Trois lots, un par phase à venir — <strong>Formations</strong>,
+        <strong>Machines &amp; boîtiers</strong>, <strong>Espaces &amp; accès</strong>. Chacun est rangé
         dans l’ordre du <strong>parcours</strong>, et non par nom de fichier : c’est
         ainsi qu’on lit une référence.</p>
 
@@ -158,6 +158,50 @@
                     {% if l.d %}<p>{{ l.d }}</p>{% endif %}
                     <a href="{{ asset('images/references/equipement/' ~ shot.file) }}" target="_blank" rel="noopener">
                         <img src="{{ asset('images/references/equipement/' ~ shot.file) }}"
+                             alt="Maquette de référence : {{ l.t }}" loading="lazy" decoding="async">
+                    </a>
+                    <p class="tr-file" style="margin-top:6px">{{ shot.file }}</p>
+                </div>
+            {% endfor %}
+        </div>
+
+        <h2 class="tr-family">Espaces &amp; accès d’entrée — huit planches, et deux documents</h2>
+
+        {% if spacesReadme %}
+            <details class="tr-doc">
+                <summary>README — le parcours cible et les règles de produit</summary>
+                <div class="tr-doc-body">{{ spacesReadme|raw }}</div>
+            </details>
+        {% endif %}
+        {% if spacesReview %}
+            <details class="tr-doc">
+                <summary>Revue Sol — frictions chiffrées, P0 modèle et sécurité</summary>
+                <div class="tr-doc-body">{{ spacesReview|raw }}</div>
+            </details>
+        {% endif %}
+
+        {% set legendesEs = {
+            'catalogue':     {t: 'Catalogue des espaces',            d: 'La disponibilité lisible DÈS la carte — « Disponible à 14:00 » plutôt que « Occupé ».'},
+            'detail':        {t: 'Fiche d’un espace, et réservation', d: 'La décision : ce qu’il contient, ses contraintes, le créneau, et comment on entre.'},
+            'booking':       {t: 'Parcours de réservation',           d: 'Confirmation courte et explicite.'},
+            'operations':    {t: 'Exploitation des espaces',          d: 'Une file d’action pour l’équipe — réservations proches, fermetures, points hors ligne, refus — pas un tableau de bord décoratif.'},
+            'commissioning': {t: 'Mise en service d’un point d’accès', d: 'Appairage d’un boîtier de PORTE : créer, associer, révéler le secret une fois, tester.'},
+            'incidents':     {t: 'Incidents d’accès',                 d: 'Actionnables, et avec le minimum de données personnelles.'},
+            'kiosk':         {t: 'Kiosque d’entrée',                  d: 'Écran public : ni identité, ni UID de badge, ni journal, ni secret.'},
+            'mine':          {t: 'Mes réservations',                  d: 'La prochaine réservation et la fenêtre d’accès temporaire, visibles tout de suite.'},
+        } %}
+
+        <div class="tr-list">
+            {% for shot in spaces %}
+                {% set l = legendesEs[shot.key]|default({t: shot.file, d: ''}) %}
+                <div class="tr-item">
+                    <div class="tr-head">
+                        <span class="tr-num">{{ loop.index }} / {{ spaces|length }}</span>
+                        <h3>{{ l.t }}</h3>
+                    </div>
+                    {% if l.d %}<p>{{ l.d }}</p>{% endif %}
+                    <a href="{{ asset('images/references/espaces/' ~ shot.file) }}" target="_blank" rel="noopener">
+                        <img src="{{ asset('images/references/espaces/' ~ shot.file) }}"
                              alt="Maquette de référence : {{ l.t }}" loading="lazy" decoding="async">
                     </a>
                     <p class="tr-file" style="margin-top:6px">{{ shot.file }}</p>

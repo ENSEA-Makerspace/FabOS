@@ -41,6 +41,8 @@ final class MarkdownDocService
         // session.
         'equipment-references' => 'references/equipement/README.md',
         'equipment-review' => 'references/equipement/REVIEW-SOL.md',
+        'spaces-references' => 'references/espaces/README.md',
+        'spaces-review' => 'references/espaces/REVIEW-SOL.md',
     ];
 
     public function __construct(private readonly string $projectDir)
