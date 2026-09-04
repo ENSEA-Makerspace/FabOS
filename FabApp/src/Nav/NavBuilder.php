@@ -370,6 +370,12 @@ final class NavBuilder
                 // implémentée se supprime ; ce qui reste ici décrit ce qui EST.
                 $this->adminItem('admin_nav.entry.app_admin_design', 'app_admin_design', 'dashboard'),
                 $this->adminItem('admin_nav.entry.app_admin_missing_pages', 'app_admin_missing_pages', 'logs'),
+                // 🅿️ **Temporaire, et daté.** Des planches de référence pour la
+                // future phase Formations — donc « ce qui pourrait être », ce que
+                // ce menu venait justement de se faire retirer. Elle tient parce
+                // qu'elle s'annonce comme une planche et n'enregistre rien ; elle
+                // part le jour où la phase est écrite. Voir `ROADMAP.md`.
+                $this->adminItem('admin_nav.entry.app_admin_training_references', 'app_admin_training_references', 'formations'),
             ]);
         }
 

@@ -2566,6 +2566,51 @@ final class AdminController extends AbstractController
      * Pruning and clearing are POSTs behind a CSRF token: the log is the evidence
      * you fix links from, so wiping it must be a deliberate click.
      */
+    /**
+     * Les maquettes LMS qui serviront de RÉFÉRENCE à la phase Formations.
+     *
+     * 🔴 **Ces images décrivent ce qui POURRAIT être, pas ce qui EST — et c'est
+     * exactement ce que le menu Développement venait de se faire retirer.** S159
+     * a supprimé trois maquettes qui portaient « cette maquette n'enregistre
+     * rien » : une proposition implémentée se supprime, et une proposition non
+     * implémentée n'a rien à faire dans un menu à côté d'écrans réels.
+     *
+     * ⚠️ **Ce qui rend celle-ci différente, et la seule chose qui la rende
+     * tenable** : ce n'est pas un écran cliquable qui fait semblant de marcher,
+     * c'est une PLANCHE de références, annoncée comme telle, derrière le drapeau
+     * de développement. Elle ne porte aucun formulaire et n'enregistre rien.
+     * 🅿️ **Elle a une date de péremption** : le jour où la phase Formations est
+     * écrite, ces images vont dans son dossier de phase et cet écran disparaît —
+     * page, route, entrée de menu. C'est consigné dans `ROADMAP.md`.
+     *
+     * ⚠️ Route `ROLE_ADMIN` comme les deux autres outils de développement : c'est
+     * la NAVIGATION que le drapeau cache, pas l'accès.
+     */
+    #[Route('/references-formations', name: 'app_admin_training_references', methods: ['GET'])]
+    public function trainingReferences(): Response
+    {
+        // ⚠️ La liste est écrite ici et pas devinée depuis le dossier : un
+        // `glob()` afficherait n'importe quel fichier déposé là, dans l'ordre du
+        // système de fichiers, et sans légende. L'ordre ci-dessous est celui du
+        // PARCOURS — du catalogue jusqu'au badge — parce que c'est ainsi qu'on
+        // lit une référence, pas par ordre alphabétique.
+        $shots = [
+            ['file' => 'lms-training-catalogue.png', 'key' => 'catalogue'],
+            ['file' => 'lms-training-overview.png', 'key' => 'overview'],
+            ['file' => 'lms-my-trainings.png', 'key' => 'my_trainings'],
+            ['file' => 'lms-course-module.png', 'key' => 'module'],
+            ['file' => 'lms-quiz-question-types.png', 'key' => 'quiz_types'],
+            ['file' => 'lms-quiz-result-retry.png', 'key' => 'quiz_result'],
+            ['file' => 'lms-practical-exercise-file.png', 'key' => 'exercise'],
+            ['file' => 'lms-staff-practical-validation.png', 'key' => 'staff_validation'],
+            ['file' => 'lms-practical-validations-queue.png', 'key' => 'validation_queue'],
+            ['file' => 'lms-training-certificate-badge.png', 'key' => 'badge'],
+            ['file' => 'lms-training-builder.png', 'key' => 'builder'],
+        ];
+
+        return $this->render('site/admin-training-references.html.twig', ['shots' => $shots]);
+    }
+
     #[Route('/missing-pages', name: 'app_admin_missing_pages', methods: ['GET', 'POST'])]
     public function missingPages(Request $request, MissingPageLog $log): Response
     {

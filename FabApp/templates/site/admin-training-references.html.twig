@@ -1,0 +1,103 @@
+{% extends 'base.html.twig' %}
+
+{# LES RÉFÉRENCES LMS DE LA FUTURE PHASE FORMATIONS.
+
+   🔴 **Cette page montre ce qui POURRAIT être, pas ce qui EST** — et c'est
+   précisément ce que le menu Développement s'est fait retirer en S159, quand
+   trois maquettes portant « cette maquette n'enregistre rien » ont été
+   supprimées.
+
+   ⚠️ **Ce qui la rend tenable, et rien d'autre** : ce n'est pas un écran
+   cliquable qui fait semblant de marcher. C'est une PLANCHE, annoncée comme
+   telle dès la première ligne, sans un seul formulaire. On ne peut pas la
+   confondre avec le produit.
+   🅿️ **Et elle a une date de péremption**, consignée dans `ROADMAP.md` : le jour
+   où la phase Formations est écrite, ces images rejoignent son dossier de phase
+   et cet écran disparaît — page, route, entrée de menu.
+
+   ⚠️ **Non traduite, volontairement**, exactement comme `/admin/pages-manquantes`
+   juste à côté : un écran d'outillage caché derrière le drapeau de développement
+   n'est pas de la surface produit, et la règle de la maison est de ne pas le
+   faire entrer dans les cinq catalogues. #}
+
+{% block title %}Références Formations — Admin FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">
+    <style>
+        .tr-intro { color: var(--color-text-light); max-width: 78ch; margin-bottom: var(--spacing-lg); }
+        .tr-warn {
+            border-left: 3px solid var(--color-primary);
+            padding: var(--spacing-md); margin-bottom: var(--spacing-lg);
+            background: color-mix(in srgb, var(--color-primary) 8%, var(--theme-surface));
+            max-width: 78ch;
+        }
+        .tr-warn p { margin: 0; }
+        .tr-list { display: grid; gap: var(--spacing-lg); }
+        .tr-item { border-top: 1px solid var(--border-color); padding-top: var(--spacing-lg); }
+        .tr-item:first-child { border-top: 0; padding-top: 0; }
+        .tr-head { display: flex; align-items: baseline; gap: var(--spacing-md); flex-wrap: wrap; margin-bottom: 4px; }
+        .tr-num { color: var(--color-text-light); font-size: var(--font-size-sm); font-variant-numeric: tabular-nums; }
+        .tr-head h3 { margin: 0; font-size: var(--font-size-lg); }
+        .tr-item p { color: var(--color-text-light); font-size: 13px; margin: 0 0 var(--spacing-md); max-width: 74ch; }
+        /* ⚠️ Une planche se regarde en grand : l'image occupe la largeur, et le
+           lien ouvre le fichier à sa taille réelle pour lire les détails. */
+        .tr-item img {
+            display: block; width: 100%; height: auto;
+            border: 1px solid var(--border-color); border-radius: var(--border-radius);
+        }
+        .tr-file { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+    </style>
+{% endblock %}
+
+{% block body %}
+{% embed 'site/_admin_list.html.twig' with {
+    panel_title: 'Onze planches LMS, pour préparer la phase Formations',
+} %}
+    {% block content %}
+        <div class="tr-warn">
+            <p><strong>Ce ne sont pas des écrans de FabOS.</strong> Aucune de ces
+            pages n’existe : ce sont des maquettes de référence, apportées par
+            l’opérateur le 2026-09-04, qui serviront à écrire la phase
+            d’amélioration des formations. Rien ici n’est décidé, et rien ici
+            n’enregistre quoi que ce soit.</p>
+        </div>
+
+        <p class="tr-intro">Elles sont rangées dans l’ordre du <strong>parcours</strong>
+        — du catalogue jusqu’au badge, l’outil de construction en dernier — et non
+        par ordre de fichier : c’est ainsi qu’on lit une référence.</p>
+
+        {% set legendes = {
+            'catalogue':        {t: 'Catalogue des formations',                 d: 'Le point d’entrée public : ce qu’un membre voit avant de s’engager.'},
+            'overview':         {t: 'Fiche d’une formation',                    d: 'Prochaine étape, progression, ce qu’on obtient à la fin — et, pour l’équipe, la file des validations pratiques.'},
+            'my_trainings':     {t: 'Mes formations',                           d: 'La vue de l’apprenant sur ce qu’il a commencé, terminé, ou doit reprendre.'},
+            'module':           {t: 'Un module de cours',                       d: 'La lecture d’une étape théorique à l’intérieur du parcours.'},
+            'quiz_types':       {t: 'Types de questions du quiz',               d: 'Les formes de question que le quiz saurait poser.'},
+            'quiz_result':      {t: 'Résultat de quiz et reprise',              d: 'Ce qu’on montre après un quiz, et comment on repasse.'},
+            'exercise':         {t: 'Exercice pratique et rendu de fichier',    d: 'L’étape où l’apprenant produit quelque chose et le dépose.'},
+            'staff_validation': {t: 'Validation pratique par l’équipe',         d: 'Le geste du staff : évaluer un apprenant sur la machine.'},
+            'validation_queue': {t: 'File des validations à faire',             d: 'La liste de travail de l’équipe, filtrable par formation, sous-lieu et statut.'},
+            'badge':            {t: 'Badge et attestation',                     d: 'Ce que la formation délivre, et qui ouvre ensuite l’accès à la machine.'},
+            'builder':          {t: 'Construire une formation',                 d: 'Côté admin : le parcours en étapes, le résultat après validation, et la checklist de mise en ligne.'},
+        } %}
+
+        <div class="tr-list">
+            {% for shot in shots %}
+                {% set l = legendes[shot.key]|default({t: shot.file, d: ''}) %}
+                <div class="tr-item">
+                    <div class="tr-head">
+                        <span class="tr-num">{{ loop.index }} / {{ shots|length }}</span>
+                        <h3>{{ l.t }}</h3>
+                    </div>
+                    {% if l.d %}<p>{{ l.d }}</p>{% endif %}
+                    <a href="{{ asset('images/references/formations/' ~ shot.file) }}" target="_blank" rel="noopener">
+                        <img src="{{ asset('images/references/formations/' ~ shot.file) }}"
+                             alt="Maquette de référence : {{ l.t }}" loading="lazy" decoding="async">
+                    </a>
+                    <p class="tr-file" style="margin-top:6px">{{ shot.file }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    {% endblock %}
+{% endembed %}
+{% endblock %}

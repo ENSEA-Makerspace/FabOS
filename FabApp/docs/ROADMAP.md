@@ -1033,6 +1033,29 @@ intentions).
 
 ---
 
+## 🅿️ Une planche de références, avec une DATE DE PÉREMPTION
+
+**Ajoutée le 2026-09-04 à la demande de l'opérateur** : onze maquettes LMS
+(catalogue, parcours, quiz, exercice pratique, validation par l'équipe, badge,
+constructeur de formation) dans `public/images/references/formations/`, visibles
+sur `/admin/references-formations`, derrière le drapeau de développement.
+
+🔴 **Elle enfreint à moitié une règle de la maison, et il faut le dire.** Le menu
+Développement s'est fait retirer trois maquettes en S159, parce qu'une
+proposition non implémentée n'a rien à faire à côté d'écrans réels. Celle-ci ne
+tient que pour deux raisons : elle **s'annonce** comme une planche dès sa
+première ligne, et elle n'a **aucun formulaire** — on ne peut pas la confondre
+avec le produit.
+
+⚠️ **Donc elle part.** Le jour où la phase Formations est écrite, ces images
+rejoignent son dossier de phase et l'écran disparaît — page, route, entrée de
+menu, images. Si cette ligne est encore là dans trois mois, c'est que la règle a
+été perdue de vue.
+
+⚠️ Non traduite, comme `/admin/pages-manquantes` : un écran d'outillage caché
+derrière le drapeau n'entre pas dans les cinq catalogues. Seule l'entrée de menu
+l'est.
+
 # Restes ouverts, hors phase
 
 ## Packages — ce qu'ils ne savent toujours pas dire
