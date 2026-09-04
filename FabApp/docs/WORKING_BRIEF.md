@@ -17,6 +17,14 @@
 
 ## Position
 
+🔴 **J-25 est RÉGLÉ le 2026-09-04**, et c'est le dernier des 25 défauts de la
+revue S147. « Accès complet » (#20) est attribué à l'audience `user` : la portée
+passe de **3 personnes à 9**, `machines` de **2 à 9**, et une membre non
+administratrice rend `canReserve: true`. ⚠️ La leçon vaut plus que le geste :
+S158/S159 avaient construit la route — groupes, forfaits, enforcement — mais
+**personne n'était dessus**. Un modèle complet dont aucune donnée n'emprunte le
+chemin se lit exactement comme une panne.
+
 🅿️ **Trois phases écrites le 2026-09-04, à faire :** **K** — les gabarits
 d'e-mail deviennent modifiables (S160–S162) ; **L** — annoncer un événement aux
 membres (S163–S164) ; **M** — les thèmes en profondeur (S165–S168). Les trois

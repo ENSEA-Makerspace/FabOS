@@ -77,7 +77,7 @@ pas le diff.
 
 | # | Défaut | État | Étape |
 |---|---|---|---|
-| **J-25** | 🔴🔴 **aucun membre ne peut réserver en ligne** — les 4 chokepoints répondent `DENIED / missing_package` à tout non-admin | ⏭️ **décision opérateur, tout de suite** | — |
+| **J-25** | ✅ **RÉGLÉ le 2026-09-04.** « Accès complet » (#20, les 4 capacités, SANS exemption d'horaires) est attribué à l'audience `user`. Mesuré : la portée passe de **3 personnes à 9**, et `machines` de **2 à 9**. ⚠️ S158/S159 avaient construit la route ; **personne n'était dessus** — un modèle complet dont aucune donnée n'emprunte le chemin se lit comme une panne | opérateur, 2026-09-04 | `app:j25:open-booking` |
 | **J-8** | un champ refusé fait ressaisir le reste | 🔶 **le chiffre de 15 était FAUX.** Au 2026-08-23 : **9 écrans prouvés sains** par un POST refusé (`app:s147:form-probe`, 13 sondes), 4 de plus convertis par le même mécanisme mais non sondés un par un. 🔴 **Reste `/profil`, branche « profil public » — le seul défaut prouvé, et il n'est pas admin** | S149 |
 | **J-9** | trois maquettes S103 en prod, titres en dur, clés brutes à l'écran | 🔶 partiel | S148 — ⏭️ décision opérateur |
 | **J-10** | formulaires les plus lourds | 🔶 **l'éditeur de packages : 28 champs visibles à l'arrivée → 7** (les 4 éditeurs « ajouter » repliés, 2026-08-24). Barème et chiffres dans `S149-REVUE.md` § qualité des formulaires. Restent `admin-formation-content` (35) et le taux d'aide de **20 %** | S149+ |
