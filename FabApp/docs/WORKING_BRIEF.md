@@ -17,6 +17,15 @@
 
 ## Position
 
+✅ **PHASE J CLOSE le 2026-09-05** — les 25 défauts de la revue S147 sont soldés.
+🔴 **Donc la barrière du commerce tombe.** J-8 (une saisie refusée ne se retape
+plus), J-5 (clos par la mesure : 544 sélecteurs locaux, 9 dupliqués dont 6
+artefacts) et J-10 (critère reformulé : le taux n'est pas l'objectif, les trois
+écrans restants sont chacun dans une phase qui les retouche).
+⚠️ **Ce que TU vérifies** : `ROADMAP.md`, § « Ce que l'opérateur vérifie —
+Phase J ». Sept gestes, dont le plus important : un compte passé à « inactif » ne
+doit plus pouvoir se connecter.
+
 🔴 **J-25 est RÉGLÉ le 2026-09-04**, et c'est le dernier des 25 défauts de la
 revue S147. « Accès complet » (#20) est attribué à l'audience `user` : la portée
 passe de **3 personnes à 9**, `machines` de **2 à 9**, et une membre non
