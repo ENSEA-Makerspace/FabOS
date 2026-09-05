@@ -31,9 +31,14 @@ de références et cinq phases neuves ont rendu la lecture linéaire impossible.
 | **K** | Gabarits d'e-mail modifiables | S160–S162 |
 | **L** | Annoncer un événement aux membres | S163–S164 |
 | **M** | Thèmes, en profondeur | S165–S168 |
+| **S** | Comptes, adhésion et confiance (MFA, récupération) | S189–S192 |
+| **T** | Surfaces restantes : prêts, recherche, rapports, créations | S193–S195 |
 | **R** | Commerce — **la dernière**, et bloquée par J | S184–S188 |
 
-🔴 **K, L et M gardent leurs numéros bas alors qu'elles passent après O–Q** : un
+⚠️ **R garde ses numéros bas en passant après S et T** : un numéro de session est
+une étiquette, pas un rang — la note ci-dessous vaut pour elle aussi.
+
+🔴 **K, L, M et R gardent leurs numéros bas alors qu'elles passent après O–Q** : un
 numéro de session est une ÉTIQUETTE, pas un rang. Les renuméroter chaque fois que
 l'ordre change ferait mentir chaque commit qui les cite.
 
@@ -1272,6 +1277,92 @@ le plus lourd du produit, et l'un des trois restes de la Phase J.
 - **Conformité** : mêmes outils, début et fin — et l'écran de contenu est le pire
   du produit pour `form_placement.py`, donc c'est la mesure qui dira si S181 a
   réussi.
+
+---
+
+# Les sept lots de références, et où va chaque planche
+
+**Le plan maître (`docs/references/MASTER.md`, 2026-09-05) apporte quatre lots de
+plus** — Utilisateurs, transverses, coordination, surfaces finales — soit **52
+maquettes et 13 documents** au total sur `/admin/references`.
+
+⚠️ **La règle de lecture ne change pas** : présentation de CONTENU, jamais le
+thème, et ce n'est pas une liste de tâches (voir en tête de la Phase O).
+
+## 🔴 Deux phases neuves seulement — le reste se RANGE
+
+Quatre lots ne veulent pas dire quatre phases. La plupart des planches complètent
+un chantier déjà planifié ; leur donner une phase à elles produirait deux plans
+pour un même écran.
+
+| Planche | Va dans |
+|---|---|
+| `01-evenements` | **Phase L** — elle porte déjà l'annonce aux membres |
+| `03-materiaux-equipement` | **Phase O, S174** — la matière ramenée à une seule vérité |
+| `04-maintenance` | **Phase O** — la file d'intervention, avec le lien machine |
+| `05-configuration`, `07-kiosque`, `01-accueil-configurable` | **Phase M** — le kiosque doit consommer le thème publié, c'est déjà son S168 |
+| `01-calendrier`, `02-rendez-vous-personne` | **Phase P** — réservation et créneaux |
+| `02-acces-exceptionnels` | **Phase P** — l'accès temporaire, motivé et audité |
+| `06-preferences-email` | **Phase K** — les préférences vivent avec les gabarits |
+| `04-mon-badge`, `04-recuperation-compte` | **Phase S** (neuve) |
+| `02-prets`, `06-creations`, `05-recherche`, `03-rapports` | **Phase T** (neuve) |
+| `03-groupes` | ✅ **Rien à faire : construit en S158/S159.** À COMPARER, pas à refaire — et si la planche montre mieux, c'est une amélioration de présentation, pas un modèle |
+
+## ⚠️ L'ordre du plan maître, et pourquoi je garde le mien
+
+Le maître propose : socle partagé → sécurité et droits → parcours principaux →
+exploitation → éditorial. **C'est un bon ordre, et il recoupe le nôtre à un
+décalage près** : son « socle partagé » est en grande partie la **Phase J**, qui
+se termine, et son « sécurité et droits » est le début de la **Phase O** (les
+trois P0) plus ce que S158/S159 ont déjà livré.
+🔴 **Ce que je garde du nôtre** : il est ancré sur ce qui existe VRAIMENT dans ce
+dépôt — les entités, les écrans, les défauts mesurés — là où le maître décrit un
+produit cible. Un plan qui ignore l'état du code se paie à la première session.
+
+---
+
+# Phase S — comptes, adhésion et confiance (S189–S192)
+
+D'après le lot `users` et deux planches de coordination.
+
+## Ce qui existe déjà, mesuré
+
+`Utilisateur`, l'inscription, `/profil`, la vérification d'e-mail, les groupes et
+leurs droits (S158/S159), l'annuaire `/admin/utilisateurs` avec ses filtres.
+🔴 **Ce qui n'existe pas** : le MFA, la gestion des sessions, une récupération de
+compte non divulguante, et un parcours d'adhésion.
+
+| Session | Livre | Ce qu'on mesure |
+|---|---|---|
+| **S189** | **L'entrée** : inscription courte qui annonce ses prochaines étapes, activation par e-mail avec renvoi et correction d'adresse — **sans impasse** | Une adresse mal tapée se corrige sans recréer un compte |
+| **S190** | **L'adhésion** : ne demander que ce qui est nécessaire, au moment où ça l'est. Et la **validation par l'équipe**, progressive et justifiable | Un compte en attente sait ce qui lui manque, et qui l'a validé |
+| **S191** | **Sécurité du profil** : sessions visibles et révocables, MFA. ⚠️ Et une **récupération de compte NON DIVULGUANTE** — la réponse est la même que l'adresse existe ou non | 🔴 Prouvé par une sonde : deux adresses, l'une connue l'autre non, réponses identiques |
+| **S192** | **Les droits EXPLIQUÉS** côté admin — par rôle, lieu, formation et durée — et « mon badge » sans identifiant sensible | Un admin répond à « pourquoi cette personne a-t-elle ce droit ? » **depuis l'écran** |
+
+## La passe de fond
+
+- **Réemploi** : `AudienceResolver` répond déjà « d'où vient ce droit » ; S192
+  l'AFFICHE, elle ne le recalcule pas.
+- ⚠️ **Aucun écran de ce lot ne doit exposer un UID de badge** — c'est le même
+  invariant que les kiosques.
+
+---
+
+# Phase T — les surfaces restantes (S193–S195)
+
+Ce qui n'appartient à aucune autre phase : prêts, créations, recherche, rapports.
+
+| Session | Livre | Ce qu'on mesure |
+|---|---|---|
+| **S193** | **Prêts** : la circulation de l'objet, la fiche cliquable, le retour. ⚠️ `LoanableItem` et l'archivage existent — c'est de la présentation, pas un modèle | Rendre un objet se fait depuis la fiche, pas depuis une liste |
+| **S194** | **Recherche globale** : résultats par type, navigation rapide. ⚠️ `/search` existe déjà | Un résultat ouvre toujours la fiche de son objet |
+| **S195** | **Rapports qui conduisent à une action**, et **créations** : une communauté sobre | Un rapport propose l'action qu'il suggère, au lieu de la décrire |
+
+## La passe de fond
+
+- 🔴 **C'est la phase où l'on vérifie que TOUT objet ouvre sa fiche** — le critère
+  de sortie que le plan maître pose pour chaque lot, et qui se mesure d'un seul
+  balayage.
 
 ---
 

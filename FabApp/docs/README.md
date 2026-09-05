@@ -13,6 +13,9 @@
 
 - `USAGE_RIGHTS_VISION.md` — modèle cible des droits, packages, réseau
 - `ARTEMIS_DEPLOYMENT.md` — la recette de déploiement, à suivre sans improviser
+- `references/` — les **sept lots de maquettes** et leurs revues, rendus sur
+  `/admin/references`. ⚠️ Présentation de CONTENU, jamais le thème ; et ce n'est
+  pas une liste de tâches. Où va chaque planche : `ROADMAP.md`, § « Les sept lots ».
 - `FABMANAGER-ECARTS.md` — ce que les utilisateurs d'un produit VOISIN réclament,
   et ce que FabOS en a déjà. ⚠️ Des données, pas un plan : le plus haut score du
   tableau est 18 votes

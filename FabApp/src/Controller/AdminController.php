@@ -2590,61 +2590,93 @@ final class AdminController extends AbstractController
     #[Route('/references', name: 'app_admin_references', methods: ['GET'])]
     public function references(MarkdownDocService $docs): Response
     {
-        // ⚠️ La liste est écrite ici et pas devinée depuis le dossier : un
-        // `glob()` afficherait n'importe quel fichier déposé là, dans l'ordre du
-        // système de fichiers, et sans légende. L'ordre ci-dessous est celui du
-        // PARCOURS — du catalogue jusqu'au badge — parce que c'est ainsi qu'on
-        // lit une référence, pas par ordre alphabétique.
-        $shots = [
-            ['file' => 'lms-training-catalogue.png', 'key' => 'catalogue'],
-            ['file' => 'lms-training-overview.png', 'key' => 'overview'],
-            ['file' => 'lms-my-trainings.png', 'key' => 'my_trainings'],
-            ['file' => 'lms-course-module.png', 'key' => 'module'],
-            ['file' => 'lms-quiz-question-types.png', 'key' => 'quiz_types'],
-            ['file' => 'lms-quiz-result-retry.png', 'key' => 'quiz_result'],
-            ['file' => 'lms-practical-exercise-file.png', 'key' => 'exercise'],
-            ['file' => 'lms-staff-practical-validation.png', 'key' => 'staff_validation'],
-            ['file' => 'lms-practical-validations-queue.png', 'key' => 'validation_queue'],
-            ['file' => 'lms-training-certificate-badge.png', 'key' => 'badge'],
-            ['file' => 'lms-training-builder.png', 'key' => 'builder'],
+        // ⚠️ **Sept lots, une seule boucle.** La première version répétait un
+        // bloc de gabarit par famille ; à trois lots c'était déjà de la copie, à
+        // sept c'en serait une garantie de divergence. La liste est ÉCRITE ici —
+        // pas devinée par `glob()`, qui afficherait n'importe quel fichier déposé
+        // là, sans légende et dans l'ordre du système de fichiers.
+        //
+        // ⚠️ L'ordre à l'intérieur d'un lot est celui du PARCOURS, donné par le
+        // README de chaque pack, pas l'ordre alphabétique.
+        $families = [
+            ['key' => 'formations', 'title' => 'Formations', 'phase' => 'Phase Q', 'docs' => [], 'shots' => [
+                ['lms-training-catalogue.png', 'Catalogue des formations', 'Le point d’entrée public : ce qu’un membre voit avant de s’engager.'],
+                ['lms-training-overview.png', 'Fiche d’une formation', 'Prochaine étape, progression, ce qu’on obtient — et, pour l’équipe, la file des validations pratiques.'],
+                ['lms-my-trainings.png', 'Mes formations', 'Ce qu’on a commencé, terminé, ou doit reprendre.'],
+                ['lms-course-module.png', 'Un module de cours', 'La lecture d’une étape théorique dans le parcours.'],
+                ['lms-quiz-question-types.png', 'Types de questions du quiz', 'Les formes de question que le quiz saurait poser.'],
+                ['lms-quiz-result-retry.png', 'Résultat de quiz et reprise', 'Ce qu’on montre après un quiz, et comment on repasse.'],
+                ['lms-practical-exercise-file.png', 'Exercice pratique et rendu', 'L’étape où l’apprenant produit quelque chose et le dépose.'],
+                ['lms-staff-practical-validation.png', 'Validation pratique par l’équipe', 'Le geste du staff : évaluer sur la machine.'],
+                ['lms-practical-validations-queue.png', 'File des validations', 'La liste de travail de l’équipe, filtrable.'],
+                ['lms-training-certificate-badge.png', 'Badge et attestation', 'Ce que la formation délivre, et qui ouvre la machine.'],
+                ['lms-training-builder.png', 'Construire une formation', 'Le parcours en étapes, le résultat, la checklist de mise en ligne.'],
+            ]],
+            ['key' => 'equipement', 'title' => 'Machines & boîtiers', 'phase' => 'Phase O', 'docs' => ['equipment-references', 'equipment-review'], 'shots' => [
+                ['equipment-operational-overview.png', 'Vue d’ensemble Équipement', 'Ce qui demande une action : maintenance, machines indisponibles, lecteurs hors ligne, refus.'],
+                ['equipment-access-incidents.png', 'Incidents d’accès RFID', 'Des refus ACTIONNABLES : la cause mène au membre, au badge, à la formation ou au lecteur.'],
+                ['equipment-reader-commissioning.png', 'Mise en service d’un lecteur', 'Créer, associer, révéler le secret UNE fois, vérifier la connexion.'],
+                ['equipment-reader-health.png', 'Santé d’un lecteur', 'État, test, rotation et révocation du secret, événements.'],
+                ['equipment-machine-member-detail.png', 'Fiche machine, côté membre', 'Ai-je le droit, quand puis-je réserver, avec quels matériaux, quelles consignes.'],
+                ['equipment-material-detail.png', 'Fiche d’un matériau', 'Et les machines réellement compatibles — la relation, pas le champ texte.'],
+                ['equipment-machine-operations.png', 'Zone Exploitation d’une machine', 'La moitié staff/admin, séparée du contenu public.'],
+                ['equipment-machine-kiosk.png', 'Kiosk public d’une machine', 'Thémé, et sans données personnelles.'],
+            ]],
+            ['key' => 'espaces', 'title' => 'Espaces & accès d’entrée', 'phase' => 'Phase P', 'docs' => ['spaces-references', 'spaces-review'], 'shots' => [
+                ['01-catalogue-espaces.png', 'Catalogue des espaces', 'La disponibilité lisible DÈS la carte — « Disponible à 14:00 » plutôt que « Occupé ».'],
+                ['02-detail-espace-reservation.png', 'Fiche d’un espace', 'Contenu, contraintes, créneau, et comment on entre.'],
+                ['03-parcours-reservation.png', 'Parcours de réservation', 'Confirmation courte et explicite.'],
+                ['04-exploitation-espaces.png', 'Exploitation des espaces', 'Une file d’action, pas un tableau de bord décoratif.'],
+                ['05-mise-en-service-point-acces.png', 'Mise en service d’un point d’accès', 'Appairage d’un boîtier de PORTE.'],
+                ['06-incidents-acces.png', 'Incidents d’accès', 'Actionnables, avec le minimum de données personnelles.'],
+                ['07-kiosque-entree.png', 'Kiosque d’entrée', 'Public : ni identité, ni UID de badge, ni secret.'],
+                ['08-mes-reservations.png', 'Mes réservations', 'La prochaine, et la fenêtre d’accès temporaire.'],
+            ]],
+            ['key' => 'users', 'title' => 'Comptes & adhésion', 'phase' => 'Phase S', 'docs' => ['users-references', 'users-review'], 'shots' => [
+                ['01-creation-compte.png', 'Création de compte', 'Inscription courte, prochaines étapes explicites.'],
+                ['02-confirmation-email.png', 'Confirmation par e-mail', 'Activation, renvoi et correction d’adresse — sans impasse.'],
+                ['03-profil-adhesion.png', 'Profil et adhésion', 'Ne compléter que ce qui est nécessaire, et choisir son adhésion.'],
+                ['04-accueil-membre.png', 'Accueil membre', 'Fondé sur la prochaine action utile.'],
+                ['05-profil-securite.png', 'Profil et sécurité', 'Sessions et MFA, sans exposer d’information sensible.'],
+                ['06-droits-et-acces-admin.png', 'Droits et accès, côté admin', 'Les droits EXPLIQUÉS par rôle, lieu, formation et durée.'],
+                ['07-validation-inscription.png', 'Validation d’une inscription', 'Progressive, justifiable, notifiée.'],
+                ['08-annuaire-utilisateurs.png', 'Annuaire des utilisateurs', 'Les filtres usuels à un clic.'],
+            ]],
+            ['key' => 'productwide', 'title' => 'Parcours transverses', 'phase' => 'réparties', 'docs' => ['productwide-references', 'productwide-review'], 'shots' => [
+                ['01-evenements.png', 'Événements', 'Découvrir, s’inscrire, retrouver billet et inscription.'],
+                ['02-prets.png', 'Prêts', 'La circulation de l’objet, la fiche cliquable, le retour.'],
+                ['03-materiaux-equipement.png', 'Matériaux et stock', 'Le stock relié à l’équipement et aux machines.'],
+                ['04-maintenance.png', 'Maintenance', 'Une file d’intervention avec le lien vers la machine.'],
+                ['05-configuration.png', 'Configuration', 'Les réglages comme point d’entrée cohérent.'],
+                ['06-creations.png', 'Créations', 'Une communauté sobre et utile.'],
+                ['07-kiosque.png', 'Kiosque', 'Accueil public réellement lié au thème.'],
+            ]],
+            ['key' => 'coordination', 'title' => 'Coordination & confiance', 'phase' => 'réparties', 'docs' => ['coordination-references', 'coordination-review'], 'shots' => [
+                ['01-calendrier.png', 'Calendrier', 'Multi-ressources, filtrable en un clic.'],
+                ['02-rendez-vous-personne.png', 'Rendez-vous avec une personne', 'Prendre rendez-vous avec un formateur ou un agent.'],
+                ['03-groupes.png', 'Groupes', 'Les droits collectifs, lisibles. ⚠️ Construit en S158/S159 — à comparer, pas à refaire.'],
+                ['04-mon-badge.png', 'Mon badge', 'Sans exposer d’identifiant sensible.'],
+                ['05-recherche.png', 'Recherche globale', 'Résultats par type, navigation rapide.'],
+                ['06-preferences-email.png', 'Préférences e-mail', 'Courtes, compréhensibles, sans dark pattern.'],
+            ]],
+            ['key' => 'finalsurface', 'title' => 'Surfaces finales & garde-fous', 'phase' => 'réparties', 'docs' => ['finalsurface-references', 'finalsurface-review'], 'shots' => [
+                ['01-accueil-configurable.png', 'Accueil configurable', 'Une homepage choisie et composée depuis Design.'],
+                ['02-acces-exceptionnels.png', 'Accès exceptionnels', 'Temporaire, motivé, limité et audité.'],
+                ['03-rapports.png', 'Rapports', 'Des rapports qui conduisent vers une action.'],
+                ['04-recuperation-compte.png', 'Récupération de compte', 'Courte, et non divulguante.'],
+            ]],
         ];
 
-        // ⚠️ **Équipement arrive avec DEUX documents**, pas seulement des images :
-        // un README qui donne l'ordre de lecture et une revue UX/sécurité. Ils
-        // sont rendus par `MarkdownDocService`, comme la feuille de route, plutôt
-        // que recopiés — une page qui recopie un document ment en une session.
-        $equipment = [
-            ['file' => 'equipment-operational-overview.png', 'key' => 'overview'],
-            ['file' => 'equipment-access-incidents.png', 'key' => 'incidents'],
-            ['file' => 'equipment-reader-commissioning.png', 'key' => 'commissioning'],
-            ['file' => 'equipment-reader-health.png', 'key' => 'health'],
-            ['file' => 'equipment-machine-member-detail.png', 'key' => 'member_detail'],
-            ['file' => 'equipment-material-detail.png', 'key' => 'material'],
-            ['file' => 'equipment-machine-operations.png', 'key' => 'operations'],
-            ['file' => 'equipment-machine-kiosk.png', 'key' => 'kiosk'],
-        ];
-
-        // ⚠️ Troisième lot (2026-09-04). Numérotés à la source, donc l'ordre du
-        // fichier EST l'ordre de lecture — contrairement aux deux autres lots.
-        $spaces = [
-            ['file' => '01-catalogue-espaces.png', 'key' => 'catalogue'],
-            ['file' => '02-detail-espace-reservation.png', 'key' => 'detail'],
-            ['file' => '03-parcours-reservation.png', 'key' => 'booking'],
-            ['file' => '04-exploitation-espaces.png', 'key' => 'operations'],
-            ['file' => '05-mise-en-service-point-acces.png', 'key' => 'commissioning'],
-            ['file' => '06-incidents-acces.png', 'key' => 'incidents'],
-            ['file' => '07-kiosque-entree.png', 'key' => 'kiosk'],
-            ['file' => '08-mes-reservations.png', 'key' => 'mine'],
-        ];
+        foreach ($families as $i => $family) {
+            $families[$i]['rendered'] = array_values(array_filter(array_map(
+                static fn (string $slug): ?string => $docs->render($slug),
+                $family['docs'],
+            )));
+        }
 
         return $this->render('site/admin-references.html.twig', [
-            'shots' => $shots,
-            'equipment' => $equipment,
-            'equipmentReadme' => $docs->render('equipment-references'),
-            'equipmentReview' => $docs->render('equipment-review'),
-            'spaces' => $spaces,
-            'spacesReadme' => $docs->render('spaces-references'),
-            'spacesReview' => $docs->render('spaces-review'),
+            'families' => $families,
+            'master' => $docs->render('references-master'),
         ]);
     }
 

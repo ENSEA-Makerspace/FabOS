@@ -43,6 +43,15 @@ final class MarkdownDocService
         'equipment-review' => 'references/equipement/REVIEW-SOL.md',
         'spaces-references' => 'references/espaces/README.md',
         'spaces-review' => 'references/espaces/REVIEW-SOL.md',
+        'users-references' => 'references/users/README.md',
+        'users-review' => 'references/users/REVIEW.md',
+        'productwide-references' => 'references/productwide/README.md',
+        'productwide-review' => 'references/productwide/REVIEW.md',
+        'coordination-references' => 'references/coordination/README.md',
+        'coordination-review' => 'references/coordination/REVIEW.md',
+        'finalsurface-references' => 'references/finalsurface/README.md',
+        'finalsurface-review' => 'references/finalsurface/REVIEW.md',
+        'references-master' => 'references/MASTER.md',
     ];
 
     public function __construct(private readonly string $projectDir)

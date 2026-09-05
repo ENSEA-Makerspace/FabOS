@@ -82,138 +82,52 @@
             dérive des améliorations, pas huit écrans d’un coup.</p>
         </div>
 
-        <p class="tr-intro">Trois lots, un par phase à venir — <strong>Formations</strong>,
-        <strong>Machines &amp; boîtiers</strong>, <strong>Espaces &amp; accès</strong>. Chacun est rangé
-        dans l’ordre du <strong>parcours</strong>, et non par nom de fichier : c’est
-        ainsi qu’on lit une référence.</p>
+        <p class="tr-intro"><strong>Sept lots</strong>, rangés chacun dans l’ordre du
+        <strong>parcours</strong> donné par son README, et non par nom de fichier :
+        c’est ainsi qu’on lit une référence. Le titre de chaque lot dit quelle
+        phase s’en sert.</p>
 
-        <h2 class="tr-family">Formations — onze planches</h2>
+        {% if master %}
+            <details class="tr-doc">
+                <summary>Plan maître — les sept lots et l’ordre d’exécution proposé</summary>
+                <div class="tr-doc-body">{{ master|raw }}</div>
+            </details>
+        {% endif %}
 
-        {% set legendes = {
-            'catalogue':        {t: 'Catalogue des formations',                 d: 'Le point d’entrée public : ce qu’un membre voit avant de s’engager.'},
-            'overview':         {t: 'Fiche d’une formation',                    d: 'Prochaine étape, progression, ce qu’on obtient à la fin — et, pour l’équipe, la file des validations pratiques.'},
-            'my_trainings':     {t: 'Mes formations',                           d: 'La vue de l’apprenant sur ce qu’il a commencé, terminé, ou doit reprendre.'},
-            'module':           {t: 'Un module de cours',                       d: 'La lecture d’une étape théorique à l’intérieur du parcours.'},
-            'quiz_types':       {t: 'Types de questions du quiz',               d: 'Les formes de question que le quiz saurait poser.'},
-            'quiz_result':      {t: 'Résultat de quiz et reprise',              d: 'Ce qu’on montre après un quiz, et comment on repasse.'},
-            'exercise':         {t: 'Exercice pratique et rendu de fichier',    d: 'L’étape où l’apprenant produit quelque chose et le dépose.'},
-            'staff_validation': {t: 'Validation pratique par l’équipe',         d: 'Le geste du staff : évaluer un apprenant sur la machine.'},
-            'validation_queue': {t: 'File des validations à faire',             d: 'La liste de travail de l’équipe, filtrable par formation, sous-lieu et statut.'},
-            'badge':            {t: 'Badge et attestation',                     d: 'Ce que la formation délivre, et qui ouvre ensuite l’accès à la machine.'},
-            'builder':          {t: 'Construire une formation',                 d: 'Côté admin : le parcours en étapes, le résultat après validation, et la checklist de mise en ligne.'},
-        } %}
 
-        <div class="tr-list">
-            {% for shot in shots %}
-                {% set l = legendes[shot.key]|default({t: shot.file, d: ''}) %}
-                <div class="tr-item">
-                    <div class="tr-head">
-                        <span class="tr-num">{{ loop.index }} / {{ shots|length }}</span>
-                        <h3>{{ l.t }}</h3>
-                    </div>
-                    {% if l.d %}<p>{{ l.d }}</p>{% endif %}
-                    <a href="{{ asset('images/references/formations/' ~ shot.file) }}" target="_blank" rel="noopener">
-                        <img src="{{ asset('images/references/formations/' ~ shot.file) }}"
-                             alt="Maquette de référence : {{ l.t }}" loading="lazy" decoding="async">
-                    </a>
-                    <p class="tr-file" style="margin-top:6px">{{ shot.file }}</p>
-                </div>
+
+        {# ⚠️ **Une boucle, sept lots.** La version d'avant répétait un bloc par
+           famille : à trois lots c'était de la copie, à sept ce serait une
+           divergence garantie. Le contrôleur porte les légendes et l'ordre. #}
+        {% for family in families %}
+            <h2 class="tr-family">{{ family.title }} — {{ family.shots|length }} planches{% if family.rendered %}, et {{ family.rendered|length }} document{{ family.rendered|length > 1 ? 's' : '' }}{% endif %}
+                <span class="tr-num">{{ family.phase }}</span>
+            </h2>
+
+            {% for doc in family.rendered %}
+                <details class="tr-doc">
+                    <summary>{{ loop.first ? 'README — l’ordre de lecture et les invariants' : 'Revue — constats, priorités et direction' }}</summary>
+                    <div class="tr-doc-body">{{ doc|raw }}</div>
+                </details>
             {% endfor %}
-        </div>
 
-        <h2 class="tr-family">Machines &amp; boîtiers — huit planches, et deux documents</h2>
-
-        {# ⚠️ **Ce lot arrive avec des DOCUMENTS, pas seulement des images** : un
-           README qui donne l'ordre de lecture et les invariants, et une revue
-           UX/sécurité qui liste des constats P0. Ils sont RENDUS depuis
-           `docs/references/equipement/`, jamais recopiés ici — une page qui
-           recopie un document se met à mentir en une session, ce que
-           `StaticPageController` dit déjà de la feuille de route. #}
-        {% if equipmentReadme %}
-            <details class="tr-doc">
-                <summary>README — l’ordre de lecture et les invariants</summary>
-                <div class="tr-doc-body">{{ equipmentReadme|raw }}</div>
-            </details>
-        {% endif %}
-        {% if equipmentReview %}
-            <details class="tr-doc">
-                <summary>Revue Sol — parcours, P0 sécurité, direction recommandée</summary>
-                <div class="tr-doc-body">{{ equipmentReview|raw }}</div>
-            </details>
-        {% endif %}
-
-        {% set legendesEq = {
-            'overview':      {t: 'Vue d’ensemble Équipement',        d: 'L’entrée admin : ce qui demande une action — maintenance, machines indisponibles, lecteurs hors ligne, refus récents.'},
-            'incidents':     {t: 'Incidents d’accès RFID',           d: 'Des refus rendus ACTIONNABLES : une cause mène vers le membre, le badge, la formation, le lecteur ou la machine.'},
-            'commissioning': {t: 'Mise en service d’un lecteur',     d: 'Créer, associer, révéler le secret UNE fois, vérifier la première connexion.'},
-            'health':        {t: 'Santé d’un lecteur',               d: 'État, test, rotation et révocation du secret, événements récents.'},
-            'member_detail': {t: 'Fiche machine, côté membre',       d: 'Orientée tâche : ai-je le droit, quand puis-je réserver, avec quels matériaux, quelles consignes.'},
-            'material':      {t: 'Fiche d’un matériau',              d: 'Et les machines réellement compatibles — la relation, pas le champ texte.'},
-            'operations':    {t: 'Zone Exploitation d’une machine',  d: 'La moitié staff/admin : santé, maintenance, lecteur, derniers refus, corrections.'},
-            'kiosk':         {t: 'Kiosk public d’une machine',       d: 'Thémé, et SANS données personnelles.'},
-        } %}
-
-        <div class="tr-list">
-            {% for shot in equipment %}
-                {% set l = legendesEq[shot.key]|default({t: shot.file, d: ''}) %}
-                <div class="tr-item">
-                    <div class="tr-head">
-                        <span class="tr-num">{{ loop.index }} / {{ equipment|length }}</span>
-                        <h3>{{ l.t }}</h3>
+            <div class="tr-list">
+                {% for shot in family.shots %}
+                    <div class="tr-item">
+                        <div class="tr-head">
+                            <span class="tr-num">{{ loop.index }} / {{ family.shots|length }}</span>
+                            <h3>{{ shot[1] }}</h3>
+                        </div>
+                        <p>{{ shot[2] }}</p>
+                        <a href="{{ asset('images/references/' ~ family.key ~ '/' ~ shot[0]) }}" target="_blank" rel="noopener">
+                            <img src="{{ asset('images/references/' ~ family.key ~ '/' ~ shot[0]) }}"
+                                 alt="Maquette de référence : {{ shot[1] }}" loading="lazy" decoding="async">
+                        </a>
+                        <p class="tr-file" style="margin-top:6px">{{ shot[0] }}</p>
                     </div>
-                    {% if l.d %}<p>{{ l.d }}</p>{% endif %}
-                    <a href="{{ asset('images/references/equipement/' ~ shot.file) }}" target="_blank" rel="noopener">
-                        <img src="{{ asset('images/references/equipement/' ~ shot.file) }}"
-                             alt="Maquette de référence : {{ l.t }}" loading="lazy" decoding="async">
-                    </a>
-                    <p class="tr-file" style="margin-top:6px">{{ shot.file }}</p>
-                </div>
-            {% endfor %}
-        </div>
-
-        <h2 class="tr-family">Espaces &amp; accès d’entrée — huit planches, et deux documents</h2>
-
-        {% if spacesReadme %}
-            <details class="tr-doc">
-                <summary>README — le parcours cible et les règles de produit</summary>
-                <div class="tr-doc-body">{{ spacesReadme|raw }}</div>
-            </details>
-        {% endif %}
-        {% if spacesReview %}
-            <details class="tr-doc">
-                <summary>Revue Sol — frictions chiffrées, P0 modèle et sécurité</summary>
-                <div class="tr-doc-body">{{ spacesReview|raw }}</div>
-            </details>
-        {% endif %}
-
-        {% set legendesEs = {
-            'catalogue':     {t: 'Catalogue des espaces',            d: 'La disponibilité lisible DÈS la carte — « Disponible à 14:00 » plutôt que « Occupé ».'},
-            'detail':        {t: 'Fiche d’un espace, et réservation', d: 'La décision : ce qu’il contient, ses contraintes, le créneau, et comment on entre.'},
-            'booking':       {t: 'Parcours de réservation',           d: 'Confirmation courte et explicite.'},
-            'operations':    {t: 'Exploitation des espaces',          d: 'Une file d’action pour l’équipe — réservations proches, fermetures, points hors ligne, refus — pas un tableau de bord décoratif.'},
-            'commissioning': {t: 'Mise en service d’un point d’accès', d: 'Appairage d’un boîtier de PORTE : créer, associer, révéler le secret une fois, tester.'},
-            'incidents':     {t: 'Incidents d’accès',                 d: 'Actionnables, et avec le minimum de données personnelles.'},
-            'kiosk':         {t: 'Kiosque d’entrée',                  d: 'Écran public : ni identité, ni UID de badge, ni journal, ni secret.'},
-            'mine':          {t: 'Mes réservations',                  d: 'La prochaine réservation et la fenêtre d’accès temporaire, visibles tout de suite.'},
-        } %}
-
-        <div class="tr-list">
-            {% for shot in spaces %}
-                {% set l = legendesEs[shot.key]|default({t: shot.file, d: ''}) %}
-                <div class="tr-item">
-                    <div class="tr-head">
-                        <span class="tr-num">{{ loop.index }} / {{ spaces|length }}</span>
-                        <h3>{{ l.t }}</h3>
-                    </div>
-                    {% if l.d %}<p>{{ l.d }}</p>{% endif %}
-                    <a href="{{ asset('images/references/espaces/' ~ shot.file) }}" target="_blank" rel="noopener">
-                        <img src="{{ asset('images/references/espaces/' ~ shot.file) }}"
-                             alt="Maquette de référence : {{ l.t }}" loading="lazy" decoding="async">
-                    </a>
-                    <p class="tr-file" style="margin-top:6px">{{ shot.file }}</p>
-                </div>
-            {% endfor %}
-        </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
     {% endblock %}
 {% endembed %}
 {% endblock %}
