@@ -25,7 +25,7 @@ de références et cinq phases neuves ont rendu la lecture linéaire impossible.
 |---|---|---|
 | **J** | ✅ **CLOSE le 2026-09-05** — les 25 défauts | S169 |
 | **N** | le cleanup, et **J se ferme** | S169–S170 |
-| **O** | Machines & boîtiers (dont les 3 P0 de sécurité) | S171–S174 |
+| ~~**O**~~ | ~~Machines & boîtiers~~ — ✅ **CLOSE le 2026-09-05** | S171–S174 |
 | **P** | Espaces & accès d'entrée (dont `AccessPoint`) | S175–S178 |
 | **Q** | Formations (absorbe la messagerie de cohorte) | S179–S183 |
 | **K** | Gabarits d'e-mail modifiables | S160–S162 |
@@ -1201,7 +1201,7 @@ Espaces, les trois P0 des boîtiers par la phase Machines.
 
 ---
 
-# Phase O — Machines & boîtiers (S171–S174)
+# Phase O — Machines & boîtiers (S171–S174) — ✅ **CLOSE le 2026-09-05**
 
 **Planifiée le 2026-09-04**, d'après les huit planches et la revue Sol
 (`/admin/references`). Absorbe les **trois P0 de sécurité** vérifiés le même jour.
@@ -1261,9 +1261,13 @@ la session a livré autre chose que ce qu'elle annonce.
 | **S171** | n'importe quel navigateur | `POST https://fabos.dstei.fr/api/rfid/machines/1/authorization` **sans** en-tête de jeton rend **503 `device_api_not_configured`**, pas une autorisation. ⚠️ La route est `/authorization` — j'ai d'abord testé `/access`, qui n'existe pas, et pris son 404 pour une preuve |
 | **S172** | `/admin/rfid-readers` | La colonne Statut ne dit **jamais « Actif »** sur un boîtier muet depuis plus d'une heure. Le lecteur de la boîte (silencieux depuis le 2026-07-10) doit lire **« Hors ligne »**, pas « Actif » |
 | **S172** | même page | ⚠️ Le seuil d'une heure est un **choix**, pas une mesure — aucun boîtier ne tourne, personne ne connaît leur cadence. S'il te paraît trop court ou trop long, c'est un réglage, dis-le |
-| **S173** | `/machines/{id}` en membre | « Puis-je l'utiliser ? » se répond **sans quitter la page** et sans lire un tableau d'admin |
-| **S173** | `/machines/{id}` en admin | Les outils d'exploitation sont dans **une** zone identifiée, et rien de cette zone n'apparaît au membre |
-| **S174** | `/machines/{id}` d'une machine sans matériaux saisis | Elle n'annonce **rien**, et surtout pas « PLA, PETG, TPU, Support » — la liste codée en dur qui faisait qu'une découpeuse laser annonçait du filament |
+| **S173** ✅ | `/machines/{id}` en membre | La carte **« Puis-je l'utiliser ? »** est la PREMIÈRE de l'onglet, avant la description. Elle s'appelait « Badges requis » et empruntait le libellé du KIOSQUE, écrit pour un mur |
+| **S173** ✅ | `/machines/{id}` en admin | Une zone **Exploitation** en bas de l'onglet : compteurs, liens staff, informations techniques. ⚠️ En anonyme, **zéro balise** de cette zone — vérifié au rendu, pas seulement à la lecture |
+| **S173** ✅ | `/machines/{id}` et `/formations/{id}` en **anglais** | Les libellés « Bookings: », « Enrolled: », « Completed: » sont bien là. 🔴 Ils **disparaissaient** : un `%count%` numérique fait lire le message comme une forme plurielle, et Symfony jette ce qui précède les deux-points quand c'est un seul mot. Le français y échappait par sa typographie — donc les quatre AUTRES langues étaient seules cassées. `tools/i18n/count_colon.py` l'interdit maintenant |
+| **S174** ✅ | `/machines/{id}` d'une machine sans matériaux saisis | Elle n'annonce **rien** — plus « PLA, PETG, TPU, Support ». ⚠️ **Aucune machine d'ici n'a le champ vide** : le défaut était une mine pour une installation neuve. Prouvé en vidant puis en remettant la machine 10 au bit près |
+| **S174** ✅ | `/machines/{id}` | **Une seule** section matériaux. Il y en avait deux, côte à côte, l'une sur le texte libre et l'autre sur `MACHINE_MATERIAL` |
+| **S174** ✅ | `/materiaux`, puis un clic sur un matériau | On arrive sur **sa fiche**, avec les machines qui l'acceptent, cliquables. Avant, chaque carte renvoyait à la liste d'où l'on venait de cliquer |
+| **S174** ✅ | `GET /api/machines/5` **sans être connecté** | `machineToken` vaut **null**. 🔴 Il valait `"prusa-mk3s-01"` — le segment qui adresse la machine sur l'API des boîtiers, publié à qui passait. ✅ Pas un contournement : S171 a rendu cette API `fail-closed`. Une divulgation inutile, pas une porte ouverte |
 ## La passe de fond de cette phase
 
 ⚠️ Une phase qui ne fait que sa fonctionnalité laisse le socle où il était.
