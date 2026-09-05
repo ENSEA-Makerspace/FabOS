@@ -515,6 +515,20 @@ final class NavBuilder
                 $this->adminItem('admin_nav.entry.app_admin_places', 'app_admin_places', 'machines', [
                     'app_admin_place_new', 'app_admin_place_edit',
                 ]),
+                /*
+                 * ⚠️ **S175 — dans « Espaces », pas dans « Équipement ».** Un point
+                 * d'accès est une porte, un portail, un casier : il appartient au
+                 * lieu, pas au parc de machines. Le rattacher au menu Équipement
+                 * parce que son BOÎTIER ressemble à celui d'une machine aurait
+                 * reproduit à l'écran l'erreur de modèle que cette phase corrige.
+                 * ⚠️ Et pas de `feature:` : il n'y a pas de module « points
+                 * d'accès », et en inventer un ferait une clé inconnue —
+                 * `isEnabled()` rend TRUE pour celles-là, donc une garde qui
+                 * n'en est pas une.
+                 */
+                $this->adminItem('admin_nav.entry.app_admin_access_points', 'app_admin_access_points', 'machines', [
+                    'app_admin_access_point_new', 'app_admin_access_point_edit',
+                ]),
                 $this->adminItem('admin_nav.entry.app_admin_reservations', 'app_admin_reservations', 'reservations', feature: 'bookings', params: ['reservableType' => 'place']),
                 $this->adminItem('admin_nav.entry.app_admin_booking_policies', 'app_admin_booking_policies', 'reservations', feature: 'bookings', params: ['reservableType' => 'place']),
                 $this->adminItem('admin_nav.entry.app_admin_reporting', 'app_admin_reporting', 'usage', params: ['workspace' => 'spaces']),

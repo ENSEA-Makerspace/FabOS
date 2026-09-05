@@ -25,6 +25,7 @@ use App\Entity\EventCategory;
 use App\Entity\MachineCategory;
 use App\Entity\MaintenanceTask;
 use App\Entity\Material;
+use App\Entity\AccessPoint;
 use App\Entity\Place;
 use App\Entity\MachineBadge;
 use App\Entity\OpeningHour;
@@ -67,6 +68,7 @@ use App\Form\FormationAdminType;
 use App\Form\InstitutionAdminType;
 use App\Form\LabPageAdminType;
 use App\Form\MachineAdminType;
+use App\Form\AccessPointAdminType;
 use App\Form\PlaceAdminType;
 use App\Form\RfidReaderAdminType;
 use App\Form\UserAdminType;
@@ -89,6 +91,7 @@ use App\Repository\MachineRepository;
 use App\Repository\MaintenanceTaskRepository;
 use App\Repository\MaterialRepository;
 use App\Repository\OpeningHourRepository;
+use App\Repository\AccessPointRepository;
 use App\Repository\PlaceRepository;
 use App\Repository\ProgressionRepository;
 use App\Repository\ReservationRepository;
@@ -4629,6 +4632,170 @@ final class AdminController extends AbstractController
         ]);
     }
 
+    /*
+     * ═══ S175 — LES POINTS D'ACCÈS ═══════════════════════════════════════════
+     *
+     * 🔴 **Pourquoi un écran à part et pas une case sur la fiche machine.** Un
+     * boîtier était rattaché OBLIGATOIREMENT à une machine, donc représenter la
+     * porte d'entrée imposait d'inventer une machine fictive — qui serait
+     * apparue dans le catalogue, les réservations, les statistiques et les
+     * kiosques, et que chaque écran aurait dû apprendre à ignorer.
+     *
+     * ⚠️ Ces quatre actions sont volontairement le décalque de `PLACE` : même
+     * garde, même `extractFilters`, même archive-au-lieu-de-supprimer, même
+     * jeton CSRF. Un cinquième dialecte de CRUD dans ce contrôleur serait un
+     * endroit de plus où la règle « archivé, pas supprimé » peut manquer.
+     */
+    #[Route('/access-points', name: 'app_admin_access_points', methods: ['GET'])]
+    public function accessPoints(Request $request, AccessPointRepository $points, VenueContext $venueContext): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $context = $venueContext->forRequest($request, $this->getUser() instanceof Utilisateur ? $this->getUser() : null);
+        $filters = $this->extractFilters($request, ['q', 'kind']);
+
+        $allRows = $points->findForAdmin();
+        if ($context['selected'] !== null) {
+            $allRows = array_values(array_filter(
+                $allRows,
+                static fn (AccessPoint $point): bool => $point->getVenue()?->getId() === $context['selected']->getId(),
+            ));
+        }
+
+        $rows = array_values(array_filter($allRows, static function (AccessPoint $point) use ($filters): bool {
+            $haystack = mb_strtolower(implode(' ', array_filter([
+                $point->getNom(), $point->getLocalisation(), $point->getPlace()?->getNom(),
+            ])));
+
+            return ($filters['q'] === '' || str_contains($haystack, mb_strtolower($filters['q'])))
+                && ($filters['kind'] === '' || $point->getKind() === $filters['kind']);
+        }));
+
+        /*
+         * ⚠️ **Les pastilles se comptent sur l'ensemble NON filtré**, comme
+         * partout : choisir « porte » ne doit pas mettre les autres natures à
+         * zéro, sinon on ne peut plus revenir. Même règle que les catégories de
+         * machines.
+         */
+        $kindCounts = [];
+        foreach ($allRows as $point) {
+            $kindCounts[$point->getKind()] = ($kindCounts[$point->getKind()] ?? 0) + 1;
+        }
+        // ⚠️ Le contrôleur pose une CLÉ de traduction, pas un libellé : ce
+        // contrôleur n'a pas de traducteur injecté, et surtout un libellé calculé
+        // en PHP échapperait aux outils de parité i18n.
+        $tiles = [[
+            'label_key' => 'admin_list.all',
+            'count' => \count($allRows),
+            'query' => ['kind' => ''],
+            'active' => $filters['kind'] === '',
+        ]];
+        foreach (AccessPoint::KINDS as $kind) {
+            if (!isset($kindCounts[$kind])) {
+                continue;
+            }
+            $tiles[] = [
+                'label_key' => 'access_points.kind_' . $kind,
+                'count' => $kindCounts[$kind],
+                'query' => ['kind' => $kind],
+                'active' => $filters['kind'] === $kind,
+            ];
+        }
+
+        return $this->render('site/admin-access-points.html.twig', [
+            'points' => $rows,
+            'pointTotal' => \count($allRows),
+            'venueContext' => $context,
+            'filters' => $filters,
+            'kindTiles' => $tiles,
+        ]);
+    }
+
+    #[Route('/access-points/new', name: 'app_admin_access_point_new', methods: ['GET', 'POST'])]
+    public function newAccessPoint(Request $request, EntityManagerInterface $entityManager, VenueRepository $venues): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $point = new AccessPoint();
+        $point->setVenue($this->requireDefaultVenue($venues));
+        $form = $this->createForm(AccessPointAdminType::class, $point);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($point);
+            $entityManager->flush();
+            $this->addFlash('success', ['flash.point_acces_cree', ['%p1%' => $point->getNom()]]);
+
+            return $this->redirectToRoute('app_admin_access_points');
+        }
+
+        // ⚠️ 422 sur un refus, comme partout : un 200 dit au navigateur que la
+        // soumission a réussi, et l'historique se comporte ensuite comme si.
+        return $this->render('site/admin-access-point-form.html.twig', [
+            'point' => $point,
+            'form' => $form,
+            'mode' => 'new',
+        ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
+    }
+
+    #[Route('/access-points/{id}/edit', name: 'app_admin_access_point_edit', requirements: ['id' => '\\d+'], methods: ['GET', 'POST'])]
+    public function editAccessPoint(AccessPoint $point, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $form = $this->createForm(AccessPointAdminType::class, $point);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+            $this->addFlash('success', ['flash.point_acces_mis_a_jour', ['%p1%' => $point->getNom()]]);
+
+            return $this->redirectToRoute('app_admin_access_points');
+        }
+
+        return $this->render('site/admin-access-point-form.html.twig', [
+            'point' => $point,
+            'form' => $form,
+            'mode' => 'edit',
+        ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
+    }
+
+    /**
+     * ⚠️ **Archiver, jamais supprimer** — S147/J-2. Les journaux d'accès nomment
+     * le lecteur, qui nomme la porte : détruire la ligne laisserait des entrées
+     * de journal dont plus personne ne sait de quelle entrée elles parlent.
+     *
+     * 🔴 **Et archiver une porte NE DÉTACHE PAS ses boîtiers.** Un lecteur qui
+     * la commande garde son `accessPointId` : il reste associé, il reste
+     * visible, et son état passe par la case « point archivé » plutôt que de
+     * devenir « non associé » sans que personne n'ait rien débranché. La
+     * restauration remet donc exactement l'état d'avant.
+     */
+    #[Route('/access-points/{id}/archive', name: 'app_admin_access_point_archive', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    public function archiveAccessPoint(AccessPoint $point, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if (!$this->isCsrfTokenValid('archive_access_point_' . $point->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'flash.suppression_refusee_token_csrf_invalide');
+
+            return $this->redirectToRoute('app_admin_access_points');
+        }
+
+        $name = $point->getNom();
+        if ($point->isArchived()) {
+            $point->restore();
+            $entityManager->flush();
+            $this->addFlash('success', ['flash.element_restaure', ['%p1%' => $name]]);
+        } else {
+            $point->archive();
+            $entityManager->flush();
+            $this->addFlash('success', ['flash.element_archive', ['%p1%' => $name]]);
+        }
+
+        return $this->redirectToRoute('app_admin_access_points');
+    }
+
     #[Route('/rfid-readers', name: 'app_admin_rfid_readers', methods: ['GET'])]
     public function rfidReaders(RfidReaderRepository $readers, ReaderHealth $health): Response
     {
@@ -5248,8 +5415,12 @@ final class AdminController extends AbstractController
     private function generateUniqueReaderToken(RfidReader $reader, RfidReaderRepository $readers): string
     {
         $baseSource = $reader->getName();
-        if ($baseSource === '' && $reader->getMachine() !== null) {
-            $baseSource = $reader->getMachine()->getMachineToken();
+        if ($baseSource === '') {
+            // ⚠️ S175 — le repli lisait le jeton de la MACHINE, donc un boîtier
+            // de porte créé sans nom serait tombé sur `reader-` tout court, puis
+            // `reader--2`, `reader--3`… La cible sait se nommer, quelle qu'elle
+            // soit ; c'est `targetLabel()` qui répond.
+            $baseSource = $reader->getMachine()?->getMachineToken() ?? (string) $reader->targetLabel();
         }
 
         $base = $this->slugify($baseSource);

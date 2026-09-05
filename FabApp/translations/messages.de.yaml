@@ -437,7 +437,6 @@ profile:
     badges_empty: "Über Schulungen erhaltene Abzeichen erscheinen hier."
     reservations_history: "Reservierungsverlauf"
     filter_all: "Alle"
-    col_machine: "Maschine"
     col_date: "Datum"
     col_time: "Uhrzeit"
     col_reason: "Grund"
@@ -509,6 +508,7 @@ profile:
     mode_dark: "Dunkler Modus"
     mode_light: "Heller Modus"
     browser_title: "%name% - FabOS-Profil"
+    col_machine: "Maschine"
 
 leaderboard:
     title: "Die %venue%-Rangliste"
@@ -1494,7 +1494,6 @@ adm:
     col_end: "Ende"
     col_link: "Link"
     col_location: "Standort"
-    col_machine: "Maschine"
     col_name: "Name"
     col_photos: "Fotos"
     col_start: "Beginn"
@@ -1529,6 +1528,7 @@ adm:
     restore_record_confirm: "„%name%“ wiederherstellen?"
     restore_record_notice: "Der Eintrag kehrt in Listen und Kataloge zurück."
     view: "Ansehen"
+    col_machine: "Maschine"
 
 usage_rights:
     spec_heading: "Was dieses Nutzungspaket erlaubt"
@@ -1935,6 +1935,7 @@ admin_nav:
         app_admin_loanable_items: Gegenstände
         app_admin_loans: Ausleihen
         app_admin_places: Räume
+        app_admin_access_points: "Zugangspunkte"
         app_admin_formations: Schulungen
         app_admin_badges: Abzeichen
         app_admin_creations: Projekte
@@ -2169,6 +2170,54 @@ rfid_delete:
     confirm: "Endgültig löschen"
 
 # Tableau de bord admin — S134c.
+access_points:
+    browser_title: "Zugangspunkte - FabOS Admin"
+    list_panel: "Alle Zugangspunkte"
+    list_description: "Die Türen, Tore, Schließfächer und Zonen im %venue%, die ein Lesegerät steuern kann."
+    list_action: "Zugangspunkt hinzufügen"
+    facet_kind: "Art"
+    col_name: "Name"
+    col_kind: "Art"
+    col_opens: "Öffnet"
+    col_state: "Zustand"
+    col_actions: "Aktionen"
+    empty: "Noch kein Zugangspunkt vorhanden."
+    opens_nothing: "Kein bestimmter Raum"
+    state_live: "Aktiv"
+    kind_door: "Tür"
+    kind_gate: "Tor"
+    kind_locker: "Schließfach"
+    kind_zone: "Zone"
+    new_browser_title: "Zugangspunkt erstellen - FabOS"
+    edit_browser_title: "Zugangspunkt bearbeiten - FabOS"
+    new_title: "Zugangspunkt erstellen"
+    edit_title: "Zugangspunkt bearbeiten"
+    new_subtitle: "Eine Tür, ein Tor, ein Schließfach oder eine Zone, die ein Lesegerät steuert."
+    panel_new: "Neuer Zugangspunkt"
+    panel_edit: "Der Zugangspunkt"
+    back: "Zurück zu den Zugangspunkten"
+    section_identity: "Identität"
+    section_location: "Wo er sich befindet"
+    field_name: "Name"
+    field_kind: "Art"
+    field_description: "Beschreibung"
+    field_venue: "Standort"
+    field_place: "Geöffneter Raum"
+    field_localisation: "Anhaltspunkt vor Ort"
+    ph_place: "Kein bestimmter Raum"
+    help_name: "Der Name, den das Team sieht — „Eingangstür\", „Tor Holzwerkstatt\"."
+    help_kind: "Was es physisch ist. Dient der Gruppierung, nie einer Berechtigung."
+    help_description: "Wozu dieser Zugangspunkt dient und was man wissen muss, bevor man ein Lesegerät anschließt."
+    help_venue: "Der Standort, zu dem dieser Punkt gehört. Danach filtern die Listen."
+    help_place: "Der Raum, den dieser Punkt öffnet, sofern er einen öffnet. Ein Eingangstor öffnet keinen bestimmten — leer lassen ist eine Antwort."
+    help_localisation: "Wo er im Gebäude zu finden ist — „Flur B, Ebene 1\"."
+    archive: "Diesen Zugangspunkt archivieren"
+    restore: "Diesen Zugangspunkt reaktivieren"
+    archive_notice: "Er verlässt die Listen und die Lesegerät-Auswahl. Nichts wird gelöscht: Zugangsprotokolle nennen ihn weiterhin, und Lesegeräte behalten ihre Zuordnung."
+    restore_notice: "Er ist wieder wählbar, mit genau den Lesegeräten, die er hatte."
+    archive_confirm: "„%name%\" archivieren? Er verlässt die Listen; nichts wird gelöscht."
+    restore_confirm: "„%name%\" reaktivieren?"
+
 admin_dashboard:
     fact_open: "Geöffnet"
     fact_open_until: "bis %time%"
@@ -2396,7 +2445,6 @@ admin_user_detail:
     usage_empty: "Keine Nutzungssitzung."
     col_date: "Datum"
     col_badge_uid: "Badge-UID"
-    col_machine: "Maschine"
     col_reason: "Grund"
     col_message: "Meldung"
     col_colour: "Farbe"
@@ -2408,6 +2456,7 @@ admin_user_detail:
     col_reason_booking: "Zweck"
     col_duration: "Dauer"
     col_source: "Quelle"
+    col_machine: "Maschine"
 
 # Formulaire lecteur RFID — S134c.
 rfid_form:
@@ -2513,10 +2562,8 @@ rfid_readers:
     panel_title: "Erfasste Lesegeräte"
     empty: "Noch kein RFID-Lesegerät erfasst."
     col_name: "Name"
-    col_machine: "Maschine"
     col_last_seen: "Zuletzt gesehen"
     col_actions: "Aktionen"
-    machine_unknown: "Unbekannte Maschine"
     state_archived: "Archiviert"
     state_disabled: "Deaktiviert"
     state_unpaired: "Nicht zugeordnet"
@@ -2527,7 +2574,8 @@ rfid_readers:
     active: "Aktiv"
     inactive: "Inaktiv"
     never: "Nie"
-
+    col_target: "Steuert"
+    no_target: "Dieses Lesegerät steuert nichts"
 # Assistant de configuration initiale — S134c.
 admin_wizard:
     browser_title: "Ersteinrichtung - FabOS-Admin"
@@ -2821,7 +2869,6 @@ rfid_logs:
     col_date: "Datum"
     col_badge: "Badge-UID"
     col_user: "Benutzer"
-    col_machine: "Maschine"
     col_reader: "RFID-Lesegerät"
     col_reason: "Grund"
     col_message: "Meldung"
@@ -2834,6 +2881,7 @@ rfid_logs:
     detail_token: "Lesegerät-Token"
     filter_reader: "Lesegerät"
     filter_machine: "Maschine"
+    col_machine: "Maschine"
 
 # Section de formation (création/édition) — S134c.
 formation_section:
@@ -2974,7 +3022,6 @@ admin_usage_logs:
     browser_title: "Maschinennutzung - FabOS-Verwaltung"
     panel_title: "Erfasste Sitzungen"
     col_user: "Benutzer"
-    col_machine: "Maschine"
     col_session: "Sitzung"
     col_source: "Quelle"
     col_state: "Zustand"
@@ -2989,6 +3036,7 @@ admin_usage_logs:
     not_computed: "Nicht berechnet"
     state_closed: "Beendet"
     state_open: "Offen"
+    col_machine: "Maschine"
 
 # Modifier une machine — S134c.
 admin_machine_edit:
@@ -3392,7 +3440,9 @@ admin_rfid_form:
     ph_machine: "Maschine wählen"
     is_active: "Lesegerät aktiv"
     help_is_active: "Ist das Lesegerät inaktiv, weist der Worker seine Scans ab."
-
+    access_point: "Zugangspunkt"
+    ph_access_point: "Keiner"
+    help_target: "Ein Lesegerät steuert eine Maschine ODER einen Zugangspunkt — nie beides, nie nichts."
 admin_lab_page_form:
     contenu: "Inhalt"
     parent_page: "Übergeordnete Seite (max. 2 Ebenen)"
@@ -3609,6 +3659,8 @@ flash:
     echec_de_l_envoi: "Senden fehlgeschlagen: %p1%"
     element_archive: "„%p1%“ ist archiviert. Es verlässt die Listen und kann hier wiederhergestellt werden."
     element_restaure: "„%p1%“ ist wieder aktiv."
+    point_acces_cree: "Zugangspunkt «%p1%» erstellt."
+    point_acces_mis_a_jour: "Zugangspunkt «%p1%» aktualisiert."
     enregistrement_refuse_token_csrf_invalide: "Speichern abgelehnt: ungültiges CSRF-Token."
     epinglage_de_mis_a_jour: "Anheften von \"%p1%\" aktualisiert."
     espace_cree: "Raum \"%p1%\" erstellt."

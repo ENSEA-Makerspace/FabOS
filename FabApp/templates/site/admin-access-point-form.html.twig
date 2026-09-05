@@ -1,0 +1,63 @@
+{% extends 'base.html.twig' %}
+
+{# Création ET édition d'un point d'accès, un seul gabarit (S175).
+
+   ⚠️ **Un gabarit, pas deux.** Les machines ont eu deux fichiers qui déroulaient
+   le même `FormType` avec deux listes de champs différentes, et deux champs
+   n'étaient dans aucune des deux : ils sortaient par `form_rest()`, APRÈS le
+   bouton « Enregistrer » et sans thème. Ici l'ordre vient de
+   `AccessPointAdminType::SECTIONS`, et `mode` ne change que les mots. #}
+
+{% block title %}{{ (mode == 'new' ? 'access_points.new_browser_title' : 'access_points.edit_browser_title')|trans }}{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+    {% include 'site/_header.html.twig' %}
+    <main id="main-content" tabindex="-1" class="admin-page">
+        <div class="admin-edit-layout">
+            {% include 'site/_admin_sidebar.html.twig' %}
+            <section class="admin-panel admin-list-card admin-form-card">
+                {% include 'site/_admin_form_head.html.twig' with {
+                    title: (mode == 'new' ? 'access_points.new_title' : 'access_points.edit_title')|trans,
+                    subtitle: mode == 'new' ? 'access_points.new_subtitle'|trans : point.nom,
+                    back_href: path('app_admin_access_points'),
+                    back_label: 'access_points.back'|trans,
+                } only %}
+                <div class="admin-edit-panel-header"><h2>{{ (mode == 'new' ? 'access_points.panel_new' : 'access_points.panel_edit')|trans }}</h2></div>
+
+                {% form_theme form 'form/admin_theme.html.twig' %}
+                {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
+                    {{ form_errors(form) }}
+                    {% include 'site/_form_sections.html.twig' with {
+                        form: form,
+                        sections: constant('App\\Form\\AccessPointAdminType::SECTIONS'),
+                    } only %}
+                    <div class="form-actions">
+                        <a class="btn-link" href="{{ path('app_admin_access_points') }}">{{ 'common.cancel'|trans }}</a>
+                        <span class="btn-submit">{{ form_widget(form.save, {label: 'common.save'|trans}) }}</span>
+                    </div>
+                {{ form_end(form) }}
+
+                {# 🔴 **Archiver, jamais supprimer.** Les journaux d'accès nomment le
+                   lecteur, qui nomme la porte : détruire la ligne laisserait des
+                   entrées dont plus personne ne sait de quelle entrée elles parlent.
+                   ⚠️ Et archiver NE DÉTACHE PAS les boîtiers : ils gardent leur
+                   association, donc restaurer remet exactement l'état d'avant. #}
+                {% if mode == 'edit' %}
+                    {% include 'site/_admin_danger_zone.html.twig' with {
+                        action: path('app_admin_access_point_archive', {id: point.id}),
+                        token: 'archive_access_point_' ~ point.id,
+                        heading: (point.archived ? 'access_points.restore' : 'access_points.archive')|trans,
+                        label: (point.archived ? 'access_points.restore' : 'access_points.archive')|trans,
+                        description: (point.archived ? 'access_points.restore_notice' : 'access_points.archive_notice')|trans,
+                        confirm: (point.archived ? 'access_points.restore_confirm' : 'access_points.archive_confirm')|trans({'%name%': point.nom}),
+                    } only %}
+                {% endif %}
+            </section>
+        </div>
+    </main>
+{% endblock %}

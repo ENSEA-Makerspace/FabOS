@@ -437,7 +437,6 @@ profile:
     badges_empty: "Badges earned through trainings will appear here."
     reservations_history: "Reservations history"
     filter_all: "All"
-    col_machine: "Machine"
     col_date: "Date"
     col_time: "Time"
     col_reason: "Reason"
@@ -509,6 +508,7 @@ profile:
     mode_dark: "Dark mode"
     mode_light: "Light mode"
     browser_title: "%name% - FabOS profile"
+    col_machine: "Machine"
 
 leaderboard:
     title: "The %venue% leaderboard"
@@ -1494,7 +1494,6 @@ adm:
     col_end: "End"
     col_link: "Link"
     col_location: "Location"
-    col_machine: "Machine"
     col_name: "Name"
     col_photos: "Photos"
     col_start: "Start"
@@ -1529,6 +1528,7 @@ adm:
     restore_record_confirm: "Restore “%name%”?"
     restore_record_notice: "The record returns to the lists and catalogues."
     view: "View"
+    col_machine: "Machine"
 
 usage_rights:
     spec_heading: "What this bundle allows"
@@ -1935,6 +1935,7 @@ admin_nav:
         app_admin_loanable_items: Items
         app_admin_loans: Loans
         app_admin_places: Spaces
+        app_admin_access_points: "Access points"
         app_admin_formations: Training
         app_admin_badges: Badges
         app_admin_creations: Projects
@@ -2170,6 +2171,54 @@ rfid_delete:
     confirm: "Delete permanently"
 
 # Tableau de bord admin — S134c.
+access_points:
+    browser_title: "Access points - FabOS Admin"
+    list_panel: "All access points"
+    list_description: "The doors, gates, lockers and zones at %venue% that a reader can control."
+    list_action: "Add an access point"
+    facet_kind: "Kind"
+    col_name: "Name"
+    col_kind: "Kind"
+    col_opens: "Opens"
+    col_state: "State"
+    col_actions: "Actions"
+    empty: "No access point yet."
+    opens_nothing: "No particular space"
+    state_live: "Active"
+    kind_door: "Door"
+    kind_gate: "Gate"
+    kind_locker: "Locker"
+    kind_zone: "Zone"
+    new_browser_title: "Create an access point - FabOS"
+    edit_browser_title: "Edit an access point - FabOS"
+    new_title: "Create an access point"
+    edit_title: "Edit an access point"
+    new_subtitle: "A door, gate, locker or zone that a reader controls."
+    panel_new: "New access point"
+    panel_edit: "The access point"
+    back: "Back to access points"
+    section_identity: "Identity"
+    section_location: "Where it is"
+    field_name: "Name"
+    field_kind: "Kind"
+    field_description: "Description"
+    field_venue: "Venue"
+    field_place: "Space it opens"
+    field_localisation: "Landmark on site"
+    ph_place: "No particular space"
+    help_name: "The name your team will see — \"Front door\", \"Wood shop gate\"."
+    help_kind: "What it physically is. Used for grouping, never to decide a permission."
+    help_description: "What this access point is for, and what to know before wiring a reader to it."
+    help_venue: "The site this point belongs to. Lists filter on it."
+    help_place: "The space this point opens, if it opens one. A front gate opens no space in particular — leaving it empty is an answer."
+    help_localisation: "Where to find it in the building — \"Corridor B, level 1\"."
+    archive: "Archive this access point"
+    restore: "Reactivate this access point"
+    archive_notice: "It leaves the lists and the reader choices. Nothing is deleted: access logs keep naming it, and readers controlling it keep their pairing."
+    restore_notice: "It becomes selectable again, with exactly the readers it had."
+    archive_confirm: "Archive \"%name%\"? It leaves the lists; nothing is deleted."
+    restore_confirm: "Reactivate \"%name%\"?"
+
 admin_dashboard:
     fact_open: "Open"
     fact_open_until: "until %time%"
@@ -2397,7 +2446,6 @@ admin_user_detail:
     usage_empty: "No usage session."
     col_date: "Date"
     col_badge_uid: "Badge UID"
-    col_machine: "Machine"
     col_reason: "Reason"
     col_message: "Message"
     col_colour: "Colour"
@@ -2409,6 +2457,7 @@ admin_user_detail:
     col_reason_booking: "Purpose"
     col_duration: "Duration"
     col_source: "Source"
+    col_machine: "Machine"
 
 # Formulaire lecteur RFID — S134c.
 rfid_form:
@@ -2514,10 +2563,8 @@ rfid_readers:
     panel_title: "Declared readers"
     empty: "No RFID reader declared yet."
     col_name: "Name"
-    col_machine: "Machine"
     col_last_seen: "Last seen"
     col_actions: "Actions"
-    machine_unknown: "Unknown machine"
     state_archived: "Archived"
     state_disabled: "Disabled"
     state_unpaired: "Not paired"
@@ -2528,7 +2575,8 @@ rfid_readers:
     active: "Active"
     inactive: "Inactive"
     never: "Never"
-
+    col_target: "Controls"
+    no_target: "This reader controls nothing"
 # Assistant de configuration initiale — S134c.
 admin_wizard:
     browser_title: "First-run setup - FabOS admin"
@@ -2822,7 +2870,6 @@ rfid_logs:
     col_date: "Date"
     col_badge: "Badge UID"
     col_user: "User"
-    col_machine: "Machine"
     col_reader: "RFID reader"
     col_reason: "Reason"
     col_message: "Message"
@@ -2835,6 +2882,7 @@ rfid_logs:
     detail_token: "Reader token"
     filter_reader: "Reader"
     filter_machine: "Machine"
+    col_machine: "Machine"
 
 # Section de formation (création/édition) — S134c.
 formation_section:
@@ -2975,7 +3023,6 @@ admin_usage_logs:
     browser_title: "Machine usage - FabOS admin"
     panel_title: "Recorded sessions"
     col_user: "User"
-    col_machine: "Machine"
     col_session: "Session"
     col_source: "Source"
     col_state: "State"
@@ -2990,6 +3037,7 @@ admin_usage_logs:
     not_computed: "Not computed"
     state_closed: "Finished"
     state_open: "Open"
+    col_machine: "Machine"
 
 # Modifier une machine — S134c.
 admin_machine_edit:
@@ -3393,7 +3441,9 @@ admin_rfid_form:
     ph_machine: "Choose a machine"
     is_active: "Reader active"
     help_is_active: "If the reader is inactive, the worker refuses its scans."
-
+    access_point: "Access point"
+    ph_access_point: "None"
+    help_target: "A reader controls a machine OR an access point — never both, never neither."
 admin_lab_page_form:
     contenu: "Content"
     parent_page: "Parent page (2 levels maximum)"
@@ -3610,6 +3660,8 @@ flash:
     echec_de_l_envoi: "Sending failed: %p1%"
     element_archive: "“%p1%” is archived. It leaves the lists and can be restored from this page."
     element_restaure: "“%p1%” is active again."
+    point_acces_cree: "Access point «%p1%» created."
+    point_acces_mis_a_jour: "Access point «%p1%» updated."
     enregistrement_refuse_token_csrf_invalide: "Save refused: invalid CSRF token."
     epinglage_de_mis_a_jour: "Pinning of \"%p1%\" updated."
     espace_cree: "Space \"%p1%\" created."

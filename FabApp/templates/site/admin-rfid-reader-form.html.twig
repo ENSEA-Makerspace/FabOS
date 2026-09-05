@@ -92,7 +92,19 @@
                             {{ form_help(form.readerToken) }}
                             <div class="form-errors">{{ form_errors(form.readerToken) }}</div>
                         </div>
+                        {# 🔴 **S175 — les DEUX cibles, côte à côte, et une seule sera
+                           retenue.** Un boîtier commande une machine OU un point
+                           d'accès. Les mettre l'un au-dessus de l'autre est ce qui
+                           rend le « ou » lisible : deux écrans séparés auraient
+                           laissé croire à deux réglages indépendants.
+
+                           ⚠️ **Ce gabarit énumère ses champs**, donc ajouter un
+                           `->add()` au `FormType` sans l'ajouter ICI le fait sortir
+                           par `form_rest()`, APRÈS le bouton « Enregistrer » et sans
+                           thème. C'est exactement ce qui est arrivé à
+                           `accessPoint` — vu au rendu, pas au lint. #}
                         {{ form_row(form.machine, {row_attr: {class: 'full'}}) }}
+                        {{ form_row(form.accessPoint, {row_attr: {class: 'full'}}) }}
                         <div class="form-field checkbox full">
                             {{ form_widget(form.isActive) }}
                             <div>

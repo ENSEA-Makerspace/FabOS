@@ -1,0 +1,94 @@
+{% extends 'base.html.twig' %}
+
+{# LES POINTS D'ACCÈS — portes, portails, casiers, zones (S175).
+
+   🔴 **Pourquoi cet écran existe.** Un boîtier RFID était rattaché
+   OBLIGATOIREMENT à une machine, donc représenter la porte d'entrée imposait
+   d'inventer une machine fictive : elle serait apparue dans le catalogue des
+   machines, dans les réservations et sur les kiosques, et chaque écran aurait
+   dû apprendre à l'ignorer. C'est le contournement qui se paie deux ans plus
+   tard.
+
+   ⚠️ **Aucune règle d'autorisation ici.** Le verdict d'une porte se décide avec
+   les axes lieu / jours / horaires qu'un forfait décrit déjà (`PackageSpec`).
+   Un écran qui semblerait accorder un accès est le signe qu'on a écrit une
+   seconde mécanique de droits. #}
+
+{% block title %}{{ 'access_points.browser_title'|trans }}{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+{# ⚠️ **Les pastilles arrivent COMPTÉES du contrôleur**, sur l'ensemble non
+   filtré : compter ici compterait sur l'ensemble déjà filtré, et choisir
+   « porte » mettrait les autres natures à zéro — on ne pourrait plus revenir.
+   Le contrôleur pose une clé de traduction, le gabarit traduit.
+
+   🔴 **Et ce commentaire vivait DANS le littéral `with { … }`.** Twig n'admet
+   pas de commentaire à l'intérieur d'un hash : le gabarit ne compilait pas, et
+   `tools/twig_balance.py` ne l'a pas vu — il compte des balises, pas une
+   syntaxe. C'est `lint:twig` qui a tranché, et c'est exactement pourquoi il
+   passe AVANT le redémarrage. #}
+
+{% embed 'site/_admin_list.html.twig' with {
+    action_label: 'access_points.list_action'|trans,
+    action_route: 'app_admin_access_point_new',
+    panel_title: 'access_points.list_panel'|trans,
+    panel_note: 'access_points.list_description'|trans,
+    list_count: points|length,
+    list_total: pointTotal,
+    list_route: 'app_admin_access_points',
+    list_search_placeholder: 'common.search_placeholder'|trans,
+    list_search: filters.q,
+    venue_context: venueContext,
+    list_tiles_label: 'access_points.facet_kind'|trans,
+    list_tiles: kindTiles|map(t => {label: t.label_key|trans, count: t.count, query: t.query, active: t.active}),
+} %}
+    {% block content %}
+        {% embed 'site/_data_table.html.twig' with {
+            pin_actions: true,
+            columns: [
+                {label: 'access_points.col_name', class: 'is-grow'},
+                {label: 'access_points.col_kind', class: 'is-tight'},
+                {label: 'access_points.col_opens', class: 'is-tight'},
+                {label: 'access_points.col_state', class: 'is-tight'},
+                {label: 'access_points.col_actions', class: 'is-actions'},
+            ]|map(c => {label: c.label|trans, class: c.class}),
+            rows: points,
+            empty: 'access_points.empty'|trans,
+        } %}
+            {% block rows %}
+                {% for point in points %}
+                    <tr data-admin-list-filter-row data-admin-list-filter-row-href="{{ path('app_admin_access_point_edit', {id: point.id}) }}">
+                        <td>{% include 'site/_cell_title.html.twig' with {
+                            title: point.nom,
+                            href: path('app_admin_access_point_edit', {id: point.id}),
+                            subtitle: point.localisation,
+                            media: include('site/_cell_media.html.twig', {initials: point.nom, shape: 'square'}, with_context = false),
+                        } only %}</td>
+                        <td>{{ point.kindKey|trans }}</td>
+                        {# ⚠️ Une porte peut n'ouvrir AUCUNE salle en particulier — un
+                           portail d'entrée, par exemple. La cellule vide le dit avec
+                           sa raison, elle ne laisse pas un blanc qu'on lit comme
+                           « pas encore renseigné ». #}
+                        <td>{% if point.place %}{% include 'site/_cell_title.html.twig' with {
+                                title: point.place.nom,
+                                href: path('app_admin_place_edit', {id: point.place.id}),
+                            } only %}{% else %}{% include 'site/_cell_empty.html.twig' with {reason: 'access_points.opens_nothing'} only %}{% endif %}</td>
+                        <td>{% include 'site/_cell_state.html.twig' with {
+                            label: (point.archived ? 'adm.archived' : 'access_points.state_live')|trans,
+                            signal: point.archived ? 'muted' : 'go',
+                        } only %}</td>
+                        <td class="is-actions">{% include 'site/_cell_actions.html.twig' with {
+                            actions: [{label: 'common.edit'|trans, icon: 'edit', href: path('app_admin_access_point_edit', {id: point.id})}],
+                        } only %}</td>
+                    </tr>
+                {% endfor %}
+            {% endblock %}
+        {% endembed %}
+    {% endblock %}
+{% endembed %}
+{% endblock %}

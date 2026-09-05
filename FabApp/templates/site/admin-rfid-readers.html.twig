@@ -65,7 +65,7 @@
             pin_actions: true,
             columns: [
                 {label: 'rfid_readers.col_name'|trans, class: 'is-grow'},
-                {label: 'rfid_readers.col_machine'|trans, class: 'is-tight'},
+                {label: 'rfid_readers.col_target'|trans, class: 'is-tight'},
                 {label: 'rfid_readers.col_status'|trans, class: 'is-tight'},
                 {label: 'rfid_readers.col_last_seen'|trans, class: 'is-tight'},
                 {label: 'rfid_readers.col_actions'|trans, class: 'is-actions'},
@@ -82,11 +82,21 @@
                             subtitle: reader.archived ? 'adm.archived'|trans : reader.readerToken,
                             media: include('site/_cell_media.html.twig', {initials: reader.name, shape: 'square'}, with_context = false),
                         } only %}</td>
+                        {# 🔴 **S175 — cette colonne s'appelait « Machine », et un boîtier
+                           peut désormais commander une PORTE.** Elle aurait affiché
+                           « — » sur chaque lecteur d'entrée du labo, c'est-à-dire
+                           « rien », pour un boîtier parfaitement associé. La cellule
+                           dit maintenant ce que le boîtier commande, machine ou point
+                           d'accès, et mène à l'écran correspondant. #}
                         <td>{% if reader.machine %}{% include 'site/_cell_title.html.twig' with {
                                 title: reader.machine.nom,
                                 href: path('app_admin_machine_edit', {id: reader.machine.id}),
                                 subtitle: reader.machine.machineToken,
-                            } only %}{% else %}{% include 'site/_cell_empty.html.twig' with {reason: 'rfid_readers.machine_unknown'} only %}{% endif %}</td>
+                            } only %}{% elseif reader.accessPoint %}{% include 'site/_cell_title.html.twig' with {
+                                title: reader.accessPoint.nom,
+                                href: path('app_admin_access_point_edit', {id: reader.accessPoint.id}),
+                                subtitle: reader.accessPoint.kindKey|trans,
+                            } only %}{% else %}{% include 'site/_cell_empty.html.twig' with {reason: 'rfid_readers.no_target'} only %}{% endif %}</td>
                         {# 🔴 **Sept états, pas deux.** Cette cellule rendait `isActive`,
                            donc un lecteur ACTIF mais silencieux depuis deux mois y
                            était « Actif », en vert. Un voyant qui reste au vert quoi

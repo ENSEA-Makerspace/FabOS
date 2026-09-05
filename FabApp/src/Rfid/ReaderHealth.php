@@ -71,8 +71,14 @@ final class ReaderHealth
             return $this->row(self::DISABLED, 'muted');
         }
 
-        $machine = $reader->getMachine();
-        if ($machine === null) {
+        /*
+         * 🔴 **S175 — « associé » ne veut plus dire « a une machine ».** Un
+         * boîtier peut désormais commander une PORTE (`AccessPoint`), et cette
+         * chaîne de tests aurait déclaré « non associé » chaque lecteur d'entrée
+         * du labo — en jaune, en permanence. La question est posée une seule
+         * fois, à l'entité : `targetKind()`.
+         */
+        if ($reader->targetKind() === null) {
             // ⚠️ `caution` et non `stop` : un lecteur créé mais pas encore
             // associé est un travail EN COURS, pas une panne.
             return $this->row(self::UNPAIRED, 'caution');
@@ -80,7 +86,13 @@ final class ReaderHealth
         // 🔴 Une machine sans jeton ne peut répondre à aucun appel du boîtier :
         // l'association existe à l'écran et ne vaut rien à l'usage. C'est le cas
         // que le booléen ne pouvait pas dire.
-        if (trim((string) $machine->getMachineToken()) === '') {
+        // ⚠️ **Un point d'accès n'a PAS de jeton, et n'en a pas besoin** : il est
+        // adressé par le jeton du LECTEUR, pas par le sien. Lui inventer un
+        // `accessPointToken` par symétrie serait un second identifiant sans
+        // écrivain. Donc ce test ne concerne que la branche machine, et le dire
+        // vaut mieux que de laisser croire qu'on l'a oublié.
+        $machine = $reader->getMachine();
+        if ($machine !== null && trim((string) $machine->getMachineToken()) === '') {
             return $this->row(self::INVALID_PAIRING, 'stop');
         }
 

@@ -437,7 +437,6 @@ profile:
     badges_empty: "Las insignias obtenidas en formaciones aparecerán aquí."
     reservations_history: "Historial de reservas"
     filter_all: "Todas"
-    col_machine: "Máquina"
     col_date: "Fecha"
     col_time: "Hora"
     col_reason: "Motivo"
@@ -509,6 +508,7 @@ profile:
     mode_dark: "Modo oscuro"
     mode_light: "Modo claro"
     browser_title: "%name% - Perfil FabOS"
+    col_machine: "Máquina"
 
 leaderboard:
     title: "La clasificación del %venue%"
@@ -1494,7 +1494,6 @@ adm:
     col_end: "Fin"
     col_link: "Enlace"
     col_location: "Ubicación"
-    col_machine: "Máquina"
     col_name: "Nombre"
     col_photos: "Fotos"
     col_start: "Inicio"
@@ -1529,6 +1528,7 @@ adm:
     restore_record_confirm: "¿Restaurar «%name%»?"
     restore_record_notice: "El elemento vuelve a las listas y catálogos."
     view: "Ver"
+    col_machine: "Máquina"
 
 usage_rights:
     spec_heading: "Lo que permite este plan"
@@ -1935,6 +1935,7 @@ admin_nav:
         app_admin_loanable_items: Objetos
         app_admin_loans: Préstamos
         app_admin_places: Espacios
+        app_admin_access_points: "Puntos de acceso"
         app_admin_formations: Formaciones
         app_admin_badges: Insignias
         app_admin_creations: Proyectos
@@ -2169,6 +2170,54 @@ rfid_delete:
     confirm: "Eliminar definitivamente"
 
 # Tableau de bord admin — S134c.
+access_points:
+    browser_title: "Puntos de acceso - Admin FabOS"
+    list_panel: "Todos los puntos de acceso"
+    list_description: "Las puertas, portones, taquillas y zonas del %venue% que un lector puede controlar."
+    list_action: "Añadir un punto de acceso"
+    facet_kind: "Tipo"
+    col_name: "Nombre"
+    col_kind: "Tipo"
+    col_opens: "Abre"
+    col_state: "Estado"
+    col_actions: "Acciones"
+    empty: "Todavía no hay ningún punto de acceso."
+    opens_nothing: "Ningún espacio en particular"
+    state_live: "Activo"
+    kind_door: "Puerta"
+    kind_gate: "Portón"
+    kind_locker: "Taquilla"
+    kind_zone: "Zona"
+    new_browser_title: "Crear un punto de acceso - FabOS"
+    edit_browser_title: "Editar un punto de acceso - FabOS"
+    new_title: "Crear un punto de acceso"
+    edit_title: "Editar un punto de acceso"
+    new_subtitle: "Una puerta, un portón, una taquilla o una zona que controla un lector."
+    panel_new: "Nuevo punto de acceso"
+    panel_edit: "El punto de acceso"
+    back: "Volver a los puntos de acceso"
+    section_identity: "Identidad"
+    section_location: "Dónde está"
+    field_name: "Nombre"
+    field_kind: "Tipo"
+    field_description: "Descripción"
+    field_venue: "Sede"
+    field_place: "Espacio que abre"
+    field_localisation: "Referencia en el sitio"
+    ph_place: "Ningún espacio en particular"
+    help_name: "El nombre que verá el equipo — «Puerta principal», «Portón del taller»."
+    help_kind: "Lo que es físicamente. Sirve para agrupar, nunca para decidir un permiso."
+    help_description: "Para qué sirve este punto de acceso y qué hay que saber antes de conectarle un lector."
+    help_venue: "La sede a la que pertenece este punto. Las listas filtran por ella."
+    help_place: "El espacio que abre este punto, si abre alguno. Un portón de entrada no abre ninguno en particular: dejarlo vacío es una respuesta."
+    help_localisation: "Dónde encontrarlo en el edificio — «Pasillo B, nivel 1»."
+    archive: "Archivar este punto de acceso"
+    restore: "Reactivar este punto de acceso"
+    archive_notice: "Sale de las listas y de las opciones de lector. No se borra nada: los registros de acceso siguen nombrándolo y los lectores que lo controlan conservan su vínculo."
+    restore_notice: "Vuelve a poder elegirse, con exactamente los lectores que tenía."
+    archive_confirm: "¿Archivar «%name%»? Sale de las listas; no se borra nada."
+    restore_confirm: "¿Reactivar «%name%»?"
+
 admin_dashboard:
     fact_open: "Abierto"
     fact_open_until: "hasta las %time%"
@@ -2396,7 +2445,6 @@ admin_user_detail:
     usage_empty: "Ninguna sesión de uso."
     col_date: "Fecha"
     col_badge_uid: "UID de la credencial"
-    col_machine: "Máquina"
     col_reason: "Motivo"
     col_message: "Mensaje"
     col_colour: "Color"
@@ -2408,6 +2456,7 @@ admin_user_detail:
     col_reason_booking: "Motivo"
     col_duration: "Duración"
     col_source: "Origen"
+    col_machine: "Máquina"
 
 # Formulaire lecteur RFID — S134c.
 rfid_form:
@@ -2513,10 +2562,8 @@ rfid_readers:
     panel_title: "Lectores declarados"
     empty: "Todavía no hay ningún lector RFID declarado."
     col_name: "Nombre"
-    col_machine: "Máquina"
     col_last_seen: "Visto por última vez"
     col_actions: "Acciones"
-    machine_unknown: "Máquina desconocida"
     state_archived: "Archivado"
     state_disabled: "Desactivado"
     state_unpaired: "Sin asociar"
@@ -2527,7 +2574,8 @@ rfid_readers:
     active: "Activo"
     inactive: "Inactivo"
     never: "Nunca"
-
+    col_target: "Controla"
+    no_target: "Este lector no controla nada"
 # Assistant de configuration initiale — S134c.
 admin_wizard:
     browser_title: "Configuración inicial - Admin FabOS"
@@ -2821,7 +2869,6 @@ rfid_logs:
     col_date: "Fecha"
     col_badge: "UID de la credencial"
     col_user: "Usuario"
-    col_machine: "Máquina"
     col_reader: "Lector RFID"
     col_reason: "Motivo"
     col_message: "Mensaje"
@@ -2834,6 +2881,7 @@ rfid_logs:
     detail_token: "Token del lector"
     filter_reader: "Lector"
     filter_machine: "Máquina"
+    col_machine: "Máquina"
 
 # Section de formation (création/édition) — S134c.
 formation_section:
@@ -2974,7 +3022,6 @@ admin_usage_logs:
     browser_title: "Usos de máquinas - Administración FabOS"
     panel_title: "Sesiones registradas"
     col_user: "Usuario"
-    col_machine: "Máquina"
     col_session: "Sesión"
     col_source: "Fuente"
     col_state: "Estado"
@@ -2989,6 +3036,7 @@ admin_usage_logs:
     not_computed: "No calculada"
     state_closed: "Finalizada"
     state_open: "Abierta"
+    col_machine: "Máquina"
 
 # Modifier une machine — S134c.
 admin_machine_edit:
@@ -3392,7 +3440,9 @@ admin_rfid_form:
     ph_machine: "Elegir una máquina"
     is_active: "Lector activo"
     help_is_active: "Si el lector está inactivo, el worker rechaza sus escaneos."
-
+    access_point: "Punto de acceso"
+    ph_access_point: "Ninguno"
+    help_target: "Un lector controla una máquina O un punto de acceso: nunca los dos, nunca ninguno."
 admin_lab_page_form:
     contenu: "Contenido"
     parent_page: "Página padre (2 niveles máximo)"
@@ -3609,6 +3659,8 @@ flash:
     echec_de_l_envoi: "Fallo al enviar: %p1%"
     element_archive: "«%p1%» está archivado. Sale de las listas y se puede restaurar desde esta página."
     element_restaure: "«%p1%» vuelve a estar activo."
+    point_acces_cree: "Punto de acceso «%p1%» creado."
+    point_acces_mis_a_jour: "Punto de acceso «%p1%» actualizado."
     enregistrement_refuse_token_csrf_invalide: "Guardado rechazado: token CSRF no válido."
     epinglage_de_mis_a_jour: "Fijado de \"%p1%\" actualizado."
     espace_cree: "Espacio \"%p1%\" creado."
