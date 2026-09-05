@@ -16,6 +16,27 @@ l'interface S134h–S143, S144, S145a, toute la phase S146, et la revue S147.
 
 ---
 
+## L'ordre d'exécution, en une table
+
+⚠️ **Le fichier suit désormais cet ordre.** Écrit le 2026-09-04, quand trois lots
+de références et cinq phases neuves ont rendu la lecture linéaire impossible.
+
+| Phase | Quoi | Sessions |
+|---|---|---|
+| **J** ⬅️ | « boutonner » — 22 défauts sur 25 clos | en cours |
+| **N** | le cleanup, et **J se ferme** | S169–S170 |
+| **O** | Machines & boîtiers (dont les 3 P0 de sécurité) | S171–S174 |
+| **P** | Espaces & accès d'entrée (dont `AccessPoint`) | S175–S178 |
+| **Q** | Formations (absorbe la messagerie de cohorte) | S179–S183 |
+| **K** | Gabarits d'e-mail modifiables | S160–S162 |
+| **L** | Annoncer un événement aux membres | S163–S164 |
+| **M** | Thèmes, en profondeur | S165–S168 |
+| **R** | Commerce — **la dernière**, et bloquée par J | S184–S188 |
+
+🔴 **K, L et M gardent leurs numéros bas alors qu'elles passent après O–Q** : un
+numéro de session est une ÉTIQUETTE, pas un rang. Les renuméroter chaque fois que
+l'ordre change ferait mentir chaque commit qui les cite.
+
 ## Cap produit
 
 Tout fablab, école ou atelier partagé déploie **les seules fonctions dont il a
@@ -846,31 +867,6 @@ un forfait mais une appartenance datée. ⚠️ Au passage, il citait une table
 
 ---
 
-# Phase H — commerce facultatif (S150–S154)
-
-🔴 **BLOQUÉE PAR LA PHASE J** (opérateur, 2026-08-21).
-
-Entièrement désactivable. Offres dans leur workspace métier, moteur commun pour
-commandes / paiements / rapprochement.
-
-- 🔴 **Le retour navigateur ne confirme JAMAIS un paiement** — seul un webhook
-  vérifié ou sa réconciliation.
-- Clé unique par événement fournisseur ; fulfillment persistant / outbox par ligne
-  → effet **exactement une fois** malgré retries et crashs.
-- La livraison passe par le service métier normal : sans toucher voter, badge,
-  quota ni réservation.
-- Ni carte ni credentials fournisseur en base FabOS.
-
-| Session | Livre |
-|---|---|
-| **S150** | catalogue d'offres et prix ; aucune transaction |
-| **S151** | commandes, paiements, webhooks, réconciliation, remboursements, audit |
-| **S152** | livraison packages et matériaux ; hold stock atomique ou backorder explicite |
-| **S153** | ledger append-only des crédits de temps et achats de formation |
-| **S154** | reporting commerce, rapprochement, audit UX |
-
----
-
 # Phase I — messagerie Formation (S155–S157) 🅿️ ABSORBÉE PAR LA PHASE FORMATIONS
 
 ⚠️ **Ne pas la planifier séparément** (opérateur, 2026-09-04) : *« attribue dans
@@ -1147,6 +1143,180 @@ Espaces, les trois P0 des boîtiers par la phase Machines.
   défauts J étaient déjà caducs depuis S159 et personne ne l'avait vu.
 - 🅿️ Le fuseau et `ROLE` peuvent rester ouverts en sortant : ils sont datés,
   bornés, et sans exposition. Les fermer demande une décision d'architecture.
+
+---
+
+# Phase O — Machines & boîtiers (S171–S174)
+
+**Planifiée le 2026-09-04**, d'après les huit planches et la revue Sol
+(`/admin/references`). Absorbe les **trois P0 de sécurité** vérifiés le même jour.
+
+## 🔴 La règle de cette phase, et des deux suivantes
+
+**On AMÉLIORE, on ne refait pas.** L'opérateur l'a dit : *« les screenshots ont de
+bonnes idées, dérives-en des upgrades, pas des refontes entières »*. Donc : on
+garde les shells, les composants, le vocabulaire de colonnes, les droits et le
+thème. Une planche apporte une IDÉE — « la disponibilité lisible dès la carte »,
+« une zone Exploitation séparée » — pas un gabarit à recopier. ⚠️ Toute planche
+qui exigerait un shell neuf est un signal qu'on a mal lu l'idée.
+
+## Ce qui existe déjà, mesuré
+
+`Machine`, `MachineDocument` (S152), `MachineFavorite`, `MaintenanceTask`,
+`RfidReader`, `AccessRfidLog`, `MachineAccessService`, `Material` +
+`MACHINE_MATERIAL`, les kiosques, `/admin/machines` et `/machines/{id}`.
+🔴 **Et `Machine::materials`, un tableau texte, EN PLUS de la relation** — deux
+sources de vérité, dont l'une retombe sur une liste codée en dur
+(`['PLA','PETG','TPU','Support']`) quand elle est vide. Une découpeuse sans
+matériaux annoncerait donc du PLA.
+
+| Session | Livre | Ce qu'on mesure |
+|---|---|---|
+| **S171** | 🔴 **La sécurité des boîtiers, d'abord.** Garde `fail-closed` quand `FABOS_RFID_API_TOKEN` manque ; retrait de l'exemple `.env` qui donne `FABOS_DB_*` à un boîtier ; décision explicite sur `/kiosk/entries` | Un POST sans en-tête rend **401**, pas 404. ✅ Sans risque mesuré : un seul lecteur, vu la dernière fois le 2026-07-10 |
+| **S172** | **Identité et santé d'un boîtier** : secret propre au device, révélé UNE fois, rotation et révocation, dernière connexion, état réel — prêt / hors ligne / non configuré / erreur / association invalide — au lieu d'un booléen plus `lastSeenAt` | Chacun des cinq états est atteignable et distinguable à l'écran |
+| **S173** | **La fiche machine se sépare en deux publics** : membre (statut utilisable, prochaine action, prérequis exacts, matériaux compatibles, réserver) et une zone **Exploitation** staff/admin. ⚠️ La page RESTE une page — pas deux routes, pas un shell neuf | Le membre atteint « puis-je l'utiliser ? » sans quitter la fiche ; le staff ne voit plus ses outils mélangés au contenu public |
+| **S174** | **La matière devient une seule vérité** : `MACHINE_MATERIAL` canonique, `Machine::materials` rétrogradé en note de transition, et une fiche `/materiaux/{id}` avec les machines réellement compatibles. **Plus de liste codée en dur** | 🔴 Aucune machine n'annonce un matériau qu'elle ne prend pas ; le repli en dur n'existe plus |
+
+## La passe de fond de cette phase
+
+⚠️ Une phase qui ne fait que sa fonctionnalité laisse le socle où il était.
+- **Réemploi** : les patterns locaux de la fiche machine (matériaux, maintenance)
+  remontent dans le système de design s'ils servent ailleurs — sinon ils restent,
+  et on l'écrit.
+- **Conformité** : `tools/dead_affordances.py`, `tools/a11y_static.py`,
+  `tools/form_placement.py` et `tools/ctor_arity.py` passés en début ET en fin de
+  phase, l'écart commenté.
+- ⚠️ **Le kiosque garde favicon, CSS et styles locaux** : soit il rejoint le shell
+  et le thème publié (ce que la phase Thèmes demande aussi), soit on écrit
+  pourquoi il reste à part. Pas de troisième option silencieuse.
+
+---
+
+# Phase P — Espaces & accès d'entrée (S175–S178)
+
+**Planifiée le 2026-09-04**, d'après les huit planches et la revue Sol. Absorbe le
+todo « contrôle d'accès aux LIEUX » du 2026-09-03.
+
+## 🔴 Le fait de modèle qui commande toute la phase
+
+**Un lecteur RFID est aujourd'hui rattaché OBLIGATOIREMENT à une machine.** Une
+porte ne peut donc être représentée qu'en inventant une machine fictive — ce qui
+est exactement le genre de contournement qui se paie deux ans plus tard. La revue
+propose `AccessPoint`, distinct de `Machine` : porte, portail, casier, zone.
+✅ C'est la réponse au todo de l'opérateur sur les gâches électriques.
+
+⚠️ **Et le verdict d'une porte est plus riche que celui d'une machine** : les axes
+lieu / jours / horaires d'un forfait le décrivent DÉJÀ (`PackageSpec`), là où
+l'accès machine est un booléen sur les badges. On ne réinvente rien ; on branche.
+
+| Session | Livre | Ce qu'on mesure |
+|---|---|---|
+| **S175** | `AccessPoint`, et le lecteur s'y rattache aussi bien qu'à une machine. **Migration additive**, aucun lecteur existant déplacé | Un lecteur existant continue de répondre exactement comme avant — comparaison avant/après, annulée sinon |
+| **S176** | **La mise en service** : créer → associer porte/lieu → révéler le secret UNE fois → tester la connexion. Et les **incidents** d'accès actionnables : une cause mène vers le membre, le badge, la formation, le lecteur | Un refus se corrige depuis l'incident, sans chercher dans un journal |
+| **S177** | **Le parcours membre** : disponibilité lisible dès la carte (« Disponible à 14:00 » plutôt que « Occupé »), fiche d'espace qui répond « puis-je réserver, quand, qu'est-ce qui est inclus, comment j'entre », et « Mes réservations » avec la prochaine et sa fenêtre d'accès | 🔴 **Compté en clics**, cibles de la revue : trouver un espace libre 1–2, réserver 2–3, retrouver sa réservation 1 |
+| **S178** | **L'accès temporaire lié à une réservation** : une marge courte avant/après, révoqué à l'annulation. Et `Espaces > Exploitation` : réservations proches, fermetures, points hors ligne, refus | 🔴 Annuler une réservation retire l'accès **immédiatement**, prouvé par une sonde |
+
+## La passe de fond de cette phase
+
+- **Réemploi** : le calendrier, les créneaux et les politiques de réservation
+  existent — cette phase ne doit pas en écrire une seconde version.
+- ⚠️ **Le kiosque d'entrée est PUBLIC** : ni identité, ni UID de badge, ni journal,
+  ni secret. C'est un critère de sortie, pas une intention.
+- **Conformité** : mêmes outils, début et fin.
+
+---
+
+# Phase Q — Formations (S179–S183)
+
+**Planifiée le 2026-09-04**, d'après les onze planches LMS. **Absorbe l'ancienne
+Phase I** (messagerie Formation) : elle attendait le modèle session / cohorte que
+cette phase construit.
+
+## Ce qui existe déjà, mesuré
+
+`Formation`, `Section`, `Quiz`, `Progression`, `Badge`, `UtilisateurBadge`,
+`MachineBadge` (le lien badge → machine, donc l'accès), `/formations/{id}/suivi`,
+et l'écran d'édition de contenu `admin-formation-content` — **35 champs visibles**,
+le plus lourd du produit, et l'un des trois restes de la Phase J.
+
+| Session | Livre | Ce qu'on mesure |
+|---|---|---|
+| **S179** | **Le parcours de l'apprenant, sans nouveau modèle** : « votre prochaine étape » sur la fiche, progression lisible, et ce qu'on obtient à la fin (le badge, et la machine qu'il ouvre) | Un apprenant sait quoi faire ensuite **sans lire toute la page** |
+| **S180** | **L'étape PRATIQUE** : demander une évaluation, la file des validations pour l'équipe, la validation elle-même. C'est le chaînon qui manque entre « quiz réussi » et « badge » | Un badge ne s'obtient plus que par un chemin complet et tracé |
+| **S181** | **Le constructeur** : le parcours en étapes ordonnables, la checklist de mise en ligne, l'aperçu apprenant. ⚠️ **Et c'est là qu'on solde J-10** — les 35 champs deviennent des étapes, pas un formulaire | 🔴 Champs visibles à l'arrivée : 35 → cible **sous 12**, barème de `S149-REVUE.md` |
+| **S182** | **Le quiz** : types de questions, résultat et reprise. Sur l'existant, pas un moteur neuf | Une reprise ne réinitialise pas ce qui était acquis |
+| **S183** | **La messagerie de cohorte** (ex-Phase I) : annonce formateur → cohorte sans exposer la liste, fil privé, groupe explicite. 🔴 **Aucun message privé ne bascule implicitement vers la cohorte** | Une annonce n'expose aucune adresse ; un fil privé le reste |
+
+## La passe de fond de cette phase
+
+- **Réemploi** : les badges, les quotas et les droits d'usage existent. Cette
+  phase les BRANCHE, elle ne les double pas. ⚠️ La certification reste hors du
+  modèle de forfaits : sécurité, pas commerce.
+- **Conformité** : mêmes outils, début et fin — et l'écran de contenu est le pire
+  du produit pour `form_placement.py`, donc c'est la mesure qui dira si S181 a
+  réussi.
+
+---
+
+# Phase R — commerce facultatif (S184–S188) — LA DERNIÈRE
+
+🔴 **BLOQUÉE PAR LA PHASE J** (opérateur, 2026-08-21), et **replanifiée en
+dernier** le 2026-09-04, à sa demande. Renumérotée S184–S188 : les anciens
+numéros S150–S154 chevauchaient des sessions déjà livrées, ce qui rendait le plan
+illisible.
+
+## ✅ Ce que l'opérateur a DÉJÀ tranché, et qui change tout
+
+🔴 **On n'achète pas un forfait : on achète une APPARTENANCE DATÉE à un groupe**
+(décision du 2026-09-01, voir `history/phase-S158-S159-groupes.md`). C'est ce qui
+supprime le cas particulier du commerce au lieu de le contourner : un seul chemin
+pour les humains et pour les machines, et l'expiration devient le mécanisme au
+lieu d'un obstacle.
+⚠️ **Conséquence directe** : le commerce n'écrit **pas** dans les forfaits. Il
+écrit une ligne d'appartenance, avec des dates, dans `USER_GROUP_MEMBER` — la
+table que S159g a rendue datable exprès. Le reste du produit ne change pas.
+⚠️ Et **la durée appartient à l'OFFRE, pas au forfait** : sinon le même groupe ne
+peut pas se vendre au mois ET à l'année.
+
+## Ce qui existe déjà, mesuré
+
+Presque rien, et c'est sain : `wallet` n'apparaît **nulle part** dans le dépôt,
+aucune entité de facture, aucun fournisseur de paiement. La phase part d'une page
+blanche — sauf l'appartenance datée, qui est déjà là et qui est le cœur.
+🅿️ **Signal du marché voisin** : sur les 22 demandes les mieux votées de
+Fabmanager, **huit** sont du commerce, et la notion de **portefeuille** y revient
+quatre fois — crédit libre, prépayé, facturation manuelle, facture après
+consommation (`FABMANAGER-ECARTS.md`). C'est un signal faible, mais il pointe tous
+dans la même direction.
+
+## Les invariants, inchangés
+
+- 🔴 **Le retour navigateur ne confirme JAMAIS un paiement** — seul un webhook
+  vérifié, ou sa réconciliation.
+- Clé unique par événement fournisseur ; outbox persistante par ligne → effet
+  **exactement une fois** malgré reprises et pannes.
+- La livraison passe par le service métier normal, sans toucher voter, badge,
+  quota ni réservation.
+- **Ni carte ni credentials fournisseur en base FabOS.**
+- ⚠️ Entièrement désactivable : une installation qui ne vend rien ne doit pas voir
+  un seul écran de plus.
+
+| Session | Livre | Ce qu'on mesure |
+|---|---|---|
+| **S184** | **Le catalogue d'offres**, sans aucune transaction. Une offre = un groupe + une durée + un prix | Le module éteint ne change **rien** à l'écran, prouvé par le balayage des routes |
+| **S185** | **Commandes, paiement, webhooks, réconciliation, remboursements, audit** | 🔴 Un webhook rejoué deux fois ne crée qu'un effet ; un retour navigateur seul n'accorde rien |
+| **S186** | **La livraison** : l'achat écrit une **appartenance datée**, et le remboursement retire exactement ce que cette commande-là a donné | 🔴 Prouvé par une sonde avant/après, comme le backfill de S158c |
+| **S187** | **Le portefeuille**, si l'opérateur le veut : crédit, débit, ledger append-only. ⚠️ **À trancher** — c'est la demande la plus fréquente du marché voisin, et c'est aussi le plus gros morceau | Un solde ne se recalcule jamais : il se dérive du ledger |
+| **S188** | **Reporting, rapprochement, audit UX** | Les totaux se réconcilient avec le fournisseur, exports scopés |
+
+## La passe de fond de cette phase
+
+- **Réemploi** : l'appartenance datée, les groupes, les forfaits et le journal des
+  mails existent. Le commerce les BRANCHE.
+- 🔴 **Et il ferme une dette de S159** : le **journal des appartenances**, laissé
+  de côté parce qu'« il n'a de sens que le jour où une MACHINE écrit ». Ce jour
+  est celui-ci. ⚠️ À la condition écrite alors : la ligne doit être **dérivée** du
+  journal, sinon ce sont deux vérités de plus.
 
 ---
 
