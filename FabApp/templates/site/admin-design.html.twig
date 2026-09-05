@@ -805,6 +805,90 @@
                 </div>
             </div>
 
+            <div class="dz-sec" id="incident">
+                <h3>Le verbe correctif — <code>_cell_fix</code></h3>
+                <p>
+                    Une ligne qui dit qu'une chose ne va pas devrait dire quoi faire. Ce composant
+                    porte <strong>l'action, pas le diagnostic</strong> : la pastille d'état d'à côté
+                    dit déjà « badge manquant », et le répéter serait le même fait deux fois.
+                </p>
+
+                <div class="dzf-verdict" style="margin-bottom: var(--spacing-lg)">
+                    🔴 <strong>Le défaut qui l'a fait naître (S176).</strong>
+                    <code>/admin/access-rfid-logs</code> décrivait parfaitement 72 refus d'accès et
+                    n'en corrigeait aucun : devant « Badge requis manquant », il fallait deviner si
+                    le problème venait du membre, de sa formation ou du boîtier, puis aller le
+                    chercher ailleurs en retapant un nom.
+                    <br><br>
+                    ⚠️ <strong>Le lien n'apparaît que si <code>can_reach()</code> dit que le
+                    pare-feu laisserait passer.</strong> Sinon le verbe reste, sans lien : savoir
+                    quoi faire n'est pas un privilège, pouvoir le faire en est un.
+                    <br><br>
+                    ⚠️ <strong>Une cible absente ne fabrique PAS de lien.</strong>
+                    <code>path('…', {id: null})</code> produit <code>/admin/utilisateurs/</code> —
+                    une page de liste présentée comme la fiche de quelqu'un.
+                    <br><br>
+                    🅿️ <strong>Il ne corrige rien lui-même</strong>, volontairement. Un bouton
+                    « accorder le badge » dans un journal est une écriture sans contexte : on n'y
+                    voit ni les autres droits du membre, ni pourquoi le badge manque. Il mène là où
+                    la décision se prend, avec de quoi la prendre.
+                </div>
+
+                <div class="dz-demo" style="display:flex; gap: var(--spacing-lg); flex-wrap: wrap; align-items: center">
+                    {% include 'site/_cell_fix.html.twig' with {
+                        fix: 'incident.fix_reader_inactive', route: 'app_admin_rfid_readers', params: {},
+                    } only %}
+                    {% include 'site/_cell_fix.html.twig' with {
+                        fix: 'incident.fix_unknown_rfid', route: null, params: {},
+                    } only %}
+                    {% include 'site/_cell_fix.html.twig' only %}
+                </div>
+                <p style="color: var(--color-text-light); font-size: 13px">
+                    À gauche le verbe qui mène quelque part (la flèche n'apparaît qu'au survol : au
+                    repos, une colonne de chevrons est du bruit). Au milieu le même verbe sans
+                    destination atteignable. À droite ce que rend une ligne qui n'a rien à corriger —
+                    <code>_cell_empty</code>, jamais une case vide.
+                </p>
+            </div>
+
+            <div class="dz-sec" id="mise-en-service">
+                <h3>La mise en service — <code>_commissioning</code></h3>
+                <p>
+                    Une liste <strong>ordonnée</strong> d'étapes, faites ou non, pour tout ce qui se
+                    branche : un boîtier, un lieu, une intégration, un moyen de paiement. Le
+                    composant ne connaît aucun de ces sujets.
+                </p>
+
+                <div class="dzf-verdict" style="margin-bottom: var(--spacing-lg)">
+                    🔴 <strong>Le défaut qui l'a fait naître (S176).</strong> L'écran d'un boîtier
+                    expliquait parfaitement comment le câbler et ne disait <em>nulle part où on en
+                    était</em>. Le seul retour possible était de le poser au mur et de regarder s'il
+                    refuse.
+                    <br><br>
+                    ⚠️ <strong>Une liste, pas un pourcentage.</strong> « 3 sur 5 » invite à courir
+                    après le chiffre ; ce qui aide est de savoir QUELLE étape manque et pourquoi
+                    elle compte. Même raison qui a fait reformuler le critère « taux d'aide » de J-10.
+                    <br><br>
+                    ⚠️ <strong><code>blocking</code> n'est pas une décoration.</strong> Une étape
+                    bloquante non faite veut dire que rien ne marchera, quoi qu'on fasse des autres.
+                    Elle ne se distingue pas par la seule couleur — sa phrase le dit aussi, parce
+                    qu'une différence portée par la seule couleur n'est pas une différence.
+                </div>
+
+                <div class="dz-demo">
+                    {% include 'site/_commissioning.html.twig' with {
+                        label_ns: 'rfid_form.step_',
+                        steps: [
+                            {key: 'named', done: true, blocking: false},
+                            {key: 'paired', done: true, blocking: false},
+                            {key: 'token', done: true, blocking: false},
+                            {key: 'api', done: false, blocking: true},
+                            {key: 'seen', done: false, blocking: false},
+                        ],
+                    } only %}
+                </div>
+            </div>
+
             <div class="dz-sec" id="fil-ariane">
                 <h3>Le fil d'Ariane</h3>
                 <p>
