@@ -104,7 +104,7 @@ pas le diff.
 | **J-10** | formulaires les plus lourds | 🔶 **l'éditeur de packages : 28 champs visibles à l'arrivée → 7** (les 4 éditeurs « ajouter » repliés, 2026-08-24). Barème et chiffres dans `S149-REVUE.md` § qualité des formulaires. Restent `admin-formation-content` (35) et le taux d'aide de **20 %** | S149+ |
 | **J-23** | `/admin/usage-rights/shadow` : bascule finie, audit encore utile | ✅ **CADUC, mesuré le 2026-09-04** : la route n'existe plus (S159 l'a retirée, avec le retour arrière qui était devenu un piège). ⚠️ Le réglage `usage_rights_v2_*` reste en base pour une écriture explicite | S159 |
 | **J-4** | « (s) » au lieu de pluriels ICU | ✅ 2026-08-24 — **77 clés** migrées, 5 langues, 0 « (s) » restant. Validateur statique : `tools/i18n/icu_audit.py` (395 motifs, 0 faute) | — |
-| **J-5** | CSS local par page rendue | 🔶 708 → **653 règles dans 37 gabarits**. Les deux familles à duplication PROUVÉE sont rassemblées (kiosque, authentification) et ont révélé 2 défauts visibles. Le reste est du CSS réellement spécifique à sa page | S149+ |
+| **J-5** | CSS local par page rendue | ✅ **CLOS PAR LA MESURE le 2026-09-05** : 544 sélecteurs locaux, **9 dupliqués dont 6 artefacts de comptage**, une seule duplication réelle laissée sciemment (voir Phase N). Historique : 708 → **653 règles dans 37 gabarits**. Les deux familles à duplication PROUVÉE sont rassemblées (kiosque, authentification) et ont révélé 2 défauts visibles. Le reste est du CSS réellement spécifique à sa page | S149+ |
 | **J-7** | emoji bruts comme icônes | ✅ 2026-08-24 — **0 emoji d'interface** sur 16 pages rendues. Les 33 signes typographiques restants sont une décision écrite en tête de `_icon.html.twig` | — |
 | **J-22** | formulaires admin hors thème | ✅ 2026-08-23 — **27 conversions**, 13 écrans, 13 sondes vertes. Restent, écrits : la matrice de fonctionnalités (partial partagé), 5 filtres GET, la semaine d'horaires, les contrôles en boucle des tableaux | — |
 | **J-1** | déploiement partiel : l'upload d'images fatalait en prod | ✅ 2026-08-22 | — |
@@ -1018,7 +1018,7 @@ intentions).
 | Session | Livre | Ce qu'on mesure |
 |---|---|---|
 | **S165** | La **médiathèque d'identité** : téléversement, validation, renommage serveur, identifiant stable, suppression refusée tant qu'un thème référence le fichier. Fin du chemin libre. Renommage `portal_logo_path` → `site_logo` | 🔴 On pose un logo **sans toucher au serveur** ; un fichier référencé ne se supprime pas ; ⚠️ l'orientation EXIF est lue AVANT les dimensions, et `exif_read_data()` ne lit pas le PNG |
-| **S166** | L'**éditeur guidé** : palette avec contrastes, rayon / typo / densité en préréglages, variantes de logo (clair, sombre, compact, favicon, image de partage) | 🔴 **Le contraste est MESURÉ, pas affirmé** — c'est déjà la pratique du dépôt (7,65:1 relevé sur une proposition de tableau de bord). Une palette qui échoue est refusée, pas signalée |
+| **S166** | L'**éditeur guidé** : palette avec contrastes, rayon / typo / densité en préréglages, variantes de logo (clair, sombre, compact, favicon, image de partage). 🔴 **ET LES 66 COULEURS DE MARQUE ÉCRITES EN DUR**, mesurées le 2026-09-05 : `#9E1B56` et `#6b7280` apparaissent **66 fois dans les gabarits du SITE** — `register` 11, `_formation_visual` 10, `person-booking`, `login`, `machine-detail` 6 chacun. Un éditeur de palette qui laisse 66 endroits ignorer la palette ne change pas le thème, il le contredit. ⚠️ **Les 41 occurrences des E-MAILS ne comptent pas** : un client de messagerie ne sait pas lire `var()`, la couleur littérale y est la bonne réponse | 🔴 **Le contraste est MESURÉ, pas affirmé** — c'est déjà la pratique du dépôt (7,65:1 relevé sur une proposition de tableau de bord). Une palette qui échoue est refusée, pas signalée |
 | **S167** | L'**aperçu sur de VRAIES surfaces** : accueil, catalogue, détail, un écran admin, un kiosk — desktop et mobile, clair et sombre. Publication **atomique** des réglages ET des fichiers | 🔴 L'aperçu rend les vraies pages, pas des vignettes dessinées à la main : c'est la leçon de `feedback-fabos-verify-pixels`, où un balisage présent ne prouvait pas qu'on le voyait |
 | **S168** | **Kiosks et navigation** : aucun favicon, logo ou couleur en dur ne survit dans un kiosk ; ordre et visibilité des entrées de menu, destinations limitées aux routes autorisées, entrées système protégées | 🔴 Une page dépubliée rétablit l'accueil FabOS **avec trace**, sans page blanche ni boucle de redirection |
 
@@ -1120,7 +1120,7 @@ Espaces, les trois P0 des boîtiers par la phase Machines.
 
 | | Ce qui reste, et pourquoi ça traîne |
 |---|---|
-| **J-5** | CSS local par page : 708 → **653 règles dans 37 gabarits**. ⚠️ **Commencer par MESURER si c'est encore un défaut** : les deux familles à duplication prouvée sont déjà rassemblées, et le reste est peut-être légitimement spécifique. Fermer sans mesurer serait aussi faux que le laisser ouvert |
+| **J-5** | ✅ **CLOS PAR LA MESURE le 2026-09-05.** 38 gabarits, 643 règles, **544 sélecteurs locaux distincts — et 9 seulement apparaissent dans plus d'un gabarit**, dont 6 sont des artefacts de comptage (`0%`, `100%`, `">`). Il reste **une** duplication réelle : `.form-field textarea { min-height: 180px }` dans la paire `admin-lab-page-new` / `-edit`. ⚠️ **Laissée là, et c'est un choix** : la remonter dans `details.css` élargirait la hauteur de TOUS les textareas des pages qui la chargent. Un risque de régression visuelle pour une règle. Le reste est bien du CSS spécifique à sa page, ce que J-5 supposait sans l'avoir prouvé |
 | **J-8** | ✅ **RÉGLÉ le 2026-09-05.** Les deux refus de la branche « profil public » redirigeaient, jetant l'adresse, la bio et les cases. Ils rendent désormais la page avec la saisie. 🔴 Prouvé par `app:s147:form-probe` : **statut 200, aucune redirection, la bio saisie revient à l'écran** — la sonde disait NON |
 | **J-10**, moitié « taux d'aide » | Le taux d'aide de **20 %** sur l'ensemble des formulaires. ⚠️ **L'autre moitié — `admin-formation-content` et ses 35 champs — appartient à la Phase Q (S181)** : c'est l'écran de contenu d'une formation, il se refait avec le constructeur, pas à côté. Deux phases revendiquaient J-10 dans la première version de ce plan ; c'est corrigé. Barème dans `S149-REVUE.md` |
 | **Suppression en masse** | 12 événements créés d'un envoi, retirés un par un. 🔴 **Une décision d'abord** : sélection multiple (aucune notion de série, réutilisable) ou identifiant de série (moins de clics, mais « que devient une séance déplacée ? »). ⚠️ Supprimer et annuler ne sont pas la même action quand des gens sont inscrits |
@@ -1151,14 +1151,27 @@ Espaces, les trois P0 des boîtiers par la phase Machines.
 **Planifiée le 2026-09-04**, d'après les huit planches et la revue Sol
 (`/admin/references`). Absorbe les **trois P0 de sécurité** vérifiés le même jour.
 
-## 🔴 La règle de cette phase, et des deux suivantes
+## 🔴 La règle des trois phases issues des planches — lire AVANT de les ouvrir
 
-**On AMÉLIORE, on ne refait pas.** L'opérateur l'a dit : *« les screenshots ont de
-bonnes idées, dérives-en des upgrades, pas des refontes entières »*. Donc : on
-garde les shells, les composants, le vocabulaire de colonnes, les droits et le
-thème. Une planche apporte une IDÉE — « la disponibilité lisible dès la carte »,
-« une zone Exploitation séparée » — pas un gabarit à recopier. ⚠️ Toute planche
-qui exigerait un shell neuf est un signal qu'on a mal lu l'idée.
+**On AMÉLIORE, on ne refait pas.** L'opérateur, 2026-09-04 : *« les screenshots
+ont de bonnes idées, dérives-en des upgrades, pas des refontes entières »*.
+
+🔴 **Et une précision qui restreint encore, donnée le 2026-09-05 :
+« les screenshots sont pour de la PRÉSENTATION DE CONTENU, on ne change pas le
+thème ou autre ».** Donc une planche ne dit RIEN sur les couleurs, la typographie,
+le chrome ni l'identité — seulement sur **ce qu'on montre, dans quel ordre, et
+regroupé comment**. Une couleur ou un composant vus sur une planche ne sont pas
+une consigne : le thème et le système de design du produit gagnent toujours.
+
+⚠️ **Et ce n'est pas une liste de tâches** : *« c'est de la clarification,
+n'implémente pas tout »*. On en tire les idées qui servent une session, pas les
+huit écrans d'un coup.
+
+Concrètement : on garde les shells, les composants, le vocabulaire de colonnes,
+les droits et le thème. Une planche apporte une IDÉE de présentation — « la
+disponibilité lisible dès la carte », « une zone Exploitation séparée du contenu
+public ». ⚠️ Toute planche qui semblerait exiger un shell neuf, une couleur neuve
+ou un composant neuf est le signe qu'on l'a mal lue.
 
 ## Ce qui existe déjà, mesuré
 
@@ -1196,6 +1209,8 @@ matériaux annoncerait donc du PLA.
 
 **Planifiée le 2026-09-04**, d'après les huit planches et la revue Sol. Absorbe le
 todo « contrôle d'accès aux LIEUX » du 2026-09-03.
+⚠️ **La règle de lecture des planches est en tête de la Phase O** : présentation
+de contenu uniquement, jamais le thème, et pas une liste de tâches.
 
 ## 🔴 Le fait de modèle qui commande toute la phase
 
@@ -1231,6 +1246,8 @@ l'accès machine est un booléen sur les badges. On ne réinvente rien ; on bran
 **Planifiée le 2026-09-04**, d'après les onze planches LMS. **Absorbe l'ancienne
 Phase I** (messagerie Formation) : elle attendait le modèle session / cohorte que
 cette phase construit.
+⚠️ **La règle de lecture des planches est en tête de la Phase O** : présentation
+de contenu uniquement, jamais le thème, et pas une liste de tâches.
 
 ## Ce qui existe déjà, mesuré
 

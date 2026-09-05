@@ -20,7 +20,9 @@
            library, which exists on no other screen. #}
         .form-field textarea { min-height: 180px; resize: vertical; }
         .form-hint { margin: 7px 0 0; color: var(--color-text-light); font-size: 13px; }
-        .btn-submit-inline { padding: 10px 16px; border-radius: 6px; border: 0; color: #fff; background: #9E1B56; font-weight: 700; cursor: pointer; }
+        /* ⚠️ `#9E1B56` était la couleur PRIMAIRE écrite en dur : un thème qui change
+           la couleur du site laissait ce bouton en arrière. C'est le jeton. */
+        .btn-submit-inline { padding: 10px 16px; border-radius: 6px; border: 0; color: #fff; background: var(--color-primary); font-weight: 700; cursor: pointer; }
         .lab-photos-section { padding: 0 24px 24px; }
         .lab-photos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin: 14px 0; }
         .lab-photo-card { border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; background: var(--theme-surface-elevated); }
