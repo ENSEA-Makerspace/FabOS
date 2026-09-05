@@ -1309,6 +1309,29 @@ l'accès machine est un booléen sur les badges. On ne réinvente rien ; on bran
 | **S177** | **Le parcours membre** : disponibilité lisible dès la carte (« Disponible à 14:00 » plutôt que « Occupé »), fiche d'espace qui répond « puis-je réserver, quand, qu'est-ce qui est inclus, comment j'entre », et « Mes réservations » avec la prochaine et sa fenêtre d'accès | 🔴 **Compté en clics**, cibles de la revue : trouver un espace libre 1–2, réserver 2–3, retrouver sa réservation 1 |
 | **S178** | **L'accès temporaire lié à une réservation** : une marge courte avant/après, révoqué à l'annulation. Et `Espaces > Exploitation` : réservations proches, fermetures, points hors ligne, refus | 🔴 Annuler une réservation retire l'accès **immédiatement**, prouvé par une sonde |
 
+## Ce que l'opérateur vérifie — Phase P
+
+🔴 **L'opérateur est le relecteur.** Une ligne par constat visible à l'écran ;
+jamais « vérifié en interne ».
+
+| Session | Où | Ce qui doit être vrai |
+|---|---|---|
+| **S175** ✅ | `/admin/access-points` (menu **Espaces**) | L'écran existe et il est VIDE. ⚠️ C'est le bon résultat : la migration crée la table, elle n'invente aucune porte |
+| **S175** ✅ | `/admin/access-points/new` | Le champ **Espace ouvert** peut rester vide — un portail d'entrée n'ouvre aucune salle en particulier. Vide est une réponse, pas un oubli |
+| **S175** ✅ | `/admin/rfid-readers/1/edit` | Les DEUX cibles sont là, l'une sous l'autre, **avant** le bouton Enregistrer. Choisir une machine ET un point d'accès doit être REFUSÉ, avec l'erreur sur le champ |
+| **S175** ✅ | `/admin/rfid-readers` | La colonne s'appelle **Commande** (plus « Machine »), et « LECTEUR ZÉRO » y affiche toujours exactement ce qu'il affichait : `Imprimante 3D test`, `Inactif` |
+| **S175** ✅ | rien du tout | 🔴 **C'est la mesure de la session** : le rendu de la liste des boîtiers diffère d'exactement **deux lignes** avant/après — le compteur du menu Espaces (4→5) et l'en-tête de colonne. Rien d'autre n'a bougé |
+| **S176** | l'écran d'un boîtier neuf | Le secret se révèle **une seule fois**, et le dire avant de le montrer |
+| **S176** | un refus d'accès dans le journal | On le corrige **depuis l'incident** — la cause mène au membre, au badge, à la formation ou au lecteur — sans partir chercher ailleurs |
+| **S177** | `/espaces` puis une fiche | 🔴 **Compté en clics** : trouver un espace libre 1–2, réserver 2–3, retrouver sa réservation 1 |
+| **S178** | annuler une réservation | L'accès est retiré **immédiatement**, prouvé par une sonde |
+
+⚠️ **Ce que je ne peux PAS mesurer sur cette boîte, et qui reste donc à ta
+main** : l'API des boîtiers rend `503 device_api_not_configured` faute de
+`FABOS_RFID_API_TOKEN` (S171 fait son travail). Aucune autorisation de bout en
+bout n'est vérifiable ici — seulement la base et l'écran.
+
+
 ## La passe de fond de cette phase
 
 - **Réemploi** : le calendrier, les créneaux et les politiques de réservation

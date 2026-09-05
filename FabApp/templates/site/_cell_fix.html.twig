@@ -1,0 +1,43 @@
+{#
+   LA CELLULE « À FAIRE » — ce qu'on corrige, et où (S176).
+
+   🔴 **Le défaut qu'elle répare.** `/admin/access-rfid-logs` disait parfaitement
+   CE QUI s'est passé — « Badge requis manquant », « Lecteur inactif » — et
+   jamais QUOI FAIRE. Devant un refus, l'opérateur devait deviner seul si le
+   problème venait du membre, de sa formation, de son badge ou du boîtier, puis
+   aller le chercher dans un autre écran en retapant un nom.
+
+   ⚠️ **Un verbe, pas un diagnostic.** La colonne d'à côté dit déjà l'état ;
+   répéter « badge manquant » ici serait le même fait deux fois, ce que le
+   système de design refuse partout ailleurs (voir `_rfid_result`). Ce que cette
+   cellule apporte est l'ACTION : « Accorder le badge », « Réactiver le boîtier ».
+
+   ⚠️ **Le lien n'apparaît que si le pare-feu laisserait passer.** `can_reach()`
+   pose la question à la carte `access_control` elle-même — un formateur ne voit
+   donc pas un lien qui le renverrait sur `/login`. Le verbe reste, sans lien :
+   savoir quoi faire n'est pas un privilège, pouvoir le faire en est un.
+
+   ⚠️ **Une cible manquante ne fabrique PAS un lien.** Un refus « badge inconnu »
+   n'a par construction aucun membre ; `path('…', {id: null})` produirait
+   `/admin/utilisateurs/` — une page de liste présentée comme la fiche de
+   quelqu'un.
+
+   Paramètres :
+
+     fix     la clé de traduction du verbe (obligatoire)
+     route   la destination, ou rien
+     params  ses paramètres de route
+
+   Réutilisable partout où une ligne dit qu'une chose ne va pas : un incident
+   d'accès, une tâche de maintenance en retard, un prêt non rendu. Le composant
+   ne connaît aucun de ces sujets.
+#}
+{% if fix|default('') %}
+    {% if route|default('') and can_reach(route, params|default({})) %}
+        <a class="cell-fix" href="{{ path(route, params|default({})) }}">{{ fix|trans }}<span class="cell-fix__chevron" aria-hidden="true">→</span></a>
+    {% else %}
+        <span class="cell-fix cell-fix--flat">{{ fix|trans }}</span>
+    {% endif %}
+{% else %}
+    {% include 'site/_cell_empty.html.twig' with {reason: 'cell.nothing_to_fix'} only %}
+{% endif %}

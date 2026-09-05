@@ -1,0 +1,42 @@
+{#
+   LA MISE EN SERVICE — où en est-on, et qu'est-ce qui manque (S176).
+
+   🔴 **Le défaut qu'elle répare.** L'écran d'un boîtier expliquait comment le
+   câbler et ne disait nulle part où on en était. Le seul retour possible était
+   de poser le boîtier au mur et de regarder s'il refuse.
+
+   ⚠️ **Une liste ordonnée, pas un pourcentage.** « 3 sur 5 » invite à courir
+   après le chiffre ; ce qui aide est de savoir QUELLE étape manque et pourquoi
+   elle compte.
+
+   ⚠️ **`blocking` n'est pas une décoration.** Une étape bloquante non faite veut
+   dire que rien ne marchera, quel que soit le soin apporté aux autres — c'est le
+   cas du jeton d'API des boîtiers, absent de cette installation. Elle se lit en
+   rouge et porte sa phrase ; les autres sont des étapes normales.
+
+   Paramètres :
+
+     steps       la liste rendue par `ReaderCommissioning::steps()`
+     label_ns    l'espace de clés des libellés ("rfid_form.step_")
+
+   Réutilisable pour toute mise en service ordonnée — un lieu, une intégration,
+   un moyen de paiement. Le composant ne connaît aucun de ces sujets.
+#}
+<section class="commissioning">
+    <h3 class="commissioning__title">{{ 'rfid_form.commissioning_title'|trans }}</h3>
+    <ol class="commissioning__list">
+        {% for step in steps %}
+            <li class="commissioning__step{{ step.done ? ' is-done' : (step.blocking ? ' is-blocking' : '') }}">
+                {# ⚠️ Le marqueur est `aria-hidden` et l'état est répété en texte
+                   pour les lecteurs d'écran : une pastille ✓/• seule ne dit rien
+                   à qui ne la voit pas. #}
+                <span class="commissioning__mark" aria-hidden="true">{{ step.done ? '✓' : '•' }}</span>
+                <span class="commissioning__body">
+                    <span class="sr-only">{{ (step.done ? 'rfid_form.step_done' : 'rfid_form.step_todo')|trans }} — </span>
+                    <b>{{ (label_ns ~ step.key)|trans }}</b>
+                    <span class="commissioning__note">{{ (label_ns ~ step.key ~ '_note')|trans }}</span>
+                </span>
+            </li>
+        {% endfor %}
+    </ol>
+</section>

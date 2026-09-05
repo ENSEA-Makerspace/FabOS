@@ -134,6 +134,7 @@ cell:
     date_convention_missing: "Convention de date manquante : ce gabarit n’a pas dit si cette date est un instant machine (à convertir) ou une heure murale saisie par une personne (à ne pas convertir). Rien n’est affiché plutôt qu’une date fausse de plusieurs heures."
     date_convention_missing_short: "Date non conventionnée"
     action_unavailable: "Action indisponible sur cette ligne"
+    nothing_to_fix: "Rien à corriger"
 
 admin_list:
     refine: "Affiner"
@@ -176,6 +177,17 @@ adm_legacy:
     confirm: Confirmer
     back: Retour
     see: "Voir"
+
+incident:
+    fix_missing_badge: "Accorder le badge"
+    fix_no_training: "Valider la formation"
+    fix_reader_inactive: "Réactiver le boîtier"
+    fix_unknown_rfid: "Rattacher ce badge à un membre"
+    fix_unknown_machine: "Vérifier l’association du boîtier"
+    fix_invalid_payload: "Vérifier le firmware du boîtier"
+    fix_unauthorized_device: "Vérifier le jeton du boîtier"
+    fix_api_not_configured: "Configurer l’API des boîtiers"
+    fix_server_error: "Regarder les journaux du serveur"
 
 kiosk:
     full: "Complet"
@@ -2494,6 +2506,19 @@ rfid_form:
     step_check: "Vérifier que les trois programmes tournent :"
     step_logs: "Regarder les logs :"
     pairing_summary: "<strong>À retenir :</strong> readerToken identifie la Raspberry Pi / lecteur RFID. machineToken identifie la machine FabOS. Le badge RFID d’un utilisateur n’est pas le readerToken. Les valeurs de l’admin et du fichier de configuration de la Pi doivent correspondre."
+    commissioning_title: "Mise en service"
+    step_done: "Fait"
+    step_todo: "À faire"
+    step_named: "Nommer le boîtier"
+    step_named_note: "Le nom que verra l’équipe dans les listes et les journaux."
+    step_paired: "Choisir ce qu’il commande"
+    step_paired_note: "Une machine ou un point d’accès — jamais les deux, jamais aucun."
+    step_token: "Son identifiant"
+    step_token_note: "Le readerToken que le boîtier envoie à chaque appel. Généré si laissé vide."
+    step_api: "Allumer l’API des boîtiers"
+    step_api_note: "FABOS_RFID_API_TOKEN est absent de cette installation : tant qu’il manque, TOUT boîtier est refusé, quel que soit le reste."
+    step_seen: "Le boîtier s’est manifesté"
+    step_seen_note: "Il apparaît dès son premier appel. Rien à faire ici : c’est lui qui parle."
 
 # Liste des badges admin — S134c.
 admin_badges:
@@ -2578,6 +2603,7 @@ rfid_readers:
     never: "Jamais"
     col_target: "Commande"
     no_target: "Ce boîtier ne commande rien"
+    api_off: "⚠️ L’API des boîtiers n’est pas configurée sur cette installation (FABOS_RFID_API_TOKEN est absent). Tant qu’elle manque, TOUT boîtier est refusé, quel que soit son état ci-dessous."
 # Assistant de configuration initiale — S134c.
 admin_wizard:
     browser_title: "Configuration initiale - Admin FabOS"
@@ -2884,6 +2910,7 @@ rfid_logs:
     filter_reader: "Lecteur"
     filter_machine: "Machine"
     col_machine: "Machine"
+    col_fix: "À faire"
 
 # Section de formation (création/édition) — S134c.
 formation_section:

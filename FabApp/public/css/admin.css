@@ -2284,3 +2284,17 @@ html[data-theme="dark"] .form-field.afp-select > label.afp-k {
 /* 🔴 `#6b7280` was hard-coded here, so this empty state stayed mid-grey on a dark
    panel while every other empty state followed the theme. */
 .admin-panel-empty { padding: 20px; margin: 0; color: var(--color-text-light); }
+
+
+/* 🔴 S176 — le fait qui vaut pour TOUS les boîtiers : l'API des boîtiers est
+   éteinte. Un bandeau au-dessus de la liste, pas une ligne rouge par lecteur —
+   une cause commune ne doit pas se lire comme plusieurs pannes. */
+.reader-api-off {
+    margin: 0 0 12px;
+    padding: 12px 14px;
+    border-left: 3px solid var(--color-stop, #b91c1c);
+    background: color-mix(in srgb, var(--color-stop, #b91c1c) 8%, var(--theme-surface));
+    color: var(--color-text);
+    font-size: 13px;
+    border-radius: var(--border-radius);
+}

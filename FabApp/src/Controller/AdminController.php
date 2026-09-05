@@ -109,6 +109,9 @@ use App\Repository\UtilisateurRepository;
 use App\Repository\VenueRepository;
 use App\Feature\SiteFeatureService;
 use App\Service\LocaleCatalog;
+use App\Rfid\AccessIncident;
+use App\Rfid\DeviceApiStatus;
+use App\Rfid\ReaderCommissioning;
 use App\Rfid\ReaderHealth;
 use App\Service\MarkdownDocService;
 use App\Service\SiteSettingService;
@@ -4592,13 +4595,19 @@ final class AdminController extends AbstractController
      * notice it already had, rather than controls that would quietly do nothing.
      */
     #[Route('/access-rfid-logs', name: 'app_admin_access_rfid_logs', methods: ['GET'])]
-    public function accessRfidLogs(Request $request, AccessRfidLogRepository $logs, RfidReaderRepository $readers, MachineRepository $machines, EntityManagerInterface $entityManager): Response
+    public function accessRfidLogs(Request $request, AccessRfidLogRepository $logs, RfidReaderRepository $readers, MachineRepository $machines, EntityManagerInterface $entityManager, AccessIncident $incidents): Response
     {
         $readerColumnsExist = $this->accessRfidLogReaderColumnsExist($entityManager);
 
         if (!$readerColumnsExist) {
             return $this->render('site/admin-access-rfid-logs.html.twig', [
                 'logs' => $this->findAccessRfidLogsWithoutReaderColumns($entityManager),
+                // ⚠️ Le repli pré-migration rend des TABLEAUX bruts, pas des
+                // entités : `AccessIncident` ne peut rien en dire, et une carte
+                // vide est la réponse honnête. Sans cette ligne le gabarit
+                // lirait une variable inexistante — muette en prod, faute de
+                // `strict_variables`.
+                'fixes' => [],
                 'readerColumnsExist' => false,
                 'logDays' => 0,
                 'logReader' => '',
@@ -4618,8 +4627,28 @@ final class AdminController extends AbstractController
         $result = (string) $request->query->get('result', '');
         $result = in_array($result, ['yes', 'no'], true) ? $result : '';
 
+        $rows = $logs->search($days, $readerId, $machineId, $result ?: null, 200);
+
+        /*
+         * 🔴 **S176 — le journal disait CE QUI s'est passé, jamais QUOI FAIRE.**
+         * Devant « Badge requis manquant », l'opérateur devait deviner seul si
+         * le problème venait du membre, de sa formation ou du boîtier, puis
+         * aller le chercher ailleurs en retapant un nom.
+         *
+         * ⚠️ Une seule passe, et le gabarit ne décide de rien : la
+         * correspondance cause → correction est une RÈGLE, elle vit dans un
+         * service. Deux gabarits listent ces lignes, et une règle recopiée dans
+         * deux gabarits est une règle qui diverge — c'est très exactement ce qui
+         * est arrivé au vocabulaire des statuts avant `_rfid_result`.
+         */
+        $fixes = [];
+        foreach ($rows as $row) {
+            $fixes[$row->getId()] = $incidents->of($row);
+        }
+
         return $this->render('site/admin-access-rfid-logs.html.twig', [
-            'logs' => $logs->search($days, $readerId, $machineId, $result ?: null, 200),
+            'logs' => $rows,
+            'fixes' => $fixes,
             'logMatching' => $logs->countMatching($days, $readerId, $machineId, $result ?: null),
             'resultCounts' => $logs->resultCounts($days, $readerId, $machineId),
             'readerColumnsExist' => true,
@@ -4797,7 +4826,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/rfid-readers', name: 'app_admin_rfid_readers', methods: ['GET'])]
-    public function rfidReaders(RfidReaderRepository $readers, ReaderHealth $health): Response
+    public function rfidReaders(RfidReaderRepository $readers, ReaderHealth $health, DeviceApiStatus $deviceApi): Response
     {
         // 🔴 **L'état est CALCULÉ, pas stocké** (S172). La colonne « Statut »
         // rendait `isActive`, un booléen — donc l'unique lecteur de la boîte,
@@ -4814,6 +4843,10 @@ final class AdminController extends AbstractController
         return $this->render('site/admin-rfid-readers.html.twig', [
             'readers' => $rows,
             'states' => $states,
+            // 🔴 S176 — un fait qui vaut pour TOUS les boîtiers : sans jeton
+            // d'API configuré, la garde de S171 refuse chaque appel. Correct, et
+            // invisible jusqu'ici.
+            'deviceApiConfigured' => $deviceApi->isConfigured(),
         ]);
     }
 
@@ -4851,11 +4884,15 @@ final class AdminController extends AbstractController
             'reader' => $reader,
             'form' => $form,
             'mode' => 'new',
+            // ⚠️ Le même gabarit sert les deux écrans : une variable absente
+            // serait MUETTE en production (pas de `strict_variables`), donc la
+            // liste est passée vide plutôt que pas passée.
+            'steps' => [],
         ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
     }
 
     #[Route('/rfid-readers/{id}/edit', name: 'app_admin_rfid_reader_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
-    public function editRfidReader(RfidReader $reader, Request $request, EntityManagerInterface $entityManager, RfidReaderRepository $readers): Response
+    public function editRfidReader(RfidReader $reader, Request $request, EntityManagerInterface $entityManager, RfidReaderRepository $readers, ReaderCommissioning $commissioning): Response
     {
         $form = $this->createForm(RfidReaderAdminType::class, $reader);
         $form->handleRequest($request);
@@ -4887,6 +4924,9 @@ final class AdminController extends AbstractController
             'reader' => $reader,
             'form' => $form,
             'mode' => 'edit',
+            // 🔴 S176 — où en est la mise en service, dont la seule étape que
+            // personne ne pouvait voir : l'API des boîtiers est-elle allumée.
+            'steps' => $commissioning->steps($reader),
         ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
     }
 

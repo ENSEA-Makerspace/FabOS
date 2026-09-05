@@ -60,6 +60,18 @@
         <button class="admin-hero-action" type="button" data-open-pairing-modal>{{ 'rfid_form.pairing_open'|trans }}</button>
     {% endblock %}
     {% block content %}
+        {# 🔴 **S176 — un fait qui vaut pour TOUS les boîtiers se dit ici, pas
+           lecteur par lecteur.** Sans `FABOS_RFID_API_TOKEN`, la garde de l'API
+           refuse chaque appel (S171, et c'est juste) — mais la liste continuait
+           d'afficher des lecteurs « prêts ». Un voyant vert au-dessus d'une API
+           éteinte est exactement le défaut que S172 a retiré de la colonne
+           Statut ; le laisser ici l'aurait simplement déplacé.
+           ⚠️ La colonne Statut ne le dit PAS, volontairement : elle répond « où
+           en est CE boîtier », et repeindre les lignes en rouge pour une cause
+           commune ferait chercher cinq pannes au lieu d'une. #}
+        {% if not deviceApiConfigured %}
+            <p class="reader-api-off">{{ 'rfid_readers.api_off'|trans }}</p>
+        {% endif %}
         <p class="reader-help">{{ 'rfid_form.token_note'|trans }} {{ 'rfid_form.delete_help'|trans }}</p>
         {% embed 'site/_data_table.html.twig' with {
             pin_actions: true,

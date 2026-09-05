@@ -121,6 +121,23 @@
                     </div>
                 {{ form_end(form) }}
 
+                {# 🔴 **S176 — où en est la mise en service.** Cet écran expliquait
+                   comment câbler un boîtier et ne disait nulle part où on en
+                   était : le seul retour possible était de le poser au mur et de
+                   regarder s'il refuse.
+                   ⚠️ **Et il y a une étape que personne ne pouvait voir** : depuis
+                   S171 la garde de l'API des boîtiers échoue FERMÉE quand
+                   `FABOS_RFID_API_TOKEN` manque — ce qui est juste — mais aucun
+                   écran ne le disait. Sur cette installation la variable est
+                   absente : tout boîtier branché serait refusé, en silence,
+                   pendant que la liste affiche des lecteurs « prêts ». Une garde
+                   correcte et invisible est une panne différée. #}
+                {% if steps|default([])|length %}
+                    {% include 'site/_commissioning.html.twig' with {
+                        steps: steps, label_ns: 'rfid_form.step_',
+                    } only %}
+                {% endif %}
+
                 {% set envReaderToken = mode == 'edit' ? reader.readerToken : (reader.readerToken ?: 'reader-printer-01') %}
                 {% set envMachineToken = reader.machine ? reader.machine.machineToken : 'printer-01' %}
                 <div class="env-header">

@@ -67,6 +67,7 @@
                 {label: 'rfid_logs.col_badge'|trans, class: 'is-grow'},
                 {label: 'rfid_logs.col_machine'|trans},
                 {label: 'rfid_logs.col_result'|trans, class: 'is-tight'},
+                {label: 'rfid_logs.col_fix'|trans, class: 'is-tight'},
                 {label: 'rfid_logs.col_detail'|trans, class: 'is-tight'},
             ],
             rows: logs,
@@ -110,6 +111,19 @@
                         <td>{% include 'site/_rfid_result.html.twig' with {
                             status: log.status, authorized: log.authorized, color: log.color,
                         } only %}</td>
+                        {# 🔴 **S176 — la colonne qui manquait : QUOI FAIRE.** Celle
+                           d'à côté dit l'état ; celle-ci dit l'action, et mène là où
+                           la décision se prend. La correspondance cause → correction
+                           vit dans `AccessIncident`, jamais ici : deux gabarits
+                           listent ces lignes, et une règle recopiée diverge.
+                           ⚠️ Une ligne AUTORISÉE n'a rien à corriger, et le service
+                           rend `null` — proposer une action y serait du bruit.
+                           ⚠️ Le repli pré-migration rend des tableaux bruts : pas
+                           d'`id`, donc pas d'incident, et c'est honnête. #}
+                        <td>{% set _fix = fallbackLog ? null : fixes[log.id]|default(null) %}
+                            {% if _fix %}{% include 'site/_cell_fix.html.twig' with {
+                                fix: _fix.fix, route: _fix.route, params: _fix.params,
+                            } only %}{% else %}{% include 'site/_cell_empty.html.twig' with {reason: 'cell.nothing_to_fix'} only %}{% endif %}</td>
                         {# The three fields S135 folded away, back on demand rather than
                            back in columns. A `<details>` and nothing else: no controller,
                            no Stimulus, works with JavaScript off, and a row with nothing

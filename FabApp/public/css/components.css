@@ -505,6 +505,26 @@ html[data-theme="dark"] :is(.breadcrumb, .breadcrumb-current, .breadcrumb-separa
 /* ---- the empty cell ---- */
 .cell-empty { color: var(--color-text-light); opacity: .65; }
 
+/* ---- la cellule « à faire » (S176) ----
+   Un VERBE, discret tant qu'on ne le survole pas : une colonne d'actions dans un
+   journal de 100 lignes ne doit pas crier plus fort que le journal.
+   ⚠️ Jamais de couleur littérale — la couverture sombre de `style.css` repeint
+   tout `<span>` d'un `.admin-panel` en gris avec `!important` ; c'est pourquoi le
+   verbe cliquable est un `<a>` (hors de la couverture) et pourquoi la variante
+   sans lien assume d'être en texte atténué. */
+.cell-fix {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 13px; font-weight: var(--font-weight-semibold);
+    color: var(--color-primary); text-decoration: none;
+    white-space: nowrap;
+}
+.cell-fix:hover { text-decoration: underline; }
+.cell-fix--flat { color: var(--color-text-light); font-weight: 400; }
+/* La flèche n'apparaît qu'au survol : au repos elle ferait une colonne de
+   chevrons, au survol elle dit que le verbe mène quelque part. */
+.cell-fix__chevron { opacity: 0; transition: opacity .12s ease; }
+.cell-fix:hover .cell-fix__chevron { opacity: 1; }
+
 /* ---- media ---- */
 /* ===================================================================
    L'ICÔNE — la taille de base, qui manquait (S148, J-7)
@@ -696,3 +716,35 @@ a.cell-chip:hover, a.cell-chip:focus-visible {
 .admin-doc-row form { flex: 0 0 auto; }
 .admin-doc-block { margin-top: var(--spacing-xl); }
 .admin-doc-add { margin-top: var(--spacing-lg); }
+
+
+/* ===================================================================
+   LA MISE EN SERVICE (S176) — une liste ordonnée d'étapes, faites ou non.
+   Réutilisable hors RFID : un lieu, une intégration, un moyen de paiement.
+   =================================================================== */
+.commissioning { padding: 18px 24px 22px; border-top: 1px solid var(--border-color); }
+.commissioning__title { margin: 0 0 12px; font-size: var(--font-size-base); }
+.commissioning__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; counter-reset: step; }
+.commissioning__step { display: grid; grid-template-columns: 22px 1fr; align-items: start; gap: 10px; }
+.commissioning__mark {
+    width: 22px; height: 22px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; line-height: 1;
+    border: 1px solid var(--border-color); color: var(--color-text-light);
+    background: var(--theme-surface);
+}
+.commissioning__step.is-done .commissioning__mark {
+    border-color: transparent; color: #fff;
+    background: var(--color-ok, #16a34a);
+}
+/* 🔴 Bloquante : rien ne marchera tant qu'elle n'est pas faite. Elle ne se
+   distingue pas seulement par la couleur — le libellé le dit aussi, parce
+   qu'une différence portée par la seule couleur n'est pas une différence. */
+.commissioning__step.is-blocking .commissioning__mark {
+    border-color: transparent; color: #fff;
+    background: var(--color-stop, #b91c1c);
+}
+.commissioning__body { display: flex; flex-direction: column; gap: 2px; }
+.commissioning__body b { font-weight: var(--font-weight-semibold); }
+.commissioning__note { color: var(--color-text-light); font-size: 13px; }
+.commissioning__step.is-blocking .commissioning__note { color: var(--color-stop, #b91c1c); }

@@ -70,6 +70,7 @@ cell:
     date_convention_missing: "Falta la convención de fecha: la plantilla no indicó si es un instante de máquina (a convertir) o una hora de pared escrita por una persona (sin convertir). No se muestra nada en lugar de una fecha equivocada por horas."
     date_convention_missing_short: "Convención de fecha ausente"
     action_unavailable: "Acción no disponible en esta fila"
+    nothing_to_fix: "Nada que corregir"
 
 admin_list:
     refine: "Afinar"
@@ -112,6 +113,17 @@ adm_legacy:
     confirm: Confirmar
     back: Volver
     see: "Ver"
+
+incident:
+    fix_missing_badge: "Conceder la insignia"
+    fix_no_training: "Validar la formación"
+    fix_reader_inactive: "Reactivar el lector"
+    fix_unknown_rfid: "Vincular esta tarjeta a un miembro"
+    fix_unknown_machine: "Comprobar el vínculo del lector"
+    fix_invalid_payload: "Comprobar el firmware del lector"
+    fix_unauthorized_device: "Comprobar el token del lector"
+    fix_api_not_configured: "Configurar la API de los lectores"
+    fix_server_error: "Revisar los registros del servidor"
 
 kiosk:
     full: "Completo"
@@ -2492,6 +2504,19 @@ rfid_form:
     step_check: "Compruebe que los tres programas están funcionando:"
     step_logs: "Consulte los registros:"
     pairing_summary: "<strong>Para recordar:</strong> el readerToken identifica la Raspberry Pi o el lector RFID. El machineToken identifica la máquina de FabOS. La credencial RFID de una persona no es el readerToken. Los valores de la administración y del archivo de configuración de la Pi deben coincidir."
+    commissioning_title: "Puesta en servicio"
+    step_done: "Hecho"
+    step_todo: "Por hacer"
+    step_named: "Nombrar el lector"
+    step_named_note: "El nombre que verá el equipo en las listas y los registros."
+    step_paired: "Elegir lo que controla"
+    step_paired_note: "Una máquina o un punto de acceso: nunca los dos, nunca ninguno."
+    step_token: "Su identificador"
+    step_token_note: "El readerToken que el dispositivo envía en cada llamada. Se genera si se deja vacío."
+    step_api: "Encender la API de los lectores"
+    step_api_note: "FABOS_RFID_API_TOKEN falta en esta instalación: mientras falte, TODO lector es rechazado, se haga lo que se haga."
+    step_seen: "El lector se ha manifestado"
+    step_seen_note: "Aparece en su primera llamada. Nada que hacer aquí: habla el dispositivo."
 
 # Liste des badges admin — S134c.
 admin_badges:
@@ -2576,6 +2601,7 @@ rfid_readers:
     never: "Nunca"
     col_target: "Controla"
     no_target: "Este lector no controla nada"
+    api_off: "⚠️ La API de los lectores no está configurada en esta instalación (falta FABOS_RFID_API_TOKEN). Mientras falte, TODO lector es rechazado, sea cual sea su estado abajo."
 # Assistant de configuration initiale — S134c.
 admin_wizard:
     browser_title: "Configuración inicial - Admin FabOS"
@@ -2882,6 +2908,7 @@ rfid_logs:
     filter_reader: "Lector"
     filter_machine: "Máquina"
     col_machine: "Máquina"
+    col_fix: "Por hacer"
 
 # Section de formation (création/édition) — S134c.
 formation_section:
