@@ -312,13 +312,46 @@
                                 <li>{{ 'machine.location'|trans({'%location%': machine.localisation ?? 'machine.location_unknown'|trans}) }}</li>
                             </ul>
                         </div>
-                        <div class="detail-card">
-                            <h3 class="detail-card-title">{{ 'machine.materials_uses'|trans }}</h3>
-                            <div class="materials-grid">
-                                {% for material in materials %}
-                                    <span class="material-tag">{{ material }}</span>
-                                {% endfor %}
-                            </div>
+                        {# 🔴 **S174 — cette page portait DEUX listes de matériaux.**
+                           « Matériaux et usages » lisait le tableau de texte
+                           `Machine::materials` ; « Matériaux compatibles » lisait la
+                           relation `MACHINE_MATERIAL`. Deux réponses à une question,
+                           l'une à côté de l'autre, et rien ne les tenait d'accord.
+
+                           🔴 **Et la première mentait quand elle était vide** :
+                           `getMaterials()` retombait sur `['PLA','PETG','TPU','Support']`,
+                           donc une découpeuse laser annonçait du filament. Le repli
+                           est parti ; vide veut dire vide.
+
+                           **La relation gagne** — elle nomme de vrais matériaux du
+                           catalogue, elle sait les lier, et l'écran d'administration
+                           du matériau la tient déjà à jour. Le tableau de texte reste
+                           lisible pour les machines pas encore rattachées : c'est une
+                           note de transition, pas une source. #}
+                        <div class="detail-card full-width">
+                            <h3 class="detail-card-title">{{ 'materials.on_machine'|trans }}</h3>
+                            {% if materialsEnabled and machineMaterials is not empty %}
+                                <div class="machine-materials-list">
+                                    {% for material in machineMaterials %}
+                                        <a class="machine-material-chip" href="{{ path('app_materials_detail', {id: material.id}) }}">
+                                            <span class="machine-material-visual">{% if material.imageUrl %}<img src="{{ material.imageUrl }}" alt="{{ material.name }}" onerror="this.style.display='none'">{% elseif material.icon %}{{ material.icon }}{% else %}{% include 'site/_icon.html.twig' with { name: 'box' } only %}{% endif %}</span>
+                                            <span class="machine-material-name">{{ material.name }}{% if material.category %} <em>· {{ material.category }}</em>{% endif %}</span>
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            {% elseif materials is not empty %}
+                                {# ⚠️ Texte libre : ces mots ne sont rattachés à aucune
+                                   entrée du catalogue, donc ils ne mènent nulle part.
+                                   C'est visible à l'œil — pas de pastille cliquable —
+                                   et c'est voulu. #}
+                                <div class="materials-grid">
+                                    {% for material in materials %}
+                                        <span class="material-tag">{{ material }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {% include 'site/_cell_empty.html.twig' with {reason: 'materials.machine_none'} only %}
+                            {% endif %}
                         </div>
                         {% if maintenanceEnabled %}
                         <div class="detail-card full-width">
@@ -341,19 +374,6 @@
                                     {% endfor %}
                                 </ul>
                             {% endif %}
-                        </div>
-                        {% endif %}
-                        {% if materialsEnabled and machineMaterials is not empty %}
-                        <div class="detail-card full-width">
-                            <h3 class="detail-card-title">{{ 'materials.on_machine'|trans }}</h3>
-                            <div class="machine-materials-list">
-                                {% for material in machineMaterials %}
-                                    <a class="machine-material-chip" href="{{ path('app_materials') }}">
-                                        <span class="machine-material-visual">{% if material.imageUrl %}<img src="{{ material.imageUrl }}" alt="{{ material.name }}" onerror="this.style.display='none'">{% elseif material.icon %}{{ material.icon }}{% else %}{% include 'site/_icon.html.twig' with { name: 'box' } only %}{% endif %}</span>
-                                        <span class="machine-material-name">{{ material.name }}{% if material.category %} <em>· {{ material.category }}</em>{% endif %}</span>
-                                    </a>
-                                {% endfor %}
-                            </div>
                         </div>
                         {% endif %}
                         {# 🔴 **S173 — la zone Exploitation : les outils du staff, à part

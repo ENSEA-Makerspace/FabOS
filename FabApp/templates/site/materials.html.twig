@@ -38,8 +38,11 @@
 } %}
     {% block cards %}
         {% for m in cards %}
+            {# 🔴 **S174 — chaque carte pointait vers cette liste-ci.** Cliquer sur
+               « PLA » ramenait à l'écran d'où l'on venait de cliquer : le
+               catalogue existait, la fiche non. #}
             {% include 'site/_catalogue_card.html.twig' with {
-                url: path('app_materials'),
+                url: path('app_materials_detail', {id: m.id}),
                 title: m.name,
                 type: m.category,
                 meta: m.storageLocation,

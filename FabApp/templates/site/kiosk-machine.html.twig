@@ -74,10 +74,18 @@
                     <div class="block__body" style="color:#4ade80;">{{ 'kiosk.machine_free_access'|trans }}</div>
                 {% endif %}
             </div>
-            {% if machine.materials|length > 0 %}
+            {# 🔴 **S174 — ce mur annonçait « PLA, PETG, TPU, Support » sur toute
+               machine sans matériaux saisis.** Le repli codé en dur vivait dans
+               `Machine::getMaterials()` ; il est parti, et le kiosque lit la même
+               source que la fiche machine — `MACHINE_MATERIAL`. Le texte libre
+               reste en secours pour les machines pas encore rattachées. #}
+            {% set kioskMaterials = machineMaterials|default([])|length > 0
+                ? machineMaterials|map(m => m.name)
+                : machine.materials %}
+            {% if kioskMaterials|length > 0 %}
                 <div class="block">
                     <div class="block__title">{{ 'kiosk.machine_materials'|trans }}</div>
-                    <div class="chips">{% for mat in machine.materials %}<span class="chip chip--mat">{{ mat }}</span>{% endfor %}</div>
+                    <div class="chips">{% for mat in kioskMaterials %}<span class="chip chip--mat">{{ mat }}</span>{% endfor %}</div>
                 </div>
             {% endif %}
             {# ⚠️ S134e — today first, with its reason. The week below is

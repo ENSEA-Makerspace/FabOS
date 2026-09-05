@@ -6,6 +6,7 @@ use App\Repository\AccessRfidLogRepository;
 use App\Repository\EventRegistrationRepository;
 use App\Repository\EventRepository;
 use App\Repository\MachineRepository;
+use App\Repository\MaterialRepository;
 use App\Schedule\ScheduleResolver;
 use Doctrine\DBAL\Connection;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -72,7 +73,7 @@ final class KioskController extends AbstractController
     }
 
     #[Route('/kiosk/machine/{id}', name: 'app_kiosk_machine', requirements: ['id' => '\\d+'], methods: ['GET'])]
-    public function machineStation(int $id, MachineRepository $machines, ScheduleResolver $schedule): Response
+    public function machineStation(int $id, MachineRepository $machines, ScheduleResolver $schedule, MaterialRepository $materials): Response
     {
         $machine = $machines->find($id);
         if ($machine === null) {
@@ -81,6 +82,18 @@ final class KioskController extends AbstractController
 
         return $this->render('site/kiosk-machine.html.twig', [
             'machine' => $machine,
+            /*
+             * 🔴 **S174 — le mur affichait « PLA, PETG, TPU, Support » sur TOUTE
+             * machine sans matériaux saisis**, parce que `Machine::getMaterials()`
+             * retombait sur cette liste codée en dur. Une découpeuse laser
+             * annonçait donc du filament, en gros caractères, à côté d'elle.
+             *
+             * ⚠️ Le kiosque lit maintenant la MÊME source que la fiche machine —
+             * `MACHINE_MATERIAL`. Deux écrans qui répondent à la même question
+             * doivent la poser au même endroit, sinon ils finissent par se
+             * contredire devant la machine.
+             */
+            'machineMaterials' => $materials->findByMachine($id),
             // ⚠️ A kiosk is bolted to a wall in ONE room, so showing it another
             // location's week is the least excusable version of this bug.
             'openingHours' => $schedule->forJson($machine->getVenue()?->getId()),

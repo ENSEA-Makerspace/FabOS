@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Security\RouteAccessChecker;
 use App\Service\SiteSettingService;
 use App\Entity\Reservation;
 use App\Entity\Progression;
@@ -37,7 +38,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/api')]
 final class ApiController extends AbstractController
 {
-    public function __construct(private readonly ReservableResolver $reservables)
+    public function __construct(
+        private readonly ReservableResolver $reservables,
+        private readonly RouteAccessChecker $routeAccess,
+    )
     {
     }
 
@@ -1123,13 +1127,47 @@ final class ApiController extends AbstractController
             'levelSlug' => $machine->getLevelSlug(),
             'levelLabel' => $machine->getLevelLabel(),
             'iconSlug' => $machine->getIconSlug(),
+            /*
+             * 🔴 **S174 — le repli codé en dur sortait AUSSI par l'API.** Toute
+             * machine sans matériaux saisis annonçait ici
+             * `["PLA","PETG","TPU","Support"]`, y compris une découpeuse laser.
+             * `Machine::getMaterials()` ne ment plus ; vide veut dire vide.
+             * ⚠️ Ce champ est le TEXTE LIBRE, pas la relation `MACHINE_MATERIAL` :
+             * l'exposer telle quelle par l'API demanderait un contrat, et un
+             * contrat se décide, il ne se glisse pas dans une session.
+             */
             'materials' => $machine->getMaterials(),
             'features' => $machine->getFeatures(),
             'requirementTitle' => $machine->getRequirementTitle(),
             'requirementDescription' => $machine->getRequirementDescription(),
             'popularity' => $machine->getPopularity(),
             'limiteReservations' => $machine->getLimiteReservations(),
-            'machineToken' => $machine->getMachineToken(),
+            /*
+             * 🔴 **S174 — `GET /api/machines/{id}` publiait `machineToken` à un
+             * visiteur anonyme.** Mesuré le 2026-09-05 : la route n'a aucune règle
+             * dans `access_control`, et rendait `"machineToken":"prusa-mk3s-01"`
+             * sans en-tête ni session.
+             *
+             * ⚠️ **Ce n'est pas un libellé** : c'est le segment qui adresse la
+             * machine sur l'API des boîtiers,
+             * `/api/rfid/machines/{machineToken}/authorization`. La fiche machine
+             * l'a banni pour cette raison en S48, et le commentaire y est resté
+             * pendant que l'API d'à côté le donnait. Encore deux vérités pour un
+             * fait.
+             *
+             * ✅ **Ce n'est PAS un contournement d'autorisation** — S171 a rendu
+             * cette API des boîtiers `fail-closed` et elle exige un jeton de
+             * device. C'est une divulgation inutile, pas une porte ouverte, et
+             * c'est dit ainsi plutôt qu'en P0.
+             *
+             * ⚠️ La question « qui peut le voir » se pose au même endroit que
+             * partout ailleurs — la règle de la ROUTE d'administration, via
+             * `RouteAccessChecker`. Pas un `ROLE_` écrit ici : cette application
+             * n'a pas de hiérarchie de rôles.
+             */
+            'machineToken' => $this->routeAccess->canReach('app_admin_machine_edit', ['id' => $machine->getId()])
+                ? $machine->getMachineToken()
+                : null,
             'createdAt' => $machine->getCreatedAt()->format(DATE_ATOM),
             'updated' => $machine->getUpdated()->format(DATE_ATOM),
             'lastAuthorizationTime' => $machine->getLastAuthorizationTime()?->format(DATE_ATOM),

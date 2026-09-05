@@ -49,4 +49,49 @@ final class MaterialController extends AbstractController
             'allCount' => \count($rows),
         ]);
     }
+
+    /**
+     * 🔴 **S174 — chaque matériau du catalogue renvoyait vers le catalogue.**
+     * Les cartes de `/materiaux` et les pastilles de la fiche machine portaient
+     * toutes `path('app_materials')` : cliquer sur « PLA » ramenait à la liste
+     * où l'on venait de cliquer. Un objet du produit sans fiche est un objet
+     * qu'on ne peut ni consulter, ni partager par lien, ni atteindre depuis la
+     * machine qui l'accepte.
+     *
+     * ⚠️ **La route s'appelle `app_materials_detail`, pas `app_material_detail`.**
+     * `FeatureAccessSubscriber` reconnaît le module au PRÉFIXE de nom de route
+     * (`str_starts_with($route, 'app_materials')`) : un singulier serait passé
+     * à côté de la garde, et la fiche serait restée accessible avec le module
+     * Matériaux éteint. Voir [[feedback-fabos-feature-gate-fails-open]].
+     *
+     * ⚠️ **Un matériau archivé rend 404**, comme il disparaît déjà du catalogue
+     * (`findLiveSafe`). L'écran d'administration reste le seul endroit d'où on
+     * le restaure.
+     */
+    #[Route('/materiaux/{id}', name: 'app_materials_detail', requirements: ['id' => '\\d+'], methods: ['GET'])]
+    public function detail(int $id, MaterialRepository $materials): Response
+    {
+        $material = $materials->find($id);
+        if ($material === null || $material->getArchivedAt() !== null) {
+            throw $this->createNotFoundException('Matériau introuvable');
+        }
+
+        // ⚠️ Les machines archivées sortent : la fiche répond « où puis-je
+        // l'utiliser », et une machine qui a quitté le labo n'est pas une
+        // réponse. Le tri est celui du catalogue machines, pour que deux écrans
+        // ne présentent pas la même liste dans deux ordres.
+        $machines = [];
+        foreach ($material->getMachines() as $machine) {
+            if (!$machine->isArchived()) {
+                $machines[] = $machine;
+            }
+        }
+        usort($machines, static fn ($a, $b): int
+            => [$a->getCategoryLabel(), $a->getNom()] <=> [$b->getCategoryLabel(), $b->getNom()]);
+
+        return $this->render('site/material-detail.html.twig', [
+            'material' => $material,
+            'machines' => $machines,
+        ]);
+    }
 }

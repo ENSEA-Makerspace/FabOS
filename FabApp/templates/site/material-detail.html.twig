@@ -1,0 +1,126 @@
+{% extends 'site/base_public.html.twig' %}
+
+{% from 'site/_admin_inline.html.twig' import admin_actions %}
+
+{# 🔴 **S174 — la fiche qui manquait.** Chaque carte de `/materiaux` et chaque
+   pastille de la fiche machine pointait vers `/materiaux`, c'est-à-dire vers la
+   liste d'où l'on venait de cliquer. Un objet sans fiche ne se consulte pas, ne
+   se partage pas par lien, et ne se rejoint pas depuis la machine qui l'accepte.
+
+   ⚠️ **Une page, pas un shell neuf** : elle emprunte `details.css` et les
+   `detail-card` de la fiche machine, parce que c'est la même famille d'écran.
+   La règle des planches de référence (en tête de la Phase O) l'exige : on en
+   tire la PRÉSENTATION — quoi montrer, dans quel ordre — jamais un thème.
+
+   ⚠️ **Rien sur le stock.** L'entité n'a pas de quantité, et l'inventer serait
+   pire que l'absence. Consigné dans `materials.html.twig` depuis S53. #}
+
+{% block title %}{{ material.name }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block page_styles %}
+    <style>
+        .mat-head { display: flex; align-items: center; gap: var(--spacing-lg); flex-wrap: wrap; margin-bottom: var(--spacing-lg); }
+        .mat-visual { width: 84px; height: 84px; border-radius: 50%; flex: none; display: inline-flex; align-items: center; justify-content: center; font-size: 40px; overflow: hidden; background: var(--theme-surface); border: 1px solid var(--border-color); }
+        .mat-visual img { width: 100%; height: 100%; object-fit: cover; }
+        .mat-title { margin: 0; }
+        .mat-sub { color: var(--color-text-light); margin: 4px 0 0; }
+        .mat-specs { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+        .mat-machines { display: flex; flex-wrap: wrap; gap: 10px; }
+        /* La pastille machine est la même que la pastille matériau de la fiche
+           machine, dans l'autre sens : deux écrans, un seul vocabulaire. */
+        .mat-machine-chip { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; text-decoration: none; color: inherit; border: 1px solid var(--border-color); background: var(--theme-surface); font-weight: var(--font-weight-semibold); font-size: 14px; }
+        .mat-machine-chip:hover { border-color: var(--color-primary); }
+        .mat-machine-chip em { font-weight: 400; color: var(--color-text-light); font-style: normal; }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <main id="main-content" tabindex="-1" class="main-content">
+        <section class="machine-detail-section">
+            <div class="container">
+                {% include 'site/_breadcrumb.html.twig' with {trail: [
+                    {label: 'nav.home'|trans, url: path('app_home')},
+                    {label: 'nav.materials'|trans, url: path('app_materials')},
+                    {label: material.name},
+                ]} only %}
+
+                <div class="mat-head">
+                    <span class="mat-visual">
+                        {%- if material.imageUrl -%}
+                            <img src="{{ material.imageUrl }}" alt="{{ material.name }}" onerror="this.style.display='none'">
+                        {%- elseif material.icon -%}
+                            {{ material.icon }}
+                        {%- else -%}
+                            {% include 'site/_icon.html.twig' with { name: 'box' } only %}
+                        {%- endif -%}
+                    </span>
+                    <div>
+                        <h1 class="mat-title">{{ material.name }}{{ admin_actions([
+                            { route: 'app_admin_material_edit', params: { id: material.id }, label: 'admin_inline.edit'|trans }
+                        ]) }}</h1>
+                        {% if material.category or material.color %}
+                            <p class="mat-sub">{{ material.category }}{% if material.category and material.color %} · {% endif %}{{ material.color }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="detail-tab-grid">
+                    {# 🔴 **Les machines d'abord.** C'est la question qu'on se pose en
+                       arrivant sur un matériau : « où est-ce que je peux m'en servir ? ».
+                       La description et les cotes servent une fois qu'on a la réponse. #}
+                    <div class="detail-card full-width">
+                        <h3 class="detail-card-title">{{ 'materials.machines_heading'|trans }}</h3>
+                        {% if machines is empty %}
+                            {# ⚠️ Une absence se DIT. La version d'avant de ce produit
+                               remplissait le vide avec une liste codée en dur, et une
+                               découpeuse laser annonçait du PLA. #}
+                            {% include 'site/_cell_empty.html.twig' with {reason: 'materials.no_machines'} only %}
+                        {% else %}
+                            <div class="mat-machines">
+                                {% for machine in machines %}
+                                    <a class="mat-machine-chip" href="{{ path('app_machine_detail', {id: machine.id}) }}">
+                                        {{ machine.nom }} <em>{{ machine.categoryLabel }}</em>
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {% if material.description %}
+                        <div class="detail-card full-width">
+                            <h3 class="detail-card-title">{{ 'form.description'|trans }}</h3>
+                            <div class="detail-card-content"><p>{{ material.description }}</p></div>
+                        </div>
+                    {% endif %}
+
+                    {% if material.specs %}
+                        <div class="detail-card">
+                            <h3 class="detail-card-title">{{ 'materials_form.specs'|trans }}</h3>
+                            <ul class="mat-specs">
+                                {% for line in material.specs|split('\n') %}
+                                    {% if line|trim %}<li>{{ line|trim }}</li>{% endif %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    {% if material.storageLocation or material.purchaseUrl %}
+                        <div class="detail-card">
+                            <h3 class="detail-card-title">{{ 'form.storage_location'|trans }}</h3>
+                            <ul class="feature-list">
+                                {% if material.storageLocation %}<li>{{ material.storageLocation }}</li>{% endif %}
+                                {% if material.purchaseUrl %}
+                                    <li><a href="{{ material.purchaseUrl }}" target="_blank" rel="noopener noreferrer">{{ 'materials.buy'|trans }}</a></li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}

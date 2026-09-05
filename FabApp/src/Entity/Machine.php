@@ -201,7 +201,20 @@ class Machine
     public function setLevelLabel(?string $levelLabel): self { $this->levelLabel = $levelLabel; return $this; }
     public function getIconSlug(): string { return $this->iconSlug ?: 'impression-3d'; }
     public function setIconSlug(?string $iconSlug): self { $this->iconSlug = $iconSlug; return $this; }
-    public function getMaterials(): array { return $this->materials ?: ['PLA', 'PETG', 'TPU', 'Support']; }
+    /**
+     * 🔴 **S174 — le repli codé en dur est parti, et il mentait.** Cette méthode
+     * rendait `['PLA','PETG','TPU','Support']` dès que le champ était vide :
+     * une découpeuse laser, une brodeuse, une fraiseuse annonçaient donc du
+     * filament d'imprimante 3D. Un défaut de ce genre ne se voit pas en lisant
+     * le code d'une page — la page affiche bien « ce que la machine accepte ».
+     *
+     * ⚠️ **Et ce champ n'est plus la vérité.** La compatibilité vit dans
+     * `MACHINE_MATERIAL` (relation `Material::machines`), qui nomme de vrais
+     * matériaux du catalogue et sait les lier. Ce tableau de texte reste pour
+     * les machines qui n'ont pas encore été rattachées : il se lit, il ne
+     * décide plus. Vide veut dire vide.
+     */
+    public function getMaterials(): array { return $this->materials ?: []; }
     public function setMaterials(?array $materials): self { $this->materials = $materials; return $this; }
     public function getFeatures(): array { return $this->features ?: ['Volume utile standard FabLab', 'Réservation par créneau', 'Utilisation accompagnée possible', 'Traçabilité RFID']; }
     public function setFeatures(?array $features): self { $this->features = $features; return $this; }
