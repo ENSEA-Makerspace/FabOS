@@ -3,6 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {# ⚠️ **Un kiosque est PUBLIC et n'a rien à faire dans un moteur de recherche.**
+       `/kiosk/entries` nomme les personnes qui viennent de badger : c'est fait pour
+       un mur du labo, pas pour un index. Aucun des quatre kiosques ne portait de
+       directive. ⚠️ Ce n'est PAS une garde — un robot poli obéit, un aspirateur non ;
+       la question « faut-il authentifier ce kiosque » reste posée dans `ROADMAP.md`,
+       Phase O. C'est une précaution gratuite, pas une réponse. #}
+    <meta name="robots" content="noindex, nofollow, noarchive">
     <meta http-equiv="refresh" content="15">
     <title>{{ venue_label() }} — {{ 'kiosk.entries_title'|trans }}</title>
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">

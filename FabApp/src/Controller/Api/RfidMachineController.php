@@ -144,8 +144,29 @@ final class RfidMachineController extends AbstractController
     {
         $configuredToken = getenv('FABOS_RFID_API_TOKEN');
         $expectedToken = trim((string) ($configuredToken !== false ? $configuredToken : ($_ENV['FABOS_RFID_API_TOKEN'] ?? $_SERVER['FABOS_RFID_API_TOKEN'] ?? '')));
+
+        // 🔴 **SANS JETON CONFIGURÉ, ON REFUSE.** Cette garde faisait
+        // `if ($expectedToken === '') { return null; }` : elle laissait passer
+        // exactement quand elle n'avait pas de quoi vérifier. Une garde qui
+        // échoue OUVERTE n'est pas une garde — c'est une politesse.
+        //
+        // Mesuré le 2026-09-04 sur la boîte : la variable n'était ni dans `.env`
+        // ni dans `.env.local`, et un POST sans en-tête `X-FABOS-DEVICE-TOKEN`
+        // rendait 404 « machine inconnue » — donc la requête avait franchi la
+        // garde et atteint la recherche de machine.
+        //
+        // ⚠️ **Le statut est 503 et non 401, et la distinction compte** : le
+        // problème n'est pas l'appelant, c'est l'installation. Un boîtier qui
+        // reçoit 401 croit son jeton faux et le fait tourner pour rien ; 503 dit
+        // « le service n'est pas configuré », ce qui est vrai et actionnable.
+        // ⚠️ Aucun risque de coupure mesuré au moment du changement : un seul
+        // lecteur existe, vu pour la dernière fois le 2026-07-10.
         if ($expectedToken === '') {
-            return null;
+            return $this->json([
+                'authorized' => false,
+                'status' => 'device_api_not_configured',
+                'message' => "L'API des boîtiers n'est pas configurée : FABOS_RFID_API_TOKEN est absent.",
+            ], 503);
         }
 
         $providedToken = trim((string) $request->headers->get('X-FABOS-DEVICE-TOKEN', ''));

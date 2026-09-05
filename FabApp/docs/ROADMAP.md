@@ -1075,7 +1075,19 @@ La revue apportée avec les planches Équipement (`docs/references/equipement/RE
 énonce trois P0. **Je les ai vérifiés dans le code plutôt que de les recopier —
 les trois sont exacts.**
 
-**1. 🔴 L'API des boîtiers échoue en position OUVERTE.**
+**1. ✅ CORRIGÉ le 2026-09-05 (S171) — l'API des boîtiers échouait en position OUVERTE.**
+Elle rend maintenant **503 `device_api_not_configured`** quand le jeton manque —
+503 et non 401, parce que le problème n'est pas l'appelant mais l'installation :
+un boîtier qui reçoit 401 fait tourner son jeton pour rien.
+🔴 **Et je dois corriger MON compte rendu du 2026-09-04** : j'avais écrit « un
+POST sans en-tête rend 404 “machine inconnue”, donc la requête a franchi la
+garde ». C'était faux — l'URL que j'avais testée, `/access`, **n'existe pas** ;
+la vraie route est `/authorization`, et ce 404 était un 404 de ROUTAGE en HTML.
+Le trou était bien réel, mais par lecture du code (`return null` quand le jeton
+manque), pas par cette mesure-là. ⚠️ Une mesure qui tombe sur la mauvaise URL
+ressemble à s'y méprendre à une mesure.
+
+**1 bis. Le constat d'origine :**
 `RfidMachineController::rejectUnauthorizedDevice()` fait
 `if ($expectedToken === '') { return null; }` : sans `FABOS_RFID_API_TOKEN`, la
 garde laisse passer. Mesuré sur la boîte : la variable n'est ni dans `.env` ni
@@ -1088,14 +1100,25 @@ fail-closed, sinon la prochaine installation retombe dans le même trou.
 ⚠️ **À trancher par l'opérateur** : fermer une API d'accès physique se fait en
 connaissance de cause, pas au détour d'une copie de fichiers.
 
-**2. ⚠️ `/kiosk/entries` est PUBLIC et montre qui est passé.** Aucun `IsGranted`,
+**2. 🅿️ TOUJOURS OUVERT — et c'est une DÉCISION, pas un oubli.** Ce que le mur du
+labo affiche publiquement appartient à l'opérateur, pas à moi : changer ce que les
+membres voient sur leur propre écran ne se fait pas au détour d'une correction de
+sécurité. Fait en attendant, gratuitement : les **quatre** kiosques portent
+désormais `noindex, nofollow, noarchive` — aucun n'en avait. ⚠️ Ce n'est PAS une
+garde : un robot poli obéit, un aspirateur non. Les deux voies restent celles de
+la revue — signalétique anonymisée, ou kiosque authentifié par le boîtier.
+Constat d'origine : Aucun `IsGranted`,
 répond 200 sans session, et rend 49 références d'avatar — noms et passages RFID.
 ⚠️ Le site entier est derrière une liste blanche NPM, donc ce n'est pas exposé à
 Internet aujourd'hui : c'est une protection d'INFRASTRUCTURE, pas une garde de
 l'application. À décider explicitement — signalétique anonymisée, ou kiosk
 authentifié par le boîtier.
 
-**3. 🔴 Le formulaire Lecteur apprend à donner la base de données à un boîtier.**
+**3. ✅ CORRIGÉ le 2026-09-05 (S171) — le formulaire Lecteur apprenait à donner la base à un boîtier.**
+Les cinq lignes `FABOS_DB_*` sont parties de l'exemple `.env`, remplacées par ce
+dont un boîtier a réellement besoin — son jeton, celui de sa machine, l'URL de
+l'API et son courtier MQTT — plus une phrase qui dit **pourquoi** il n'aura jamais
+la base. Constat d'origine :
 `admin-rfid-reader-form.html.twig` affiche un exemple `.env` contenant
 `FABOS_DB_HOST`, `FABOS_DB_USER` et `FABOS_DB_PASSWORD`. Un boîtier mural ne doit
 jamais recevoir d'accès SQL. Ce n'est « que » de la documentation — c'est-à-dire

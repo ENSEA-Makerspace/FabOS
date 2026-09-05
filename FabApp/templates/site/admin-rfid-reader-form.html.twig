@@ -119,15 +119,21 @@
                     <p class="env-note">{{ 'rfid_form.env_note_new'|trans }}</p>
                 {% endif %}
                 <p class="env-note">{{ 'rfid_form.env_note_host'|trans }}</p>
+                {# 🔴 **Les cinq lignes `FABOS_DB_*` sont PARTIES (S171).** Cet
+                   exemple apprenait à donner à un boîtier mural l'hôte, le nom,
+                   l'utilisateur et le MOT DE PASSE de la base. Un lecteur RFID
+                   n'a aucune raison de parler SQL : il pose une question à l'API
+                   et lit une réponse. Ce n'était « que » de la documentation —
+                   c'est-à-dire une consigne de fabriquer le trou soi-même, et
+                   quelqu'un l'aurait suivie.
+                   ⚠️ Ce qui reste est ce dont un boîtier a réellement besoin :
+                   son jeton, celui de sa machine, et son courtier MQTT. #}
                 <div class="env-example"><code id="rfid-reader-env-config">FABOS_READER_TOKEN={{ envReaderToken }}
 FABOS_MACHINE_TOKEN={{ envMachineToken }}
+FABOS_API_URL=https://votre-fabos/api/rfid
 MQTT_HOST=127.0.0.1
-MQTT_PORT=1883
-FABOS_DB_HOST=192.168.0.25
-FABOS_DB_PORT=3306
-FABOS_DB_NAME=fabos
-FABOS_DB_USER=fabos
-FABOS_DB_PASSWORD=fabos_password</code></div>
+MQTT_PORT=1883</code></div>
+                <p class="env-note"><strong>{{ 'rfid_form.env_no_db'|trans }}</strong></p>
                 {# The two copy outcomes are catalogue strings, read off the element
                    rather than written into the script: a literal in JS is a string no
                    translator can reach. #}
@@ -176,15 +182,22 @@ FABOS_DB_PASSWORD=fabos_password</code></div>
 
             function configText() {
                 const readerToken = tokenInput && tokenInput.value.trim() !== '' ? tokenInput.value.trim() : '{{ mode == 'edit' ? reader.readerToken|e('js') : 'reader-printer-01' }}';
+                {# 🔴 **La SECONDE copie, et c'était la pire.** Le bloc affiché plus
+                   haut a perdu ses cinq lignes de base de données ; celui-ci les
+                   gardait — or c'est LUI que le bouton « copier » met dans le
+                   presse-papier, donc lui que l'opérateur colle réellement dans son
+                   boîtier. Nettoyer ce qu'on voit en laissant ce qu'on copie aurait
+                   été pire que ne rien faire : la page aurait eu l'air corrigée.
+                   ⚠️ Deux vérités pour un même texte — la faute que ce dépôt range
+                   en permanence, ici entre un gabarit et son script.
+                   ⚠️ Commentaire TWIG et non `//` : un commentaire JavaScript part
+                   dans la page, et celui-ci nomme les variables qu'on vient d'en
+                   retirer. #}
                 return 'FABOS_READER_TOKEN=' + readerToken + '\n'
                     + 'FABOS_MACHINE_TOKEN=' + selectedMachineToken() + '\n'
+                    + 'FABOS_API_URL={{ app.request.schemeAndHttpHost|e('js') }}/api/rfid\n'
                     + 'MQTT_HOST=127.0.0.1\n'
-                    + 'MQTT_PORT=1883\n'
-                    + 'FABOS_DB_HOST=192.168.0.25\n'
-                    + 'FABOS_DB_PORT=3306\n'
-                    + 'FABOS_DB_NAME=fabos\n'
-                    + 'FABOS_DB_USER=fabos\n'
-                    + 'FABOS_DB_PASSWORD=fabos_password';
+                    + 'MQTT_PORT=1883';
             }
 
             function updateConfigBlock() {
