@@ -3460,6 +3460,10 @@ admin_user_form:
     ph_role: "Choose a group"
     rfid: "RFID identifier"
     numero_id: "ID number"
+    help_statut: "“Inactive” blocks sign-in and removes the person from directories. Their bookings and history are kept."
+    help_numero_id: "Internal number — student card, member number. It helps find the person in search, and grants nothing."
+    help_rfid: "The identifier the badge reader matches. It grants nothing by itself: training and group membership decide."
+    help_role: "A role IS membership of a built-in group: choosing one puts the person in that group. To remove it, or to combine several groups, use Users › Groups."
     notification_email: "E-mail notifications"
     notification_push: "Push notifications"
     theme: "Theme"
@@ -3773,3 +3777,6 @@ groups:
     bundle_revoke_confirm: "Remove “%name%” from this group? Its members lose those rights immediately."
     bundle_inactive: "Inactive"
     no_bundles: "This group grants no bundle."
+
+security:
+    account_unavailable: "Cannot sign in with these credentials."

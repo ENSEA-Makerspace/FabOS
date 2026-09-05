@@ -3459,6 +3459,10 @@ admin_user_form:
     ph_role: "Elegir un grupo"
     rfid: "Identificador RFID"
     numero_id: "Número de ID"
+    help_statut: "«Inactivo» impide el inicio de sesión y retira a la persona de los directorios. Sus reservas e historial se conservan."
+    help_numero_id: "Número interno — carné de estudiante, número de socio. Sirve para encontrar a la persona en la búsqueda, y no concede nada."
+    help_rfid: "El identificador que compara el lector de credenciales. No concede nada por sí mismo: deciden la formación y el grupo."
+    help_role: "El rol ES una pertenencia a un grupo integrado: elegirlo inscribe a la persona en ese grupo. Para retirarla, o combinar varios grupos, use Usuarios › Grupos."
     notification_email: "Notificación por correo"
     notification_push: "Notificación push"
     theme: "Tema"
@@ -3772,3 +3776,6 @@ groups:
     bundle_revoke_confirm: "¿Retirar «%name%» de este grupo? Sus miembros pierden esos derechos de inmediato."
     bundle_inactive: "Inactivo"
     no_bundles: "Este grupo no concede ningún plan."
+
+security:
+    account_unavailable: "No se puede iniciar sesión con estas credenciales."

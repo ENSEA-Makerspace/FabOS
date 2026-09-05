@@ -3459,6 +3459,10 @@ admin_user_form:
     ph_role: "Scegliere un gruppo"
     rfid: "Identificativo RFID"
     numero_id: "Numero ID"
+    help_statut: "«Inattivo» impedisce l’accesso e rimuove la persona dagli elenchi. Prenotazioni e cronologia sono conservate."
+    help_numero_id: "Numero interno — tessera studente, numero socio. Serve a ritrovare la persona nella ricerca, e non concede nulla."
+    help_rfid: "L’identificativo che il lettore di badge confronta. Da solo non concede nulla: decidono la formazione e il gruppo."
+    help_role: "Il ruolo È un’appartenenza a un gruppo integrato: sceglierlo iscrive la persona in quel gruppo. Per rimuoverla, o per cumulare più gruppi, usare Utenti › Gruppi."
     notification_email: "Notifica e-mail"
     notification_push: "Notifica push"
     theme: "Tema"
@@ -3772,3 +3776,6 @@ groups:
     bundle_revoke_confirm: "Rimuovere «%name%» da questo gruppo? I suoi membri perdono subito quei diritti."
     bundle_inactive: "Inattivo"
     no_bundles: "Questo gruppo non concede alcun forfait."
+
+security:
+    account_unavailable: "Impossibile accedere con queste credenziali."

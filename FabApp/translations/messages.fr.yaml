@@ -3461,6 +3461,10 @@ admin_user_form:
     ph_role: "Choisir un groupe"
     rfid: "Identifiant RFID"
     numero_id: "Numéro ID"
+    help_statut: "« Inactif » empêche la connexion et retire la personne des annuaires. Ses réservations et son historique sont conservés."
+    help_numero_id: "Numéro interne — carte étudiant, numéro d’adhérent. Il sert à retrouver la personne dans la recherche, et n’accorde aucun droit."
+    help_rfid: "L’identifiant que le lecteur de badge compare. Il n’accorde aucun droit par lui-même : c’est la formation et le groupe qui décident."
+    help_role: "Le rôle EST une appartenance à un groupe intégré : le choisir inscrit la personne dans ce groupe. Pour l’en retirer, ou pour cumuler plusieurs groupes, passer par Utilisateurs › Groupes."
     notification_email: "Notification email"
     notification_push: "Notification push"
     theme: "Thème"
@@ -3774,3 +3778,6 @@ groups:
     bundle_revoke_confirm: "Retirer « %name% » à ce groupe ? Ses membres perdent ces droits immédiatement."
     bundle_inactive: "Inactif"
     no_bundles: "Ce groupe n'accorde aucun forfait."
+
+security:
+    account_unavailable: "Connexion impossible avec ces identifiants."

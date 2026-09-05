@@ -15,6 +15,12 @@ security:
         main:
             lazy: true
             provider: app_user_provider
+            # 🔴 **Un compte « inactif » ne se connectait pas moins qu'un autre**
+            # avant le 2026-09-05 : rien ne lisait `statut` à la connexion. Le
+            # mot promettait une coupure que le produit n'appliquait pas.
+            # ⚠️ Le refus va vers le FERMÉ : tout statut différent de `actif` est
+            # refusé, y compris une valeur inconnue.
+            user_checker: App\Security\ActiveAccountChecker
             # Signs in the request `app:render` makes to itself, so admin screens
             # can be inspected from a shell. It cannot be armed by a request — see
             # ConsoleRenderAuthenticator. It replaced LOCAL_ADMIN_BYPASS, which

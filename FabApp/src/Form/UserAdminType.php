@@ -102,8 +102,14 @@ final class UserAdminType extends AbstractType
             // « groupe », parce que c'est ce que l'opérateur choisit et ce que le
             // contrôleur écrit. Un champ dont l'étiquette nomme autre chose que ce
             // qu'il fait est la première marche vers un écran qui ment.
+            // ⚠️ Les quatre aides ci-dessous ne sont PAS un remplissage de taux.
+            // Elles portent chacune une conséquence que le libellé ne dit pas, et
+            // elles ont été vérifiées dans le code avant d'être écrites — la revue
+            // S149 avait trouvé « six aides qui affirmaient des choses fausses ».
+            // Les onze autres champs n'en ont pas : « E-mail » se passe de glose.
             ->add('role', ChoiceType::class, [
                 'label' => 'admin_user_form.role',
+                'help' => 'admin_user_form.help_role',
                 'mapped' => false,
                 'choices' => $options['role_choices'],
                 'placeholder' => 'admin_user_form.ph_role',
@@ -114,16 +120,19 @@ final class UserAdminType extends AbstractType
             ])
             ->add('identifiantRfid', TextType::class, [
                 'label' => 'admin_user_form.rfid',
+                'help' => 'admin_user_form.help_rfid',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 255, maxMessage: 'L’identifiant RFID ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('numeroId', TextType::class, [
                 'label' => 'admin_user_form.numero_id',
+                'help' => 'admin_user_form.help_numero_id',
                 'required' => false,
                 'constraints' => [new Assert\Length(max: 100, maxMessage: 'Le numéro ID ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('statut', ChoiceType::class, [
                 'label' => 'form.status',
+                'help' => 'admin_user_form.help_statut',
                 'choices' => [
                     'admin_user_form.choice_active' => 'actif',
                     'admin_user_form.choice_inactive' => 'inactif',

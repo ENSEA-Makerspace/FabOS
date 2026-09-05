@@ -3459,6 +3459,10 @@ admin_user_form:
     ph_role: "Gruppe wählen"
     rfid: "RFID-Kennung"
     numero_id: "ID-Nummer"
+    help_statut: "„Inaktiv“ verhindert die Anmeldung und entfernt die Person aus den Verzeichnissen. Buchungen und Verlauf bleiben erhalten."
+    help_numero_id: "Interne Nummer — Studierendenausweis, Mitgliedsnummer. Sie hilft bei der Suche und gewährt nichts."
+    help_rfid: "Die Kennung, die das Ausweislesegerät vergleicht. Sie gewährt für sich genommen nichts: Schulung und Gruppe entscheiden."
+    help_role: "Die Rolle IST eine Mitgliedschaft in einer integrierten Gruppe: die Auswahl trägt die Person dort ein. Zum Entfernen oder Kombinieren mehrerer Gruppen: Benutzer › Gruppen."
     notification_email: "E-Mail-Benachrichtigung"
     notification_push: "Push-Benachrichtigung"
     theme: "Design"
@@ -3772,3 +3776,6 @@ groups:
     bundle_revoke_confirm: "„%name%“ dieser Gruppe entziehen? Ihre Mitglieder verlieren diese Rechte sofort."
     bundle_inactive: "Inaktiv"
     no_bundles: "Diese Gruppe gewährt kein Nutzungspaket."
+
+security:
+    account_unavailable: "Anmeldung mit diesen Zugangsdaten nicht möglich."
