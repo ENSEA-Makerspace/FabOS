@@ -357,6 +357,8 @@ state:
     todo_f: "À faire"
     done_m: "Fait"
     overdue: "En retard"
+    free_at: "Libre à %time%"
+    free_on: "Libre %day% à %time%"
 
 machines:
     state_free: "Libre"
@@ -1225,6 +1227,9 @@ places:
     login_to_book: "pour reserver cet espace."
     upcoming_bookings: "Prochaines reservations"
     no_bookings: "Aucune reservation a venir pour cet espace."
+    how_to_enter: "Comment on y entre"
+    entry_badge_note: "Votre badge ouvre ces accès quand vos droits le permettent, pendant les créneaux qui vous sont ouverts."
+    entry_none: "Aucun accès contrôlé n’est déclaré pour cet espace. Demandez à l’équipe comment y entrer."
 
 reservable:
     type:

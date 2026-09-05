@@ -19,6 +19,15 @@
         .place-flash.success { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
         .place-flash.error { background: color-mix(in srgb, var(--color-stop, #b91c1c) 15%, var(--theme-surface)); color: var(--color-stop, #b91c1c); }
         @media (max-width: 900px) { .place-detail-grid { grid-template-columns: 1fr; } }
+        /* S177 — « comment j'entre ». Discret : c'est une réponse utile, pas
+           l'action principale de la page (qui reste : réserver). Aucune couleur
+           littérale — les jetons décident, ici comme partout. */
+        .place-entry { margin: 20px 0 8px; padding: 16px 18px; border: 1px solid var(--border-color); border-radius: var(--border-radius); background: var(--theme-surface); }
+        .place-entry__title { margin: 0 0 10px; font-size: var(--font-size-md); }
+        .place-entry__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+        .place-entry__list li { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+        .place-entry__kind, .place-entry__where { color: var(--color-text-light); font-size: 13px; }
+        .place-entry__note { color: var(--color-text-light); font-size: 13px; margin: 10px 0 0; }
     </style>
 {% endblock %}
 
@@ -39,6 +48,39 @@
                     {{ place.localisation ?: '' }}{% if place.localisation and place.capacite %} · {% endif %}{% if place.capacite %}{{ place.capacite }} {{ 'places.capacity_suffix'|trans }}{% endif %}
                 </p>
                 {% if place.description %}<p>{{ place.description }}</p>{% endif %}
+
+                {# 🔴 **S177 — « comment j'entre ? », enfin posable.** Jusqu'à S175
+                   une porte n'existait pas comme objet du produit : cette fiche
+                   disait où l'espace se trouve et quand il est libre, jamais par
+                   où on y entre. C'est le premier bénéfice concret d'`AccessPoint`.
+
+                   ⚠️ **La section reste quand la liste est vide**, et c'est
+                   délibéré : une installation qui n'a déclaré aucune porte doit
+                   voir qu'elle n'en a pas déclaré. Masquer produirait une page
+                   qui a l'air complète et qui ne répond pas — c'est la moitié des
+                   « pages manquantes » de ce projet.
+
+                   ⚠️ **Aucun droit affiché ici.** Savoir PAR OÙ on entre n'est pas
+                   savoir SI on peut : le verdict d'usage est au-dessus, dans le
+                   panneau partagé, et le dupliquer ici serait la deuxième vérité
+                   que la Phase P existe pour éviter. #}
+                <section class="place-entry">
+                    <h2 class="place-entry__title">{{ 'places.how_to_enter'|trans }}</h2>
+                    {% if accessPoints|default([])|length %}
+                        <ul class="place-entry__list">
+                            {% for point in accessPoints %}
+                                <li>
+                                    <b>{{ point.nom }}</b>
+                                    <span class="place-entry__kind">{{ point.kindKey|trans }}</span>
+                                    {% if point.localisation %}<span class="place-entry__where">{{ point.localisation }}</span>{% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                        <p class="place-entry__note">{{ 'places.entry_badge_note'|trans }}</p>
+                    {% else %}
+                        <p class="place-entry__note">{{ 'places.entry_none'|trans }}</p>
+                    {% endif %}
+                </section>
 
                 {% for message in app.flashes('success') %}<div class="place-flash success">{{ message|flash_text }}</div>{% endfor %}
                 {% for message in app.flashes('error') %}<div class="place-flash error">{{ message|flash_text }}</div>{% endfor %}

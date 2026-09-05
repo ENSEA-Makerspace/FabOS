@@ -45,22 +45,45 @@
             {# ⚠️ S134e — the REASON when there is one. A dated closure knows why
                it is closed, and "fermé — jour férié" ends a question that "fermé"
                only starts. #}
+            {# 🔴 **S177 — la pastille disait « Occupé », qui n'aide personne.**
+               La page CONNAÎT le prochain créneau libre — elle l'affichait déjà,
+               en petit, sous la carte — pendant que le mot le plus voyant de la
+               carte annonçait un problème sans sa sortie. Un membre qui cherche
+               une salle veut savoir À QUELLE HEURE, pas qu'il est trop tard.
+               ⚠️ **Le créneau du jour dit l'heure seule** (« Libre à 14:00 ») ;
+               un créneau d'un autre jour porte son jour, sinon « Libre à 09:00 »
+               un mardi soir désigne demain sans le dire — exactement la faute
+               que `/kiosk/entries` a payée en S151.
+               ⚠️ `lab_date` des DEUX côtés : comparer un instant à une date
+               locale change de résultat entre 00:00 et 02:00. #}
             {% if not venueOpenNow %}
                 {% set state = venueClosureReason|default(null) ? 'state.closed'|trans ~ ' — ' ~ venueClosureReason : 'state.closed'|trans %}{% set tone = 'muted' %}
             {% elseif entry.freeNow %}
                 {% set state = 'state.free'|trans %}{% set tone = 'go' %}
             {% elseif entry.slot %}
-                {% set state = 'state.busy'|trans %}{% set tone = 'wait' %}
+                {% set _sameDay = entry.slot.start|lab_date('Y-m-d') == 'now'|lab_date('Y-m-d') %}
+                {% set state = _sameDay
+                    ? 'state.free_at'|trans({'%time%': entry.slot.start|lab_date('H:i')})
+                    : 'state.free_on'|trans({'%day%': entry.slot.start|lab_date('d/m'), '%time%': entry.slot.start|lab_date('H:i')}) %}
+                {% set tone = 'wait' %}
             {% else %}
                 {% set state = 'state.full'|trans %}{% set tone = 'wait' %}
             {% endif %}
 
+            {# ⚠️ **La note ne redit plus l'heure** : la pastille la porte
+               désormais, et deux fois le même fait sur une carte de six lignes est
+               ce que le système de design refuse partout. Ce qui reste dans `note`
+               est la seule chose que la pastille ne dit pas — qu'il n'y a AUCUN
+               créneau.
+               🔴 **Et ce commentaire était DANS le littéral `with { … }`.** Twig
+               n'admet pas de commentaire à l'intérieur d'un hash. C'est la
+               TROISIÈME fois dans ce dépôt ; `tools/twig_balance.py` sait le voir
+               depuis aujourd'hui, plutôt que d'attendre `lint:twig` sur la boîte. #}
             {% include 'site/_catalogue_card.html.twig' with {
                 url: path('app_place_detail', {id: p.id}),
                 title: p.nom,
                 meta: p.localisation,
-                note: entry.slot ? 'machines.bookable_from'|trans : 'machines.no_slot'|trans,
-                note_strong: entry.slot ? entry.slot.start|lab_date('d/m H:i') : '',
+                note: entry.slot ? '' : 'machines.no_slot'|trans,
                 state: state,
                 state_tone: tone,
                 foot: entry.usageRight.enforced and not entry.usageRight.allowed ? ('usage_rights.verdict.' ~ entry.usageRight.reason ~ '.label')|trans : (p.capacite ? p.capacite ~ ' ' ~ 'places.capacity_suffix'|trans : ''),

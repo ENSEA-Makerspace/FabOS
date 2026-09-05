@@ -34,6 +34,30 @@ final class AccessPointRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * Les points d'accès qui ouvrent CET espace (S177).
+     *
+     * 🔴 **C'est la question « comment j'entre ? »**, et jusqu'à S175 le produit
+     * ne pouvait pas y répondre : une porte n'existait pas comme objet. La fiche
+     * d'un espace disait où il est et quand il est libre, jamais par où on y
+     * entre ni avec quoi.
+     *
+     * ⚠️ Archivés exclus — c'est une surface qui PROPOSE. Une porte retirée du
+     * service ne doit pas être annoncée comme la façon d'entrer.
+     *
+     * @return AccessPoint[]
+     */
+    public function findForPlace(int $placeId): array
+    {
+        return $this->createQueryBuilder('ap')
+            ->andWhere('ap.archivedAt IS NULL')
+            ->andWhere('IDENTITY(ap.place) = :placeId')
+            ->setParameter('placeId', $placeId)
+            ->orderBy('ap.nom', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     /** @return AccessPoint[] */
     public function findForAdmin(): array
     {

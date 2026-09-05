@@ -293,6 +293,8 @@ state:
     todo_f: "Offen"
     done_m: "Erledigt"
     overdue: "Überfällig"
+    free_at: "Frei ab %time%"
+    free_on: "Frei am %day% ab %time%"
 
 machines:
     state_free: "Frei"
@@ -1161,6 +1163,9 @@ places:
     login_to_book: "um diesen Raum zu buchen."
     upcoming_bookings: "Kommende Buchungen"
     no_bookings: "Keine kommenden Buchungen für diesen Raum."
+    how_to_enter: "Wie man hineinkommt"
+    entry_badge_note: "Ihr Ausweis öffnet diese Zugänge, wenn Ihre Rechte es erlauben, während der für Sie offenen Zeiten."
+    entry_none: "Für diesen Raum ist kein kontrollierter Zugang hinterlegt. Fragen Sie das Team, wie man hineinkommt."
 
 reservable:
     type:

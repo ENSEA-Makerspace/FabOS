@@ -25,6 +25,7 @@ use App\Repository\LogUtilisationRepository;
 use App\Repository\PlaceRepository;
 use App\Repository\MachineFavoriteRepository;
 use App\Repository\MachineDocumentRepository;
+use App\Repository\AccessPointRepository;
 use App\Repository\MachineRepository;
 use App\Repository\LoanRepository;
 use App\Repository\MaintenanceTaskRepository;
@@ -1859,6 +1860,7 @@ final class SiteController extends AbstractController
         TranslatorInterface $translator,
         CalendarPayload $calendarPayload,
         ReservableResolver $reservables,
+        AccessPointRepository $accessPoints,
     ): Response {
         $currentUser = $this->getUser();
         $usageVerdict = $usageRights->verdict($currentUser instanceof Utilisateur ? $currentUser : null, 'places');
@@ -1868,6 +1870,19 @@ final class SiteController extends AbstractController
 
         return $this->render('site/place-detail.html.twig', [
             'place' => $place,
+            /*
+             * 🔴 **S177 — « comment j'entre ? », la question qu'aucun écran ne
+             * pouvait poser avant S175.** Une porte n'existait pas comme objet :
+             * la fiche d'un espace disait où il est et quand il est libre, jamais
+             * par où on y entre ni avec quoi. C'est le premier bénéfice concret
+             * d'`AccessPoint`, et il ne coûte qu'une requête.
+             *
+             * ⚠️ Une liste VIDE est le cas normal aujourd'hui — cette
+             * installation n'a déclaré aucune porte. La fiche le dit plutôt que
+             * de masquer la section : masquer produirait une page qui semble
+             * complète et qui ne répond pas.
+             */
+            'accessPoints' => $accessPoints->findForPlace((int) $place->getId()),
             'reservations' => $reservations->findActiveForReservable(ReservableType::Place, $place->getId()),
             'usageRight' => $usageVerdict,
             'calendarResources' => $calendarResources,
