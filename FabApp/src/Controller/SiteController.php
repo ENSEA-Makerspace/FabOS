@@ -843,6 +843,7 @@ final class SiteController extends AbstractController
         CalendarPayload $calendarPayload,
         MachineDocumentRepository $machineDocuments,
         ReservableResolver $reservables,
+        BookingIdentityPolicy $bookingIdentity,
         // 🔴 **Le paramètre à défaut passe EN DERNIER, et il aurait dû dès le
         // début.** La note qui vivait ici disait éviter la dépréciation
         // « optional parameter declared before required parameter »… en plaçant
@@ -897,6 +898,23 @@ final class SiteController extends AbstractController
         $calendarResources = $this->buildCalendarResources([$machine], []);
         $calendarAccess = $this->buildCalendarResourceAccess([$machine], [], $machineAccess, $usageRights, $translator, $reservables);
 
+        /*
+         * 🔴 **S173 — cette page publiait à TOUT LE MONDE ce que la page
+         * historique refuse aux anonymes.** `/machines/{id}/historique` filtre ses
+         * lignes par `BookingIdentityPolicy` en expliquant, juste au-dessus, que
+         * masquer les colonnes ne suffit pas : « cela disait encore à un visiteur
+         * anonyme COMBIEN de gens ont utilisé la machine ». Et la fiche, à côté,
+         * affichait exactement ces trois compteurs à qui passait.
+         *
+         * ⚠️ **Même question, même règle** — pas un `ROLE_STAFF` écrit à la main.
+         * Un exploitant qui coche « formateur » pour les calendriers le pense ici
+         * aussi, et deux règles pour une seule question divergent toujours.
+         *
+         * ✅ Effet de bord mesurable : trois `COUNT(*)` disparaissent de chaque
+         * visite anonyme, qui est la visite la plus fréquente de cette page.
+         */
+        $seesOperations = $bookingIdentity->canSeeOthersIdentity();
+
         return $this->render('site/machine-detail.html.twig', [
             // Les documents attachés (S152) — l'onglet n'existe que s'il y en a.
             'machineDocuments' => $machineDocuments->forMachine($machine),
@@ -905,9 +923,10 @@ final class SiteController extends AbstractController
             'requiredBadgeRows' => $requiredBadgeRows,
             'hasRequiredBadge' => $hasRequiredBadge,
             'authorizationStatus' => $authorizationStatus,
-            'rfidLogCount' => $rfidLogs->count(['machine' => $machine]),
-            'usageLogCount' => $usageLogs->count(['machine' => $machine]),
-            'reservationCount' => $reservations->countForReservable(ReservableType::Machine, $machine->getId()),
+            'seesOperations' => $seesOperations,
+            'rfidLogCount' => $seesOperations ? $rfidLogs->count(['machine' => $machine]) : 0,
+            'usageLogCount' => $seesOperations ? $usageLogs->count(['machine' => $machine]) : 0,
+            'reservationCount' => $seesOperations ? $reservations->countForReservable(ReservableType::Machine, $machine->getId()) : 0,
             'favoritesEnabled' => $favoritesEnabled,
             'isFavorite' => $isFavorite,
             'materialsEnabled' => $modules->isEnabled('materials'),

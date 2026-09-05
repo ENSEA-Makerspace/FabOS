@@ -1245,6 +1245,25 @@ matériaux annoncerait donc du PLA.
 | **S173** | **La fiche machine se sépare en deux publics** : membre (statut utilisable, prochaine action, prérequis exacts, matériaux compatibles, réserver) et une zone **Exploitation** staff/admin. ⚠️ La page RESTE une page — pas deux routes, pas un shell neuf | Le membre atteint « puis-je l'utiliser ? » sans quitter la fiche ; le staff ne voit plus ses outils mélangés au contenu public |
 | **S174** | **La matière devient une seule vérité** : `MACHINE_MATERIAL` canonique, `Machine::materials` rétrogradé en note de transition, et une fiche `/materiaux/{id}` avec les machines réellement compatibles. **Plus de liste codée en dur** | 🔴 Aucune machine n'annonce un matériau qu'elle ne prend pas ; le repli en dur n'existe plus |
 
+
+## Ce que l'opérateur vérifie — Phase O
+
+🔴 **L'opérateur est le relecteur** (sa demande, 2026-09-05). Donc chaque session
+finit par une chose CONSTATABLE À L'ÉCRAN, pas par un rapport. Une ligne qui dit
+« vérifié en interne » n'est pas une ligne de cette liste.
+
+⚠️ **Un test qui échoue ici n'est pas un détail de finition** : c'est la preuve que
+la session a livré autre chose que ce qu'elle annonce.
+
+| Session | Où | Ce qui doit être vrai |
+|---|---|---|
+| **S171** | `/admin/rfid-readers/{id}/edit` | Le mode d'emploi du boîtier ne contient **aucun** `FABOS_DB_*` — ⚠️ ni dans le bloc affiché, **ni dans ce que copie le bouton Copier** (c'était deux endroits, un seul avait été nettoyé) |
+| **S171** | n'importe quel navigateur | `POST https://fabos.dstei.fr/api/rfid/machines/1/authorization` **sans** en-tête de jeton rend **503 `device_api_not_configured`**, pas une autorisation. ⚠️ La route est `/authorization` — j'ai d'abord testé `/access`, qui n'existe pas, et pris son 404 pour une preuve |
+| **S172** | `/admin/rfid-readers` | La colonne Statut ne dit **jamais « Actif »** sur un boîtier muet depuis plus d'une heure. Le lecteur de la boîte (silencieux depuis le 2026-07-10) doit lire **« Hors ligne »**, pas « Actif » |
+| **S172** | même page | ⚠️ Le seuil d'une heure est un **choix**, pas une mesure — aucun boîtier ne tourne, personne ne connaît leur cadence. S'il te paraît trop court ou trop long, c'est un réglage, dis-le |
+| **S173** | `/machines/{id}` en membre | « Puis-je l'utiliser ? » se répond **sans quitter la page** et sans lire un tableau d'admin |
+| **S173** | `/machines/{id}` en admin | Les outils d'exploitation sont dans **une** zone identifiée, et rien de cette zone n'apparaît au membre |
+| **S174** | `/machines/{id}` d'une machine sans matériaux saisis | Elle n'annonce **rien**, et surtout pas « PLA, PETG, TPU, Support » — la liste codée en dur qui faisait qu'une découpeuse laser annonçait du filament |
 ## La passe de fond de cette phase
 
 ⚠️ Une phase qui ne fait que sa fonctionnalité laisse le socle où il était.

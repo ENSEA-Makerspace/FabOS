@@ -101,8 +101,8 @@
                             <div class="formation-detail-meta">
                                 <div class="meta-item">{{ 'fdet.duration'|trans({'%duration%': duration}) }}</div>
                                 <div class="meta-item">{{ 'fdet.places'|trans({'%places%': totalPlaces > 0 ? availablePlaces ~ '/' ~ totalPlaces : 'fdet.places_unknown'|trans}) }}</div>
-                                <div class="meta-item">{{ 'fdet.enrolled'|trans({'%count%': stats.total}) }}</div>
-                                <div class="meta-item">{{ 'fdet.completed'|trans({'%count%': stats.completed}) }}</div>
+                                <div class="meta-item">{{ 'fdet.enrolled'|trans({'%n%': stats.total}) }}</div>
+                                <div class="meta-item">{{ 'fdet.completed'|trans({'%n%': stats.completed}) }}</div>
                             </div>
                         </div>
                     </div>

@@ -32,6 +32,14 @@
         .maint-task-title { font-weight: 700; }
         .maint-task-due { color: var(--color-text-light); font-size: 13px; }
         .maint-task-link { color: #9E1B56; font-weight: 700; text-decoration: none; font-size: 13px; }
+        /* S173 — la zone Exploitation se voit qu'elle est à part, sans être un
+           second thème : un liseré à gauche et un fond très léger, tirés des
+           jetons. ⚠️ Aucune couleur littérale ici — une planche de référence ne
+           décide ni du thème ni de la palette (règle en tête de la Phase O). */
+        .machine-ops { border-left: 3px solid var(--color-primary); background: color-mix(in srgb, var(--color-primary) 4%, var(--theme-surface)); }
+        .machine-ops-note { color: var(--color-text-light); font-size: 13px; margin: 4px 0 14px; }
+        .machine-ops-grid { margin: 0; }
+        .machine-ops-grid .detail-card { background: var(--theme-surface); }
     </style>
 {% endblock %}
 
@@ -248,6 +256,46 @@
 
                 <div class="detail-tab-content active" id="overview">
                     <div class="detail-tab-grid">
+                        {# 🔴 **S173 — la question du membre passe DEVANT la prose.**
+                           « Puis-je l'utiliser ? » se répondait en bas de l'onglet, après
+                           la description, les caractéristiques et les matériaux : trois
+                           blocs de contenu avant la seule chose dont dépend l'action. La
+                           carte n'a pas changé de contenu, elle a changé de rang — et de
+                           titre, parce qu'elle empruntait celui du KIOSQUE
+                           (`kiosk.machine_required_badges`), écrit pour un mur, pas pour
+                           quelqu'un qui décide.
+                           ⚠️ Elle reste DANS la grille : la fiche est une page, pas deux. #}
+                        <div class="detail-card">
+                            <h3 class="detail-card-title">{{ 'machine.prereq_title'|trans }}</h3>
+                            <div class="required-badges">
+                                {% for row in requiredBadgeRows %}
+                                    {% set requiredBadge = row.badge %}
+                                    <div class="required-badge {{ row.owned ? 'obtained' : '' }}">
+                                        <div class="badge-icon small">✓</div>
+                                        <div>
+                                            <strong>{{ requiredBadge.nom }}</strong>
+                                            <p>{{ requiredBadge.description ?: 'machine.badge_required_desc'|trans }}</p>
+                                        </div>
+                                        {% if app.user and row.owned %}
+                                            <span class="badge-check">{{ 'machine.badge_validated'|trans }}</span>
+                                        {% elseif app.user %}
+                                            <span class="badge-missing"><span>{{ 'machine.badge_denied'|trans }}</span><a class="get-badge-link" href="{{ path('app_formations') }}">{{ 'machine.see_trainings'|trans }}</a></span>
+                                        {% else %}
+                                            <span class="badge-missing"><span>{{ 'machine.login_required'|trans }}</span><a class="get-badge-link" href="{{ path('app_login') }}">{{ 'login.submit'|trans }}</a></span>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <div class="required-badge obtained">
+                                        <div class="badge-icon small">✓</div>
+                                        <div>
+                                            <strong>{{ 'machine.no_badges'|trans }}</strong>
+                                            <p>{{ 'machine.no_badges_desc'|trans }}</p>
+                                        </div>
+                                        <span class="badge-check">{{ 'machine.free_access'|trans }}</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
                         <div class="detail-card full-width">
                             <h3 class="detail-card-title">{{ 'machine.description'|trans }}</h3>
                             <div class="detail-card-content">
@@ -308,64 +356,75 @@
                             </div>
                         </div>
                         {% endif %}
-                        <div class="detail-card">
-                            <h3 class="detail-card-title">{{ 'kiosk.machine_required_badges'|trans }}</h3>
-                            <div class="required-badges">
-                                {% for row in requiredBadgeRows %}
-                                    {% set requiredBadge = row.badge %}
-                                    <div class="required-badge {{ row.owned ? 'obtained' : '' }}">
-                                        <div class="badge-icon small">✓</div>
-                                        <div>
-                                            <strong>{{ requiredBadge.nom }}</strong>
-                                            <p>{{ requiredBadge.description ?: 'machine.badge_required_desc'|trans }}</p>
-                                        </div>
-                                        {% if app.user and row.owned %}
-                                            <span class="badge-check">{{ 'machine.badge_validated'|trans }}</span>
-                                        {% elseif app.user %}
-                                            <span class="badge-missing"><span>{{ 'machine.badge_denied'|trans }}</span><a class="get-badge-link" href="{{ path('app_formations') }}">{{ 'machine.see_trainings'|trans }}</a></span>
-                                        {% else %}
-                                            <span class="badge-missing"><span>{{ 'machine.login_required'|trans }}</span><a class="get-badge-link" href="{{ path('app_login') }}">{{ 'login.submit'|trans }}</a></span>
-                                        {% endif %}
-                                    </div>
-                                {% else %}
-                                    <div class="required-badge obtained">
-                                        <div class="badge-icon small">✓</div>
-                                        <div>
-                                            <strong>{{ 'machine.no_badges'|trans }}</strong>
-                                            <p>{{ 'machine.no_badges_desc'|trans }}</p>
-                                        </div>
-                                        <span class="badge-check">{{ 'machine.free_access'|trans }}</span>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        <div class="detail-card">
-                            <h3 class="detail-card-title">{{ 'machine.real_activity'|trans }}</h3>
-                            <ul class="feature-list">
-                                <li>{{ 'machine.stat_reservations'|trans({'%count%': reservationCount}) }}</li>
-                                <li>{{ 'machine.stat_rfid'|trans({'%count%': rfidLogCount}) }}</li>
-                                <li>{{ 'machine.stat_usage'|trans({'%count%': usageLogCount}) }}</li>
-                            </ul>
-                        </div>
-                        {# ⚠️ `machine.machineToken` used to be printed here, on a page anonymous
-                           visitors can read. It is not a label — it is the path segment that
-                           addresses this machine on the RFID device API
-                           (`/api/rfid/machines/{machineToken}/authorization`). Publishing it
-                           hands out half of what is needed to drive that API. It is gone, and
-                           it must not come back: if a screen needs to show it, that screen is
-                           an admin one.
+                        {# 🔴 **S173 — la zone Exploitation : les outils du staff, à part
+                           du contenu public.** Ces deux blocs étaient au milieu de la
+                           fiche que lit un visiteur. Ils ne répondent à AUCUNE question
+                           de membre — « combien de passages RFID », « ID #12 », « dernière
+                           autorisation » sont de la tenue de registre.
 
-                           The rest is internal bookkeeping rather than something a visitor came
-                           for, so it is disclosed on request instead of shown by default (S48). #}
-                        <details class="detail-card full-width detail-disclosure">
-                            <summary class="detail-card-title">{{ 'machine.tech_info'|trans }}</summary>
-                            <div class="materials-grid">
-                                <span class="material-tag">ID #{{ machine.id }}</span>
-                                <span class="material-tag">{{ 'machine.tech_created'|trans({'%date%': machine.createdAt|date('d/m/Y')}) }}</span>
-                                <span class="material-tag">{{ 'machine.tech_updated'|trans({'%date%': machine.updated|date('d/m/Y')}) }}</span>
-                                <span class="material-tag">{{ 'machine.tech_last_auth'|trans({'%date%': machine.lastAuthorizationTime ? machine.lastAuthorizationTime|lab_date('d/m/Y H:i') : '-'}) }}</span>
+                           🔴 **Et l'un des deux était une fuite.** `/machines/{id}/historique`
+                           refuse ses lignes à un anonyme en expliquant que masquer les
+                           colonnes ne suffit pas, « cela dirait encore combien de gens ont
+                           utilisé la machine et quand » — pendant que la fiche d'à côté
+                           affichait ce compte à tout le monde. Une règle, `BookingIdentityPolicy`,
+                           décide maintenant pour les deux.
+
+                           ⚠️ **Ce n'est pas une garde**, c'est de la présentation : ce qui
+                           protège les pages liées est `access_control`, comme le rappelle
+                           `_admin_inline`. Le contrôleur, lui, ne CALCULE plus les compteurs
+                           quand le lecteur n'y a pas droit — ça, c'en est une.
+
+                           🅿️ **`machine.machineToken` reste interdit ici.** Ce n'est pas un
+                           libellé : c'est le segment d'URL qui adresse la machine sur l'API
+                           des boîtiers (`/api/rfid/machines/{machineToken}/authorization`).
+                           Il n'a sa place que sur un écran `/admin`. #}
+                        {% if seesOperations %}
+                        <div class="detail-card full-width machine-ops">
+                            <h3 class="detail-card-title">{{ 'machine.ops_zone'|trans }}</h3>
+                            <p class="machine-ops-note">{{ 'machine.ops_note'|trans }}</p>
+                            <div class="detail-tab-grid machine-ops-grid">
+                                <div class="detail-card">
+                                    <h3 class="detail-card-title">{{ 'machine.real_activity'|trans }}</h3>
+                                    <ul class="feature-list">
+                                        <li>{{ 'machine.stat_reservations'|trans({'%n%': reservationCount}) }}</li>
+                                        <li>{{ 'machine.stat_rfid'|trans({'%n%': rfidLogCount}) }}</li>
+                                        <li>{{ 'machine.stat_usage'|trans({'%n%': usageLogCount}) }}</li>
+                                    </ul>
+                                </div>
+                                <div class="detail-card">
+                                    <h3 class="detail-card-title">{{ 'machine.ops_links'|trans }}</h3>
+                                    {# ⚠️ `can_reach()` et pas un rôle écrit ici : cette
+                                       application n'a PAS de hiérarchie de rôles, donc
+                                       `ROLE_ADMIN` n'implique pas `ROLE_STAFF` et une
+                                       constante en dur cache le lien aux seules personnes
+                                       qui s'en servent. C'est la règle de la route qui
+                                       décide, comme pour `admin_actions`. #}
+                                    <ul class="feature-list">
+                                        <li><a href="{{ path('app_machine_history', {id: machine.id}) }}">{{ 'machine.tab_history'|trans }}</a></li>
+                                        {% if can_reach('app_admin_machine_edit', {id: machine.id}) %}
+                                            <li><a href="{{ path('app_admin_machine_edit', {id: machine.id}) }}">{{ 'admin_inline.edit'|trans }}</a></li>
+                                        {% endif %}
+                                        {% if maintenanceEnabled and can_reach('app_admin_maintenance') %}
+                                            <li><a href="{{ path('app_admin_maintenance') }}">{{ 'admin_nav.entry.app_admin_maintenance'|trans }}</a></li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
                             </div>
-                        </details>
+                            {# Divulgué sur demande plutôt qu'affiché (S48) : même pour
+                               le staff, c'est de la tenue de registre, pas ce qu'on
+                               vient lire. Le pourquoi du bannissement de
+                               `machineToken` est en tête du bloc, une seule fois. #}
+                            <details class="detail-card full-width detail-disclosure">
+                                <summary class="detail-card-title">{{ 'machine.tech_info'|trans }}</summary>
+                                <div class="materials-grid">
+                                    <span class="material-tag">ID #{{ machine.id }}</span>
+                                    <span class="material-tag">{{ 'machine.tech_created'|trans({'%date%': machine.createdAt|date('d/m/Y')}) }}</span>
+                                    <span class="material-tag">{{ 'machine.tech_updated'|trans({'%date%': machine.updated|date('d/m/Y')}) }}</span>
+                                    <span class="material-tag">{{ 'machine.tech_last_auth'|trans({'%date%': machine.lastAuthorizationTime ? machine.lastAuthorizationTime|lab_date('d/m/Y H:i') : '-'}) }}</span>
+                                </div>
+                            </details>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
 
