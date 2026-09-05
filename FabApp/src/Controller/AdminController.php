@@ -106,6 +106,7 @@ use App\Repository\UtilisateurRepository;
 use App\Repository\VenueRepository;
 use App\Feature\SiteFeatureService;
 use App\Service\LocaleCatalog;
+use App\Rfid\ReaderHealth;
 use App\Service\MarkdownDocService;
 use App\Service\SiteSettingService;
 use App\Repository\ScheduleExceptionRepository;
@@ -4629,10 +4630,23 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/rfid-readers', name: 'app_admin_rfid_readers', methods: ['GET'])]
-    public function rfidReaders(RfidReaderRepository $readers): Response
+    public function rfidReaders(RfidReaderRepository $readers, ReaderHealth $health): Response
     {
+        // 🔴 **L'état est CALCULÉ, pas stocké** (S172). La colonne « Statut »
+        // rendait `isActive`, un booléen — donc l'unique lecteur de la boîte,
+        // muet depuis le 2026-07-10, s'affichait « Actif » en VERT. `isActive`
+        // est une intention (« je veux qu'il serve »), pas un état.
+        // ⚠️ Une seule passe, et le gabarit ne recalcule rien : la santé est une
+        // règle, elle vit dans un service, pas dans un `{% if %}`.
+        $rows = $readers->findForAdmin();
+        $states = [];
+        foreach ($rows as $reader) {
+            $states[$reader->getId()] = $health->of($reader);
+        }
+
         return $this->render('site/admin-rfid-readers.html.twig', [
-            'readers' => $readers->findForAdmin(),
+            'readers' => $rows,
+            'states' => $states,
         ]);
     }
 

@@ -87,10 +87,20 @@
                                 href: path('app_admin_machine_edit', {id: reader.machine.id}),
                                 subtitle: reader.machine.machineToken,
                             } only %}{% else %}{% include 'site/_cell_empty.html.twig' with {reason: 'rfid_readers.machine_unknown'} only %}{% endif %}</td>
-                        <td>{% include 'site/_cell_state.html.twig' with {
-                            label: (reader.active ? 'rfid_readers.active' : 'rfid_readers.inactive')|trans,
-                            signal: reader.active ? 'go' : 'muted',
-                        } only %}</td>
+                        {# 🔴 **Sept états, pas deux.** Cette cellule rendait `isActive`,
+                           donc un lecteur ACTIF mais silencieux depuis deux mois y
+                           était « Actif », en vert. Un voyant qui reste au vert quoi
+                           qu'il arrive ne renseigne pas, il rassure — ce qui est pire.
+                           ⚠️ Vérifié en passant le lecteur de la boîte à actif puis en
+                           le remettant : vert « Actif » → rouge « Hors ligne ».
+                           ⚠️ La règle est dans `ReaderHealth`, pas ici : un gabarit qui
+                           décide d'un état est un second endroit où la définition peut
+                           diverger. #}
+                        <td>{% set st = states[reader.id]|default(null) %}
+                            {% include 'site/_cell_state.html.twig' with {
+                                label: st ? st.label|trans : ('rfid_readers.' ~ (reader.active ? 'active' : 'inactive'))|trans,
+                                signal: st ? st.signal : (reader.active ? 'go' : 'muted'),
+                            } only %}</td>
                         <td>{% include 'site/_cell_date.html.twig' with {
                             value: reader.lastSeenAt, convention: 'machine', reason: 'rfid_readers.never',
                         } only %}</td>
