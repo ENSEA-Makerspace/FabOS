@@ -841,12 +841,17 @@ final class SiteController extends AbstractController
         UsageRightsService $usageRights,
         TranslatorInterface $translator,
         CalendarPayload $calendarPayload,
-        // ⚠️ Ajouté AVANT `$id`, qui porte un défaut : glisser un paramètre requis
-        // après lui aggraverait la dépréciation « optional parameter declared
-        // before required parameter » que cette signature traîne déjà.
         MachineDocumentRepository $machineDocuments,
-        ?int $id = null,
         ReservableResolver $reservables,
+        // 🔴 **Le paramètre à défaut passe EN DERNIER, et il aurait dû dès le
+        // début.** La note qui vivait ici disait éviter la dépréciation
+        // « optional parameter declared before required parameter »… en plaçant
+        // `$reservables` juste après `$id`, ce qui la CRÉAIT. Elle sortait à
+        // chaque requête dans le journal de dépréciation, et c'est une erreur
+        // fatale dans une version future de PHP.
+        // ⚠️ L'ordre est sans effet sur le routage : Symfony injecte par nom et
+        // par type, et `{id}` est apparié par son nom, pas par sa position.
+        ?int $id = null,
     ): Response
     {
         $id ??= max(1, (int) $request->query->get('id', 1));
@@ -2345,29 +2350,57 @@ final class SiteController extends AbstractController
             return $this->redirectToRoute('app_profile');
         }
 
+        // 🔴 **J-8, le dernier écran prouvé défaillant** (revue S147, réglé en
+        // S169). Les deux refus ci-dessous REDIRIGEAIENT : l'adresse publique, la
+        // bio et les cases cochées étaient jetées, et il fallait tout retaper pour
+        // corriger un seul caractère. Les 9 autres formulaires du produit rendent
+        // au lieu de rediriger ; celui-ci ne le faisait pas.
+        //
+        // ⚠️ **La saisie repasse À CÔTÉ de l'entité, jamais dessus.** Poser les
+        // valeurs refusées sur `$user` — un objet géré par Doctrine — les ferait
+        // persister au premier `flush()` venu, et le rendu de cette page appelle
+        // plusieurs services. Un brouillon dans une variable ne peut pas fuir en
+        // base.
+        $publicDraft = null;
         if ($request->isMethod('POST') && $request->request->get('_profile_form') === 'public_profile') {
             if (!$this->isCsrfTokenValid('public_profile', (string) $request->request->get('_token'))) {
                 throw $this->createAccessDeniedException('Token CSRF invalide.');
             }
             $public = $request->request->getBoolean('publicProfileEnabled');
             $publicSlug = trim((string) preg_replace('/[^a-z0-9-]+/', '-', mb_strtolower($request->request->getString('publicSlug'))), '-');
+            $fields = array_values(array_filter((array) $request->request->all('publicFields'), 'is_string'));
+            // ⚠️ Construit AVANT les refus, pour qu'aucun d'eux ne puisse oublier
+            // de le remplir — c'est la moitié que la version d'avant n'avait pas.
+            $draft = [
+                'enabled' => $public,
+                'slug' => $request->request->getString('publicSlug'),
+                'bio' => $request->request->getString('publicBio'),
+                'fields' => $fields,
+            ];
             if ($public && ($publicSlug === '' || strlen($publicSlug) > 80)) {
                 $this->addFlash('error', 'flash.adresse_publique_invalide');
-                return $this->redirectToRoute('app_profile');
+                $publicDraft = $draft;
             }
             $existing = $publicSlug === '' ? null : $users->findOneBy(['publicSlug' => $publicSlug]);
-            if ($existing !== null && $existing->getId() !== $user->getId()) {
+            if ($publicDraft === null && $existing !== null && $existing->getId() !== $user->getId()) {
                 $this->addFlash('error', 'flash.cette_adresse_publique_est_deja_utilisee');
-                return $this->redirectToRoute('app_profile');
+                $publicDraft = $draft;
             }
-            $fields = array_values(array_filter((array) $request->request->all('publicFields'), 'is_string'));
-            $user->setPublicProfileEnabled($public)->setPublicSlug($publicSlug ?: null)->setPublicFields($fields)->setPublicBio($request->request->getString('publicBio'));
-            $entityManager->flush();
-            $this->addFlash('success', 'flash.profil_public_mis_a_jour');
-            return $this->redirectToRoute('app_profile', ['_fragment' => 'public-profile']);
+            // ⚠️ Sur refus on NE REDIRIGE PAS : on laisse la requête aller
+            // jusqu'au rendu, en bas. La branche « préférences » qui suit est
+            // gardée par `$publicDraft === null`, sinon elle refuserait sur un
+            // autre jeton et redirigerait quand même — ce qui annulerait tout
+            // l'intérêt de garder la saisie.
+            if ($publicDraft === null) {
+                $user->setPublicProfileEnabled($public)->setPublicSlug($publicSlug ?: null)->setPublicFields($fields)->setPublicBio($request->request->getString('publicBio'));
+                $entityManager->flush();
+                $this->addFlash('success', 'flash.profil_public_mis_a_jour');
+
+                return $this->redirectToRoute('app_profile', ['_fragment' => 'public-profile']);
+            }
         }
 
-        if ($request->isMethod('POST')) {
+        if ($request->isMethod('POST') && $publicDraft === null) {
             if (!$this->isCsrfTokenValid('profile_preferences', (string) $request->request->get('_token'))) {
                 if ($request->isXmlHttpRequest()) {
                     return $this->json([
@@ -2492,6 +2525,9 @@ final class SiteController extends AbstractController
 
         return $this->render('site/profil.html.twig', [
             'user' => $user,
+            // ⚠️ `null` en temps normal : le gabarit lit alors l'entité. Rempli
+            // uniquement quand une saisie vient d'être refusée (J-8).
+            'publicDraft' => $publicDraft,
             'availableLocales' => $locales->choices(),
             'progressions' => $userProgressions,
             'completedProgressions' => $completedProgressions,

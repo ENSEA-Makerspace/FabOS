@@ -586,10 +586,20 @@
                         <form method="post" action="{{ path('app_profile') }}" class="settings-form">
                             <input type="hidden" name="_profile_form" value="public_profile"><input type="hidden" name="_token" value="{{ csrf_token('public_profile') }}">
                             <p>{{ 'public_profile.private_default'|trans }}</p>
-                            <label><input type="checkbox" name="publicProfileEnabled" value="1"{{ user.publicProfileEnabled ? ' checked' : '' }}> {{ 'public_profile.enable'|trans }}</label>
-                            <div class="form-field"><label for="public-slug">{{ 'public_profile.slug'|trans }}</label><input id="public-slug" name="publicSlug" value="{{ user.publicSlug }}" maxlength="80" placeholder="prenom-nom"></div>
-                            <div class="form-field"><label for="public-bio">{{ 'public_profile.bio'|trans }}</label><textarea id="public-bio" name="publicBio" maxlength="500">{{ user.publicBio }}</textarea></div>
-                            <fieldset><legend>{{ 'public_profile.visible_fields'|trans }}</legend>{% for field in ['name', 'avatar', 'bio', 'badges', 'trainings'] %}<label><input type="checkbox" name="publicFields[]" value="{{ field }}"{{ field in user.publicFields ? ' checked' : '' }}> {{ ('public_profile.field.' ~ field)|trans }}</label>{% endfor %}</fieldset>
+                            {# 🔴 **J-8 — une saisie refusée reste à l'écran.** Les deux
+                               refus de ce formulaire redirigeaient : adresse, bio et
+                               cases étaient jetées, et corriger un caractère
+                               obligeait à tout retaper. `publicDraft` porte ce qui
+                               vient d'être soumis ; il vaut `null` en temps normal,
+                               et le formulaire lit alors l'entité comme avant.
+                               ⚠️ Le brouillon vit À CÔTÉ de l'entité, jamais dessus :
+                               poser des valeurs refusées sur un objet géré par
+                               Doctrine les ferait persister au premier `flush()`. #}
+                            {% set pd = publicDraft|default(null) %}
+                            <label><input type="checkbox" name="publicProfileEnabled" value="1"{{ (pd ? pd.enabled : user.publicProfileEnabled) ? ' checked' : '' }}> {{ 'public_profile.enable'|trans }}</label>
+                            <div class="form-field"><label for="public-slug">{{ 'public_profile.slug'|trans }}</label><input id="public-slug" name="publicSlug" value="{{ pd ? pd.slug : user.publicSlug }}" maxlength="80" placeholder="prenom-nom"></div>
+                            <div class="form-field"><label for="public-bio">{{ 'public_profile.bio'|trans }}</label><textarea id="public-bio" name="publicBio" maxlength="500">{{ pd ? pd.bio : user.publicBio }}</textarea></div>
+                            <fieldset><legend>{{ 'public_profile.visible_fields'|trans }}</legend>{% for field in ['name', 'avatar', 'bio', 'badges', 'trainings'] %}<label><input type="checkbox" name="publicFields[]" value="{{ field }}"{{ field in (pd ? pd.fields : user.publicFields) ? ' checked' : '' }}> {{ ('public_profile.field.' ~ field)|trans }}</label>{% endfor %}</fieldset>
                             <div class="settings-footer"><button class="btn btn-primary" type="submit">{{ 'common.save'|trans }}</button></div>
                         </form>
                         <details><summary>{{ 'network.exchange'|trans }}</summary><form method="post" action="{{ path('app_profile_network_qr') }}" class="form-grid"><input type="hidden" name="_token" value="{{ csrf_token('network_exchange') }}"><div class="form-field"><label>{{ 'network.destination'|trans }}</label><input name="audienceUuid" required aria-label="{{ 'network.destination'|trans }}" placeholder="00000000-0000-4000-8000-000000000000"></div><label><input type="checkbox" name="consent" value="1" required> {{ 'network.exchange_consent'|trans }}</label><button class="btn btn-primary">{{ 'network.download_qr'|trans }}</button></form></details>
