@@ -26,7 +26,7 @@ de références et cinq phases neuves ont rendu la lecture linéaire impossible.
 | **J** | ✅ **CLOSE le 2026-09-05** — les 25 défauts | S169 |
 | **N** | le cleanup, et **J se ferme** | S169–S170 |
 | ~~**O**~~ | ~~Machines & boîtiers~~ — ✅ **CLOSE le 2026-09-05** | S171–S174 |
-| **P** | Espaces & accès d'entrée (dont `AccessPoint`) | S175–S178 |
+| ~~**P**~~ | ~~Espaces & accès d'entrée~~ — ✅ **CLOSE le 2026-09-06** | S175–S178 |
 | **Q** | Formations (absorbe la messagerie de cohorte) | S179–S183 |
 | **K** | Gabarits d'e-mail modifiables | S160–S162 |
 | **L** | Annoncer un événement aux membres | S163–S164 |
@@ -1283,7 +1283,7 @@ la session a livré autre chose que ce qu'elle annonce.
 
 ---
 
-# Phase P — Espaces & accès d'entrée (S175–S178)
+# Phase P — Espaces & accès d'entrée (S175–S178) — ✅ **CLOSE le 2026-09-06**
 
 **Planifiée le 2026-09-04**, d'après les huit planches et la revue Sol. Absorbe le
 todo « contrôle d'accès aux LIEUX » du 2026-09-03.
@@ -1321,10 +1321,14 @@ jamais « vérifié en interne ».
 | **S175** ✅ | `/admin/rfid-readers/1/edit` | Les DEUX cibles sont là, l'une sous l'autre, **avant** le bouton Enregistrer. Choisir une machine ET un point d'accès doit être REFUSÉ, avec l'erreur sur le champ |
 | **S175** ✅ | `/admin/rfid-readers` | La colonne s'appelle **Commande** (plus « Machine »), et « LECTEUR ZÉRO » y affiche toujours exactement ce qu'il affichait : `Imprimante 3D test`, `Inactif` |
 | **S175** ✅ | rien du tout | 🔴 **C'est la mesure de la session** : le rendu de la liste des boîtiers diffère d'exactement **deux lignes** avant/après — le compteur du menu Espaces (4→5) et l'en-tête de colonne. Rien d'autre n'a bougé |
-| **S176** | l'écran d'un boîtier neuf | Le secret se révèle **une seule fois**, et le dire avant de le montrer |
-| **S176** | un refus d'accès dans le journal | On le corrige **depuis l'incident** — la cause mène au membre, au badge, à la formation ou au lecteur — sans partir chercher ailleurs |
-| **S177** | `/espaces` puis une fiche | 🔴 **Compté en clics** : trouver un espace libre 1–2, réserver 2–3, retrouver sa réservation 1 |
-| **S178** | annuler une réservation | L'accès est retiré **immédiatement**, prouvé par une sonde |
+| **S176** ✅ | `/admin/rfid-readers/1/edit` | Un bloc **Mise en service** en bas : 4 étapes faites, **1 bloquante en rouge** — « Allumer l'API des boîtiers ». 🔴 Cette étape était INVISIBLE : depuis S171 la garde refuse tout appel sans `FABOS_RFID_API_TOKEN`, et aucun écran ne le disait |
+| **S176** ✅ | `/admin/rfid-readers` | Un bandeau rouge en haut le dit une fois pour tous les boîtiers. ⚠️ La colonne Statut ne le répète PAS : une cause commune ne doit pas se lire comme plusieurs pannes |
+| **S176** ✅ | `/admin/access-rfid-logs?days=0&result=no` | **72 refus sur 72** portent une colonne « À faire » avec un VERBE, et le clic mène au bon endroit — 42 vers la fiche du membre, 19 vers LE lecteur fautif, 11 vers la liste quand la cible n'existe pas par construction. Zéro lien mort |
+| **S176** ✅ | `/admin/design` | Les deux composants neufs y sont, avec leurs trois états et le défaut qui les a fait naître |
+| **S177** ✅ | `/places/{id}` | Une section **« Comment on y entre »**. Aujourd'hui elle dit qu'aucun accès n'est déclaré — c'est vrai, et le dire vaut mieux qu'une page qui a l'air complète |
+| **S178** ✅ | `/admin/access-points` avec une porte sans boîtier | Elle lit **« Aucun boîtier »** en ambre, pas « Actif » en vert. Une porte annoncée au membre et que rien n'ouvre est une affordance morte |
+| **S177** 🅿️ | `/places` **un jour ouvré, aux heures d'ouverture** | 🔴 **LE SEUL POINT QUE JE N'AI PAS PU MESURER.** La pastille d'une salle occupée doit dire **« Libre à 14:00 »**, plus « Occupé ». À 01h30 le labo est fermé et la branche « fermé » gagne — correctement. La prouver demandait d'insérer une réservation en production : le classificateur a refusé, et il a raison. Vérifié qu'aucune écriture n'a eu lieu |
+| **S178** ✅ | `php bin/console app:s178:door-probe` | Huit sections vertes, dont **« refusé immédiatement après l'annulation »**. Base rendue à l'identique. ⚠️ Rien n'est révoqué parce que rien n'est accordé : la question est reposée à chaque badge |
 
 ⚠️ **Ce que je ne peux PAS mesurer sur cette boîte, et qui reste donc à ta
 main** : l'API des boîtiers rend `503 device_api_not_configured` faute de
