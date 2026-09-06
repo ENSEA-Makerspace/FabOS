@@ -1386,11 +1386,29 @@ et une migration additive qui coche le champ pour les formations qui matchent
 aujourd'hui — pour que rien ne change au moment où elle passe.
 ⚠️ Migration = étape de l'opérateur, donc à séquencer explicitement.
 
+✅ **CORRIGÉ le 2026-09-06 (S180b).** `FORMATION.requiresPractical` existe, la
+migration a rempli chaque ligne depuis les mots-clés eux-mêmes (4 à `1`, 4 à `0`,
+60 formations internes laissées à `NULL`), et la case est sur l'écran d'édition,
+dans la section du badge — parce que les deux répondent à la même question.
+`TrainingPolicyService` lit le champ d'abord ; `null` seul retombe sur les
+mots-clés, `false` est un avis et il gagne.
+
+🔴 **Prouvé à l'écran, pas déduit** : déclarer l'exigence sur « Formation découpe
+vinyle » — qu'AUCUN mot-clé n'attrape — la fait apparaître dans la liste des
+validations physiques de la fiche membre ; la remettre à `0` l'en retire. C'est
+exactement ce qui était impossible avant. Base rendue à l'identique.
+
 ✅ **Mesuré le 2026-09-06** : sur cette installation, 4 formations déclenchent les
 mots-clés et ont bien leur validation physique ; la file est vide, et **elle a
 raison** — une seule personne dépasse 80 % de théorie (laser, 100 %) et sa
 pratique est déjà validée. `EN_ATTENTE = 0` sur les quatre. Vérifié par une
 commande temporaire, supprimée du Mac ET de la boîte.
+
+🅿️ **Reste la CONTRACTION** : passer `requiresPractical` en `NOT NULL` et
+supprimer la lecture des mots-clés dans `TrainingPolicyService`. À faire une fois
+que le code qui écrit toujours la colonne aura tourné un moment — expand, soak,
+contract. ⚠️ Tant que le repli existe, une formation créée par un code plus
+ancien reste jugée sur son intitulé.
 | **S181** | **Le constructeur** : le parcours en étapes ordonnables, la checklist de mise en ligne, l'aperçu apprenant. ⚠️ **Et c'est là qu'on solde J-10** — les 35 champs deviennent des étapes, pas un formulaire | 🔴 Champs visibles à l'arrivée : 35 → cible **sous 12**, barème de `S149-REVUE.md` |
 | **S182** | **Le quiz** : types de questions, résultat et reprise. Sur l'existant, pas un moteur neuf | Une reprise ne réinitialise pas ce qui était acquis |
 | **S183** | **La messagerie de cohorte** (ex-Phase I) : annonce formateur → cohorte sans exposer la liste, fil privé, groupe explicite. 🔴 **Aucun message privé ne bascule implicitement vers la cohorte** | Une annonce n'expose aucune adresse ; un fil privé le reste |
