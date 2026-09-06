@@ -1,4 +1,4 @@
-# Où on en est — 2026-09-03
+# Où on en est — 2026-09-06
 
 **Lire ceci en premier.** Une page. Le reste se lit à la demande :
 
@@ -6,33 +6,56 @@
 |---|---|
 | Ce qui reste à faire | [`ROADMAP.md`](/roadmap) |
 | Comment le produit marche, et les pièges | [`PROJECT_STATE.md`](/roadmap) |
-| Le détail des défauts de la Phase J | `S147-REVUE.md` |
-| ✅ La revue de sortie, **conclue** | `S149-REVUE.md` |
+| ✅ La revue de sortie de la Phase J, **conclue** | `S149-REVUE.md` |
 | ✅ La revue de fin de phase S158/S159, **soldée** | `S159-REVUE.md` |
 | Ce qui est livré, phase par phase | [`HISTORY.md`](/roadmap/historique) |
 | Modèle cible des droits | [`USAGE_RIGHTS_VISION.md`](/roadmap/droits-usage) |
-| Déployer | `ARTEMIS_DEPLOYMENT.md` |
+| Les 52 planches de référence | `/admin/references` (drapeau de développement) |
 
 ---
 
 ## Position
 
-✅ **PHASE J CLOSE le 2026-09-05** — les 25 défauts de la revue S147 sont soldés.
-🔴 **Donc la barrière du commerce tombe.** J-8 (une saisie refusée ne se retape
-plus), J-5 (clos par la mesure : 544 sélecteurs locaux, 9 dupliqués dont 6
-artefacts) et J-10 (critère reformulé : le taux n'est pas l'objectif, les trois
-écrans restants sont chacun dans une phase qui les retouche).
-⚠️ **Ce que TU vérifies** : `ROADMAP.md`, § « Ce que l'opérateur vérifie —
-Phase J ». Sept gestes, dont le plus important : un compte passé à « inactif » ne
-doit plus pouvoir se connecter.
+✅ **QUATRE PHASES CLOSES : J, N, O, P.**
+- **J** (2026-09-05) — les 25 défauts de la revue S147 soldés. La barrière du
+  commerce tombe.
+- **N** (2026-09-05) — le cleanup.
+- **O** (2026-09-05) — Machines & boîtiers. Les trois P0 de sécurité, les sept
+  états d'un boîtier, la fiche machine séparée en deux publics, la matière
+  ramenée à une seule vérité.
+- **P** (2026-09-06) — Espaces & accès d'entrée. `AccessPoint` existe : un
+  boîtier peut commander une PORTE, plus seulement une machine.
 
-🔴 **J-25 est RÉGLÉ le 2026-09-04**, et c'est le dernier des 25 défauts de la
-revue S147. « Accès complet » (#20) est attribué à l'audience `user` : la portée
-passe de **3 personnes à 9**, `machines` de **2 à 9**, et une membre non
-administratrice rend `canReserve: true`. ⚠️ La leçon vaut plus que le geste :
-S158/S159 avaient construit la route — groupes, forfaits, enforcement — mais
-**personne n'était dessus**. Un modèle complet dont aucune donnée n'emprunte le
-chemin se lit exactement comme une panne.
+⏳ **Q — Formations, en cours.** S180 est livré (la file des validations
+pratiques). S180b est **écrit et NON DÉPLOYÉ** : il attend que tu lances la
+migration.
+
+## 🔴 Ce qui t'attend, toi
+
+**1. Une migration à lancer** — `Version20260906120000`, seule sur la boîte,
+vérifiée, non exécutée :
+
+    ssh -o IdentitiesOnly=yes -i ~/.ssh/id_ovh proxmox.lab.dryades.org \
+      'sudo pct exec 210 -- bash -lc "cd /opt/fabos/FabApp && php bin/console doctrine:migrations:migrate --no-interaction"'
+
+Elle rend explicite ce qui se DEVINAIT : une garde de sécurité (« cette formation
+exige-t-elle une validation pratique ? ») était décidée par une liste de mots-clés
+français cherchés dans le titre. Elle ne change rien au comportement — elle
+remplit la colonne depuis ces mêmes mots-clés — mais à partir de là, quelqu'un
+peut la corriger.
+
+**2. Une revue à faire.** Chaque phase porte une section **« Ce que l'opérateur
+vérifie »** dans `ROADMAP.md` : où regarder, et quoi voir. C'est ta demande du
+2026-09-05, et une session qui ne produit rien de constatable à l'écran n'y a
+pas de ligne.
+
+**3. Une chose qu'il te reste à poser** : `FABOS_RFID_API_TOKEN` dans le
+`.env.local` de CT 210. Sans elle, l'API des boîtiers refuse TOUT appel (S171,
+et c'est juste) — `/admin/rfid-readers` le dit maintenant en toutes lettres.
+
+**4. Une ligne de revue ouverte** : sur `/places`, la pastille d'une salle
+occupée doit dire « Libre à 14:00 ». Non mesurée — à 01h30 le labo est fermé et
+la branche « fermé » gagne, correctement. À regarder un jour ouvré.
 
 🅿️ **Trois phases écrites le 2026-09-04, à faire :** **K** — les gabarits
 d'e-mail deviennent modifiables (S160–S162) ; **L** — annoncer un événement aux

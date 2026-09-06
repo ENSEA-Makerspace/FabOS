@@ -1453,14 +1453,37 @@ D'après le lot `users` et deux planches de coordination.
 
 ## Ce qui existe déjà, mesuré
 
-`Utilisateur`, l'inscription, `/profil`, la vérification d'e-mail, les groupes et
-leurs droits (S158/S159), l'annuaire `/admin/utilisateurs` avec ses filtres.
-🔴 **Ce qui n'existe pas** : le MFA, la gestion des sessions, une récupération de
-compte non divulguante, et un parcours d'adhésion.
+`Utilisateur`, l'inscription, `/profil`, les groupes et leurs droits (S158/S159),
+l'annuaire `/admin/utilisateurs` avec ses filtres.
+
+🔴 **CORRECTION DU 2026-09-06 — « la vérification d'e-mail » était listée ici
+comme EXISTANTE. Elle n'existe pas.** `SiteController::register()` fait
+`->setIsVerified(true)->setStatut('actif')` à la création
+(`src/Controller/SiteController.php:2162`, vérifié) : n'importe quelle adresse,
+même inventée, ouvre un compte actif immédiatement. Un plan qui compte une garde
+absente parmi ses acquis est pire qu'un plan qui l'oublie — il ferme la question.
+
+🔴 **Et l'inscription DIVULGUE l'existence d'un compte.**
+`src/Controller/SiteController.php:2141` rend « Un compte existe déjà avec cette
+adresse email », donc `/register` est un oracle d'appartenance : on teste une
+adresse, on sait si elle est membre du labo. ⚠️ **Dix mètres plus loin, le même
+produit applique l'invariant INVERSE** : `SecurityController::forgotPasswordSubmit()`
+rend toujours `forgot.sent_if_exists`, que l'adresse existe ou non, et le
+commentaire dit pourquoi. Deux vérités pour un fait, encore.
+
+🅿️ **Et ça ne se corrige PAS en changeant la phrase.** Sans vérification
+d'e-mail, l'inscription n'a que deux issues : refuser (donc divulguer) ou
+accepter (donc laisser créer des comptes sur l'adresse d'autrui). La
+non-divulgation à l'inscription est une CONSÉQUENCE de S189, pas un correctif
+séparé — les deux se font ensemble ou aucune ne tient.
+
+🔴 **Ce qui n'existe pas** : la vérification d'e-mail, le MFA, la gestion des
+sessions, une récupération de compte non divulguante à l'inscription, et un
+parcours d'adhésion.
 
 | Session | Livre | Ce qu'on mesure |
 |---|---|---|
-| **S189** | **L'entrée** : inscription courte qui annonce ses prochaines étapes, activation par e-mail avec renvoi et correction d'adresse — **sans impasse** | Une adresse mal tapée se corrige sans recréer un compte |
+| **S189** | **L'entrée** : inscription courte qui annonce ses prochaines étapes, activation par e-mail avec renvoi et correction d'adresse — **sans impasse**. 🔴 **Et c'est là que `/register` cesse d'être un oracle d'appartenance** : la réponse devient la même que l'adresse existe ou non, ce qui n'est possible QUE parce que l'activation par e-mail arrive dans la même session | Une adresse mal tapée se corrige sans recréer un compte. 🔴 Et une sonde : deux adresses, l'une connue l'autre non, **réponses identiques** — la même mesure que S191 |
 | **S190** | **L'adhésion** : ne demander que ce qui est nécessaire, au moment où ça l'est. Et la **validation par l'équipe**, progressive et justifiable | Un compte en attente sait ce qui lui manque, et qui l'a validé |
 | **S191** | **Sécurité du profil** : sessions visibles et révocables, MFA. ⚠️ Et une **récupération de compte NON DIVULGUANTE** — la réponse est la même que l'adresse existe ou non | 🔴 Prouvé par une sonde : deux adresses, l'une connue l'autre non, réponses identiques |
 | **S192** | **Les droits EXPLIQUÉS** côté admin — par rôle, lieu, formation et durée — et « mon badge » sans identifiant sensible | Un admin répond à « pourquoi cette personne a-t-elle ce droit ? » **depuis l'écran** |
