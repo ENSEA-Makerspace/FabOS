@@ -962,7 +962,40 @@ transactionnel de partir**.
 
 | Session | Livre | Ce qu'on mesure |
 |---|---|---|
-| **S160** | Le modèle et le REPLI, sans éditeur. Une surcharge `(templateKey, locale, subject, body)`, lue à l'envoi, qui retombe sur le gabarit livré dès qu'elle manque, est vide ou lève | 🔴 **Sans aucune surcharge, les 23 mails rendent exactement ce qu'ils rendent aujourd'hui** — comparaison octet à octet, sinon la phase a déjà cassé quelque chose |
+| **S160** ✅ | **Livré le 2026-09-06** : le modèle, le repli, la substitution de champs. Pas d'éditeur — c'est S161 | ✅ **Empreinte IDENTIQUE, octet à octet** : `70c853d3ba295630…` avant comme après, sur 40 rendus (20 gabarits × 2 langues). `app:s160:mail-render-probe` |
+
+### ✅ S160 — le repli prouvé dans son état le plus fort
+
+🔴 **Le code est déployé et la table n'existe PAS encore** — la migration attend
+l'opérateur. C'est la meilleure preuve possible du repli : `MailOverrides` est en
+DBAL, sonde l'existence de la table une fois par processus, et rend « aucune
+surcharge » sur n'importe quelle exception. Résultat mesuré : **les 40 rendus
+sont identiques au bit près**.
+⚠️ C'est aussi la seule direction sûre : une table NEUVE se déploie avant sa
+migration ; une colonne sur une entité chargée partout, jamais
+([[feedback-fabos-migration-hazard]]).
+
+🔴 **Le texte de l'exploitant ne passe JAMAIS par le compilateur Twig.** Il est
+substitué en PHP sur une liste FERMÉE de champs (`{{ event }}`), échappé, puis
+`nl2br`, puis injecté dans `_override.html.twig` qui n'apporte que le chrome du
+layout. Aucune boucle, aucune condition, aucun filtre : personne n'a demandé de
+`{% for %}` dans un e-mail, et chaque construction acceptée serait une surface
+d'évasion de plus.
+⚠️ **Un champ inconnu reste écrit tel quel, visible** — pas rendu vide. Une phrase
+amputée ne se remarque pas ; `{{ nimportequoi }}` en clair, si.
+
+🔴 **Une surcharge ne peut pas empêcher un mail de partir.** La lecture est
+enveloppée, le rendu de la surcharge aussi : la moindre exception retombe sur le
+gabarit livré, sans que le destinataire voie quoi que ce soit. C'est le critère
+de sortie de la phase, tenu dès S160.
+⚠️ Et une surcharge VIDE n'est pas une surcharge : elle vaut « rien à ajouter ».
+Rendre une chaîne vide enverrait un mail sans objet ni corps — pire que pas de
+fonctionnalité.
+
+⚠️ **`locale` fait partie de la clé.** Un texte réécrit par l'exploitant est du
+CONTENU, et la règle de la maison est « on traduit l'UI, jamais le contenu ». Une
+surcharge sans langue casserait les mails anglais d'un labo bilingue qui n'aurait
+réécrit que le français.
 | **S161** | L'éditeur : un écran par gabarit et par langue, la liste des champs disponibles **pour ce gabarit-là**, refus d'un champ inconnu, aperçu et envoi de test | Un champ inconnu est refusé avec une phrase ; l'aperçu rend le vrai gabarit, pas une approximation |
 | **S162** | L'en-tête et le pied (`_layout`) surchargeables séparément ; « revenir au texte livré » par gabarit ; la garde du transactionnel | 🔴 Une surcharge volontairement cassée sur `password_reset` : le mail part quand même, avec le texte livré, et l'incident est journalisé |
 

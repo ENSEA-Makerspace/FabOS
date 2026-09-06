@@ -1,0 +1,25 @@
+{% extends 'emails/_layout.html.twig' %}
+
+{# LE CORPS ÉCRIT PAR L'EXPLOITANT, DANS LE CHROME LIVRÉ (S160).
+
+   🔴 **Ce gabarit existe pour que le texte de l'exploitant ne passe JAMAIS par
+   le compilateur Twig.** La substitution des champs est faite en PHP, sur une
+   liste fermée (`MailOverrides::fill()`), et le résultat arrive ici comme une
+   chaîne déjà échappée. Compiler le texte saisi, ce serait offrir l'exécution de
+   code arbitraire à qui édite un e-mail.
+
+   ⚠️ **`|raw` est correct ICI et nulle part ailleurs** : `override_body` a été
+   échappé par `e('html')` côté PHP puis passé par `nl2br`. Sans `raw`, les
+   `<br>` qu'on vient d'ajouter s'afficheraient en toutes lettres ; sans
+   l'échappement en amont, ce serait une injection. Les deux vont ensemble.
+
+   ⚠️ **L'en-tête, le pied et le lien de désinscription restent ceux du layout.**
+   Un exploitant réécrit le message, pas le chrome — le pied porte des
+   obligations (se désinscrire) qu'il ne doit pas pouvoir retirer par accident.
+   Les rendre surchargeables séparément est le sujet de S162. #}
+
+{% block subject %}{{ override_subject }}{% endblock %}
+
+{% block body %}
+    <div style="margin:0 0 20px; line-height:1.55;">{{ override_body|raw }}</div>
+{% endblock %}

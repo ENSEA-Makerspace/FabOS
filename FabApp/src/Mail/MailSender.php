@@ -24,6 +24,7 @@ final class MailSender
         private readonly MailSettings $settings,
         private readonly MailLog $log,
         private readonly Environment $twig,
+        private readonly MailOverrides $overrides,
         private readonly LocaleSwitcher $localeSwitcher,
         private readonly UnsubscribeLinker $unsubscribe,
         private readonly TranslatorInterface $translator,
@@ -98,6 +99,43 @@ final class MailSender
     }
 
     /**
+     * Le rendu d'une surcharge : le texte de l'exploitant, dans le chrome livré.
+     *
+     * ⚠️ **L'objet retombe sur celui du gabarit livré quand la surcharge n'en
+     * donne pas.** Un mail sans objet arrive « (aucun objet) » dans la plupart
+     * des clients : c'est pire que le texte d'origine.
+     *
+     * @param array{subject: ?string, body: ?string} $override
+     * @param array<string, mixed> $context
+     *
+     * @return array{0: string, 1: string, 2: string} subject, html, text
+     */
+    private function renderOverride(string $name, array $override, array $context): array
+    {
+        $delivered = $this->twig->load('emails/' . $name . '.html.twig');
+
+        $subject = $override['subject'] !== null
+            ? $this->overrides->fill($override['subject'], $context)
+            : trim(html_entity_decode($delivered->renderBlock('subject', $context), ENT_QUOTES, 'UTF-8'));
+
+        $bodyText = $this->overrides->fill((string) $override['body'], $context);
+
+        $wrapped = $this->twig->load('emails/_override.html.twig')->render($context + [
+            'override_subject' => $subject,
+            // ⚠️ Échappé PUIS `nl2br` : l'ordre compte. `nl2br` d'abord
+            // produirait des `<br>` que l'échappement transformerait en texte.
+            'override_body' => nl2br(htmlspecialchars($bodyText, ENT_QUOTES, 'UTF-8')),
+        ]);
+
+        $text = trim($bodyText);
+        if (isset($context['unsubscribe_url'])) {
+            $text .= "\n\n" . $this->translator->trans('mail.footer.unsubscribe') . ' : ' . $context['unsubscribe_url'];
+        }
+
+        return [$subject, $wrapped, $text];
+    }
+
+    /**
      * @param array<string, mixed> $context
      *
      * @return array{0: string, 1: string, 2: string} subject, html, text
@@ -114,7 +152,33 @@ final class MailSender
         // each caller having to remember to pass it.
         $context += ['sender_name' => $this->settings->getFromName()];
 
-        return $this->localeSwitcher->runWithLocale($locale, function () use ($name, $context): array {
+        return $this->localeSwitcher->runWithLocale($locale, function () use ($name, $context, $locale): array {
+            /*
+             * 🔴 **S160 — le texte de l'exploitant, s'il en a écrit un.**
+             *
+             * ⚠️ **Le repli est la RÈGLE, pas le cas d'erreur.** Sans surcharge,
+             * sans table, ou si quoi que ce soit lève, on charge le gabarit
+             * livré : un mot de passe oublié doit partir quelle que soit la
+             * bêtise saisie dans l'éditeur. `MailOverrides` ne peut
+             * structurellement pas empêcher un envoi — toutes ses lectures sont
+             * enveloppées, et le `catch` ci-dessous couvre le rendu lui-même.
+             *
+             * ⚠️ **Le texte saisi ne passe JAMAIS par le compilateur Twig.** Il
+             * est substitué en PHP sur une liste fermée de champs, échappé, puis
+             * injecté dans `_override.html.twig`, qui n'apporte que le chrome du
+             * layout. Compiler du texte d'exploitant, c'est offrir l'exécution
+             * de code arbitraire à qui édite un e-mail.
+             */
+            try {
+                $override = $this->overrides->find($name, $locale);
+                if ($override !== null) {
+                    return $this->renderOverride($name, $override, $context);
+                }
+            } catch (\Throwable) {
+                // Une surcharge cassée ne bloque pas le mail : on retombe sur le
+                // texte livré, sans que le destinataire voie quoi que ce soit.
+            }
+
             $tpl = $this->twig->load('emails/' . $name . '.html.twig');
             // The full render is the wrapped document; the body block on its own is
             // what the plain-text alternative is derived from, without the chrome.
