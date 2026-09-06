@@ -1,7 +1,19 @@
 # -*- coding: utf-8 -*-
 """Point 5 des dix : « aucune affordance morte ».
    ⚠️ Chaque alerte est RÉFUTÉE avant d'être comptée — un détecteur naïf produit
-   surtout des faux positifs (leçon 2026-08-21)."""
+   surtout des faux positifs (leçon 2026-08-21).
+
+   ✅ **Et une alerte peut être JUSTIFIÉE dans le gabarit** (2026-09-06). Le
+   `disabled` initial du bouton « précédent » d'un quiz est correct : on est à la
+   question 1, et `public/js/quiz.js:229` le rallume dès la suivante. Faire taire
+   ce cas par une liste d'exceptions DANS l'outil met la raison loin du code, où
+   personne ne la relit ; la justification vit donc à côté de la balise :
+
+       {# dead-affordance-ok: état initial, quiz.js:229 le rallume #}
+       <button data-previous disabled>…
+
+   ⚠️ **La raison est OBLIGATOIRE** — un marqueur nu serait un interrupteur à
+   silence, et il finirait recopié partout. Sans raison, l'alerte reste."""
 import re, glob, collections
 findings = collections.defaultdict(list)
 
@@ -13,7 +25,17 @@ for p in sorted(glob.glob('templates/**/*.twig', recursive=True)):
                     lambda m: ''.join('\n' if c == '\n' else ' ' for c in m.group(0)),
                     src, flags=re.S)
     short = p.replace('templates/', '')
+    # Les lignes portant une justification, et la ligne suivante — le marqueur se
+    # met AU-DESSUS de la balise qu'il excuse.
+    excused = set()
+    for i, raw in enumerate(src.split('\n'), 1):
+        m = re.search(r'dead-affordance-ok\s*:\s*(\S.*?)(?:\s*#\})', raw)
+        if m and m.group(1).strip():
+            excused.add(i)
+            excused.add(i + 1)
     for i, line in enumerate(src_nc.split('\n'), 1):
+        if i in excused:
+            continue
         # href="#" — un lien qui ne mène nulle part
         for m in re.finditer(r'<a\b[^>]*href="#"[^>]*>', line):
             tag = m.group(0)

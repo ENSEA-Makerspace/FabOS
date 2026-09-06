@@ -133,6 +133,7 @@
                         </div>
 
                         <div class="quiz-card__actions" data-navigation>
+                            {# dead-affordance-ok: état INITIAL et correct — on est à la question 1, il n'y a pas de précédente. `public/js/quiz.js:229` le rallume à chaque changement de question (`elements.previous.disabled = state.currentIndex === 0`). Le désactiver au rendu évite un bouton qui semble cliquable avant que le script ne charge. #}
                             <button class="quiz-button quiz-button--ghost" type="button" data-previous disabled>
                                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
                                 {{ 'quiz.js_previous'|trans }}
