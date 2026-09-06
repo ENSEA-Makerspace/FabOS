@@ -106,7 +106,7 @@ pas le diff.
 | **J-25** | ✅ **RÉGLÉ le 2026-09-04.** « Accès complet » (#20, les 4 capacités, SANS exemption d'horaires) est attribué à l'audience `user`. Mesuré : la portée passe de **3 personnes à 9**, et `machines` de **2 à 9**. ⚠️ S158/S159 avaient construit la route ; **personne n'était dessus** — un modèle complet dont aucune donnée n'emprunte le chemin se lit comme une panne | opérateur, 2026-09-04 | `app:j25:open-booking` |
 | **J-8** | un champ refusé fait ressaisir le reste | ✅ **CLOS le 2026-09-05** — le dernier écran défaillant (`/profil`, branche profil public) rend désormais la page avec la saisie, prouvé par la sonde. Historique : **le chiffre de 15 était FAUX.** Au 2026-08-23 : **9 écrans prouvés sains** par un POST refusé (`app:s147:form-probe`, 13 sondes), 4 de plus convertis par le même mécanisme mais non sondés un par un. 🔴 **Reste `/profil`, branche « profil public » — le seul défaut prouvé, et il n'est pas admin** | S149 |
 | **J-9** | trois maquettes S103 en prod, titres en dur, clés brutes à l'écran | ✅ **CADUC, mesuré le 2026-09-04** : `debug:router` ne connaît plus `design/droits-quotas`, `design/workspaces` ni `design/structure` — le nettoyage de S159 les a supprimées, page, route et lien. Le défaut n'a plus de sujet | S159 |
-| **J-10** | formulaires les plus lourds | ✅ **CLOS le 2026-09-05** : la moitié « taux d'aide » est réglée et reformulée (voir Phase N), la moitié « écran de contenu, 35 champs » appartient à la Phase Q (S181). Historique : **l'éditeur de packages : 28 champs visibles à l'arrivée → 7** (les 4 éditeurs « ajouter » repliés, 2026-08-24). Barème et chiffres dans `S149-REVUE.md` § qualité des formulaires. Restent `admin-formation-content` (35) et le taux d'aide de **20 %** | S149+ |
+| **J-10** | formulaires les plus lourds | ✅ **CLOS le 2026-09-05** : la moitié « taux d'aide » est réglée et reformulée (voir Phase N), la moitié « écran de contenu, 35 champs » appartient à la Phase Q (S181). Historique : **l'éditeur de packages : 28 champs visibles à l'arrivée → 7** (les 4 éditeurs « ajouter » repliés, 2026-08-24). Barème et chiffres dans `S149-REVUE.md` § qualité des formulaires. 🔴 **CORRECTION du 2026-09-06 : « `admin-formation-content` (35) » est PÉRIMÉ.** Mesuré ce jour-là : **1 champ visible à l'arrivée**, et c'est la recherche de l'en-tête du site. S149 avait replié les neuf cartes ; le chiffre d'avant a survécu quatre phases dans ce document. Voir Phase Q § S181 | S149+ |
 | **J-23** | `/admin/usage-rights/shadow` : bascule finie, audit encore utile | ✅ **CADUC, mesuré le 2026-09-04** : la route n'existe plus (S159 l'a retirée, avec le retour arrière qui était devenu un piège). ⚠️ Le réglage `usage_rights_v2_*` reste en base pour une écriture explicite | S159 |
 | **J-4** | « (s) » au lieu de pluriels ICU | ✅ 2026-08-24 — **77 clés** migrées, 5 langues, 0 « (s) » restant. Validateur statique : `tools/i18n/icu_audit.py` (395 motifs, 0 faute) | — |
 | **J-5** | CSS local par page rendue | ✅ **CLOS PAR LA MESURE le 2026-09-05** : 544 sélecteurs locaux, **9 dupliqués dont 6 artefacts de comptage**, une seule duplication réelle laissée sciemment (voir Phase N). Historique : 708 → **653 règles dans 37 gabarits**. Les deux familles à duplication PROUVÉE sont rassemblées (kiosque, authentification) et ont révélé 2 défauts visibles. Le reste est du CSS réellement spécifique à sa page | S149+ |
@@ -1177,7 +1177,7 @@ Espaces, les trois P0 des boîtiers par la phase Machines.
 |---|---|
 | **J-5** | ✅ **CLOS PAR LA MESURE le 2026-09-05.** 38 gabarits, 643 règles, **544 sélecteurs locaux distincts — et 9 seulement apparaissent dans plus d'un gabarit**, dont 6 sont des artefacts de comptage (`0%`, `100%`, `">`). Il reste **une** duplication réelle : `.form-field textarea { min-height: 180px }` dans la paire `admin-lab-page-new` / `-edit`. ⚠️ **Laissée là, et c'est un choix** : la remonter dans `details.css` élargirait la hauteur de TOUS les textareas des pages qui la chargent. Un risque de régression visuelle pour une règle. Le reste est bien du CSS spécifique à sa page, ce que J-5 supposait sans l'avoir prouvé |
 | **J-8** | ✅ **RÉGLÉ le 2026-09-05.** Les deux refus de la branche « profil public » redirigeaient, jetant l'adresse, la bio et les cases. Ils rendent désormais la page avec la saisie. 🔴 Prouvé par `app:s147:form-probe` : **statut 200, aucune redirection, la bio saisie revient à l'écran** — la sonde disait NON |
-| **J-10**, moitié « taux d'aide » | ✅ **CLOS le 2026-09-05, et le critère a été REFORMULÉ.** Le taux n'est pas l'objectif : le compléter à l'aveugle produit du bruit. Le vrai critère de S149 est « des écrans à ZÉRO aide pour 8 champs ou plus ». Mesuré : il en restait **quatre**, il en reste **trois**, et chacun est déjà dans une phase — `LoanAdminType` (10 champs) → Phase T, `PlaceAdminType` (9) → Phase P, `MaintenanceTaskAdminType` (8) → Phase O. Les y traiter coûte zéro travail supplémentaire ; les traiter ici serait refaire demain un formulaire qu'on retouche aujourd'hui. ⚠️ Et `PackageSpecType`, que la mesure accusait à 0/14, explique dans son GABARIT (5 aides) : **ce n'était pas un défaut**. Le taux global est passé de 20 % à 32 %. Historique du barème dans `S149-REVUE.md`. ⚠️ **L'autre moitié — `admin-formation-content` et ses 35 champs — appartient à la Phase Q (S181)** : c'est l'écran de contenu d'une formation, il se refait avec le constructeur, pas à côté. Deux phases revendiquaient J-10 dans la première version de ce plan ; c'est corrigé. Barème dans `S149-REVUE.md` |
+| **J-10**, moitié « taux d'aide » | ✅ **CLOS le 2026-09-05, et le critère a été REFORMULÉ.** Le taux n'est pas l'objectif : le compléter à l'aveugle produit du bruit. Le vrai critère de S149 est « des écrans à ZÉRO aide pour 8 champs ou plus ». Mesuré : il en restait **quatre**, il en reste **trois**, et chacun est déjà dans une phase — `LoanAdminType` (10 champs) → Phase T, `PlaceAdminType` (9) → Phase P, `MaintenanceTaskAdminType` (8) → Phase O. Les y traiter coûte zéro travail supplémentaire ; les traiter ici serait refaire demain un formulaire qu'on retouche aujourd'hui. ⚠️ Et `PackageSpecType`, que la mesure accusait à 0/14, explique dans son GABARIT (5 aides) : **ce n'était pas un défaut**. Le taux global est passé de 20 % à 32 %. Historique du barème dans `S149-REVUE.md`. 🔴 **CORRECTION du 2026-09-06 : « `admin-formation-content` et ses 35 champs » n'existe plus.** Mesuré : **1 champ visible à l'arrivée**, la recherche du site. La cible était atteinte depuis S149 ; ce document a continué à citer le chiffre d'avant. Un plan qui traîne une mesure périmée envoie travailler là où il n'y a plus rien à faire. Deux phases revendiquaient J-10 dans la première version de ce plan ; c'est corrigé. Barème dans `S149-REVUE.md` |
 | **Suppression en masse** | 12 événements créés d'un envoi, retirés un par un. 🔴 **Une décision d'abord** : sélection multiple (aucune notion de série, réutilisable) ou identifiant de série (moins de clics, mais « que devient une séance déplacée ? »). ⚠️ Supprimer et annuler ne sont pas la même action quand des gens sont inscrits |
 | **Catégorie → entrée de menu** | Une entrée de menu EST un filtre enregistré ; `/events?category=<slug>` existe déjà. Donc un réglage de navigation, pas une page |
 | **Tableau de bord** | Quatre propositions comparables posées dans `/admin/design#tableau-de-bord` le 2026-08-27. 🔴 **Bloqué sur un choix, pas sur du travail** |
@@ -1409,7 +1409,43 @@ supprimer la lecture des mots-clés dans `TrainingPolicyService`. À faire une f
 que le code qui écrit toujours la colonne aura tourné un moment — expand, soak,
 contract. ⚠️ Tant que le repli existe, une formation créée par un code plus
 ancien reste jugée sur son intitulé.
-| **S181** | **Le constructeur** : le parcours en étapes ordonnables, la checklist de mise en ligne, l'aperçu apprenant. ⚠️ **Et c'est là qu'on solde J-10** — les 35 champs deviennent des étapes, pas un formulaire | 🔴 Champs visibles à l'arrivée : 35 → cible **sous 12**, barème de `S149-REVUE.md` |
+| **S181** ⏳ | **Le constructeur.** ✅ **Livré le 2026-09-06** : la **checklist de mise en ligne**. 🔴 **Et la cible « 35 → sous 12 » était PÉRIMÉE** — voir la mesure ci-dessous. L'aperçu apprenant existait déjà (bouton « Voir la page »). 🅿️ **Reste** : le parcours en étapes ORDONNABLES | Voir la mesure ci-dessous |
+
+### 🔴 S181 — la cible de J-10 était déjà atteinte, et le plan ne le savait pas
+
+**Mesuré le 2026-09-06 sur `/admin/formations/2/content` :** **1 champ visible à
+l'arrivée** — et ce champ est la **recherche de l'en-tête du site**, qui
+n'appartient pas à cet écran. Les neuf replis sont tous fermés au chargement.
+
+⚠️ **La cible « 35 → sous 12 » décrivait l'écran d'AVANT S149**, qui a converti
+les sept formulaires en cartes repliées. Le plan a continué à citer le chiffre
+d'avant pendant quatre phases. **Un plan qui traîne une mesure périmée envoie
+travailler là où il n'y a plus rien à faire** — c'est le même défaut que la
+Phase S, qui listait la vérification d'e-mail parmi ses acquis alors qu'elle
+n'existe pas.
+
+✅ **Ce que S181 livre à la place, et qui manquait vraiment** : la **checklist de
+mise en ligne**. Neuf replis, neuf formulaires, et rien qui réponde à « est-ce
+que ça tient debout ? » — l'auteur devait ouvrir les neuf cartes pour découvrir
+qu'il manquait un quiz, ou ne pas le découvrir et publier un parcours qui ne mène
+à rien.
+
+🔴 **Une seule étape BLOQUE, et ce n'est pas celle qu'on croit** : le niveau de
+risque laissé indécis. Tant que `requiresPractical` vaut `NULL`, la question
+« faut-il une évaluation sur la machine ? » est encore tranchée par un mot-clé
+français dans le titre (S180b). Publier dans cet état, c'est publier une
+formation dont personne n'a validé le niveau de risque.
+✅ Prouvé à l'écran : remis à `NULL`, l'étape passe `is-blocking` ; remis à `1`,
+elle repasse `is-done`. Base rendue à l'identique.
+
+✅ **Troisième réemploi de `_commissioning`** — la mise en service d'un boîtier
+(S176), le parcours d'un apprenant (S179), la mise en ligne d'une formation
+(S181). Trois sujets sans rapport : c'est la définition d'un composant.
+🔴 **Et un défaut du composant corrigé au passage** : il écrivait
+`rfid_form.commissioning_title` EN DUR, donc le parcours d'un apprenant
+s'annonçait « Mise en service » sur une page de formation. Un composant qui
+impose le vocabulaire de son premier appelant n'est pas un composant, c'est une
+copie qui s'ignore. `title` est maintenant obligatoire.
 | **S182** | **Le quiz** : types de questions, résultat et reprise. Sur l'existant, pas un moteur neuf | Une reprise ne réinitialise pas ce qui était acquis |
 | **S183** | **La messagerie de cohorte** (ex-Phase I) : annonce formateur → cohorte sans exposer la liste, fil privé, groupe explicite. 🔴 **Aucun message privé ne bascule implicitement vers la cohorte** | Une annonce n'expose aucune adresse ; un fil privé le reste |
 
@@ -1426,7 +1462,7 @@ ancien reste jugée sur son intitulé.
 | **S179** ✅ | `/formations/2` **déconnecté** | **Aucune étape.** Cinq étapes toutes « non faites » annonceraient à un visiteur qu'il a échoué à des épreuves qu'il n'a pas passées |
 | **S180** ✅ | `/admin/validations-pratiques` (menu Formations) | La file existe, et elle est **vide** — c'est le bon résultat : une seule personne dépasse 80 % de théorie et sa pratique est déjà validée |
 | **S180b** ✅ | `/admin/formations/2/edit` | Une case **« Exige une validation pratique »**, cochée pour la découpe laser, décochée pour l'imprimante 3D. 🔴 Avant, ça se DEVINAIT à partir du titre : « Découpe au CO2 » ou tout intitulé anglais n'exigeait rien |
-| **S181** | `/admin/formations/{id}/contenu` | 🔴 **35 champs visibles aujourd'hui, cible sous 12** |
+| **S181** ✅ | `/admin/formations/2/content` | Une carte **« Prête à être publiée ? »** en haut, cinq étapes. 🔴 La cible « 35 champs → sous 12 » était PÉRIMÉE : mesuré, **1 seul champ est visible à l'arrivée**, et c'est la recherche de l'en-tête du site |
 | **S182** | un quiz repris | Une reprise ne réinitialise pas ce qui était acquis |
 | **S183** | une annonce de cohorte | Aucune adresse exposée ; un fil privé le reste |
 

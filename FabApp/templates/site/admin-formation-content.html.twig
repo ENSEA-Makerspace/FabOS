@@ -76,6 +76,24 @@
                 {% endfor %}
             </div>
 
+            {# 🔴 **S181 — « est-ce que ça tient debout ? ».** Neuf replis, neuf
+               formulaires, et rien qui réponde à la question qu'on se pose en
+               arrivant. L'auteur devait ouvrir les neuf cartes pour découvrir
+               qu'il manquait un quiz — ou ne pas le découvrir et publier un
+               parcours qui ne mène à rien.
+
+               ⚠️ **Le composant est `_commissioning`** (S176, la mise en service
+               d'un boîtier ; S179, le parcours d'un apprenant). Troisième usage,
+               troisième sujet sans rapport : c'est ce qui en fait un composant.
+
+               🔴 **Une seule étape bloque, et ce n'est pas celle qu'on croit** :
+               l'exigence de validation pratique laissée indécise. Tant qu'elle
+               l'est, une garde de SÉCURITÉ est encore tranchée par un mot-clé
+               dans le titre (S180b). #}
+            {% include 'site/_commissioning.html.twig' with {
+                steps: publishSteps, label_ns: 'formation_content.pub_', title: 'formation_content.pub_title',
+            } only %}
+
             <nav class="admin-content-nav" aria-label="{{ 'formation_content.nav_label'|trans }}">
                 <a href="#general">{{ 'formation_content.nav_general'|trans }}</a>
                 <a href="#labels">{{ 'formation_content.nav_labels'|trans }}</a>

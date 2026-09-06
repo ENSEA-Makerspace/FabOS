@@ -19,6 +19,7 @@ use App\Form\FormationContent\FormationPracticalType;
 use App\Service\FormationPageContentService;
 use App\Service\QuizCatalogService;
 use App\Service\TrainingQualificationService;
+use App\Training\PublishChecklist;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
@@ -31,6 +32,19 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 final class FormationContentAdminController extends AbstractController
 {
+    /*
+     * ⚠️ **Injecté au CONSTRUCTEUR et pas dans les actions.** `renderEditor()`
+     * est appelé depuis trois endroits — l'affichage et les deux refus de
+     * formulaire — et faire descendre le service par la signature des trois
+     * aurait fait un quatrième endroit où l'oublier. C'est ce qui vient
+     * d'arriver : injecté dans `editor()` seul, il valait `null` dans
+     * `renderEditor()` et la page rendait « Call to a member function steps() on
+     * null ». Attrapé par `app:render` avant le redémarrage.
+     */
+    public function __construct(private readonly PublishChecklist $checklist)
+    {
+    }
+
     /**
      * 🔴 **S149 — les neuf cartes sont repliées, et l'écran ouvre sur le choix.**
      * `tools/form_quality.py` mesurait 35 champs visibles à l'arrivée, réparties
@@ -227,12 +241,24 @@ final class FormationContentAdminController extends AbstractController
             'practical' => $submitted['practical'] ?? $this->createForm(FormationPracticalType::class, $content['practical']),
         ];
 
+        $journeySections = $sections->findJourneySections($formation);
+        $quizRows = $this->buildQuizRows($formation, $formations, $quizzes, $questions, $catalog);
+
         return $this->render('site/admin-formation-content.html.twig', [
             'formation' => $formation,
             'pageContent' => $content,
             'forms' => array_map(static fn ($form) => $form->createView(), $forms),
-            'sections' => $sections->findJourneySections($formation),
-            'quizRows' => $this->buildQuizRows($formation, $formations, $quizzes, $questions, $catalog),
+            'sections' => $journeySections,
+            'quizRows' => $quizRows,
+            /*
+             * 🔴 **S181 — « est-ce que ça tient debout ? ».** Neuf replis, neuf
+             * formulaires, et aucun endroit qui réponde à la question qu'on se
+             * pose en arrivant. L'auteur devait ouvrir les neuf cartes pour
+             * découvrir qu'il manquait un quiz — ou ne pas le découvrir et
+             * publier un parcours qui ne mène à rien.
+             * ⚠️ Rien de neuf n'est calculé : les deux comptes sont déjà là.
+             */
+            'publishSteps' => $this->checklist->steps($formation, \count($journeySections), \count($quizRows)),
             'openBlock' => array_key_first($submitted) ?? $this->foldableBlock($requested),
         ]);
     }

@@ -134,7 +134,7 @@
                    correcte et invisible est une panne différée. #}
                 {% if steps|default([])|length %}
                     {% include 'site/_commissioning.html.twig' with {
-                        steps: steps, label_ns: 'rfid_form.step_',
+                        steps: steps, label_ns: 'rfid_form.step_', title: 'rfid_form.commissioning_title',
                     } only %}
                 {% endif %}
 

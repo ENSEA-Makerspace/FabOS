@@ -135,7 +135,7 @@
                        qu'il n'a pas passées. #}
                     {% if journey.steps|length %}
                         {% include 'site/_commissioning.html.twig' with {
-                            steps: journey.steps, label_ns: 'fdet.step_',
+                            steps: journey.steps, label_ns: 'fdet.step_', title: 'fdet.journey_title',
                         } only %}
                     {% endif %}
 
