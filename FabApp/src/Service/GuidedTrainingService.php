@@ -182,19 +182,46 @@ final class GuidedTrainingService
             $this->entityManager->persist($progression);
         }
 
-        $dateEnd = null;
-        if ($pathCompleted) {
-            if ($progression->isCompleted() && $progression->getDateEnd() !== null) {
-                $dateEnd = $progression->getDateEnd();
-            } else {
-                $minimumDateEnd = $progression->getDateDebut()->modify('+1 second');
-                $dateEnd = $now > $minimumDateEnd ? $now : $minimumDateEnd;
-            }
+        /*
+         * 🔴 **S182 — ce qui est ACQUIS ne se reprend pas.** Ce bloc recalculait
+         * les trois valeurs à partir de l'état courant, sans plancher : quand
+         * `$pathCompleted` retombait à `false`, la progression repassait « non
+         * terminée » ET **`dateEnd` était remis à `null`** — la date à laquelle
+         * quelqu'un a fini son parcours, effacée.
+         *
+         * ⚠️ **Et ce n'est pas une reprise de quiz qui le déclenchait** (le score
+         * d'un quiz garde déjà son `max()`), c'est un geste d'ADMIN :
+         * `$requiredQuizTotal` est le nombre de quiz obligatoires AUJOURD'HUI.
+         * Ajouter un quiz à une formation « dé-diplômait » d'un coup tous ceux
+         * qui l'avaient terminée, et leur date de fin disparaissait avec.
+         *
+         * 🔴 **Ça créait aussi deux vérités pour un fait.** Un badge, lui, ne se
+         * retire JAMAIS — `ProgressionBadgeSubscriber` n'accorde, il ne révoque
+         * pas. On se retrouvait donc avec quelqu'un qui POSSÈDE le badge d'une
+         * formation que sa progression déclare non terminée. Deux réponses à
+         * « a-t-il fini ? ».
+         *
+         * ✅ **La règle, alignée sur celle du badge** : `completed` et `dateEnd`
+         * sont des PLANCHERS. Le score suit le même `max()` que celui d'un quiz.
+         * Un labo qui ajoute un quiz l'exige des NOUVEAUX apprenants ; il ne
+         * révoque pas rétroactivement ce qui a été obtenu.
+         *
+         * 🅿️ Ce que ce choix laisse de côté, et il faut le dire : retirer une
+         * validation à quelqu'un reste possible, mais c'est un geste
+         * d'administration explicite — pas un effet de bord d'une recompilation.
+         */
+        $wasCompleted = $progression->isCompleted();
+        $keepCompleted = $pathCompleted || $wasCompleted;
+
+        $dateEnd = $progression->getDateEnd();
+        if ($pathCompleted && $dateEnd === null) {
+            $minimumDateEnd = $progression->getDateDebut()->modify('+1 second');
+            $dateEnd = $now > $minimumDateEnd ? $now : $minimumDateEnd;
         }
 
         $progression
-            ->setScore($overallScore)
-            ->setCompleted($pathCompleted)
+            ->setScore(max($progression->getScore(), $overallScore))
+            ->setCompleted($keepCompleted)
             ->setDateEnd($dateEnd);
 
         $this->entityManager->flush();

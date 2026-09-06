@@ -1446,7 +1446,37 @@ elle repasse `is-done`. Base rendue à l'identique.
 s'annonçait « Mise en service » sur une page de formation. Un composant qui
 impose le vocabulaire de son premier appelant n'est pas un composant, c'est une
 copie qui s'ignore. `title` est maintenant obligatoire.
-| **S182** | **Le quiz** : types de questions, résultat et reprise. Sur l'existant, pas un moteur neuf | Une reprise ne réinitialise pas ce qui était acquis |
+| **S182** ⏳ | **Le quiz.** ✅ **L'invariant est livré le 2026-09-06** — et ce n'était PAS une reprise de quiz qui le cassait. 🅿️ **Reste** : les types de questions et l'écran de résultat | ✅ Sonde `app:s182:retake-probe`, **vérifiée dans les deux sens** |
+
+### 🔴 S182 — le défaut n'était pas là où la feuille de route le cherchait
+
+**Une reprise de quiz ne réinitialisait rien** : `QuizProgressService` garde déjà
+`max($ancien, $nouveau)`. La mesure était donc déjà tenue de ce côté-là.
+
+🔴 **Ce qui cassait était un geste d'ADMIN.**
+`GuidedTrainingService::synchronizeParentProgress()` recalculait les trois valeurs
+sans plancher, et `$requiredQuizTotal` est le nombre de quiz obligatoires
+**aujourd'hui**. **Ajouter un quiz à une formation « dé-diplômait » d'un coup tous
+ceux qui l'avaient terminée** — et `dateEnd` était remis à `null`, c'est-à-dire
+que la date à laquelle quelqu'un a fini son parcours était effacée.
+
+🔴 **Et ça produisait deux vérités pour un fait.** Un badge ne se retire JAMAIS :
+`ProgressionBadgeSubscriber` accorde et n'a aucun chemin de révocation. On se
+retrouvait donc avec quelqu'un qui POSSÈDE le badge d'une formation que sa
+progression déclare non terminée.
+
+✅ **La règle, alignée sur celle du badge** : `completed` et `dateEnd` sont des
+PLANCHERS, le score suit le même `max()` qu'un quiz. Un labo qui ajoute un quiz
+l'exige des NOUVEAUX apprenants ; il ne révoque pas rétroactivement.
+🅿️ Retirer une validation reste possible — mais comme geste d'administration
+explicite, pas comme effet de bord d'une recompilation.
+
+✅ **Vérifié DANS LES DEUX SENS sur la boîte** : avec l'ancien code, les trois
+assertions tombent (complétion perdue, date effacée, score reculé) ; avec le
+correctif, les trois tiennent. Le fichier a été remis au hash près.
+⚠️ **Et la sonde choisit exprès une formation au parcours INCOMPLET** — sur une
+formation terminée, l'ancien code passait aussi, et la sonde n'aurait rien
+mesuré.
 | **S183** | **La messagerie de cohorte** (ex-Phase I) : annonce formateur → cohorte sans exposer la liste, fil privé, groupe explicite. 🔴 **Aucun message privé ne bascule implicitement vers la cohorte** | Une annonce n'expose aucune adresse ; un fil privé le reste |
 
 ## Ce que l'opérateur vérifie — Phase Q
@@ -1463,7 +1493,7 @@ copie qui s'ignore. `title` est maintenant obligatoire.
 | **S180** ✅ | `/admin/validations-pratiques` (menu Formations) | La file existe, et elle est **vide** — c'est le bon résultat : une seule personne dépasse 80 % de théorie et sa pratique est déjà validée |
 | **S180b** ✅ | `/admin/formations/2/edit` | Une case **« Exige une validation pratique »**, cochée pour la découpe laser, décochée pour l'imprimante 3D. 🔴 Avant, ça se DEVINAIT à partir du titre : « Découpe au CO2 » ou tout intitulé anglais n'exigeait rien |
 | **S181** ✅ | `/admin/formations/2/content` | Une carte **« Prête à être publiée ? »** en haut, cinq étapes. 🔴 La cible « 35 champs → sous 12 » était PÉRIMÉE : mesuré, **1 seul champ est visible à l'arrivée**, et c'est la recherche de l'en-tête du site |
-| **S182** | un quiz repris | Une reprise ne réinitialise pas ce qui était acquis |
+| **S182** ✅ | `php bin/console app:s182:retake-probe` | Verte. 🔴 Le défaut n'était pas la reprise d'un quiz — c'était **ajouter un quiz obligatoire**, qui « dé-diplômait » tous ceux qui avaient fini et effaçait leur date de fin. Vérifié dans les deux sens |
 | **S183** | une annonce de cohorte | Aucune adresse exposée ; un fil privé le reste |
 
 ## La passe de fond de cette phase
