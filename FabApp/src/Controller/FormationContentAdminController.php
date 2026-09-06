@@ -7,18 +7,21 @@ use App\Entity\Formation;
 use App\Entity\Question;
 use App\Entity\Quiz;
 use App\Entity\Section;
+use App\Entity\Utilisateur;
+use App\Form\FormationAnnouncementType;
+use App\Form\FormationContent\FormationGeneralType;
+use App\Form\FormationContent\FormationLabelsType;
+use App\Form\FormationContent\FormationPracticalType;
+use App\Form\FormationContent\FormationSectionType;
 use App\Repository\ChoixRepository;
 use App\Repository\FormationRepository;
 use App\Repository\QuestionRepository;
 use App\Repository\QuizRepository;
 use App\Repository\SectionRepository;
-use App\Form\FormationContent\FormationGeneralType;
-use App\Form\FormationContent\FormationSectionType;
-use App\Form\FormationContent\FormationLabelsType;
-use App\Form\FormationContent\FormationPracticalType;
 use App\Service\FormationPageContentService;
 use App\Service\QuizCatalogService;
 use App\Service\TrainingQualificationService;
+use App\Training\CohortAnnouncer;
 use App\Training\PublishChecklist;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -59,6 +62,63 @@ final class FormationContentAdminController extends AbstractController
      * un enregistrement, et le refus qui re-rend la page — passent donc par ce
      * paramètre ou par `$submitted`, jamais par l'ancre.
      */
+    /**
+     * 🔴 **S183 — écrire à la cohorte, sans que personne ne voie les autres.**
+     *
+     * ⚠️ **L'invariant n'est pas gardé ici, il est STRUCTUREL.**
+     * `Mailer::queueToUser()` prend UN utilisateur et écrit UNE adresse ; il
+     * n'existe aucun chemin qui en accepte plusieurs. Pas de `CC`, pas de `BCC`,
+     * donc pas de liste à oublier de masquer. Une annonce à trente personnes est
+     * trente envois — plus lent, et c'est le prix de l'invariant.
+     *
+     * ⚠️ **L'écran ANNONCE toujours combien de personnes il touche, avant
+     * l'envoi.** Un formulaire qui part vers un nombre inconnu de boîtes mail
+     * est la définition d'une action qu'on regrette.
+     */
+    #[Route('/{id}/annonce', name: 'app_admin_formation_announce', requirements: ['id' => '\\d+'], methods: ['GET', 'POST'])]
+    public function announce(
+        int $id,
+        Request $request,
+        FormationRepository $formations,
+        CohortAnnouncer $announcer,
+    ): Response {
+        $formation = $this->findVisibleFormation($id, $formations);
+        $recipients = $announcer->recipients($formation);
+
+        $form = $this->createForm(FormationAnnouncementType::class);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $author = $this->getUser();
+            if (!$author instanceof Utilisateur) {
+                throw $this->createAccessDeniedException();
+            }
+
+            $data = $form->getData();
+            $result = $announcer->announce($formation, (string) $data['subject'], (string) $data['body'], $author);
+
+            /*
+             * ⚠️ **Le flash distingue les deux raisons de ne pas recevoir** :
+             * avoir coupé les annonces, ou un envoi refusé. Les confondre ferait
+             * dire « 12 sur 30 » sans dire si c'est un choix des membres ou une
+             * panne — et l'auteur renverrait son annonce pour rien.
+             */
+            $this->addFlash('success', ['flash.annonce_envoyee', [
+                '%p1%' => (string) $result['sent'],
+                '%p2%' => (string) $result['total'],
+                '%p3%' => (string) $result['muted'],
+            ]]);
+
+            return $this->redirectToRoute('app_admin_formation_content', ['id' => $formation->getId()]);
+        }
+
+        return $this->render('site/admin-formation-announce.html.twig', [
+            'formation' => $formation,
+            'form' => $form,
+            'recipients' => $recipients,
+        ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
+    }
+
     #[Route('/{id}/content', name: 'app_admin_formation_content', requirements: ['id' => '\\d+'], methods: ['GET'])]
     public function editor(
         int $id,

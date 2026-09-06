@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+
+{# ÉCRIRE À LA COHORTE (S183).
+
+   🔴 **« Une annonce n'expose aucune adresse » n'est pas une promesse de cet
+   écran, c'est une propriété du `Mailer`** : `queueToUser()` prend UN
+   utilisateur et écrit UNE adresse ; il n'existe aucun chemin qui en accepte
+   plusieurs. Pas de `CC`, pas de `BCC`, donc pas de liste à oublier de masquer.
+   Une annonce à trente personnes est trente envois.
+
+   ⚠️ **La page dit COMBIEN de personnes elle touche, avant l'envoi.** Un
+   formulaire qui part vers un nombre inconnu de boîtes mail est la définition
+   d'une action qu'on regrette. Elle ne montre PAS qui : l'auteur n'a pas besoin
+   de la liste pour écrire, et l'afficher ferait de cet écran un annuaire.
+
+   ⚠️ **Pas de destinataires à cocher.** La cohorte se déduit des progressions ;
+   offrir une sélection inviterait à composer une audience, donc à la stocker,
+   donc à tenir deux vérités sur « qui suit ce cours ». #}
+
+{% block title %}{{ 'announce.browser_title'|trans }} · {{ formation.titre }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+    {% include 'site/_header.html.twig' %}
+    <main id="main-content" tabindex="-1" class="admin-page">
+        <div class="admin-edit-layout">
+            {% include 'site/_admin_sidebar.html.twig' %}
+            <section class="admin-panel admin-list-card admin-form-card">
+                {% include 'site/_admin_form_head.html.twig' with {
+                    title: 'announce.title'|trans,
+                    subtitle: formation.titre,
+                    back_href: path('app_admin_formation_content', {id: formation.id}),
+                    back_label: 'announce.back'|trans,
+                } only %}
+
+                <div class="admin-edit-panel-header">
+                    <h2>{{ 'announce.reach_heading'|trans({'%count%': recipients|length}) }}</h2>
+                </div>
+                <p class="form-help" style="padding: 0 24px;">{{ 'announce.reach_note'|trans }}</p>
+
+                {% if recipients is empty %}
+                    {# ⚠️ Un formulaire d'envoi vers personne est un piège à clic :
+                       il part, il ne fait rien, et rien ne le dit. #}
+                    <p class="admin-panel-empty" style="padding: 16px 24px;">{{ 'announce.nobody'|trans }}</p>
+                {% else %}
+                    {% form_theme form 'form/admin_theme.html.twig' %}
+                    {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
+                        {{ form_errors(form) }}
+                        {% include 'site/_form_sections.html.twig' with {
+                            form: form,
+                            sections: constant('App\\Form\\FormationAnnouncementType::SECTIONS'),
+                        } only %}
+                        <div class="form-actions">
+                            <a class="btn-link" href="{{ path('app_admin_formation_content', {id: formation.id}) }}">{{ 'common.cancel'|trans }}</a>
+                            <span class="btn-submit">{{ form_widget(form.save) }}</span>
+                        </div>
+                    {{ form_end(form) }}
+                {% endif %}
+            </section>
+        </div>
+    </main>
+{% endblock %}

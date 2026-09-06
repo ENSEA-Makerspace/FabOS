@@ -65,6 +65,11 @@
                 </div>
                 <div class="admin-content-actions">
                     <a class="admin-secondary-button" href="{{ path('app_formation_detail', {id: formation.id}) }}">{{ 'quiz_form.view_page'|trans }}</a>
+                    {# ⚠️ **S183 — l'annonce part d'ICI**, pas d'un écran de messagerie
+                       à part. Écrire à sa cohorte est un geste d'auteur de cours,
+                       et le séparer du contenu obligerait à retrouver la formation
+                       une seconde fois. #}
+                    <a class="admin-secondary-button" href="{{ path('app_admin_formation_announce', {id: formation.id}) }}">{{ 'announce.action'|trans }}</a>
                     <a class="admin-secondary-button" href="{{ path('app_admin_formation_section_new', {id: formation.id}) }}">{{ 'journey.create_section'|trans }}</a>
                     <a class="admin-save-button" href="{{ path('app_admin_formation_quiz_new', {id: formation.id}) }}">{{ 'journey.add_quiz'|trans }}</a>
                 </div>

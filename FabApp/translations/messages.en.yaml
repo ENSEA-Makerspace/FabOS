@@ -25,6 +25,21 @@ nav:
     login: Sign in
     logout: Sign out
 
+announce:
+    browser_title: "Write to the cohort"
+    title: "Write to the cohort"
+    action: "Write to the cohort"
+    back: "Back to content"
+    section_message: "The message"
+    field_subject: "Subject"
+    field_body: "Message"
+    help_subject: "What people see in their inbox, before opening."
+    help_body: "Plain text. HTML tags are not interpreted — deliberately: accepting HTML here would offer an injection into everyone's mailbox."
+    send: "Send the announcement"
+    reach_heading: "This announcement reaches %count% people"
+    reach_note: "One message per person, never a list: nobody sees anybody's address. Those who muted announcements in their preferences will not get it, and the count will tell you."
+    nobody: "Nobody has started this training yet: there is no one to write to."
+
 common:
     required: "required"
     skip_to_content: "Skip to main content"
@@ -1243,6 +1258,9 @@ booking:
         "6": "Saturday"
         "7": "Sunday"
 mail:
+    announcement:
+        from: "Announcement · %formation%"
+        signature: "Sent by %author%."
     password_reset:
         subject: "Reset your password"
         title: "Reset your password"
@@ -3734,6 +3752,7 @@ flash:
     echec_de_l_envoi: "Sending failed: %p1%"
     element_archive: "“%p1%” is archived. It leaves the lists and can be restored from this page."
     element_restaure: "“%p1%” is active again."
+    annonce_envoyee: "Announcement sent to %p1% of %p2% people. %p3% have muted announcements in their preferences."
     point_acces_cree: "Access point «%p1%» created."
     point_acces_mis_a_jour: "Access point «%p1%» updated."
     enregistrement_refuse_token_csrf_invalide: "Save refused: invalid CSRF token."

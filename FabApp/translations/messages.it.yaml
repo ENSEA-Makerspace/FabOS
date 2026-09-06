@@ -25,6 +25,21 @@ nav:
     login: Accedi
     logout: Esci
 
+announce:
+    browser_title: "Scrivere alla coorte"
+    title: "Scrivere alla coorte"
+    action: "Scrivere alla coorte"
+    back: "Torna al contenuto"
+    section_message: "Il messaggio"
+    field_subject: "Oggetto"
+    field_body: "Messaggio"
+    help_subject: "Ciò che le persone vedono nella posta, prima di aprire."
+    help_body: "Testo semplice. I tag HTML non sono interpretati: accettarli qui offrirebbe un'iniezione nella casella di tutti."
+    send: "Inviare l'annuncio"
+    reach_heading: "Questo annuncio raggiunge %count% persona/e"
+    reach_note: "Un messaggio per persona, mai una lista: nessuno vede l'indirizzo di nessuno. Chi ha silenziato gli annunci non lo riceverà, e il conteggio te lo dirà."
+    nobody: "Nessuno ha ancora iniziato questa formazione: non c'è nessuno a cui scrivere."
+
 common:
     required: "obbligatorio"
     skip_to_content: "Vai al contenuto principale"
@@ -1243,6 +1258,9 @@ booking:
         "6": "Sabato"
         "7": "Domenica"
 mail:
+    announcement:
+        from: "Annuncio · %formation%"
+        signature: "Inviato da %author%."
     password_reset:
         subject: "Reimposta la tua password"
         title: "Reimposta la tua password"
@@ -3733,6 +3751,7 @@ flash:
     echec_de_l_envoi: "Invio non riuscito: %p1%"
     element_archive: "«%p1%» è archiviato. Esce dagli elenchi e si ripristina da questa pagina."
     element_restaure: "«%p1%» è di nuovo attivo."
+    annonce_envoyee: "Annuncio inviato a %p1% persone su %p2%. %p3% hanno silenziato gli annunci."
     point_acces_cree: "Punto di accesso «%p1%» creato."
     point_acces_mis_a_jour: "Punto di accesso «%p1%» aggiornato."
     enregistrement_refuse_token_csrf_invalide: "Salvataggio rifiutato: token CSRF non valido."

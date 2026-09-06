@@ -25,6 +25,21 @@ nav:
     login: Iniciar sesión
     logout: Cerrar sesión
 
+announce:
+    browser_title: "Escribir al grupo"
+    title: "Escribir al grupo"
+    action: "Escribir al grupo"
+    back: "Volver al contenido"
+    section_message: "El mensaje"
+    field_subject: "Asunto"
+    field_body: "Mensaje"
+    help_subject: "Lo que la gente ve en su bandeja, antes de abrir."
+    help_body: "Texto simple. Las etiquetas HTML no se interpretan: aceptarlas aquí sería ofrecer una inyección en el buzón de todos."
+    send: "Enviar el anuncio"
+    reach_heading: "Este anuncio llega a %count% persona(s)"
+    reach_note: "Un mensaje por persona, nunca una lista: nadie ve la dirección de nadie. Quienes silenciaron los anuncios no lo recibirán, y el recuento se lo dirá."
+    nobody: "Nadie ha empezado esta formación todavía: no hay a quién escribir."
+
 common:
     required: "obligatorio"
     skip_to_content: "Ir al contenido principal"
@@ -1243,6 +1258,9 @@ booking:
         "6": "Sábado"
         "7": "Domingo"
 mail:
+    announcement:
+        from: "Anuncio · %formation%"
+        signature: "Enviado por %author%."
     password_reset:
         subject: "Restablecer tu contraseña"
         title: "Restablecer tu contraseña"
@@ -3733,6 +3751,7 @@ flash:
     echec_de_l_envoi: "Fallo al enviar: %p1%"
     element_archive: "«%p1%» está archivado. Sale de las listas y se puede restaurar desde esta página."
     element_restaure: "«%p1%» vuelve a estar activo."
+    annonce_envoyee: "Anuncio enviado a %p1% de %p2% personas. %p3% han silenciado los anuncios."
     point_acces_cree: "Punto de acceso «%p1%» creado."
     point_acces_mis_a_jour: "Punto de acceso «%p1%» actualizado."
     enregistrement_refuse_token_csrf_invalide: "Guardado rechazado: token CSRF no válido."

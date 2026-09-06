@@ -1477,7 +1477,34 @@ correctif, les trois tiennent. Le fichier a été remis au hash près.
 ⚠️ **Et la sonde choisit exprès une formation au parcours INCOMPLET** — sur une
 formation terminée, l'ancien code passait aussi, et la sonde n'aurait rien
 mesuré.
-| **S183** | **La messagerie de cohorte** (ex-Phase I) : annonce formateur → cohorte sans exposer la liste, fil privé, groupe explicite. 🔴 **Aucun message privé ne bascule implicitement vers la cohorte** | Une annonce n'expose aucune adresse ; un fil privé le reste |
+| **S183** ⏳ | **La messagerie de cohorte.** ✅ **L'annonce est livrée le 2026-09-06.** 🅿️ **Le fil privé est REPORTÉ, pas oublié** : il demande une table de messages, donc une migration, donc un modèle de conversation qu'on ne pose pas à la va-vite | ✅ Sonde `app:s183:cohort-probe`, qui **n'envoie aucun courrier** |
+
+### 🔴 S183 — l'invariant n'était pas à écrire, il était à ne pas casser
+
+**« Une annonce n'expose aucune adresse » est une propriété du `Mailer`, pas une
+fonctionnalité de cet écran.** `queueToUser()` prend UN utilisateur et écrit UNE
+adresse ; il n'existe aucun chemin qui en accepte plusieurs. Pas de `CC`, pas de
+`BCC`, donc **pas de liste à oublier de masquer**.
+⚠️ Le prix, assumé : une annonce à trente personnes est trente envois. Grouper
+pour aller vite est exactement la façon dont ce genre de fuite arrive.
+
+✅ **`NotificationCategory::NEWS` existait SANS émetteur** — son commentaire le
+disait : « Nothing emits this yet; the switch exists first ». S183 est son
+premier émetteur, donc la case de préférence que les membres voyaient déjà se met
+enfin à servir. L'annonce est **non transactionnelle** : elle respecte l'opt-out.
+
+✅ **La cohorte se DÉDUIT des progressions**, y compris celles portées par les
+formations internes (sections, quiz) qui remontent à leur parent. Une table
+d'inscription serait une seconde vérité sur « qui suit ce cours », et quiconque
+commence sans y figurer ne recevrait rien.
+
+🔴 **La sonde N'ENVOIE RIEN, et c'est délibéré.** Le mailer de cette installation
+est configuré et non suspendu : déclencher une annonce écrirait à de vrais
+membres. Elle vérifie à la place que l'API **ne peut pas** prendre plusieurs
+destinataires — ce qui est plus fort qu'un envoi réussi : un envoi prouve qu'une
+fois ça s'est bien passé, la signature prouve qu'aucun chemin n'existe pour que
+ça se passe mal. ✅ Vérifié : `EMAIL_LOG` compte **0** ligne
+`formation_announcement`.
 
 ## Ce que l'opérateur vérifie — Phase Q
 
@@ -1494,7 +1521,9 @@ mesuré.
 | **S180b** ✅ | `/admin/formations/2/edit` | Une case **« Exige une validation pratique »**, cochée pour la découpe laser, décochée pour l'imprimante 3D. 🔴 Avant, ça se DEVINAIT à partir du titre : « Découpe au CO2 » ou tout intitulé anglais n'exigeait rien |
 | **S181** ✅ | `/admin/formations/2/content` | Une carte **« Prête à être publiée ? »** en haut, cinq étapes. 🔴 La cible « 35 champs → sous 12 » était PÉRIMÉE : mesuré, **1 seul champ est visible à l'arrivée**, et c'est la recherche de l'en-tête du site |
 | **S182** ✅ | `php bin/console app:s182:retake-probe` | Verte. 🔴 Le défaut n'était pas la reprise d'un quiz — c'était **ajouter un quiz obligatoire**, qui « dé-diplômait » tous ceux qui avaient fini et effaçait leur date de fin. Vérifié dans les deux sens |
-| **S183** | une annonce de cohorte | Aucune adresse exposée ; un fil privé le reste |
+| **S183** ✅ | `/admin/formations/2/annonce` (bouton « Écrire à la cohorte ») | La page dit **combien** de personnes elle touche — et n'affiche **aucune adresse**. Deux champs, objet et message ; pas de destinataires à cocher |
+| **S183** ✅ | `php bin/console app:s183:cohort-probe` | Verte, et **elle n'envoie aucun courrier** : le mailer de la boîte est actif, une sonde qui écrit à de vrais membres pour se prouver quelque chose ne se lance pas toute seule |
+| **S183** 🅿️ | — | Le **fil privé** est reporté : il demande une migration. L'invariant qui compte est écrit dans le plan — aucun message privé ne bascule implicitement vers la cohorte |
 
 ## La passe de fond de cette phase
 

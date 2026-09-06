@@ -1,0 +1,22 @@
+{% extends 'emails/_layout.html.twig' %}
+
+{# L'ANNONCE D'UN FORMATEUR À SA COHORTE (S183).
+
+   🔴 **Un message par personne, jamais une liste.** `Mailer::queueToUser()` prend
+   UN utilisateur et écrit UNE adresse ; il n'existe aucun chemin qui en accepte
+   plusieurs. C'est ce qui rend l'invariant « une annonce n'expose aucune
+   adresse » structurel plutôt que promis.
+
+   ⚠️ **Le corps est du TEXTE, échappé par Twig.** Un formateur qui colle du HTML
+   verra ses balises, et c'est voulu : accepter du HTML depuis un formulaire
+   d'annonce serait offrir une injection dans la boîte mail de tout le monde.
+   `nl2br` conserve les paragraphes, ce qui est le seul formatage nécessaire. #}
+
+{% block subject %}{{ subject }}{% endblock %}
+
+{% block body %}
+    <p style="margin:0 0 4px; color:#6b7280; font-size:13px;">{{ 'mail.announcement.from'|trans({'%formation%': formation}) }}</p>
+    <h2 style="margin:0 0 16px; font-size:19px;">{{ subject }}</h2>
+    <div style="margin:0 0 20px; line-height:1.55;">{{ body|nl2br }}</div>
+    <p style="margin:0; color:#6b7280; font-size:13px;">{{ 'mail.announcement.signature'|trans({'%author%': author}) }}</p>
+{% endblock %}

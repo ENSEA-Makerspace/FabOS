@@ -25,6 +25,21 @@ nav:
     login: Anmelden
     logout: Abmelden
 
+announce:
+    browser_title: "An die Kohorte schreiben"
+    title: "An die Kohorte schreiben"
+    action: "An die Kohorte schreiben"
+    back: "Zurück zum Inhalt"
+    section_message: "Die Nachricht"
+    field_subject: "Betreff"
+    field_body: "Nachricht"
+    help_subject: "Was die Leute im Posteingang sehen, bevor sie öffnen."
+    help_body: "Einfacher Text. HTML-Tags werden nicht interpretiert — absichtlich: HTML hier anzunehmen hieße, eine Injektion in alle Postfächer anzubieten."
+    send: "Ankündigung senden"
+    reach_heading: "Diese Ankündigung erreicht %count% Person(en)"
+    reach_note: "Eine Nachricht pro Person, nie eine Liste: niemand sieht die Adresse eines anderen. Wer Ankündigungen stummgeschaltet hat, erhält sie nicht, und die Zahl sagt es Ihnen."
+    nobody: "Niemand hat diese Schulung begonnen: es gibt niemanden, dem man schreiben könnte."
+
 common:
     required: "erforderlich"
     skip_to_content: "Zum Hauptinhalt springen"
@@ -1243,6 +1258,9 @@ booking:
         "6": "Samstag"
         "7": "Sonntag"
 mail:
+    announcement:
+        from: "Ankündigung · %formation%"
+        signature: "Gesendet von %author%."
     password_reset:
         subject: "Passwort zurücksetzen"
         title: "Passwort zurücksetzen"
@@ -3733,6 +3751,7 @@ flash:
     echec_de_l_envoi: "Senden fehlgeschlagen: %p1%"
     element_archive: "„%p1%“ ist archiviert. Es verlässt die Listen und kann hier wiederhergestellt werden."
     element_restaure: "„%p1%“ ist wieder aktiv."
+    annonce_envoyee: "Ankündigung an %p1% von %p2% Personen gesendet. %p3% haben Ankündigungen stummgeschaltet."
     point_acces_cree: "Zugangspunkt «%p1%» erstellt."
     point_acces_mis_a_jour: "Zugangspunkt «%p1%» aktualisiert."
     enregistrement_refuse_token_csrf_invalide: "Speichern abgelehnt: ungültiges CSRF-Token."

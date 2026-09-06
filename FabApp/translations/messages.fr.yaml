@@ -25,6 +25,21 @@ nav:
     login: Connexion
     logout: Déconnexion
 
+announce:
+    browser_title: "Écrire à la cohorte"
+    title: "Écrire à la cohorte"
+    action: "Écrire à la cohorte"
+    back: "Retour au contenu"
+    section_message: "Le message"
+    field_subject: "Objet"
+    field_body: "Message"
+    help_subject: "Ce que les gens verront dans leur boîte, avant d’ouvrir."
+    help_body: "Du texte simple. Les balises HTML ne sont pas interprétées — c’est voulu : accepter du HTML ici serait offrir une injection dans la boîte mail de tout le monde."
+    send: "Envoyer l’annonce"
+    reach_heading: "Cette annonce touche %count% personne(s)"
+    reach_note: "Un message par personne, jamais une liste : personne ne voit l’adresse de personne. Ceux qui ont coupé les annonces dans leurs préférences ne la recevront pas, et le compte vous le dira."
+    nobody: "Personne n’a encore commencé cette formation : il n’y a personne à qui écrire."
+
 common:
     required: "requis"
     skip_to_content: "Aller au contenu principal"
@@ -1308,6 +1323,9 @@ booking:
         "6": "Samedi"
         "7": "Dimanche"
 mail:
+    announcement:
+        from: "Annonce · %formation%"
+        signature: "Envoyé par %author%."
     password_reset:
         subject: "Réinitialiser votre mot de passe"
         title: "Réinitialiser votre mot de passe"
@@ -3735,6 +3753,7 @@ flash:
     echec_de_l_envoi: "Échec de l’envoi : %p1%"
     element_archive: "« %p1% » est archivé. Il quitte les listes et se restaure depuis cette page."
     element_restaure: "« %p1% » est de nouveau actif."
+    annonce_envoyee: "Annonce envoyée à %p1% personne(s) sur %p2%. %p3% ont coupé les annonces dans leurs préférences."
     point_acces_cree: "Point d'accès « %p1% » créé."
     point_acces_mis_a_jour: "Point d'accès « %p1% » mis à jour."
     enregistrement_refuse_token_csrf_invalide: "Enregistrement refusé : token CSRF invalide."
