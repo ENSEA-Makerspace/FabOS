@@ -4737,6 +4737,16 @@ final class AdminController extends AbstractController
             'venueContext' => $context,
             'filters' => $filters,
             'kindTiles' => $tiles,
+            /*
+             * 🔴 **S178 — une porte sans boîtier est une affordance MORTE.**
+             * Déclarée, nommée, rattachée à un espace, annoncée sur la fiche
+             * publique comme « voici par où on entre » — et aucun lecteur au
+             * mur. Le membre arrive, badge, et rien ne se passe. La ligne
+             * s'affichait « Actif », en vert.
+             * ⚠️ Une seule requête pour toute la liste, pas une par ligne :
+             * `EXISTS` en base plutôt que N+1 en PHP.
+             */
+            'pointsWithoutReader' => $points->idsWithoutReader(),
         ]);
     }
 

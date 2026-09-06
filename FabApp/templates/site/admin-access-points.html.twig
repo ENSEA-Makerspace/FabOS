@@ -78,9 +78,17 @@
                                 title: point.place.nom,
                                 href: path('app_admin_place_edit', {id: point.place.id}),
                             } only %}{% else %}{% include 'site/_cell_empty.html.twig' with {reason: 'access_points.opens_nothing'} only %}{% endif %}</td>
+                        {# 🔴 **S178 — trois états, pas deux.** « Actif » en vert sur une
+                           porte qu'aucun boîtier ne commande était le même défaut que
+                           le booléen des lecteurs en S172 : un voyant qui rassure sans
+                           rien vérifier. Une porte sans lecteur est ANNONCÉE au membre
+                           sur la fiche de l'espace et ne s'ouvre pour personne.
+                           ⚠️ `caution` et non `stop` : c'est un travail en cours — la
+                           porte est déclarée, le boîtier n'est pas encore posé. #}
+                        {% set _noReader = point.id in pointsWithoutReader|default([]) %}
                         <td>{% include 'site/_cell_state.html.twig' with {
-                            label: (point.archived ? 'adm.archived' : 'access_points.state_live')|trans,
-                            signal: point.archived ? 'muted' : 'go',
+                            label: (point.archived ? 'adm.archived' : (_noReader ? 'access_points.state_no_reader' : 'access_points.state_live'))|trans,
+                            signal: point.archived ? 'muted' : (_noReader ? 'caution' : 'go'),
                         } only %}</td>
                         <td class="is-actions">{% include 'site/_cell_actions.html.twig' with {
                             actions: [{label: 'common.edit'|trans, icon: 'edit', href: path('app_admin_access_point_edit', {id: point.id})}],

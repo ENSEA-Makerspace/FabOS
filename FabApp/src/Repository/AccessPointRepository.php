@@ -58,6 +58,35 @@ final class AccessPointRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * Les identifiants des points qui n'ont AUCUN boîtier — donc que personne ne
+     * peut ouvrir (S178).
+     *
+     * 🔴 **C'est une affordance morte au niveau physique.** Une porte déclarée,
+     * nommée, rattachée à un espace, annoncée sur la fiche publique comme « voici
+     * par où on entre » — et aucun lecteur au mur. Le membre arrive devant, badge,
+     * et rien ne se passe. Rien dans le produit ne le disait : la ligne
+     * s'affichait « Actif », en vert.
+     *
+     * ⚠️ Les lecteurs ARCHIVÉS ne comptent pas : un boîtier retiré du service
+     * n'ouvre rien, et l'inclure ferait passer une porte muette pour équipée.
+     *
+     * @return list<int>
+     */
+    public function idsWithoutReader(): array
+    {
+        $rows = $this->getEntityManager()->createQuery(
+            'SELECT ap.id FROM App\\Entity\\AccessPoint ap
+             WHERE ap.archivedAt IS NULL
+               AND NOT EXISTS (
+                   SELECT r.id FROM App\\Entity\\RfidReader r
+                   WHERE IDENTITY(r.accessPoint) = ap.id AND r.archivedAt IS NULL
+               )'
+        )->getScalarResult();
+
+        return array_map(static fn (array $row): int => (int) $row['id'], $rows);
+    }
+
     /** @return AccessPoint[] */
     public function findForAdmin(): array
     {
