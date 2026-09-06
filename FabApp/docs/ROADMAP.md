@@ -1413,6 +1413,23 @@ ancien reste jugée sur son intitulé.
 | **S182** | **Le quiz** : types de questions, résultat et reprise. Sur l'existant, pas un moteur neuf | Une reprise ne réinitialise pas ce qui était acquis |
 | **S183** | **La messagerie de cohorte** (ex-Phase I) : annonce formateur → cohorte sans exposer la liste, fil privé, groupe explicite. 🔴 **Aucun message privé ne bascule implicitement vers la cohorte** | Une annonce n'expose aucune adresse ; un fil privé le reste |
 
+## Ce que l'opérateur vérifie — Phase Q
+
+🔴 **L'opérateur est le relecteur.** Une ligne par constat visible à l'écran.
+
+| Session | Où | Ce qui doit être vrai |
+|---|---|---|
+| **S179** ✅ | `/formations/2` connecté | Le bouton principal dit **ce qu'on fait maintenant** (« Continuer le cours »), plus « Voir ma progression » — qui est un endroit, pas une action |
+| **S179** ✅ | même page | Un **parcours** en étapes : contenu, quiz, validation pratique, badge. ⚠️ C'est le composant `_commissioning` de S176, celui de la mise en service d'un boîtier — aucun dessin neuf |
+| **S179** ✅ | `/formations/1` (imprimante 3D) | **Trois** étapes, pas quatre : pas de validation pratique. C'est S180b qui le décide, et ça se voit |
+| **S179** ✅ | bas de la fiche | **« Ce que le badge ouvre »** — les machines réellement déverrouillées. La relation décidait de l'accès à chaque scan et n'était jamais montrée à l'apprenant |
+| **S179** ✅ | `/formations/2` **déconnecté** | **Aucune étape.** Cinq étapes toutes « non faites » annonceraient à un visiteur qu'il a échoué à des épreuves qu'il n'a pas passées |
+| **S180** ✅ | `/admin/validations-pratiques` (menu Formations) | La file existe, et elle est **vide** — c'est le bon résultat : une seule personne dépasse 80 % de théorie et sa pratique est déjà validée |
+| **S180b** ✅ | `/admin/formations/2/edit` | Une case **« Exige une validation pratique »**, cochée pour la découpe laser, décochée pour l'imprimante 3D. 🔴 Avant, ça se DEVINAIT à partir du titre : « Découpe au CO2 » ou tout intitulé anglais n'exigeait rien |
+| **S181** | `/admin/formations/{id}/contenu` | 🔴 **35 champs visibles aujourd'hui, cible sous 12** |
+| **S182** | un quiz repris | Une reprise ne réinitialise pas ce qui était acquis |
+| **S183** | une annonce de cohorte | Aucune adresse exposée ; un fil privé le reste |
+
 ## La passe de fond de cette phase
 
 - **Réemploi** : les badges, les quotas et les droits d'usage existent. Cette

@@ -107,12 +107,55 @@
                         </div>
                     </div>
 
+                    {# 🔴 **S179 — le bouton principal dit CE QU'ON FAIT MAINTENANT.**
+                       Il disait « Voir ma progression », qui est un endroit, pas une
+                       action : l'apprenant devait y aller pour découvrir ce qui lui
+                       restait. Le verbe vient de l'étape suivante calculée, et le
+                       second bouton garde l'accès à la vue complète.
+                       ⚠️ **Anonyme, `journey.next` est `null` et le bouton reprend son
+                       ancien libellé** — pas une invitation à se connecter de plus.
+                       La fiche machine en portait QUATRE avant S151 ; on ne
+                       recommence pas ici. #}
                     <div class="formation-detail-actions">
                         <div class="formation-detail-actions-main">
-                            <a class="btn btn-primary" href="{{ path('app_formation_follow', {id: formation.id}) }}">{{ 'fdet.see_progress'|trans }}</a>
+                            <a class="btn btn-primary" href="{{ path('app_formation_follow', {id: formation.id}) }}">
+                                {{ journey.next ? ('fdet.next_' ~ journey.next)|trans : 'fdet.see_progress'|trans }}
+                            </a>
                             <a class="btn btn-secondary" href="{{ path('app_formation_follow', {id: formation.id}) ~ '#quiz-evaluations' }}">{{ 'fdet.see_quizzes'|trans }}</a>
                         </div>
                     </div>
+
+                    {# 🔴 **Le parcours, en clair, et ce qu'il OUVRE à la fin.**
+                       ⚠️ Le composant est `_commissioning`, écrit en S176 pour la mise
+                       en service d'un boîtier : une liste ordonnée d'étapes faites ou
+                       non ne connaît ni les boîtiers ni les formations, c'est ce qui
+                       en fait un composant. Aucun dessin neuf ici.
+                       ⚠️ Rien pour un visiteur anonyme : lui montrer cinq étapes toutes
+                       « non faites » lui annoncerait qu'il a échoué à des épreuves
+                       qu'il n'a pas passées. #}
+                    {% if journey.steps|length %}
+                        {% include 'site/_commissioning.html.twig' with {
+                            steps: journey.steps, label_ns: 'fdet.step_',
+                        } only %}
+                    {% endif %}
+
+                    {# 🔴 **Ce que le badge OUVRE — la seule raison de le vouloir.**
+                       La relation badge → machines décide de l'accès à chaque scan,
+                       et n'était lue que dans l'autre sens : une fiche pouvait
+                       promettre « le badge Découpe laser » sans jamais dire ce qu'il
+                       ouvre. ⚠️ Les machines archivées en sortent — promettre l'accès
+                       à une machine qui a quitté le labo, c'est vendre une porte qui
+                       n'existe plus. #}
+                    {% if journey.badge and journey.machines|length %}
+                        <section class="formation-unlocks">
+                            <h2 class="formation-unlocks__title">{{ 'fdet.unlocks_title'|trans({'%badge%': journey.badge.nom}) }}</h2>
+                            <div class="formation-unlocks__list">
+                                {% for machine in journey.machines %}
+                                    <a class="formation-unlocks__chip" href="{{ path('app_machine_detail', {id: machine.id}) }}">{{ machine.nom }}</a>
+                                {% endfor %}
+                            </div>
+                        </section>
+                    {% endif %}
                 </div>
 
                 {% include 'site/_formation_journey.html.twig' with {

@@ -748,3 +748,22 @@ a.cell-chip:hover, a.cell-chip:focus-visible {
 .commissioning__body b { font-weight: var(--font-weight-semibold); }
 .commissioning__note { color: var(--color-text-light); font-size: 13px; }
 .commissioning__step.is-blocking .commissioning__note { color: var(--color-stop, #b91c1c); }
+
+/* ===================================================================
+   CE QUE LE BADGE OUVRE (S179) — la seule raison de le vouloir.
+   Dans `components.css` et non dans une feuille de formations : la
+   règle d'un composant partagé vit dans la feuille que `base.html.twig`
+   émet PARTOUT. Trois fois ce projet a payé l'inverse (voir la note du
+   fil d'Ariane dans /admin/design).
+   =================================================================== */
+.formation-unlocks { margin: 18px 0 4px; }
+.formation-unlocks__title { margin: 0 0 10px; font-size: var(--font-size-md); }
+.formation-unlocks__list { display: flex; flex-wrap: wrap; gap: 8px; }
+.formation-unlocks__chip {
+    display: inline-flex; align-items: center;
+    padding: 7px 14px; border-radius: 999px;
+    border: 1px solid var(--border-color); background: var(--theme-surface);
+    color: inherit; text-decoration: none;
+    font-size: 14px; font-weight: var(--font-weight-semibold);
+}
+.formation-unlocks__chip:hover { border-color: var(--color-primary); }

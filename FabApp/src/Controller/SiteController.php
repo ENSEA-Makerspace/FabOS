@@ -55,6 +55,7 @@ use App\Service\MachineQualificationService;
 use App\Schedule\ScheduleResolver;
 use App\Service\QuizCatalogService;
 use App\Service\TrainingQualificationService;
+use App\Training\LearnerJourney;
 use App\Service\TrainingPolicyService;
 use App\Entity\HomepageUserPreference;
 use App\Repository\HomepageUserPreferenceRepository;
@@ -1124,6 +1125,7 @@ final class SiteController extends AbstractController
         TrainingPolicyService $trainingPolicy,
         EventRepository $events,
         SiteFeatureService $modules,
+        LearnerJourney $journey,
         ?int $id = null,
     ): Response {
         $id ??= max(1, (int) $request->query->get('id', 1));
@@ -1160,6 +1162,18 @@ final class SiteController extends AbstractController
 
         return $this->render('site/formation-detail.html.twig', [
             'formation' => $formation,
+            /*
+             * 🔴 **S179 — « qu'est-ce que je fais maintenant ? ».** Cette fiche
+             * portait tout — description, objectifs, programme, prérequis,
+             * matériel, sessions, participation, formations liées — et deux
+             * boutons génériques qui ne répondaient pas à la seule question
+             * qu'on se pose en arrivant. La progression réelle de l'apprenant
+             * vivait ailleurs, dans un tableau brut coincé entre deux
+             * graphiques de l'onglet Statistiques de `/profil`.
+             * ⚠️ Aucun calcul neuf : `LearnerJourney` ORDONNE et NOMME ce que
+             * `TrainingQualificationService` calcule déjà.
+             */
+            'journey' => $journey->of($formation, $user instanceof Utilisateur ? $user : null),
             'formationVisual' => $this->buildFormationVisual($formation),
             'formationPolicy' => $formationPolicy,
             'pageContent' => $pageContent->getContent($formation),
