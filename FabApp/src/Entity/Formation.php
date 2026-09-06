@@ -18,6 +18,26 @@ class Formation
     #[ORM\JoinColumn(name: 'badgeId', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
     private ?Badge $badge = null;
 
+    /**
+     * Cette formation exige-t-elle une validation PRATIQUE avant le badge ?
+     *
+     * 🔴 **Avant S180b, personne ne pouvait répondre à cette question — elle se
+     * DEVINAIT.** `TrainingPolicyService` cherchait `laser`, `soudure`,
+     * `fraiseuse`, `cnc`, `brodeuse` dans le titre et la catégorie. Une garde de
+     * sécurité décidée par une correspondance de chaîne : « Découpe au CO2 »,
+     * « Plasma », « Tour à métaux » ou n'importe quel intitulé anglais
+     * n'exigeait rien, silencieusement.
+     *
+     * ⚠️ **`null` veut dire « je n'ai pas d'avis, demande aux mots-clés ».** La
+     * migration `Version20260906120000` a rempli toutes les lignes existantes
+     * avec ce que les mots-clés disaient d'elles, donc le repli ne sert qu'aux
+     * lignes écrites par un code plus ancien. 🅿️ Il disparaîtra à la
+     * CONTRACTION, une fois que le code qui écrit toujours la colonne aura
+     * tourné un moment.
+     */
+    #[ORM\Column(name: 'requiresPractical', nullable: true)]
+    private ?bool $requiresPractical = null;
+
     #[ORM\Column(length: 255)]
     private string $titre = '';
 
@@ -74,6 +94,8 @@ class Formation
     public function setDescription(?string $description): self { $this->description = $description; return $this; }
     public function getImage(): ?string { return $this->image; }
     public function setImage(?string $image): self { $this->image = $image; return $this; }
+    public function getRequiresPractical(): ?bool { return $this->requiresPractical; }
+    public function setRequiresPractical(?bool $requiresPractical): self { $this->requiresPractical = $requiresPractical; return $this; }
     public function getCategorie(): ?string { return $this->categorie; }
     public function setCategorie(?string $categorie): self { $this->categorie = $categorie; return $this; }
     public function getNiveau(): ?int { return $this->niveau; }

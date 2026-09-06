@@ -86,6 +86,26 @@ final class TrainingPolicyService
 
     public function formationRequiresPhysicalTraining(Formation $formation): bool
     {
+        /*
+         * 🔴 **La formation a le dernier mot, les mots-clés ne sont plus qu'un
+         * repli (S180b).** Cette méthode décidait seule, par correspondance de
+         * chaîne sur le titre : un labo qui nomme son cours « Découpe au CO2 »,
+         * « Plasma » ou « Tour à métaux » n'obtenait AUCUNE exigence de
+         * validation pratique — silencieusement, sur un écran qui a l'air
+         * correct. Une garde de sécurité ne se déduit pas d'un intitulé.
+         *
+         * ⚠️ `null` veut dire « pas d'avis » et retombe donc sur les mots-clés ;
+         * `false` est un avis, et il gagne. Écrire `?: ` au lieu de `!== null`
+         * confondrait les deux et rendrait impossible de DÉCOCHER une formation
+         * que les mots-clés attrapent.
+         * 🅿️ La migration a rempli toutes les lignes existantes, donc ce repli
+         * ne sert plus qu'aux lignes créées par un code plus ancien. Il part à
+         * la contraction.
+         */
+        if ($formation->getRequiresPractical() !== null) {
+            return $formation->getRequiresPractical();
+        }
+
         $haystack = $this->normalize(sprintf(
             '%s %s',
             $formation->getTitre(),

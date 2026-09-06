@@ -6,6 +6,7 @@ use App\Entity\Badge;
 use App\Entity\Formation;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -41,9 +42,19 @@ final class FormationAdminType extends AbstractType
             'fields' => ['objectifs', 'prerequis', 'materielFourni'],
         ],
         [
+            /*
+             * ⚠️ **`requiresPractical` est dans la section du BADGE, pas dans
+             * une section « sécurité » à elle.** Les deux répondent à la même
+             * question — qu'est-ce qu'on obtient, et à quelle condition — et les
+             * séparer ferait cocher l'un sans voir l'autre. C'est la règle 6 :
+             * ce qui se décide ensemble se montre ensemble.
+             * 🔴 Et il est ICI parce que `tools/form_fields.py` refuse un champ
+             * déclaré et absent de `SECTIONS` : il sortirait par `form_rest()`,
+             * après « Enregistrer » et sans thème.
+             */
             'title' => 'admin_formation_form.section_media',
             'fold' => true,
-            'fields' => ['image', 'badge'],
+            'fields' => ['image', 'badge', 'requiresPractical'],
         ],
     ];
 
@@ -125,6 +136,24 @@ final class FormationAdminType extends AbstractType
                 'choice_label' => static fn (Badge $badge): string => sprintf('%s (#%d)', $badge->getNom(), $badge->getId()),
                 'placeholder' => 'admin_formation_form.ph_badge',
                 'required' => false,
+            ])
+            /*
+             * 🔴 **S180b — l'exigence de validation pratique se DÉCLARE.** Elle se
+             * devinait par mots-clés français (`laser`, `soudure`, `fraiseuse`,
+             * `cnc`, `brodeuse`) cherchés dans le titre : une garde de SÉCURITÉ
+             * décidée par une correspondance de chaîne. « Découpe au CO2 »,
+             * « Plasma », « Tour à métaux » ou tout intitulé anglais n'exigeait
+             * rien, silencieusement.
+             *
+             * ⚠️ `false` est un AVIS et il gagne sur les mots-clés — c'est ce qui
+             * permet de décocher une formation qu'ils attrapent à tort. La case
+             * n'est donc jamais « vide » une fois enregistrée.
+             */
+            ->add('requiresPractical', CheckboxType::class, [
+                'label' => 'admin_formation_form.requires_practical',
+                'help' => 'admin_formation_form.help_requires_practical',
+                'required' => false,
+                'row_attr' => ['class' => 'full'],
             ])
             ->add('save', SubmitType::class, ['label' => 'common.save']);
     }
