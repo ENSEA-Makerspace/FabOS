@@ -387,6 +387,19 @@ machine:
     tech_updated: "Updated %date%"
     tech_last_auth: "Last authorisation %date%"
 
+practical_queue:
+    browser_title: "Practical validations - FabOS Admin"
+    panel_title: "Who is waiting for a practical validation"
+    panel_note: "Theory is done, the practical part is not. The queue is derived — nobody has to fill it."
+    col_member: "Learner"
+    col_formation: "Training"
+    col_since: "Waiting since"
+    col_theory: "Theory"
+    col_action: "Action"
+    since_unknown: "Unknown date"
+    fix_validate: "Open the record to validate"
+    empty: "Nobody is waiting for a practical validation."
+
 projects:
     creations: "Creations"
     gallery_title: "The gallery of legends"
@@ -1954,6 +1967,7 @@ admin_nav:
         app_admin_places: Spaces
         app_admin_access_points: "Access points"
         app_admin_formations: Training
+        app_admin_practical_queue: "Practical validations"
         app_admin_badges: Badges
         app_admin_creations: Projects
         app_admin_lab_pages: Pages

@@ -119,6 +119,7 @@ use App\Repository\ScheduleExceptionRepository;
 use App\Entity\ScheduleException;
 use App\Schedule\ScheduleResolver;
 use App\Service\TrainingQualificationService;
+use App\Training\PracticalQueue;
 use App\Service\ThemeManager;
 use App\Entity\HomepageSectionVisibility;
 use App\Repository\HomepageSectionVisibilityRepository;
@@ -1925,6 +1926,32 @@ final class AdminController extends AbstractController
         $this->addFlash('success', 'flash.type_de_personne_mis_a_jour');
 
         return $this->redirectToRoute('app_admin_user_detail', ['id' => $id]);
+    }
+
+    /**
+     * 🔴 **S180 — LA FILE DES VALIDATIONS PRATIQUES.** Le geste de validation
+     * existait juste en dessous depuis longtemps ; ce qui manquait était de
+     * savoir QUI valider. Un apprenant ayant fini la théorie restait bloqué
+     * jusqu'à ce qu'il pense à le demander de vive voix, et l'équipe n'avait
+     * aucun moyen de voir combien de personnes attendaient.
+     *
+     * ✅ **Rien à demander, rien à stocker** : avoir fini la théorie EST la
+     * demande, et la file se DÉDUIT. Un bouton « demander une évaluation »
+     * aurait créé une seconde vérité sur qui est prêt — et quiconque finit sans
+     * cliquer n'existerait pour personne.
+     *
+     * ⚠️ `ROLE_ADMIN` parce que la route vit sous `/admin` et que l'action
+     * qu'elle mène — la validation — y vit aussi. Le jour où les formateurs
+     * valident, les deux bougent ensemble ou l'une devient un lien mort.
+     */
+    #[Route('/validations-pratiques', name: 'app_admin_practical_queue', methods: ['GET'])]
+    public function practicalQueue(PracticalQueue $queue): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        return $this->render('site/admin-practical-queue.html.twig', [
+            'rows' => $queue->pending(),
+        ]);
     }
 
     #[Route('/utilisateurs/{userId}/formations/{formationId}/validation-physique', name: 'app_admin_validate_physical_training', requirements: ['userId' => '\d+', 'formationId' => '\d+'], methods: ['POST'])]

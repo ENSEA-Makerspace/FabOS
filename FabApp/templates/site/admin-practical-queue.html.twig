@@ -1,0 +1,86 @@
+{% extends 'base.html.twig' %}
+
+{# LA FILE DES VALIDATIONS PRATIQUES (S180).
+
+   🔴 **Le chaînon qui manquait entre « quiz réussi » et « badge ».** Le geste de
+   validation existait — un membre du staff ouvre la fiche d'un apprenant et
+   clique — mais rien ne disait QUI ouvrir. L'apprenant restait bloqué jusqu'à ce
+   qu'il pense à le demander de vive voix.
+
+   ✅ **Rien à demander : la file se DÉDUIT.** Avoir fini la théorie EST la
+   demande. Un bouton « demander une évaluation » aurait créé une seconde vérité
+   sur qui est prêt, et quiconque finit sans cliquer n'existerait pour personne.
+
+   ⚠️ **Trié du plus ANCIEN au plus récent.** C'est une file : celui qui attend
+   depuis le plus longtemps passe devant. Trier par nom donnerait un ordre stable
+   et injuste.
+
+   ⚠️ **L'action réutilise `_cell_fix`** (S176) plutôt qu'un bouton local. Le
+   verbe mène là où la décision se prend — la fiche du membre, qui montre ses
+   autres droits, son historique et le bouton de validation — et pas à une
+   écriture sans contexte depuis une liste. #}
+
+{% block title %}{{ 'practical_queue.browser_title'|trans }}{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+{% embed 'site/_admin_list.html.twig' with {
+    panel_title: 'practical_queue.panel_title'|trans,
+    panel_note: 'practical_queue.panel_note'|trans,
+    list_count: rows|length,
+    list_route: 'app_admin_practical_queue',
+    list_search_placeholder: 'common.search_placeholder'|trans,
+    list_client_filter: true,
+} %}
+    {% block content %}
+        {% embed 'site/_data_table.html.twig' with {
+            pin_actions: true,
+            columns: [
+                {label: 'practical_queue.col_member'|trans, class: 'is-grow'},
+                {label: 'practical_queue.col_formation'|trans},
+                {label: 'practical_queue.col_since'|trans, class: 'is-tight'},
+                {label: 'practical_queue.col_theory'|trans, class: 'is-tight'},
+                {label: 'practical_queue.col_action'|trans, class: 'is-actions'},
+            ],
+            rows: rows,
+            empty: 'practical_queue.empty'|trans,
+        } %}
+            {% block rows %}
+                {% for row in rows %}
+                    <tr data-admin-list-filter-row data-admin-list-filter-row-href="{{ path('app_admin_user_detail', {id: row.user.id}) }}">
+                        <td>{% include 'site/_cell_title.html.twig' with {
+                            title: row.user.displayName,
+                            href: path('app_admin_user_detail', {id: row.user.id}),
+                            subtitle: row.user.email,
+                            media: include('site/_cell_media.html.twig', {initials: row.user.displayName, shape: 'circle'}, with_context = false),
+                        } only %}</td>
+                        <td>{% include 'site/_cell_title.html.twig' with {
+                            title: row.formation.titre,
+                            href: path('app_admin_formation_edit', {id: row.formation.id}),
+                            subtitle: row.physical.titre,
+                        } only %}</td>
+                        {# ⚠️ `convention: 'machine'` : une progression est horodatée
+                           par la machine, pas saisie par une personne. Se tromper
+                           décale la ligne d'un jour près de minuit, en silence. #}
+                        <td>{% include 'site/_cell_date.html.twig' with {
+                            value: row.since, convention: 'machine', reason: 'practical_queue.since_unknown',
+                        } only %}</td>
+                        <td>{% include 'site/_cell_meter.html.twig' with {
+                            value: row.percent, max: 100, label: '%', signal: 'go',
+                        } only %}</td>
+                        <td class="is-actions">{% include 'site/_cell_fix.html.twig' with {
+                            fix: 'practical_queue.fix_validate',
+                            route: 'app_admin_user_detail',
+                            params: {id: row.user.id},
+                        } only %}</td>
+                    </tr>
+                {% endfor %}
+            {% endblock %}
+        {% endembed %}
+    {% endblock %}
+{% endembed %}
+{% endblock %}

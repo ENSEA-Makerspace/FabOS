@@ -557,6 +557,14 @@ final class NavBuilder
                 $this->adminItem('admin_nav.entry.app_admin_formations', 'app_admin_formations', 'formations', [
                     'app_admin_formation_new', 'app_admin_formation_edit', 'app_admin_formation_content',
                 ]),
+                /*
+                 * 🔴 **S180 — la file des validations pratiques a besoin d'une
+                 * ENTRÉE de menu.** Le geste de validation existait depuis
+                 * longtemps, sur la fiche d'un membre : personne ne pouvait
+                 * l'atteindre sans savoir d'avance qui ouvrir. Une file
+                 * qu'aucun menu ne nomme est une file que personne ne relève.
+                 */
+                $this->adminItem('admin_nav.entry.app_admin_practical_queue', 'app_admin_practical_queue', 'formations'),
             ]],
             'badges' => ['label' => 'admin_nav.section.badges', 'items' => [
                 $this->adminItem('admin_nav.entry.app_admin_badges', 'app_admin_badges', 'badges', [

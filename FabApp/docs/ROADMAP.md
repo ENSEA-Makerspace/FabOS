@@ -1364,7 +1364,33 @@ le plus lourd du produit, et l'un des trois restes de la Phase J.
 | Session | Livre | Ce qu'on mesure |
 |---|---|---|
 | **S179** | **Le parcours de l'apprenant, sans nouveau modèle** : « votre prochaine étape » sur la fiche, progression lisible, et ce qu'on obtient à la fin (le badge, et la machine qu'il ouvre) | Un apprenant sait quoi faire ensuite **sans lire toute la page** |
-| **S180** | **L'étape PRATIQUE** : demander une évaluation, la file des validations pour l'équipe, la validation elle-même. C'est le chaînon qui manque entre « quiz réussi » et « badge » | Un badge ne s'obtient plus que par un chemin complet et tracé |
+| **S180** ⏳ | **L'étape PRATIQUE.** ✅ **Livré le 2026-09-06** : la FILE des validations (`/admin/validations-pratiques`, menu Formations). 🅿️ **Le bouton « demander une évaluation » est REFUSÉ, pas oublié** — avoir fini la théorie EST la demande, et la file se déduit ; un enregistrement de demande créerait une seconde vérité sur qui est prêt, et quiconque finit sans cliquer n'existerait pour personne. Ce que ce choix perd : signaler qu'on est dispo à un MOMENT donné — c'est du rendez-vous, pas de la qualification. 🔴 **Reste à faire, et ça demande une migration** : voir la ligne ci-dessous | Un badge ne s'obtient plus que par un chemin complet et tracé |
+
+### 🔴 S180 — le défaut trouvé en construisant, qui demande une migration
+
+**Ce qui décide qu'une formation exige une validation pratique est une liste de
+MOTS-CLÉS FRANÇAIS codée en dur** : `laser`, `soudure`, `fraiseuse`, `cnc`,
+`brodeuse` (`TrainingPolicyService::PHYSICAL_FORMATION_KEYWORDS`), cherchés dans
+le titre et la catégorie.
+
+⚠️ **C'est une garde de SÉCURITÉ décidée par une correspondance de chaîne.** Un
+labo qui nomme son cours « Découpe au CO2 », « Plasma », « Tour à métaux » ou qui
+travaille en anglais n'obtient **aucune** exigence pratique — silencieusement, et
+sur un écran qui a l'air correct. C'est la même famille que le repli
+`['PLA','PETG','TPU','Support']` retiré en S174 : une liste en dur qui tient lieu
+de donnée.
+
+**Le correctif** : un champ explicite sur `Formation` (« exige une validation
+pratique »), la liste de mots-clés rétrogradée en valeur PAR DÉFAUT à la création,
+et une migration additive qui coche le champ pour les formations qui matchent
+aujourd'hui — pour que rien ne change au moment où elle passe.
+⚠️ Migration = étape de l'opérateur, donc à séquencer explicitement.
+
+✅ **Mesuré le 2026-09-06** : sur cette installation, 4 formations déclenchent les
+mots-clés et ont bien leur validation physique ; la file est vide, et **elle a
+raison** — une seule personne dépasse 80 % de théorie (laser, 100 %) et sa
+pratique est déjà validée. `EN_ATTENTE = 0` sur les quatre. Vérifié par une
+commande temporaire, supprimée du Mac ET de la boîte.
 | **S181** | **Le constructeur** : le parcours en étapes ordonnables, la checklist de mise en ligne, l'aperçu apprenant. ⚠️ **Et c'est là qu'on solde J-10** — les 35 champs deviennent des étapes, pas un formulaire | 🔴 Champs visibles à l'arrivée : 35 → cible **sous 12**, barème de `S149-REVUE.md` |
 | **S182** | **Le quiz** : types de questions, résultat et reprise. Sur l'existant, pas un moteur neuf | Une reprise ne réinitialise pas ce qui était acquis |
 | **S183** | **La messagerie de cohorte** (ex-Phase I) : annonce formateur → cohorte sans exposer la liste, fil privé, groupe explicite. 🔴 **Aucun message privé ne bascule implicitement vers la cohorte** | Une annonce n'expose aucune adresse ; un fil privé le reste |

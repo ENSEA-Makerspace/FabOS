@@ -89,6 +89,7 @@ admin_nav:
         app_admin_places: Espaces
         app_admin_access_points: "Points d'accès"
         app_admin_formations: Formations
+        app_admin_practical_queue: "Validations pratiques"
         app_admin_badges: Badges
         app_admin_creations: Projets
         app_admin_lab_pages: Pages
@@ -450,6 +451,19 @@ machine:
     tech_created: "Créée %date%"
     tech_updated: "Mise à jour %date%"
     tech_last_auth: "Dernière autorisation %date%"
+
+practical_queue:
+    browser_title: "Validations pratiques - Admin FabOS"
+    panel_title: "Qui attend une validation pratique"
+    panel_note: "La théorie est finie, la pratique reste à valider. La file se déduit — personne n'a à la remplir."
+    col_member: "Apprenant"
+    col_formation: "Formation"
+    col_since: "Attend depuis"
+    col_theory: "Théorie"
+    col_action: "Action"
+    since_unknown: "Date inconnue"
+    fix_validate: "Ouvrir la fiche pour valider"
+    empty: "Personne n'attend de validation pratique."
 
 projects:
     creations: "Créations"
