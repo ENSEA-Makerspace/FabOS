@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Mailer\Transport;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
@@ -28,8 +29,23 @@ final class MailSender
         private readonly LocaleSwitcher $localeSwitcher,
         private readonly UnsubscribeLinker $unsubscribe,
         private readonly TranslatorInterface $translator,
+        private readonly LoggerInterface $logger,
     ) {
     }
+
+    /**
+     * Quelle version a servi — c'est la question « pourquoi ce mail dit ça ? »
+     * (S162), et c'est un critère de sortie de la phase.
+     *
+     * ⚠️ **Une trace, pas un booléen.** Trois sources se combinent : le corps
+     * (livré, réécrit, ou réécrit-mais-cassé) et les deux parties du chrome.
+     * « Réécrit » tout court ne dirait pas si c'est le pied commun qui a changé
+     * le mail, alors que c'est justement le cas qui touche vingt gabarits d'un
+     * coup.
+     */
+    public const RENDER_DELIVERED = 'delivered';
+    public const RENDER_OVERRIDE = 'override';
+    public const RENDER_FAILED = 'override_failed';
 
     /**
      * Sends the logged mail, updating its status either way.
@@ -63,7 +79,7 @@ final class MailSender
                 $context['unsubscribe_url'] = $unsubscribeUrl;
             }
 
-            [$subject, $html, $text] = $this->render(
+            [$subject, $html, $text, $renderedFrom] = $this->render(
                 (string) $row['template'],
                 $context,
                 (string) $row['locale'],
@@ -95,7 +111,7 @@ final class MailSender
             throw $e;
         }
 
-        $this->log->markSent($logId, $subject);
+        $this->log->markSent($logId, $subject, $renderedFrom);
     }
 
     /**
@@ -112,6 +128,8 @@ final class MailSender
      */
     private function renderOverride(string $name, array $override, array $context): array
     {
+        $this->assertRenderable($override['subject'], $override['body']);
+
         $delivered = $this->twig->load('emails/' . $name . '.html.twig');
 
         $subject = $override['subject'] !== null
@@ -148,7 +166,9 @@ final class MailSender
      *
      * @param array<string, mixed> $context
      *
-     * @return array{0: string, 1: string, 2: string} subject, html, text
+     * @return array{0: string, 1: string, 2: string, 3: string} subject, html, text,
+     *         et la TRACE de ce qui a servi (S162) — les appelants qui n'en ont
+     *         pas besoin la laissent tomber, `[$a, $b, $c] = …` ignore le reste
      */
     public function render(string $template, array $context, string $locale): array
     {
@@ -179,14 +199,25 @@ final class MailSender
              * layout. Compiler du texte d'exploitant, c'est offrir l'exécution
              * de code arbitraire à qui édite un e-mail.
              */
+            [$context, $chrome] = $this->withLayoutParts($context, $locale);
+
+            $bodyTrace = self::RENDER_DELIVERED;
             try {
                 $override = $this->overrides->find($name, $locale);
                 if ($override !== null) {
-                    return $this->renderOverride($name, $override, $context);
+                    return [...$this->renderOverride($name, $override, $context), self::RENDER_OVERRIDE . $chrome];
                 }
-            } catch (\Throwable) {
-                // Une surcharge cassée ne bloque pas le mail : on retombe sur le
-                // texte livré, sans que le destinataire voie quoi que ce soit.
+            } catch (\Throwable $e) {
+                /*
+                 * 🔴 **L'incident est JOURNALISÉ, il n'est plus avalé (S162).**
+                 * Le repli lui-même était déjà la bonne réponse — un mot de
+                 * passe oublié part quoi qu'il arrive — mais un repli SILENCIEUX
+                 * rend « pourquoi ce mail dit ça ? » insoluble : l'exploitant
+                 * voit son texte enregistré dans l'éditeur et le texte livré
+                 * dans sa boîte, sans rien qui explique l'écart.
+                 */
+                $bodyTrace = self::RENDER_FAILED;
+                $this->logIncident($name, $locale, 'body', $e);
             }
 
             $tpl = $this->twig->load('emails/' . $name . '.html.twig');
@@ -223,7 +254,110 @@ final class MailSender
                 trim(html_entity_decode($tpl->renderBlock('subject', $context), ENT_QUOTES, 'UTF-8')),
                 $tpl->render($context),
                 $text,
+                $bodyTrace . $chrome,
             ];
         });
+    }
+    /**
+     * L'en-tête et le pied réécrits, prêts à injecter dans le layout (S162).
+     *
+     * 🔴 **Forcés dans le contexte, jamais fusionnés.** Un appelant qui passerait
+     * `layout_header` dans son contexte réécrirait le chrome de son mail sans
+     * passer par l'éditeur — `+=` lui aurait laissé la priorité. Ici la valeur
+     * est écrasée dans tous les cas, y compris par `null`.
+     *
+     * ⚠️ **Chaque partie a son propre repli.** Un pied cassé ne doit pas emporter
+     * l'en-tête avec lui : ce sont deux textes indépendants, saisis à deux
+     * moments différents.
+     *
+     * @param array<string, mixed> $context
+     *
+     * @return array{0: array<string, mixed>, 1: string} le contexte, et le suffixe de trace
+     */
+    private function withLayoutParts(array $context, string $locale): array
+    {
+        $chrome = '';
+
+        foreach (['_header' => 'layout_header', '_footer' => 'layout_footer'] as $key => $var) {
+            $context[$var] = null;
+
+            try {
+                $part = $this->overrides->find($key, $locale);
+                if ($part === null || $part['body'] === null) {
+                    continue;
+                }
+
+                $this->assertRenderable(null, $part['body']);
+
+                // Même contrat que le corps : substitution en PHP sur une liste
+                // fermée, échappement, puis `nl2br` — le texte de l'exploitant ne
+                // voit jamais le compilateur Twig.
+                $context[$var] = nl2br(htmlspecialchars(
+                    $this->overrides->fill($part['body'], $context),
+                    ENT_QUOTES,
+                    'UTF-8',
+                ));
+                $chrome .= '+' . ltrim($key, '_');
+            } catch (\Throwable $e) {
+                $context[$var] = null;
+                $chrome .= '+' . ltrim($key, '_') . '_failed';
+                $this->logIncident($key, $locale, 'layout', $e);
+            }
+        }
+
+        return [$context, $chrome];
+    }
+
+    /**
+     * 🔴 **Ce qui rend une surcharge INRENDABLE — et donc ce qui déclenche le
+     * repli (S162).**
+     *
+     * **Un objet qui contient un saut de ligne**, d'abord, et c'est le cas
+     * réellement atteignable : le champ Objet est un `<input>`, dont un
+     * navigateur retire les retours — mais un POST fabriqué à la main, non. Un
+     * objet à rallonge sur deux lignes est un en-tête SMTP mal formé ; Symfony
+     * encode ses en-têtes et l'injection n'aboutit pas, mais le mail part avec
+     * un objet illisible, ou pas du tout, selon le transport.
+     *
+     * ⚠️ **L'UTF-8 invalide, ensuite, et il faut dire ce qu'il vaut** :
+     * `htmlspecialchars(…, ENT_QUOTES, 'UTF-8')` rend la CHAÎNE VIDE sur une
+     * séquence invalide, sans lever — un corps abîmé enverrait donc un mail vide
+     * avec le chrome et rien dedans. 🅿️ Mais la colonne est en `utf8mb4` et
+     * MariaDB refuse déjà ces octets à l'écriture : c'est une ceinture par-dessus
+     * les bretelles, pour le jour où le texte arrive d'ailleurs — une
+     * restauration, une colonne binaire, un import.
+     */
+    private function assertRenderable(?string $subject, ?string $body): void
+    {
+        foreach (['subject' => $subject, 'body' => $body] as $field => $text) {
+            if ($text === null) {
+                continue;
+            }
+
+            if (!mb_check_encoding($text, 'UTF-8')) {
+                throw new \RuntimeException(sprintf('Override %s is not valid UTF-8.', $field));
+            }
+        }
+
+        // ⚠️ Le CORPS, lui, a le droit d'avoir des retours à la ligne : c'est un
+        // texte, et `nl2br` en fait des `<br>`. Seul l'objet est un en-tête.
+        if ($subject !== null && preg_match('/[\r\n]/', $subject) === 1) {
+            throw new \RuntimeException('Override subject contains a line break.');
+        }
+    }
+
+    /**
+     * ⚠️ **`error` et pas `warning`.** Un mail parti avec un autre texte que
+     * celui que l'exploitant croit avoir écrit est un défaut à corriger, pas une
+     * curiosité — et le niveau est ce qui décide s'il apparaît quelque part.
+     */
+    private function logIncident(string $key, string $locale, string $part, \Throwable $e): void
+    {
+        $this->logger->error('Mail override fell back to the delivered text.', [
+            'template' => $key,
+            'locale' => $locale,
+            'part' => $part,
+            'error' => $e->getMessage(),
+        ]);
     }
 }

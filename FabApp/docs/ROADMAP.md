@@ -28,7 +28,7 @@ de références et cinq phases neuves ont rendu la lecture linéaire impossible.
 | ~~**O**~~ | ~~Machines & boîtiers~~ — ✅ **CLOSE le 2026-09-05** | S171–S174 |
 | ~~**P**~~ | ~~Espaces & accès d'entrée~~ — ✅ **CLOSE le 2026-09-06** | S175–S178 |
 | **Q** | Formations (absorbe la messagerie de cohorte) | S179–S183 |
-| **K** | Gabarits d'e-mail modifiables | S160–S162 |
+| **K** ✅ | Gabarits d'e-mail modifiables | S160–S162 — **close le 2026-09-07** |
 | **L** | Annoncer un événement aux membres | S163–S164 |
 | **M** | Thèmes, en profondeur | S165–S168 |
 | **S** | Comptes, adhésion et confiance (MFA, récupération) | S189–S192 |
@@ -922,7 +922,7 @@ explicite. **Aucun message privé ne bascule implicitement vers la cohorte.**
 
 ---
 
-# Phase K — les gabarits d'e-mail deviennent modifiables (S160–S162)
+# Phase K — les gabarits d'e-mail deviennent modifiables ✅ CLOSE le 2026-09-07
 
 **Demandé par l'opérateur le 2026-09-04**, sur la trouvaille du dépouillement
 Fabmanager : *« Customize email templates »*, **10 votes**, et le seul écart à la
@@ -996,7 +996,7 @@ fonctionnalité.
 CONTENU, et la règle de la maison est « on traduit l'UI, jamais le contenu ». Une
 surcharge sans langue casserait les mails anglais d'un labo bilingue qui n'aurait
 réécrit que le français.
-| **S161** ⏳ | **L'éditeur.** ✅ **Livré le 2026-09-07** : un écran par gabarit ET par langue, les champs déduits du gabarit, refus d'un champ inconnu, aperçu par le VRAI moteur. 🅿️ **L'envoi de test est REPORTÉ** — voir ci-dessous | ✅ Sonde `app:s161:mail-editor-probe`, 12 assertions, **aucun courrier envoyé** |
+| **S161** ✅ | **L’éditeur.** ✅ **Livré le 2026-09-07** : un écran par gabarit ET par langue, les champs déduits du gabarit, refus d'un champ inconnu, aperçu par le VRAI moteur. 🅿️ **L'envoi de test est REPORTÉ** — voir ci-dessous | ✅ Sonde `app:s161:mail-editor-probe`, 12 assertions, **aucun courrier envoyé** |
 
 ### ✅ S161 — les champs sont DÉDUITS, pas retapés
 
@@ -1032,7 +1032,68 @@ si elle ne l'est pas, plutôt que d'écraser le texte de quelqu'un.
 marcherait. Poser un bouton qui envoie du vrai courrier depuis une session
 automatisée n'est pas à moi de décider : ça s'ajoute quand quelqu'un peut le
 regarder partir.
-| **S162** | L'en-tête et le pied (`_layout`) surchargeables séparément ; « revenir au texte livré » par gabarit ; la garde du transactionnel | 🔴 Une surcharge volontairement cassée sur `password_reset` : le mail part quand même, avec le texte livré, et l'incident est journalisé |
+| **S162** ✅ | **Livré le 2026-09-07** : l'en-tête et le pied réécrivables SÉPARÉMENT, la garde du transactionnel PROUVÉE, et le journal qui dit quelle version a servi | ✅ Sonde `app:s162:layout-probe`, 26 assertions, **aucun courrier envoyé** |
+
+### ✅ S162 — le repli n'est plus silencieux, et le chrome se réécrit une fois
+
+🔴 **La mesure de sortie, tenue et mesurée** : une surcharge volontairement
+cassée sur `password_reset` — un objet sur deux lignes, écrit en SQL direct — et
+le mail part **avec le texte livré, identique au bit près**, l'objet cassé ne
+fuit pas dans l'en-tête, et l'incident est journalisé (`ERROR`, avec le gabarit,
+la langue, la partie et la raison).
+
+⚠️ **Casser une surcharge demande de la MALICE, et c'est une bonne nouvelle.** Le
+texte de l'exploitant ne voit jamais le compilateur Twig : il n'y a ni boucle, ni
+condition, ni filtre à faire échouer. Le seul défaut réellement atteignable est
+un objet contenant un saut de ligne — un en-tête SMTP mal formé — et il n'est
+atteignable que par un POST fabriqué à la main, un navigateur retirant les
+retours d'un `<input>`.
+🅿️ **Ce n'était donc pas un défaut observé en production** : c'est une panne
+fabriquée pour mettre le repli à l'épreuve. Le dire ainsi vaut mieux que de
+laisser croire qu'on a réparé quelque chose de cassé.
+
+🔴 **Le repli reste un FILET, il ne devient pas une porte d'entrée.** L'éditeur
+refuse désormais l'objet multi-ligne **avec une phrase, sur le champ concerné**,
+et `save()` refuse en plus l'UTF-8 invalide. Absorber à l'envoi ce qu'on laisse
+entrer à l'écriture signifierait qu'un exploitant voit son texte enregistré ici
+et le texte livré dans sa boîte, sans rien qui explique l'écart.
+
+✅ **`_header` et `_footer` — deux clés réservées, la même table.** Ce sont les
+deux seuls morceaux de chrome communs aux vingt e-mails : les réécrire gabarit
+par gabarit obligerait à saisir cent fois le même pied, et à le corriger cent
+fois. Une seconde table pour deux lignes aurait été un second endroit où chercher
+« qui a changé ce texte », et un second repli à écrire et à prouver.
+🔴 **Le lien de désinscription reste émis par le layout, sous le texte du pied,
+et `unsubscribe_url` n'est PAS proposé comme champ du pied.** L'exploitant
+réécrit la phrase ; il ne déplace ni ne retire la sortie de secours. Un pied qui
+l'aurait « déplacé » puis perdu supprimerait une obligation par inadvertance.
+⚠️ **Les trois replis sont INDÉPENDANTS**, et la sonde le mesure d'un coup : un
+corps cassé laisse l'en-tête et le pied réécrits en place
+(`override_failed+header+footer`).
+
+✅ **Le journal dit QUELLE VERSION a servi** — critère de sortie de la phase.
+`EMAIL_LOG.renderedFrom` porte une trace, pas un booléen : le corps (livré,
+réécrit, ou réécrit-mais-cassé) **et** les deux parties du chrome. « Réécrit »
+tout court ne dirait pas que c'est le pied commun qui a changé le mail, alors que
+c'est justement le cas qui touche vingt gabarits d'un coup.
+⚠️ **`—` pour les mails partis avant la colonne** : on ne le sait pas
+rétroactivement, et écrire « livré » par défaut serait une affirmation inventée.
+🔴 **Et l'écran des textes marque en ROUGE les couples dont le dernier envoi est
+retombé** — dérivé du journal, pas d'un drapeau stocké qu'il faudrait penser à
+remettre à zéro quand quelqu'un répare son texte.
+
+✅ **La sortie des 40 rendus est IDENTIQUE à celle d'avant le changement de
+layout** — mesuré en remettant l'ancien `_layout.html.twig` sur la boîte, en
+vidant le cache, en rendant les 40, puis en le remettant : `diff` vide. C'est la
+seule forme de preuve qui ne dépende ni de la date ni de l'état de la base.
+
+⚠️ **La migration `Version20260907090000` attend l'opérateur** — elle ajoute
+`EMAIL_LOG.renderedFrom`. Le code est déjà déployé et s'en passe : `markSent()`
+sonde la colonne une fois par processus, `fallbackKeys()` retombe sur une liste
+vide, et la colonne « Texte » du journal affiche « avant le suivi » partout.
+🔴 **Redémarrer `fabos.service` APRÈS la migration** : la sonde de colonne est
+mise en cache pour la vie du processus, donc sans redémarrage la colonne resterait
+vide alors qu'elle existe.
 
 ## Ce que l'opérateur vérifie — Phase K
 
@@ -1044,15 +1105,22 @@ regarder partir.
 | **S161** ✅ | même écran, coller `{{ machine }}` et enregistrer | **Refusé, avec une phrase**, sur le champ concerné |
 | **S161** ✅ | même écran, l'aperçu | Rendu par le moteur qui ENVOIE. Les valeurs sont en CAPITALES : c'est un exemple, et l'écran le dit |
 | **S161** ✅ | écrire un texte, puis vider les deux champs | Le texte livré revient **au bit près**. Vider = « reviens au texte livré », sans bouton en plus |
-| **S162** | une surcharge volontairement cassée sur `password_reset` | 🔴 Le mail part quand même, avec le texte livré, et l'incident est journalisé |
+| **S162** ✅ | `/admin/emails/gabarits` | Deux lignes EN TÊTE : `_header` et `_footer`. Ce ne sont pas des e-mails — c'est le chrome commun aux vingt |
+| **S162** ✅ | `/admin/emails/gabarits/_footer/fr`, écrire « Écrit par {{ sender_name }}. » | Le bas de **tous** les mails français change. ⚠️ L'écran le dit AVANT qu'on écrive |
+| **S162** ✅ | le même écran | **Pas de champ Objet** : une partie de chrome n'en a pas. Un seul champ proposé, `{{ sender_name }}` — pas `{{ unsubscribe_url }}` |
+| **S162** ✅ | l'aperçu de ce même écran | Le pied réécrit apparaît **avec le lien de désinscription toujours dessous** : il n'est pas déplaçable |
+| **S162** ✅ | `/admin/emails/gabarits/password_reset/fr`, coller un objet sur deux lignes | **Refusé, avec une phrase**, sur le champ Objet |
+| **S162** ⏳ | `/admin/emails`, colonne **Texte** — ⚠️ **après la migration et le redémarrage** | « Livré » / « Réécrit » / « Repli » par mail parti. Avant la migration : « avant le suivi » partout, et c'est honnête |
+| **S162** ✅ | la sonde, pour ce qui ne se voit pas à l'écran | `php bin/console app:s162:layout-probe` — 26 assertions, dont le mot de passe oublié qui part malgré une surcharge cassée |
 
 ## Critères de sortie
 
 - Aucune surcharge en base ⇒ aucun changement visible nulle part.
 - 🔴 **Un mot de passe oublié part toujours**, quelle que soit la bêtise saisie.
 - Une surcharge s'applique dans la langue du destinataire, et seulement là.
-- ⚠️ Le journal des mails dit **quelle version** a servi — livrée ou surchargée —
-  sans quoi « pourquoi ce mail dit ça ? » est insoluble.
+- ✅ Le journal des mails dit **quelle version** a servi — livrée, surchargée, ou
+  surchargée-mais-retombée, et les deux parties du chrome séparément.
+  ⚠️ Effectif **après** `Version20260907090000` et un redémarrage.
 
 ---
 

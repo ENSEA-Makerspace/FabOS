@@ -27,6 +27,12 @@
      fix     la clé de traduction du verbe (obligatoire)
      route   la destination, ou rien
      params  ses paramètres de route
+     tone    `alert` pour un défaut DÉJÀ survenu — un point rouge devant le
+             verbe, rien de plus (S162)
+
+   ⚠️ **`tone: 'alert'` dit « c'est arrivé », pas « ça pourrait ».** Un journal
+   où chaque ligne perfectible serait rouge n'aurait plus de rouge disponible
+   pour ce qui a réellement cassé.
 
    Réutilisable partout où une ligne dit qu'une chose ne va pas : un incident
    d'accès, une tâche de maintenance en retard, un prêt non rendu. Le composant
@@ -34,9 +40,9 @@
 #}
 {% if fix|default('') %}
     {% if route|default('') and can_reach(route, params|default({})) %}
-        <a class="cell-fix" href="{{ path(route, params|default({})) }}">{{ fix|trans }}<span class="cell-fix__chevron" aria-hidden="true">→</span></a>
+        <a class="cell-fix{{ tone|default('') == 'alert' ? ' cell-fix--alert' : '' }}" href="{{ path(route, params|default({})) }}">{{ fix|trans }}<span class="cell-fix__chevron" aria-hidden="true">→</span></a>
     {% else %}
-        <span class="cell-fix cell-fix--flat">{{ fix|trans }}</span>
+        <span class="cell-fix cell-fix--flat{{ tone|default('') == 'alert' ? ' cell-fix--alert' : '' }}">{{ fix|trans }}</span>
     {% endif %}
 {% else %}
     {% include 'site/_cell_empty.html.twig' with {reason: 'cell.nothing_to_fix'} only %}

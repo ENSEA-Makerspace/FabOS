@@ -382,7 +382,12 @@ mail_editor:
     fact_rewritten_note: "für diese Sprache"
     fact_delivered: "Gelieferter Text"
     fact_delivered_note: "nichts neu geschrieben"
+    fell_back: "Umgeschrieben — defekt"
+    part_note: "⚠️ Dieser Text gilt für ALLE E-Mails in dieser Sprache, auch für Passwort-Zurücksetzungen. Der Abmeldelink bleibt unter der Fußzeile: er lässt sich nicht verschieben."
+    preview_part_note: "Die Vorschau zeigt ihn an einer Beispiel-Mail — nur dort sieht man, ob der Text in eine Zeile passt."
     tpl:
+        _header: "Kopfzeile aller E-Mails"
+        _footer: "Fußzeile aller E-Mails"
         booking_accepted: "Buchung angenommen"
         booking_cancelled: "Buchung storniert"
         booking_confirmed: "Buchung bestätigt"
@@ -2437,6 +2442,12 @@ admin_settings:
 
 # E-mails admin — S134c.
 admin_emails:
+    col_version: "Text"
+    version_delivered: "Ausgeliefert"
+    version_override: "Umgeschrieben"
+    version_failed: "Rückfall"
+    version_chrome: "Rahmen umgeschrieben"
+    version_unknown: "vor der Erfassung"
     account_options: "Kontooptionen"
     lead_days_loan: "Tage vor dem geplanten Rückgabedatum (0 bis 30)."
     lead_hours_event: "Stunden vor Beginn der Veranstaltung (1 bis 168)."

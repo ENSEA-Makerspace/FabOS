@@ -19,6 +19,8 @@ final class MailLog
     public const STATUS_SENT = 'sent';
     public const STATUS_FAILED = 'failed';
 
+    private ?bool $hasRenderedFrom = null;
+
     public function __construct(
         private readonly Connection $db,
     ) {
@@ -58,12 +60,82 @@ final class MailLog
         return is_array($row) ? $row : null;
     }
 
-    public function markSent(int $id, string $subject): void
+    /**
+     * 🔴 **`$renderedFrom` répond à « pourquoi ce mail dit ça ? » (S162).** Sans
+     * lui, un exploitant qui lit un message reçu ne peut pas savoir s'il regarde
+     * le texte livré, le sien, ou le texte livré parce que le sien était cassé —
+     * et c'est un critère de sortie de la phase.
+     *
+     * ⚠️ **La colonne peut ne pas exister encore, et l'écriture le tolère.** Le
+     * code se déploie avant sa migration ; un `UPDATE` qui échouerait ici
+     * laisserait un mail PARTI marqué « en file », c'est-à-dire renvoyé à chaque
+     * reprise. La sonde de colonne suit le motif de `MailOverrides` : une fois
+     * par processus, pas une fois par mail.
+     */
+    public function markSent(int $id, string $subject, ?string $renderedFrom = null): void
     {
+        $extra = $renderedFrom !== null && $this->hasRenderedFrom() ? ', renderedFrom = :from' : '';
+        $params = ['s' => self::STATUS_SENT, 'subject' => mb_substr($subject, 0, 255), 'id' => $id];
+        if ($extra !== '') {
+            $params['from'] = mb_substr($renderedFrom, 0, 64);
+        }
+
         $this->db->executeStatement(
-            'UPDATE EMAIL_LOG SET status = :s, subject = :subject, error = NULL, sentAt = NOW() WHERE id = :id',
-            ['s' => self::STATUS_SENT, 'subject' => mb_substr($subject, 0, 255), 'id' => $id],
+            'UPDATE EMAIL_LOG SET status = :s, subject = :subject, error = NULL, sentAt = NOW()' . $extra . ' WHERE id = :id',
+            $params,
         );
+    }
+
+    /**
+     * Les couples (gabarit, langue) dont le DERNIER envoi est retombé sur le
+     * texte livré — pour que l'éditeur le dise là où on peut corriger (S162).
+     *
+     * ⚠️ **Dérivé du journal, pas d'un drapeau à tenir à jour.** Un « cassé »
+     * stocké dans la table des surcharges serait un second état à remettre à
+     * zéro quand quelqu'un répare son texte — et il se tromperait le jour où on
+     * oublie.
+     *
+     * @return array<string, true> clés « gabarit|langue »
+     */
+    public function fallbackKeys(int $days = 30): array
+    {
+        try {
+            $rows = $this->db->fetchAllAssociative(
+                'SELECT DISTINCT template, locale FROM EMAIL_LOG
+                 WHERE renderedFrom LIKE :pattern AND queuedAt >= :since',
+                [
+                    'pattern' => '%failed%',
+                    // Calculé en PHP comme le reste du fichier : un `INTERVAL`
+                    // paramétré ne se prépare pas partout de la même façon.
+                    'since' => (new \DateTimeImmutable(sprintf('-%d days', $days)))->format('Y-m-d H:i:s'),
+                ],
+            );
+        } catch (\Throwable) {
+            return [];
+        }
+
+        $out = [];
+        foreach ($rows as $row) {
+            $out[$row['template'] . '|' . $row['locale']] = true;
+        }
+
+        return $out;
+    }
+
+    /** ⚠️ Sondée une fois par processus : un worker traite des centaines de mails. */
+    private function hasRenderedFrom(): bool
+    {
+        if ($this->hasRenderedFrom !== null) {
+            return $this->hasRenderedFrom;
+        }
+
+        try {
+            $columns = $this->db->createSchemaManager()->listTableColumns('EMAIL_LOG');
+
+            return $this->hasRenderedFrom = isset($columns['renderedfrom']);
+        } catch (\Throwable) {
+            return $this->hasRenderedFrom = false;
+        }
     }
 
     public function markFailed(int $id, string $error): void

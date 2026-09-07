@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Form\MailOverrideType;
+use App\Mail\MailLog;
 use App\Mail\MailOverrides;
 use App\Mail\MailSender;
 use App\Mail\MailTemplateCatalog;
@@ -38,10 +39,20 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 final class MailTemplateAdminController extends AbstractController
 {
+    /**
+     * ⚠️ **L'aperçu d'une partie de chrome se fait SUR un vrai mail.** Un
+     * en-tête ou un pied n'existe pas seul : montrer la bande rose sans le
+     * message autour ne dirait pas si le texte tient sur une ligne, ni si le
+     * lien de désinscription est toujours là-dessous. `test` est le gabarit le
+     * plus neutre — son contenu n'est le sujet de personne.
+     */
+    private const PART_PREVIEW = 'test';
+
     public function __construct(
         private readonly MailTemplateCatalog $catalog,
         private readonly MailOverrides $overrides,
         private readonly LocaleCatalog $locales,
+        private readonly MailLog $log,
     ) {
     }
 
@@ -50,8 +61,21 @@ final class MailTemplateAdminController extends AbstractController
     {
         return $this->render('site/admin-mail-templates.html.twig', [
             'templates' => $this->catalog->names(),
+            'parts' => $this->catalog->parts(),
             'locales' => $this->locales->codes(),
             'existing' => $this->overrides->existingKeys(),
+            /*
+             * 🔴 **Les surcharges qui se sont CASSÉES, dites là où on les
+             * corrige (S162).** Le repli est silencieux par construction — c'est
+             * ce qui garantit qu'un mot de passe oublié part quoi qu'il arrive —
+             * mais silencieux jusqu'au bout signifierait qu'un exploitant voit
+             * son texte enregistré ici et le texte livré dans sa boîte, sans
+             * rien qui explique l'écart.
+             * ⚠️ Dérivé du journal des envois, pas d'un drapeau stocké : un
+             * drapeau serait un second état à remettre à zéro quand le texte est
+             * réparé, et il se tromperait le jour où on oublie.
+             */
+            'fallbacks' => $this->log->fallbackKeys(),
         ]);
     }
 
@@ -65,11 +89,23 @@ final class MailTemplateAdminController extends AbstractController
             throw $this->createNotFoundException('Gabarit ou langue inconnus.');
         }
 
+        $isPart = $this->catalog->isPart($name);
+
         $current = $this->overrides->find($name, $locale) ?? ['subject' => null, 'body' => null];
         $form = $this->createForm(MailOverrideType::class, [
             'subject' => $current['subject'] ?? '',
             'body' => $current['body'] ?? '',
         ]);
+
+        // ⚠️ **Une partie de chrome n'a pas d'objet.** Le champ est RETIRÉ, pas
+        // masqué : un champ présent mais caché finit par être soumis par un
+        // navigateur ou un script, et on écrirait un objet que rien ne lit —
+        // « surchargé » sans que rien ne change, l'état le plus difficile à
+        // expliquer.
+        if ($isPart) {
+            $form->remove('subject');
+        }
+
         $form->handleRequest($request);
 
         if ($form->isSubmitted()) {
@@ -84,7 +120,7 @@ final class MailTemplateAdminController extends AbstractController
              * ⚠️ L'erreur est posée sur le CHAMP concerné, pas en haut de page :
              * un message global oblige à chercher lequel des deux il vise.
              */
-            foreach (['subject', 'body'] as $field) {
+            foreach ($isPart ? ['body'] : ['subject', 'body'] as $field) {
                 $unknown = $this->catalog->unknownFieldsIn((string) ($data[$field] ?? ''), $name);
                 if ($unknown !== []) {
                     $form->get($field)->addError(new FormError(sprintf(
@@ -92,6 +128,17 @@ final class MailTemplateAdminController extends AbstractController
                         implode(', ', array_map(static fn (string $f): string => '{{ ' . $f . ' }}', $unknown)),
                     )));
                 }
+            }
+
+            /*
+             * ⚠️ **Un objet sur deux lignes est un en-tête SMTP mal formé (S162).**
+             * Le champ est un `<input>` et un navigateur en retire les retours,
+             * mais un POST fabriqué à la main les laisse passer — et
+             * `MailOverrides::save()` refuserait alors d'écrire sans pouvoir dire
+             * quoi corriger. L'erreur est posée ici, sur le champ, avec la phrase.
+             */
+            if (!$isPart && preg_match('/[\r\n]/', (string) ($data['subject'] ?? '')) === 1) {
+                $form->get('subject')->addError(new FormError('L’objet doit tenir sur une seule ligne : un e-mail ne peut pas porter un objet coupé en deux.'));
             }
         }
 
@@ -112,10 +159,20 @@ final class MailTemplateAdminController extends AbstractController
          * réel n'existe qu'au moment de l'envoi. Ce qu'il montre honnêtement,
          * c'est la MISE EN FORME et l'emplacement des champs.
          */
-        $sample = $this->sampleContext($name);
+        $previewName = $isPart ? self::PART_PREVIEW : $name;
+        $sample = $this->sampleContext($previewName);
+
+        // ⚠️ Seulement pour une partie de chrome : c'est la seule façon de
+        // MONTRER que le lien de désinscription survit à un pied réécrit. Un
+        // gabarit ordinaire ne le reçoit que si sa catégorie est désactivable,
+        // et l'inventer là fausserait l'aperçu.
+        if ($isPart) {
+            $sample['unsubscribe_url'] = 'https://exemple/desinscription';
+        }
+
         $preview = null;
         try {
-            [$subject, $html] = $sender->render($name, $sample, $locale);
+            [$subject, $html] = $sender->render($previewName, $sample, $locale);
             $preview = ['subject' => $subject, 'html' => $html];
         } catch (\Throwable $e) {
             // ⚠️ Un aperçu qui casse ne doit pas casser l'écran : l'auteur doit
@@ -129,6 +186,7 @@ final class MailTemplateAdminController extends AbstractController
             'form' => $form,
             'fields' => $this->catalog->fieldsOf($name),
             'preview' => $preview,
+            'is_part' => $isPart,
             'overridden' => $this->overrides->find($name, $locale) !== null,
         ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
     }

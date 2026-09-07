@@ -1,5 +1,25 @@
 {# Shared wrapper for every outgoing mail. Styles are inline on purpose: mail
-   clients drop <style> blocks, and there is no stylesheet to link to. #}
+   clients drop <style> blocks, and there is no stylesheet to link to.
+
+   🔴 **L'EN-TÊTE ET LE PIED SONT RÉÉCRIVABLES SÉPARÉMENT (S162).** Ce sont les
+   deux seules parties du chrome communes aux vingt e-mails : les réécrire
+   gabarit par gabarit obligerait à saisir cent fois le même pied — et à le
+   corriger cent fois. `MailSender` pose `layout_header` et `layout_footer` dans
+   le contexte de CHAQUE rendu, à `null` quand personne n'a rien réécrit.
+
+   ⚠️ **Le lien de désinscription reste ÉMIS PAR LE LAYOUT, sous le texte du
+   pied.** L'exploitant réécrit la phrase ; il ne déplace ni ne retire la sortie
+   de secours. C'est pour ça que `unsubscribe_url` n'est pas proposé comme champ
+   du pied dans l'éditeur : un pied qui l'aurait « déplacé » puis perdu
+   supprimerait une obligation par inadvertance.
+
+   ⚠️ **`|raw` est correct ICI et pour la même raison qu'ailleurs** : le texte a
+   été substitué sur une liste fermée, échappé par `htmlspecialchars`, puis passé
+   par `nl2br` côté PHP. Il ne voit jamais le compilateur Twig.
+
+   ⚠️ **Écrit sur UNE ligne, volontairement.** Un `{% if %}` sur trois lignes
+   ajouterait des blancs au HTML rendu, et la garantie de S160 est que sans
+   surcharge la sortie est identique AU BIT PRÈS. #}
 <!DOCTYPE html>
 <html>
 <head>
@@ -14,7 +34,7 @@
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px; background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.08);">
                     <tr>
                         <td style="background:linear-gradient(135deg,#9E1B56 0%,#7a1542 100%); padding:20px 28px;">
-                            <span style="color:#ffffff; font-size:18px; font-weight:700;">{{ sender_name }}</span>
+                            <span style="color:#ffffff; font-size:18px; font-weight:700;">{% if layout_header is defined and layout_header %}{{ layout_header|raw }}{% else %}{{ sender_name }}{% endif %}</span>
                         </td>
                     </tr>
                     <tr>
@@ -24,7 +44,7 @@
                     </tr>
                     <tr>
                         <td style="padding:16px 28px 24px; border-top:1px solid #e5e7eb; color:#6b7280; font-size:12px; line-height:1.5;">
-                            {% block footer %}{{ 'mail.footer.automatic'|trans }}{% endblock %}
+                            {% block footer %}{% if layout_footer is defined and layout_footer %}{{ layout_footer|raw }}{% else %}{{ 'mail.footer.automatic'|trans }}{% endif %}{% endblock %}
                             {# Present only on mail the recipient is allowed to switch off;
                                MailSender adds it for opt-out-able categories. #}
                             {% if unsubscribe_url is defined and unsubscribe_url %}

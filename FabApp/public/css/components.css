@@ -520,6 +520,17 @@ html[data-theme="dark"] :is(.breadcrumb, .breadcrumb-current, .breadcrumb-separa
 }
 .cell-fix:hover { text-decoration: underline; }
 .cell-fix--flat { color: var(--color-text-light); font-weight: 400; }
+/* ⚠️ La variante ALERTE (S162) — pour une ligne où le défaut est DÉJÀ arrivé,
+   pas seulement possible. Elle reste un verbe discret : le point rouge suffit à
+   la distinguer dans une colonne, et repeindre la ligne entière ferait chercher
+   une panne générale là où une seule case est en cause.
+   ⚠️ Le point est un pseudo-élément et non un caractère : un lecteur d'écran ne
+   doit pas annoncer « puce » avant le verbe, c'est le verbe qui porte le sens. */
+.cell-fix--alert::before {
+    content: ""; flex: 0 0 auto;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--color-danger);
+}
 /* La flèche n'apparaît qu'au survol : au repos elle ferait une colonne de
    chevrons, au survol elle dit que le verbe mène quelque part. */
 .cell-fix__chevron { opacity: 0; transition: opacity .12s ease; }

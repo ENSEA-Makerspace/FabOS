@@ -10,7 +10,18 @@
    ⚠️ **La case dit si ce couple a été réécrit**, pas s'il est « configuré ». Un
    gabarit sans surcharge n'est pas en défaut : c'est le cas normal, et le texte
    livré est bon. Peindre les vides en rouge inviterait à réécrire vingt mails
-   qui n'en ont pas besoin. #}
+   qui n'en ont pas besoin.
+
+   🔴 **Le rouge est réservé à ce qui est DÉJÀ arrivé (S162)** : une surcharge
+   dont le dernier envoi est retombé sur le texte livré. Le repli est silencieux
+   par construction — c'est ce qui garantit qu'un mot de passe oublié part quoi
+   qu'il arrive — mais silencieux jusqu'au bout signifierait qu'on voit son texte
+   enregistré ici et le texte livré dans sa boîte, sans rien qui l'explique.
+
+   ⚠️ **`_header` et `_footer` sont en tête, séparés du reste.** Ce ne sont pas
+   des e-mails : ce sont les deux morceaux de chrome COMMUNS aux vingt, et une
+   ligne de plus au milieu de la liste alphabétique les ferait passer pour un
+   gabarit qu'on aurait oublié de nommer. #}
 
 {% block title %}{{ 'mail_editor.browser_title'|trans }}{% endblock %}
 
@@ -24,7 +35,7 @@
     page_title: 'mail_editor.list_title'|trans,
     panel_title: 'mail_editor.list_panel'|trans,
     panel_note: 'mail_editor.list_note'|trans,
-    list_count: templates|length,
+    list_count: (parts|merge(templates))|length,
     list_route: 'app_admin_mail_templates',
     list_search_placeholder: 'common.search_placeholder'|trans,
     list_client_filter: true,
@@ -34,11 +45,11 @@
             columns: [{label: 'mail_editor.col_template'|trans, class: 'is-grow'}]|merge(
                 locales|map(l => {label: l|upper, class: 'is-tight'})
             ),
-            rows: templates,
+            rows: parts|merge(templates),
             empty: 'mail_editor.empty'|trans,
         } %}
             {% block rows %}
-                {% for name in templates %}
+                {% for name in parts|merge(templates) %}
                     <tr data-admin-list-filter-row>
                         <td>{% include 'site/_cell_title.html.twig' with {
                             title: name,
@@ -48,8 +59,11 @@
                             {# ⚠️ La cellule mène à l'écran d'édition de CE couple :
                                le tableau est la navigation, il n'a pas besoin d'une
                                colonne d'actions en plus. #}
+                            {% set _broken = fallbacks[name ~ '|' ~ locale]|default(false) %}
                             <td>{% include 'site/_cell_fix.html.twig' with {
-                                fix: existing[name ~ '|' ~ locale]|default(false) ? 'mail_editor.rewritten' : 'mail_editor.delivered',
+                                fix: _broken ? 'mail_editor.fell_back'
+                                     : (existing[name ~ '|' ~ locale]|default(false) ? 'mail_editor.rewritten' : 'mail_editor.delivered'),
+                                tone: _broken ? 'alert' : '',
                                 route: 'app_admin_mail_template_edit',
                                 params: {name: name, locale: locale},
                             } only %}</td>

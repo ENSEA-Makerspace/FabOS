@@ -48,6 +48,15 @@
                     fact_note: overridden ? 'mail_editor.fact_rewritten_note'|trans : 'mail_editor.fact_delivered_note'|trans,
                 } only %}
 
+                {# 🔴 **Une partie de chrome vaut pour les VINGT gabarits (S162).**
+                   L'écran doit le dire avant qu'on écrive : réécrire le pied ici
+                   change le bas de chaque mail envoyé dans cette langue, y compris
+                   les mots de passe oubliés. Le découvrir après coup se répare en
+                   vidant le champ, mais après les envois. #}
+                {% if is_part|default(false) %}
+                    <p class="mt-note" style="padding: 0 24px;">{{ 'mail_editor.part_note'|trans }}</p>
+                {% endif %}
+
                 <div class="mt-grid">
                     <div>
                         {% form_theme form 'form/admin_theme.html.twig' %}
@@ -75,7 +84,7 @@
 
                 <div style="padding: 0 24px 24px;">
                     <h2 style="font-size: var(--font-size-md); margin: 0 0 8px;">{{ 'mail_editor.preview_heading'|trans }}</h2>
-                    <p class="mt-note">{{ 'mail_editor.preview_note'|trans }}</p>
+                    <p class="mt-note">{{ 'mail_editor.preview_note'|trans }}{% if is_part|default(false) %} {{ 'mail_editor.preview_part_note'|trans }}{% endif %}</p>
                     {% if preview.html is defined and preview.html %}
                         <div class="mt-preview">
                             <div class="mt-preview__head">{{ 'mail_editor.preview_subject'|trans }} <strong>{{ preview.subject }}</strong></div>

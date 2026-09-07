@@ -13,10 +13,11 @@
    `<br>` qu'on vient d'ajouter s'afficheraient en toutes lettres ; sans
    l'échappement en amont, ce serait une injection. Les deux vont ensemble.
 
-   ⚠️ **L'en-tête, le pied et le lien de désinscription restent ceux du layout.**
-   Un exploitant réécrit le message, pas le chrome — le pied porte des
-   obligations (se désinscrire) qu'il ne doit pas pouvoir retirer par accident.
-   Les rendre surchargeables séparément est le sujet de S162. #}
+   ⚠️ **L'en-tête et le pied viennent du layout, et depuis S162 ils ont leur
+   PROPRE surcharge** (`_header`, `_footer`) — commune aux vingt gabarits, parce
+   qu'un pied recopié vingt fois se corrige vingt fois. Le lien de
+   désinscription, lui, reste émis par le layout quoi qu'il arrive : c'est une
+   obligation, pas une décoration. #}
 
 {% block subject %}{{ override_subject }}{% endblock %}
 

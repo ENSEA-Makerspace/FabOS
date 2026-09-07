@@ -32,11 +32,36 @@ final class MailTemplateCatalog
     private const ALWAYS = ['sender_name', 'unsubscribe_url'];
 
     /**
+     * L'en-tête et le pied du layout, réécrivables SÉPARÉMENT (S162).
+     *
+     * 🔴 **Ce ne sont pas des gabarits, et ils ne sont pas non plus vingt fois
+     * la même case.** L'en-tête et le pied sont les DEUX seules parties du
+     * chrome communes aux 20 e-mails : les réécrire gabarit par gabarit
+     * obligerait à saisir cent fois le même pied — et à le corriger cent fois.
+     *
+     * ⚠️ **Ils vivent dans la MÊME table, sous une clé réservée.** Une seconde
+     * table pour deux lignes serait un second endroit où chercher « qui a
+     * changé ce texte », et un second repli à écrire et à prouver.
+     */
+    public const PARTS = ['_header', '_footer'];
+
+    /**
      * ⚠️ Ni les partiels ni le layout ne s'envoient : ils n'ont pas d'objet et
      * `_override` est l'enveloppe de la surcharge elle-même.
      */
     public function __construct(private readonly string $templateDir)
     {
+    }
+
+    /** @return list<string> */
+    public function parts(): array
+    {
+        return self::PARTS;
+    }
+
+    public function isPart(string $name): bool
+    {
+        return in_array($name, self::PARTS, true);
     }
 
     /** @return list<string> les clés de gabarit, triées */
@@ -57,7 +82,7 @@ final class MailTemplateCatalog
 
     public function exists(string $name): bool
     {
-        return in_array($name, $this->names(), true);
+        return $this->isPart($name) || in_array($name, $this->names(), true);
     }
 
     /**
@@ -69,6 +94,21 @@ final class MailTemplateCatalog
     {
         if (!$this->exists($name)) {
             return [];
+        }
+
+        /*
+         * 🔴 **Le pied n'a PAS `unsubscribe_url` dans sa liste, et c'est
+         * délibéré.** Le lien de désinscription est émis par le layout,
+         * inconditionnellement, sous le texte du pied : l'exploitant réécrit la
+         * phrase, il ne déplace ni ne retire la sortie de secours. Le proposer
+         * comme champ laisserait croire l'inverse — et un pied qui l'aurait
+         * « déplacé » puis perdu supprimerait une obligation légale par
+         * inadvertance.
+         * ⚠️ `sender_name` reste disponible : c'est le nom du labo, et c'est
+         * précisément ce qu'un en-tête réécrit veut citer.
+         */
+        if ($this->isPart($name)) {
+            return ['sender_name'];
         }
 
         $fields = self::ALWAYS;

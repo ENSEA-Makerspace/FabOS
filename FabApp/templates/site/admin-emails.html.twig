@@ -294,6 +294,7 @@
                             {label: 'admin_emails.col_recipient'|trans, class: 'is-grow'},
                             {label: 'admin_emails.col_subject'|trans, class: 'is-grow'},
                             {label: 'admin_emails.col_status'|trans, class: 'is-tight'},
+                            {label: 'admin_emails.col_version'|trans, class: 'is-tight'},
                         ],
                         rows: logs,
                         empty: 'admin_emails.log_empty'|trans,
@@ -319,6 +320,23 @@
                                         label: ('admin_emails.status_' ~ log.status)|trans,
                                         signal: log.status == 'sent' ? 'go' : (log.status == 'failed' ? 'stop' : 'wait'),
                                     } only %}{% if log.error %}<span class="mail-error">{{ log.error }}</span>{% endif %}</td>
+                                    {# 🔴 **QUELLE VERSION a servi (S162).** Sans cette
+                                       colonne, « pourquoi ce mail dit ça ? » est
+                                       insoluble : un exploitant qui a réécrit un texte
+                                       et reçoit le texte livré ne peut pas distinguer
+                                       « ma surcharge ne s'applique pas » de « elle
+                                       s'est cassée et le repli l'a absorbée ».
+                                       ⚠️ `—` pour les mails partis AVANT la colonne :
+                                       on ne le sait pas, et l'inventer serait une
+                                       affirmation fausse. #}
+                                    <td>{% set _v = log.renderedFrom|default('') %}
+                                        {% set _body = _v starts with 'override_failed' ? 'failed' : (_v starts with 'override' ? 'override' : 'delivered') %}
+                                        {% set _chrome = '+' in _v %}
+                                        {% if _v %}{% include 'site/_cell_state.html.twig' with {
+                                            label: ('admin_emails.version_' ~ _body)|trans ~ (_chrome ? ' · ' ~ 'admin_emails.version_chrome'|trans : ''),
+                                            signal: (_body == 'failed' or 'failed' in _v) ? 'stop' : (_body == 'override' or _chrome ? 'wait' : 'muted'),
+                                        } only %}
+                                        {% else %}{% include 'site/_cell_empty.html.twig' with {reason: 'admin_emails.version_unknown'} only %}{% endif %}</td>
                                 </tr>
                             {% endfor %}
                         {% endblock %}

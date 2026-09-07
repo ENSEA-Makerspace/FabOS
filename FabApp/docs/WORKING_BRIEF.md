@@ -1,4 +1,4 @@
-# Où on en est — 2026-09-06
+# Où on en est — 2026-09-07
 
 **Lire ceci en premier.** Une page. Le reste se lit à la demande :
 
@@ -26,23 +26,35 @@
 - **P** (2026-09-06) — Espaces & accès d'entrée. `AccessPoint` existe : un
   boîtier peut commander une PORTE, plus seulement une machine.
 
-⏳ **Q — Formations, en cours.** S180 est livré (la file des validations
-pratiques). S180b est **écrit et NON DÉPLOYÉ** : il attend que tu lances la
-migration.
+✅ **CINQUIÈME PHASE CLOSE : K — les gabarits d'e-mail** (2026-09-07). Un
+exploitant réécrit le texte d'un e-mail, par langue, sans écrire une ligne de
+Twig ; l'en-tête et le pied se réécrivent une seule fois pour les vingt ; et
+🔴 **une surcharge cassée n'empêche jamais un mot de passe oublié de partir** —
+mesuré, avec l'incident journalisé et le journal qui dit quelle version a servi.
+
+⏳ **Q — Formations, en cours.** S179 à S183 sont livrés ; il reste trois 🅿️
+consignés dans `ROADMAP.md` (le fil privé, les types de questions, les étapes
+ordonnables).
 
 ## 🔴 Ce qui t'attend, toi
 
-**1. Une migration à lancer** — `Version20260906120000`, seule sur la boîte,
+**1. Une migration à lancer** — `Version20260907090000`, seule sur la boîte,
 vérifiée, non exécutée :
 
     ssh -o IdentitiesOnly=yes -i ~/.ssh/id_ovh proxmox.lab.dryades.org \
       'sudo pct exec 210 -- bash -lc "cd /opt/fabos/FabApp && php bin/console doctrine:migrations:migrate --no-interaction"'
 
-Elle rend explicite ce qui se DEVINAIT : une garde de sécurité (« cette formation
-exige-t-elle une validation pratique ? ») était décidée par une liste de mots-clés
-français cherchés dans le titre. Elle ne change rien au comportement — elle
-remplit la colonne depuis ces mêmes mots-clés — mais à partir de là, quelqu'un
-peut la corriger.
+Elle ajoute `EMAIL_LOG.renderedFrom` : **quelle version a servi** à chaque mail
+parti — le texte livré, le tien, ou le texte livré parce que le tien s'est cassé.
+Sans elle, « pourquoi ce mail dit ça ? » n'a pas de réponse.
+⚠️ **Le code est déjà déployé et s'en passe** : il sonde la colonne, et la
+colonne « Texte » du journal affiche « avant le suivi » partout en attendant.
+Rien n'est cassé si tu la lances plus tard.
+🔴 **Redémarrer le service APRÈS** — la sonde de colonne est en cache pour la vie
+du processus :
+
+    ssh -o IdentitiesOnly=yes -i ~/.ssh/id_ovh proxmox.lab.dryades.org \
+      'sudo pct exec 210 -- systemctl restart fabos.service'
 
 **2. Une revue à faire.** Chaque phase porte une section **« Ce que l'opérateur
 vérifie »** dans `ROADMAP.md` : où regarder, et quoi voir. C'est ta demande du
@@ -57,14 +69,13 @@ et c'est juste) — `/admin/rfid-readers` le dit maintenant en toutes lettres.
 occupée doit dire « Libre à 14:00 ». Non mesurée — à 01h30 le labo est fermé et
 la branche « fermé » gagne, correctement. À regarder un jour ouvré.
 
-🅿️ **Trois phases écrites le 2026-09-04, à faire :** **K** — les gabarits
-d'e-mail deviennent modifiables (S160–S162) ; **L** — annoncer un événement aux
-membres (S163–S164) ; **M** — les thèmes en profondeur (S165–S168). Les trois
+🅿️ **Deux phases écrites le 2026-09-04, à faire :** **L** — annoncer un événement
+aux membres (S163–S164) ; **M** — les thèmes en profondeur (S165–S168). Les deux
 sont dans `ROADMAP.md`, chacune avec ce qui existe DÉJÀ (mesuré dans le dépôt),
 la tension à trancher, et ce qu'on mesure par session.
-🔴 Les deux premières viennent du dépouillement de Fabmanager
-(`FABMANAGER-ECARTS.md`) ; la troisième reprend un chantier qui traînait sans
-plan.
+🔴 La première vient du dépouillement de Fabmanager (`FABMANAGER-ECARTS.md`) ; la
+seconde reprend un chantier qui traînait sans plan. **K, la troisième, est
+close.**
 
 ✅ **Phase S153 livrée le 2026-08-31.** Les quatre chantiers sont faits — la
 saisie des packages (le compilateur, la case « sans limite d'horaires », la

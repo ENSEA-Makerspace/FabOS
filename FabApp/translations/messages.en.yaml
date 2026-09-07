@@ -382,7 +382,12 @@ mail_editor:
     fact_rewritten_note: "for this language"
     fact_delivered: "Delivered text"
     fact_delivered_note: "nothing rewritten"
+    fell_back: "Rewritten — broken"
+    part_note: "⚠️ This text applies to EVERY mail sent in this language, password resets included. The unsubscribe link stays below the footer: it cannot be moved."
+    preview_part_note: "The preview shows it on a sample mail — the only place you can see whether the text fits on one line."
     tpl:
+        _header: "Header shared by every mail"
+        _footer: "Footer shared by every mail"
         booking_accepted: "Booking accepted"
         booking_cancelled: "Booking cancelled"
         booking_confirmed: "Booking confirmed"
@@ -2438,6 +2443,12 @@ admin_settings:
 
 # E-mails admin — S134c.
 admin_emails:
+    col_version: "Text"
+    version_delivered: "Shipped"
+    version_override: "Rewritten"
+    version_failed: "Fell back"
+    version_chrome: "chrome rewritten"
+    version_unknown: "before tracking"
     account_options: "Account options"
     lead_days_loan: "days before the expected return date (0 to 30)."
     lead_hours_event: "hours before the event starts (1 to 168)."

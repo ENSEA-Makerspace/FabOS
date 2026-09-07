@@ -382,7 +382,12 @@ mail_editor:
     fact_rewritten_note: "para este idioma"
     fact_delivered: "Texto entregado"
     fact_delivered_note: "nada reescrito"
+    fell_back: "Reescrito — roto"
+    part_note: "⚠️ Este texto se aplica a TODOS los correos enviados en este idioma, incluidas las contraseñas olvidadas. El enlace de baja permanece bajo el pie: no se puede mover."
+    preview_part_note: "La vista previa lo muestra en un correo de ejemplo: es el único sitio donde se ve si el texto cabe en una línea."
     tpl:
+        _header: "Encabezado común a todos los correos"
+        _footer: "Pie común a todos los correos"
         booking_accepted: "Reserva aceptada"
         booking_cancelled: "Reserva cancelada"
         booking_confirmed: "Reserva confirmada"
@@ -2437,6 +2442,12 @@ admin_settings:
 
 # E-mails admin — S134c.
 admin_emails:
+    col_version: "Texto"
+    version_delivered: "Entregado"
+    version_override: "Reescrito"
+    version_failed: "Respaldo"
+    version_chrome: "marco reescrito"
+    version_unknown: "antes del seguimiento"
     account_options: "Opciones de la cuenta"
     lead_days_loan: "días antes de la fecha de devolución prevista (de 0 a 30)."
     lead_hours_event: "horas antes del inicio del evento (de 1 a 168)."

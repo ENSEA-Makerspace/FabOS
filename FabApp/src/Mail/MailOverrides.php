@@ -140,6 +140,19 @@ final class MailOverrides
         $subject = trim($subject);
         $body = trim($body);
 
+        // 🔴 **Refusé à l'ÉCRITURE, pas seulement absorbé à l'envoi (S162).**
+        // Le rendu sait retomber sur le texte livré — c'est ce qui garantit qu'un
+        // mot de passe oublié part quoi qu'il arrive — mais laisser entrer un
+        // texte inrendable signifierait qu'un exploitant voit son texte
+        // enregistré ici et le texte livré dans sa boîte, sans rien qui explique
+        // l'écart. Le repli est un filet, pas une porte d'entrée.
+        // ⚠️ Un objet sur deux lignes est un en-tête SMTP mal formé. Le champ est
+        // un `<input>`, dont un navigateur retire les retours ; un POST fabriqué
+        // à la main, non.
+        if (!self::isStorable($subject) || !self::isStorable($body) || preg_match('/[\r\n]/', $subject) === 1) {
+            return false;
+        }
+
         try {
             if ($subject === '' && $body === '') {
                 $this->db->executeStatement(
@@ -191,6 +204,17 @@ final class MailOverrides
         }
 
         return $out;
+    }
+
+    /**
+     * ⚠️ `utf8mb4` refuserait déjà ces octets à l'écriture ; la garde existe pour
+     * que le refus soit une DÉCISION de l'application et non une exception SQL
+     * attrapée par un `catch` générique, qui rendrait « non enregistré » sans que
+     * personne sache pourquoi.
+     */
+    private static function isStorable(string $text): bool
+    {
+        return mb_check_encoding($text, 'UTF-8');
     }
 
     private function isStorageReady(): bool
