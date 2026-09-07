@@ -120,6 +120,79 @@ final class MailOverrides
         return $fields;
     }
 
+    /**
+     * Écrit — ou EFFACE quand les deux champs sont vides (S161).
+     *
+     * ⚠️ **Vider les deux champs supprime la ligne**, ce qui est le « revenir au
+     * texte livré » que la phase demande, obtenu sans bouton supplémentaire.
+     * Garder une ligne vide en base créerait un état « surchargé avec rien »
+     * qu'aucun écran ne saurait expliquer.
+     *
+     * 🔴 Rend `false` sans lever si le stockage n'est pas prêt : l'éditeur doit
+     * pouvoir dire « je n'ai pas pu enregistrer », jamais faire tomber la page.
+     */
+    public function save(string $templateKey, string $locale, string $subject, string $body): bool
+    {
+        if (!$this->isStorageReady()) {
+            return false;
+        }
+
+        $subject = trim($subject);
+        $body = trim($body);
+
+        try {
+            if ($subject === '' && $body === '') {
+                $this->db->executeStatement(
+                    'DELETE FROM EMAIL_TEMPLATE_OVERRIDE WHERE templateKey = ? AND locale = ?',
+                    [$templateKey, $locale],
+                );
+
+                return true;
+            }
+
+            // ⚠️ `INSERT … ON DUPLICATE KEY UPDATE` plutôt que « lire puis
+            // écrire » : la contrainte d'unicité `(templateKey, locale)` est la
+            // seule chose qui garantit qu'il n'y a pas deux textes pour une même
+            // case, et deux requêtes laisseraient une fenêtre entre elles.
+            $this->db->executeStatement(
+                'INSERT INTO EMAIL_TEMPLATE_OVERRIDE (templateKey, locale, subject, body, updatedAt)
+                 VALUES (?, ?, ?, ?, NOW())
+                 ON DUPLICATE KEY UPDATE subject = VALUES(subject), body = VALUES(body), updatedAt = NOW()',
+                [$templateKey, $locale, $subject !== '' ? $subject : null, $body !== '' ? $body : null],
+            );
+        } catch (\Throwable) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Les couples (gabarit, langue) déjà réécrits — pour que la liste de
+     * l'éditeur dise QUOI a été touché sans ouvrir vingt écrans.
+     *
+     * @return array<string, true> clés « gabarit|langue »
+     */
+    public function existingKeys(): array
+    {
+        if (!$this->isStorageReady()) {
+            return [];
+        }
+
+        try {
+            $rows = $this->db->fetchAllAssociative('SELECT templateKey, locale FROM EMAIL_TEMPLATE_OVERRIDE');
+        } catch (\Throwable) {
+            return [];
+        }
+
+        $out = [];
+        foreach ($rows as $row) {
+            $out[$row['templateKey'] . '|' . $row['locale']] = true;
+        }
+
+        return $out;
+    }
+
     private function isStorageReady(): bool
     {
         if ($this->storageReady !== null) {

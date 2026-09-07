@@ -1,0 +1,63 @@
+{% extends 'base.html.twig' %}
+
+{# LES TEXTES D'E-MAIL, GABARIT PAR GABARIT ET LANGUE PAR LANGUE (S161).
+
+   🔴 **Une ligne par gabarit, une colonne par langue.** Un texte réécrit par
+   l'exploitant est du CONTENU, et la règle de la maison est « on traduit l'UI,
+   jamais le contenu » : un éditeur sans langue casserait les mails anglais d'un
+   labo bilingue qui n'aurait réécrit que le français.
+
+   ⚠️ **La case dit si ce couple a été réécrit**, pas s'il est « configuré ». Un
+   gabarit sans surcharge n'est pas en défaut : c'est le cas normal, et le texte
+   livré est bon. Peindre les vides en rouge inviterait à réécrire vingt mails
+   qui n'en ont pas besoin. #}
+
+{% block title %}{{ 'mail_editor.browser_title'|trans }}{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+{% embed 'site/_admin_list.html.twig' with {
+    page_title: 'mail_editor.list_title'|trans,
+    panel_title: 'mail_editor.list_panel'|trans,
+    panel_note: 'mail_editor.list_note'|trans,
+    list_count: templates|length,
+    list_route: 'app_admin_mail_templates',
+    list_search_placeholder: 'common.search_placeholder'|trans,
+    list_client_filter: true,
+} %}
+    {% block content %}
+        {% embed 'site/_data_table.html.twig' with {
+            columns: [{label: 'mail_editor.col_template'|trans, class: 'is-grow'}]|merge(
+                locales|map(l => {label: l|upper, class: 'is-tight'})
+            ),
+            rows: templates,
+            empty: 'mail_editor.empty'|trans,
+        } %}
+            {% block rows %}
+                {% for name in templates %}
+                    <tr data-admin-list-filter-row>
+                        <td>{% include 'site/_cell_title.html.twig' with {
+                            title: name,
+                            subtitle: ('mail_editor.tpl.' ~ name)|trans,
+                        } only %}</td>
+                        {% for locale in locales %}
+                            {# ⚠️ La cellule mène à l'écran d'édition de CE couple :
+                               le tableau est la navigation, il n'a pas besoin d'une
+                               colonne d'actions en plus. #}
+                            <td>{% include 'site/_cell_fix.html.twig' with {
+                                fix: existing[name ~ '|' ~ locale]|default(false) ? 'mail_editor.rewritten' : 'mail_editor.delivered',
+                                route: 'app_admin_mail_template_edit',
+                                params: {name: name, locale: locale},
+                            } only %}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            {% endblock %}
+        {% endembed %}
+    {% endblock %}
+{% endembed %}
+{% endblock %}

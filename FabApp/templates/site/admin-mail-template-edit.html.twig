@@ -1,0 +1,95 @@
+{% extends 'base.html.twig' %}
+
+{# RÉÉCRIRE UN TEXTE D'E-MAIL, DANS UNE LANGUE (S161).
+
+   ⚠️ **L'aperçu passe par `MailSender::render()` — la méthode qui ENVOIE.** La
+   mesure de sortie de la session est « l'aperçu rend le vrai gabarit, pas une
+   approximation ». Un second moteur de rendu pour la prévisualisation finirait
+   par diverger de celui qui envoie, ce qui est exactement le défaut qu'un aperçu
+   est censé prévenir.
+
+   ⚠️ **Et il le dit : le contexte est un EXEMPLE.** Les valeurs sont en
+   capitales (« ÉVÉNEMENT ») pour qu'on voie où elles atterrissent. Une valeur
+   plausible ferait croire qu'on regarde un vrai mail. #}
+
+{% block title %}{{ 'mail_editor.edit_title'|trans }} · {{ name }} · {{ locale|upper }}{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
+    <style>
+        .mt-grid { display: grid; grid-template-columns: 1fr 320px; gap: var(--spacing-lg); padding: 0 24px 24px; }
+        @media (max-width: 1000px) { .mt-grid { grid-template-columns: 1fr; } }
+        .mt-fields { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+        .mt-fields code { background: var(--theme-surface-elevated, var(--theme-surface)); border: 1px solid var(--border-color); border-radius: 999px; padding: 3px 10px; font-size: 12px; }
+        .mt-preview { border: 1px solid var(--border-color); border-radius: var(--border-radius); overflow: hidden; }
+        .mt-preview__head { padding: 10px 14px; border-bottom: 1px solid var(--border-color); font-size: 13px; color: var(--color-text-light); }
+        /* ⚠️ L'aperçu est du HTML d'e-mail : il porte ses propres styles en
+           ligne et n'a rien à voir avec le thème de l'admin. Un `iframe` en
+           `srcdoc` l'isole complètement — sans lui, ses règles fuiraient dans la
+           page et celles de la page dans lui. */
+        .mt-preview iframe { display: block; width: 100%; height: 460px; border: 0; background: #fff; }
+        .mt-note { color: var(--color-text-light); font-size: 13px; margin: 0 0 12px; }
+    </style>
+{% endblock %}
+
+{% block body %}
+    {% include 'site/_header.html.twig' %}
+    <main id="main-content" tabindex="-1" class="admin-page">
+        <div class="admin-edit-layout">
+            {% include 'site/_admin_sidebar.html.twig' %}
+            <section class="admin-panel admin-list-card admin-form-card">
+                {% include 'site/_admin_form_head.html.twig' with {
+                    title: name,
+                    subtitle: ('mail_editor.tpl.' ~ name)|trans ~ ' · ' ~ locale|upper,
+                    back_href: path('app_admin_mail_templates'),
+                    back_label: 'mail_editor.back'|trans,
+                    fact: overridden ? 'mail_editor.fact_rewritten'|trans : 'mail_editor.fact_delivered'|trans,
+                    fact_note: overridden ? 'mail_editor.fact_rewritten_note'|trans : 'mail_editor.fact_delivered_note'|trans,
+                } only %}
+
+                <div class="mt-grid">
+                    <div>
+                        {% form_theme form 'form/admin_theme.html.twig' %}
+                        {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
+                            {{ form_errors(form) }}
+                            {% include 'site/_form_sections.html.twig' with {
+                                form: form,
+                                sections: constant('App\\Form\\MailOverrideType::SECTIONS'),
+                            } only %}
+                            <div class="form-actions">
+                                <a class="btn-link" href="{{ path('app_admin_mail_templates') }}">{{ 'common.cancel'|trans }}</a>
+                                <span class="btn-submit">{{ form_widget(form.save) }}</span>
+                            </div>
+                        {{ form_end(form) }}
+                    </div>
+
+                    <aside>
+                        <h2 style="font-size: var(--font-size-md); margin: 0 0 8px;">{{ 'mail_editor.fields_heading'|trans }}</h2>
+                        <p class="mt-note">{{ 'mail_editor.fields_note'|trans }}</p>
+                        <ul class="mt-fields">
+                            {% for field in fields %}<li><code>{{ '{{ ' ~ field ~ ' }}' }}</code></li>{% endfor %}
+                        </ul>
+                    </aside>
+                </div>
+
+                <div style="padding: 0 24px 24px;">
+                    <h2 style="font-size: var(--font-size-md); margin: 0 0 8px;">{{ 'mail_editor.preview_heading'|trans }}</h2>
+                    <p class="mt-note">{{ 'mail_editor.preview_note'|trans }}</p>
+                    {% if preview.html is defined and preview.html %}
+                        <div class="mt-preview">
+                            <div class="mt-preview__head">{{ 'mail_editor.preview_subject'|trans }} <strong>{{ preview.subject }}</strong></div>
+                            {# ⚠️ `sandbox` vide : l'aperçu n'a besoin ni de scripts, ni de
+                               formulaires, ni de navigation. Un gabarit d'e-mail n'en
+                               contient pas — et si un jour il en contient, ce n'est pas
+                               dans l'écran d'administration qu'il doit s'exécuter. #}
+                            <iframe sandbox srcdoc="{{ preview.html }}" title="{{ 'mail_editor.preview_heading'|trans }}"></iframe>
+                        </div>
+                    {% else %}
+                        <p class="mt-note">{{ 'mail_editor.preview_failed'|trans }}{% if preview.error is defined %} <code>{{ preview.error }}</code>{% endif %}</p>
+                    {% endif %}
+                </div>
+            </section>
+        </div>
+    </main>
+{% endblock %}

@@ -353,6 +353,16 @@ final class NavBuilder
             $this->adminItem('admin_nav.entry.app_admin_themes', 'app_admin_themes', 'dashboard', ['app_admin_homepage']),
             $this->adminItem('admin_nav.entry.app_admin_features', 'app_admin_features', 'dashboard'),
             $this->adminItem('admin_nav.entry.app_admin_emails', 'app_admin_emails', 'logs'),
+            /*
+             * ⚠️ **S161 — une entrée séparée, à côté du compte d'envoi.** Les deux
+             * écrans répondent à deux questions différentes : « par où partent les
+             * mails » et « ce qu'ils disent ». Les fondre ferait un écran de plus à
+             * replier, et l'éditeur de textes se visite une fois par an quand le
+             * compte SMTP se règle une fois.
+             */
+            $this->adminItem('admin_nav.entry.app_admin_mail_templates', 'app_admin_mail_templates', 'logs', [
+                'app_admin_mail_template_edit',
+            ]),
             $this->adminItem('admin_nav.entry.app_admin_network', 'app_admin_network', 'dashboard'),
             // Last, because it is the one entry you use once and never again.
             $this->adminItem('admin_nav.entry.app_admin_wizard', 'app_admin_wizard', 'dashboard'),

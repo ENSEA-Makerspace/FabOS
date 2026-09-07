@@ -996,8 +996,55 @@ fonctionnalité.
 CONTENU, et la règle de la maison est « on traduit l'UI, jamais le contenu ». Une
 surcharge sans langue casserait les mails anglais d'un labo bilingue qui n'aurait
 réécrit que le français.
-| **S161** | L'éditeur : un écran par gabarit et par langue, la liste des champs disponibles **pour ce gabarit-là**, refus d'un champ inconnu, aperçu et envoi de test | Un champ inconnu est refusé avec une phrase ; l'aperçu rend le vrai gabarit, pas une approximation |
+| **S161** ⏳ | **L'éditeur.** ✅ **Livré le 2026-09-07** : un écran par gabarit ET par langue, les champs déduits du gabarit, refus d'un champ inconnu, aperçu par le VRAI moteur. 🅿️ **L'envoi de test est REPORTÉ** — voir ci-dessous | ✅ Sonde `app:s161:mail-editor-probe`, 12 assertions, **aucun courrier envoyé** |
+
+### ✅ S161 — les champs sont DÉDUITS, pas retapés
+
+**`MailTemplateCatalog` lit la source Twig du gabarit et de ses partiels.** Une
+liste tenue à la main diverge du jour où quelqu'un ajoute une variable — et
+personne ne s'en aperçoit, parce que l'éditeur continue de proposer l'ancienne.
+⚠️ Le scan cherche DEUX formes, et la seconde est le cas majoritaire ici : le
+texte de ces mails vit en clés de traduction, donc
+`|trans({'%event%': event})`. Un scan qui ne verrait que `{{ … }}` raterait
+presque tout.
+🅿️ **Ce qu'il ne voit pas, dit franchement** : un champ passé par un appelant PHP
+sans jamais apparaître dans le Twig. La liste est donc « ce que le gabarit sait
+afficher » — la bonne définition pour un éditeur, pas « tout le contexte ».
+
+✅ **L'aperçu passe par `MailSender::render()`, la méthode qui ENVOIE** (rendue
+publique pour ça). Un second moteur de rendu pour la prévisualisation finirait
+par diverger de celui qui envoie — exactement le défaut qu'un aperçu prévient.
+⚠️ Et l'écran DIT que le contexte est un exemple : les valeurs sont en capitales
+(« ÉVÉNEMENT ») pour qu'on voie où elles atterrissent. Une valeur plausible ferait
+croire qu'on regarde un vrai mail.
+⚠️ L'aperçu est dans un `iframe sandbox` : un gabarit d'e-mail porte ses propres
+styles en ligne, et sans isolation ses règles fuiraient dans la page d'admin et
+inversement.
+
+✅ **Vérifié par sonde, avec écriture puis retrait exact** : la surcharge
+s'applique (objet ET corps), le champ est REMPLACÉ et pas écrit tel quel, le
+chrome du layout est conservé, `{{ 7 * 7 }}` **n'est pas évalué**, `<script>` est
+échappé, vider les deux champs SUPPRIME la ligne, et le rendu revient **identique
+au bit près**. Table vérifiée vide avant et après — et la sonde refuse de démarrer
+si elle ne l'est pas, plutôt que d'écraser le texte de quelqu'un.
+
+🅿️ **L'envoi de test n'est pas livré, et c'est un choix.** `sendNow()` existe et
+marcherait. Poser un bouton qui envoie du vrai courrier depuis une session
+automatisée n'est pas à moi de décider : ça s'ajoute quand quelqu'un peut le
+regarder partir.
 | **S162** | L'en-tête et le pied (`_layout`) surchargeables séparément ; « revenir au texte livré » par gabarit ; la garde du transactionnel | 🔴 Une surcharge volontairement cassée sur `password_reset` : le mail part quand même, avec le texte livré, et l'incident est journalisé |
+
+## Ce que l'opérateur vérifie — Phase K
+
+| Session | Où | Ce qui doit être vrai |
+|---|---|---|
+| **S160** ✅ | nulle part | **Rien n'a changé.** C'est la mesure : le hook retiré puis remis rend 40 mails identiques, table présente et vide |
+| **S161** ✅ | `/admin/emails/gabarits` (menu, à côté du compte d'envoi) | 20 gabarits × 5 langues. Une case dit « Texte livré » ou « Réécrit » — ⚠️ un vide n'est PAS un défaut, c'est le cas normal |
+| **S161** ✅ | `/admin/emails/gabarits/password_reset/fr` | Les champs proposés à droite sont **ceux de ce gabarit-là** : `{{ resetUrl }}`, `{{ sender_name }}`, `{{ unsubscribe_url }}` — et pas `{{ machine }}` |
+| **S161** ✅ | même écran, coller `{{ machine }}` et enregistrer | **Refusé, avec une phrase**, sur le champ concerné |
+| **S161** ✅ | même écran, l'aperçu | Rendu par le moteur qui ENVOIE. Les valeurs sont en CAPITALES : c'est un exemple, et l'écran le dit |
+| **S161** ✅ | écrire un texte, puis vider les deux champs | Le texte livré revient **au bit près**. Vider = « reviens au texte livré », sans bouton en plus |
+| **S162** | une surcharge volontairement cassée sur `password_reset` | 🔴 Le mail part quand même, avec le texte livré, et l'incident est journalisé |
 
 ## Critères de sortie
 

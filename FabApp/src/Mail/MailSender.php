@@ -136,11 +136,21 @@ final class MailSender
     }
 
     /**
+     * Rend un mail sans l'envoyer — objet, HTML, texte.
+     *
+     * 🔴 **PUBLIQUE depuis S161, et c'est tout l'intérêt.** L'aperçu de l'éditeur
+     * passe par CETTE méthode, pas par une approximation : la mesure de sortie
+     * de la session est « l'aperçu rend le vrai gabarit ». Un second moteur de
+     * rendu pour la prévisualisation finirait par diverger de celui qui envoie —
+     * exactement le défaut qu'un aperçu est censé prévenir.
+     *
+     * ⚠️ Elle ne touche ni la file ni le transport : rendre n'est pas envoyer.
+     *
      * @param array<string, mixed> $context
      *
      * @return array{0: string, 1: string, 2: string} subject, html, text
      */
-    private function render(string $template, array $context, string $locale): array
+    public function render(string $template, array $context, string $locale): array
     {
         $name = preg_replace('/[^a-z0-9_-]/', '', $template) ?? '';
         if ($name === '') {

@@ -41,6 +41,14 @@ services:
         arguments:
             $enabledLocales: '%kernel.enabled_locales%'
 
+    # ⚠️ Le catalogue des gabarits d'e-mail LIT LES FICHIERS pour en déduire les
+    # champs disponibles — une liste tenue à la main diverge du jour où quelqu'un
+    # ajoute une variable, et l'éditeur continue de proposer l'ancienne. Il lui
+    # faut donc le chemin des gabarits, qui n'est pas autowirable.
+    App\Mail\MailTemplateCatalog:
+        arguments:
+            $templateDir: '%kernel.project_dir%/templates/emails'
+
     # Serves the repo's own docs/*.md; needs the project dir, not autowirable.
     App\Service\MarkdownDocService:
         arguments:
