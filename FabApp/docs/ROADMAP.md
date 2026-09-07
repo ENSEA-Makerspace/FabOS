@@ -1087,13 +1087,17 @@ layout** — mesuré en remettant l'ancien `_layout.html.twig` sur la boîte, en
 vidant le cache, en rendant les 40, puis en le remettant : `diff` vide. C'est la
 seule forme de preuve qui ne dépende ni de la date ni de l'état de la base.
 
-⚠️ **La migration `Version20260907090000` attend l'opérateur** — elle ajoute
-`EMAIL_LOG.renderedFrom`. Le code est déjà déployé et s'en passe : `markSent()`
-sonde la colonne une fois par processus, `fallbackKeys()` retombe sur une liste
-vide, et la colonne « Texte » du journal affiche « avant le suivi » partout.
-🔴 **Redémarrer `fabos.service` APRÈS la migration** : la sonde de colonne est
-mise en cache pour la vie du processus, donc sans redémarrage la colonne resterait
-vide alors qu'elle existe.
+✅ **Migration `Version20260907090000` exécutée par l'opérateur le 2026-09-07**,
+service redémarré. 65 migrations sur 65, aucune en attente.
+✅ **Et la colonne est ÉCRITE, pas seulement présente** — mesuré par
+`app:s162:layout-probe --log-write` : une ligne marquée est insérée en statut
+`sent` (jamais `queued`, qu'un worker prendrait pour un vrai envoi), la trace est
+relue telle quelle, `fallbackKeys()` la remonte, puis la ligne est supprimée et le
+journal rendu à son compte de départ (126 lignes).
+⚠️ **L'option est OPT-IN, jamais par défaut** : c'est la seule section de la sonde
+qui écrit dans le vrai journal des envois.
+🅿️ Les 126 lignes existantes affichent « avant le suivi » — elles sont parties
+avant la colonne, et l'inventer serait une affirmation fausse.
 
 ## Ce que l'opérateur vérifie — Phase K
 
@@ -1110,8 +1114,8 @@ vide alors qu'elle existe.
 | **S162** ✅ | le même écran | **Pas de champ Objet** : une partie de chrome n'en a pas. Un seul champ proposé, `{{ sender_name }}` — pas `{{ unsubscribe_url }}` |
 | **S162** ✅ | l'aperçu de ce même écran | Le pied réécrit apparaît **avec le lien de désinscription toujours dessous** : il n'est pas déplaçable |
 | **S162** ✅ | `/admin/emails/gabarits/password_reset/fr`, coller un objet sur deux lignes | **Refusé, avec une phrase**, sur le champ Objet |
-| **S162** ⏳ | `/admin/emails`, colonne **Texte** — ⚠️ **après la migration et le redémarrage** | « Livré » / « Réécrit » / « Repli » par mail parti. Avant la migration : « avant le suivi » partout, et c'est honnête |
-| **S162** ✅ | la sonde, pour ce qui ne se voit pas à l'écran | `php bin/console app:s162:layout-probe` — 26 assertions, dont le mot de passe oublié qui part malgré une surcharge cassée |
+| **S162** ✅ | `/admin/emails`, colonne **Texte** | La colonne existe et s'écrit (migration passée). ⚠️ Les 126 mails déjà partis disent « avant le suivi » : le prochain envoi sera le premier renseigné |
+| **S162** ✅ | la sonde, pour ce qui ne se voit pas à l'écran | `php bin/console app:s162:layout-probe` — 26 assertions (29 avec `--log-write`), dont le mot de passe oublié qui part malgré une surcharge cassée |
 
 ## Critères de sortie
 

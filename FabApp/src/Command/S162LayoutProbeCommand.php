@@ -2,6 +2,7 @@
 
 namespace App\Command;
 
+use App\Mail\MailLog;
 use App\Mail\MailOverrides;
 use App\Mail\MailSender;
 use Doctrine\DBAL\Connection;
@@ -11,6 +12,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
@@ -45,10 +47,16 @@ final class S162LayoutProbeCommand extends Command
     public function __construct(
         private readonly MailOverrides $overrides,
         private readonly MailSender $sender,
+        private readonly MailLog $log,
         private readonly Connection $db,
         private readonly LoggerInterface $logger,
     ) {
         parent::__construct();
+    }
+
+    protected function configure(): void
+    {
+        $this->addOption('log-write', null, InputOption::VALUE_NONE, 'Vérifie EN PLUS que la colonne EMAIL_LOG.renderedFrom est bien ÉCRITE : insère une ligne marquée, la lit, puis la supprime. Hors option, la sonde ne touche pas au journal des envois.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -160,6 +168,35 @@ final class S162LayoutProbeCommand extends Command
         $this->check($io, $failures, 'le rendu est identique au bit près', hash('sha256', $sEnd . "\0" . $hEnd) === $fingerprint);
         $this->check($io, $failures, 'la trace redit « livré », sans chrome', $tEnd === MailSender::RENDER_DELIVERED);
         $this->check($io, $failures, 'la table est rendue vide', $this->overrides->existingKeys() === []);
+
+        /*
+         * 🔴 **Écrit dans le VRAI journal des envois — donc sur demande, jamais
+         * par défaut.** C'est la seule façon de prouver que la colonne est
+         * ÉCRITE et pas seulement présente : `markSent()` sonde son existence
+         * une fois par processus, et une colonne ajoutée après le démarrage
+         * reste invisible jusqu'au redémarrage. Le reste de la sonde ne touche
+         * pas au journal, et cette section rend la table à son compte de départ.
+         * ⚠️ Statut « sent » dès l'insertion, jamais « queued » : une ligne en
+         * file serait prise par le worker et partirait pour de bon.
+         */
+        if ($input->getOption('log-write')) {
+            $io->section('8. La colonne du journal est bien ÉCRITE');
+            $before = (int) $this->db->fetchOne('SELECT COUNT(*) FROM EMAIL_LOG');
+
+            $this->db->executeStatement(
+                "INSERT INTO EMAIL_LOG (category, recipient, recipientName, locale, template, contextJson, status, queuedAt)
+                 VALUES ('test', 'sonde-s162@invalid', 'Sonde S162', 'fr', 'test', '{}', 'sent', NOW())",
+            );
+            $id = (int) $this->db->lastInsertId();
+
+            $this->log->markSent($id, 'Sonde S162', MailSender::RENDER_FAILED . '+footer');
+            $written = (string) $this->db->fetchOne('SELECT renderedFrom FROM EMAIL_LOG WHERE id = ?', [$id]);
+            $this->check($io, $failures, 'la trace est écrite telle quelle', $written === MailSender::RENDER_FAILED . '+footer');
+            $this->check($io, $failures, 'le couple (gabarit, langue) remonte comme retombé', isset($this->log->fallbackKeys()['test|fr']));
+
+            $this->db->executeStatement('DELETE FROM EMAIL_LOG WHERE id = ?', [$id]);
+            $this->check($io, $failures, 'le journal est rendu à son compte de départ', (int) $this->db->fetchOne('SELECT COUNT(*) FROM EMAIL_LOG') === $before);
+        }
 
         if ($failures !== []) {
             $io->error(\count($failures) . ' assertion(s) en échec.');

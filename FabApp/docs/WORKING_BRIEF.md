@@ -38,23 +38,12 @@ ordonnables).
 
 ## 🔴 Ce qui t'attend, toi
 
-**1. Une migration à lancer** — `Version20260907090000`, seule sur la boîte,
-vérifiée, non exécutée :
-
-    ssh -o IdentitiesOnly=yes -i ~/.ssh/id_ovh proxmox.lab.dryades.org \
-      'sudo pct exec 210 -- bash -lc "cd /opt/fabos/FabApp && php bin/console doctrine:migrations:migrate --no-interaction"'
-
-Elle ajoute `EMAIL_LOG.renderedFrom` : **quelle version a servi** à chaque mail
-parti — le texte livré, le tien, ou le texte livré parce que le tien s'est cassé.
-Sans elle, « pourquoi ce mail dit ça ? » n'a pas de réponse.
-⚠️ **Le code est déjà déployé et s'en passe** : il sonde la colonne, et la
-colonne « Texte » du journal affiche « avant le suivi » partout en attendant.
-Rien n'est cassé si tu la lances plus tard.
-🔴 **Redémarrer le service APRÈS** — la sonde de colonne est en cache pour la vie
-du processus :
-
-    ssh -o IdentitiesOnly=yes -i ~/.ssh/id_ovh proxmox.lab.dryades.org \
-      'sudo pct exec 210 -- systemctl restart fabos.service'
+**1. ✅ Plus de migration en attente.** `Version20260907090000` a été lancée le
+2026-09-07 et le service redémarré : 65 sur 65, aucune nouvelle. La colonne
+`EMAIL_LOG.renderedFrom` est écrite — vérifié par
+`app:s162:layout-probe --log-write`, qui insère une ligne marquée, la relit et la
+supprime. ⚠️ Les 126 mails déjà partis affichent « avant le suivi » : le prochain
+envoi sera le premier renseigné.
 
 **2. Une revue à faire.** Chaque phase porte une section **« Ce que l'opérateur
 vérifie »** dans `ROADMAP.md` : où regarder, et quoi voir. C'est ta demande du
