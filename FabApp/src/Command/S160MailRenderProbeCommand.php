@@ -62,13 +62,30 @@ final class S160MailRenderProbeCommand extends Command
          * doivent voir exactement les mêmes entrées, sinon la comparaison mesure
          * les données et pas le code.
          */
+        /*
+         * 🔴 **Chaque date est ABSOLUE, et c'est une correction du 2026-09-07.**
+         * La première version passait `'start' => '10:00'` : les gabarits font
+         * `{{ start|date('d/m/Y H:i') }}`, et Twig résout « 10:00 » en
+         * AUJOURD'HUI à 10 h. L'empreinte changeait donc tous les jours, et
+         * l'instrument censé prouver une égalité au bit près mesurait le
+         * calendrier. Mesuré : 17 gabarits sur 20 différaient d'un jour à
+         * l'autre, table vide, sans qu'une ligne de code ait bougé.
+         *
+         * ⚠️ **Une sonde de comparaison qui dépend de l'heure ne prouve rien**,
+         * et elle est pire qu'absente : elle donne du vert un jour et du rouge
+         * le lendemain, et c'est le vert qu'on croit.
+         */
         $context = [
             'sender_name' => $this->settings->getFromName(),
             'event' => 'ÉVÉNEMENT', 'attendee' => 'PERSONNE', 'machine' => 'MACHINE',
             'formation' => 'FORMATION', 'subject' => 'OBJET', 'body' => 'CORPS',
-            'author' => 'AUTEUR', 'item' => 'OBJET', 'date' => '2026-01-01',
+            'author' => 'AUTEUR', 'item' => 'OBJET',
+            'date' => new \DateTimeImmutable('2026-01-02 09:00:00'),
             'days' => 3, 'hours' => 24, 'task' => 'TÂCHE', 'resetUrl' => 'https://exemple/x',
-            'validHours' => 2, 'place' => 'LIEU', 'start' => '10:00', 'end' => '11:00',
+            'validHours' => 2, 'place' => 'LIEU',
+            'start' => new \DateTimeImmutable('2026-01-02 10:00:00'),
+            'end' => new \DateTimeImmutable('2026-01-02 11:00:00'),
+            'dueDate' => new \DateTimeImmutable('2026-01-05 12:00:00'),
             'unsubscribe_url' => null,
         ];
 
