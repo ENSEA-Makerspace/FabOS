@@ -29,7 +29,7 @@ de références et cinq phases neuves ont rendu la lecture linéaire impossible.
 | ~~**P**~~ | ~~Espaces & accès d'entrée~~ — ✅ **CLOSE le 2026-09-06** | S175–S178 |
 | **Q** | Formations (absorbe la messagerie de cohorte) | S179–S183 |
 | **K** ✅ | Gabarits d'e-mail modifiables | S160–S162 — **close le 2026-09-07** |
-| **L** | Annoncer un événement aux membres | S163–S164 |
+| **L** ✅ | Annoncer un événement aux membres | S163–S164 — **close le 2026-09-08** |
 | **M** | Thèmes, en profondeur | S165–S168 |
 | **S** | Comptes, adhésion et confiance (MFA, récupération) | S189–S192 |
 | **T** | Surfaces restantes : prêts, recherche, rapports, créations | S193–S195 |
@@ -1128,7 +1128,7 @@ avant la colonne, et l'inventer serait une affirmation fausse.
 
 ---
 
-# Phase L — annoncer un événement aux membres (S163–S164)
+# Phase L — annoncer un événement aux membres ✅ CLOSE le 2026-09-08
 
 **Demandé par l'opérateur le 2026-09-04.** C'est *« Notify members on event
 creation »*, **7 votes** chez Fabmanager.
@@ -1163,8 +1163,65 @@ moins cher qu'ajouter un état de publication à tout le modèle.
 
 | Session | Livre | Ce qu'on mesure |
 |---|---|---|
-| **S163** | La diffusion : catégorie `NEWS`, une file par destinataire **dans SA langue**, lien de désabonnement, et une **trace par événement** qui rend l'envoi idempotent | 🔴 Deux clics sur « Annoncer » n'envoient qu'une fois ; un membre désabonné de `NEWS` ne reçoit rien et **garde** ses mails d'inscription |
-| **S164** | Le geste : compte avant envoi (« ceci écrira à N personnes »), confirmation, et l'état sur la fiche (« annoncé le … à N personnes ») | Le compte annoncé est celui réellement mis en file ; l'écran dit quand l'annonce a déjà eu lieu |
+| **S163** ✅ | **Livré le 2026-09-08** : la diffusion sous `NEWS`, une file par destinataire dans SA langue, et la trace par événement | ✅ Sonde `app:s163:announce-probe`, 17 assertions, **aucun courrier mis en file** |
+| **S164** ✅ | **Livré le 2026-09-08**, dans la même passe : le compte avant envoi, la confirmation, et l'état sur la fiche | ✅ Le compte du bouton (**7**) et celui de la sonde coïncident, mesurés par deux chemins |
+
+### ✅ S163/S164 — l'idempotence est tranchée par la BASE, pas par un `if`
+
+🔴 **La marque est posée par un `UPDATE … WHERE announcedAt IS NULL`, AVANT le
+premier envoi.** « Lire `announcedAt`, puis écrire » laisse entre les deux une
+fenêtre où deux clics simultanés — ou le double POST d'un navigateur impatient —
+passent tous les deux, et le labo reçoit l'annonce en double.
+⚠️ **Et la marque reste posée même si les envois échouent ensuite.** C'est
+délibéré : entre « quelques membres n'ont rien reçu » et « tout le labo a reçu
+deux fois », le second est le défaut le plus difficile à réparer.
+✅ Mesuré : deux `claim()` sur un événement jetable, un seul gagne, et le compte
+du PREMIER est conservé — un second appel qui ne renvoie pas mais réécrirait le
+compte ferait mentir l'écran.
+
+✅ **Sous `NEWS`, jamais sous `EVENT` — et les DEUX moitiés sont mesurées.** Le
+cobaye sort de la liste quand il coupe les annonces, **et ses mails d'inscription
+passent toujours**. C'est l'invariant qui compte : `EVENT` n'est pas
+désabonnable, sinon un inscrit perdrait la confirmation de sa propre inscription
+en refusant la publicité.
+
+🔴 **Le compte du bouton est celui RÉELLEMENT mis en file** — mêmes trois filtres
+que l'envoi (compte actif, courrier accepté, catégorie non refusée). Annoncer
+« 120 personnes » puis n'écrire qu'à 87 ferait chercher une panne d'envoi là où
+il n'y a que des membres qui ont dit non.
+🅿️ Les comptes anonymisés sortent **sans clause spéciale** : `AccountAnonymiser`
+les passe en `inactif`. Une règle « exclure les adresses sentinelles » serait une
+seconde vérité à tenir d'accord.
+
+⚠️ **Une fois annoncé, le bouton DISPARAÎT — il ne devient pas gris.** Un bouton
+désactivé invite à chercher comment le réactiver ; la phrase qui le remplace dit
+ce qui s'est passé et quand. Le geste n'est pas répétable, et c'est ce qui rend
+l'idempotence lisible plutôt que subie.
+✅ Vérifié à l'écran avant redémarrage : l'événement futur porte « Announce to 7
+members », le passé porte « Not announceable… » et **zéro** occurrence de
+`event_announce` — pas de formulaire caché, pas d'affordance morte.
+
+🅿️ **La sonde n'appelle PAS `announce()`, et c'est ce qui structure le fichier.**
+Un appel écrirait pour de vrai à tous les membres ; une sonde qui déclenche
+l'effet qu'elle mesure n'est pas une sonde. Elle mesure donc les trois pièces
+isolément — les filtres basculés puis remis, la course sur un événement jetable
+créé **archivé et annulé** puis supprimé, les quatre refus en mémoire.
+🅿️ **Ce qui n'est donc pas mesuré, dit franchement** : la boucle d'envoi. Trois
+lignes, aucune branche.
+
+🅿️ **Aucune annonce réelle n'a été envoyée.** Le premier vrai envoi écrira à 7
+personnes ; c'est un geste sortant, il revient à l'opérateur.
+
+## Ce que l'opérateur vérifie — Phase L
+
+| Session | Où | Ce qui doit être vrai |
+|---|---|---|
+| **S164** | `/admin/events/11/edit`, section « Annoncer aux membres » | Un bouton **« Annoncer à 7 membres »** — le compte, pas un verbe seul |
+| **S164** | `/admin/events/1/edit` (événement passé) | **Aucun bouton.** Une phrase dit pourquoi : annulé, archivé, ou déjà commencé |
+| **S163** | cliquer, confirmer | 🅿️ **Envoie 7 vrais e-mails.** Ensuite le bouton disparaît et la ligne dit « Annoncé le … à 7 membres » |
+| **S163** | recharger la page après l'annonce | Le bouton ne revient pas. Un second POST est refusé par la base, pas par l'écran |
+| **S163** | un membre, préférences → couper les annonces | Il sort du compte du bouton, **et garde** ses confirmations d'inscription |
+| **S163** | la sonde, pour ce qui ne se voit pas | `php bin/console app:s163:announce-probe` — 17 assertions, aucun courrier mis en file |
 
 🅿️ **Ce qui n'est PAS dans cette phase, volontairement** : le *digest* périodique
 (« un résumé hebdomadaire des événements à venir »), que la demande d'origine
