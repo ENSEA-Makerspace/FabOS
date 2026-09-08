@@ -386,6 +386,7 @@ mail_editor:
     part_note: "⚠️ Este texto se aplica a TODOS los correos enviados en este idioma, incluidas las contraseñas olvidadas. El enlace de baja permanece bajo el pie: no se puede mover."
     preview_part_note: "La vista previa lo muestra en un correo de ejemplo: es el único sitio donde se ve si el texto cabe en una línea."
     tpl:
+        event_announced: "Anuncio de un evento"
         _header: "Encabezado común a todos los correos"
         _footer: "Pie común a todos los correos"
         booking_accepted: "Reserva aceptada"
@@ -1432,6 +1433,11 @@ mail:
             title: "Inscripción anulada"
             intro: "Su inscripción a %event% ha sido anulada."
             note: "Puede volver a inscribirse mientras queden plazas."
+        announced:
+            subject: "Próximamente: %event%"
+            title: "Un nuevo evento en el laboratorio"
+            intro: "%event% acaba de añadirse a la agenda. Estos son los detalles."
+            note: "Recibe este mensaje porque es miembro. El enlace de abajo corta estos anuncios sin afectar a sus confirmaciones de inscripción."
         called_off:
             subject: "Anulado: %event%"
             title: "Este evento ha sido anulado"
@@ -2957,6 +2963,12 @@ formation_content:
 
 # Édition d’un événement — S134c.
 event_edit:
+    announce_heading: "Anunciar a los miembros"
+    announce_help: "Un mensaje por persona, en su idioma, con enlace de baja. ⚠️ Una sola vez: el gesto no se repite, y un correo enviado no se recupera. Los miembros que desactivaron los anuncios no se cuentan."
+    announce_button: "Anunciar a %n% miembros"
+    announce_confirm: "¿Escribir a %n% miembros ahora? Es definitivo: el anuncio no puede reenviarse ni retirarse."
+    announce_done: "Anunciado el %date% a %n% miembros"
+    announce_closed: "No anunciable: evento cancelado, archivado o ya comenzado"
     title: "Editar un evento"
     back: "Volver a los eventos"
     fields_heading: "Campos editables"
@@ -3745,6 +3757,8 @@ admin_formation_form:
     help_requires_practical: "Marcar para toda máquina donde un error hiere. Sin ella, la insignia se obtiene solo con el cuestionario. ⚠️ Antes de S180b esto se adivinaba a partir del título."
 
 flash:
+    evenement_annonce: "Anuncio enviado a %p1% miembros para «%p2%»."
+    evenement_annonce_impossible: "No se puede anunciar: este evento ya se anunció, o está cancelado, archivado o pasado."
     acces_exceptionnel_accorde_a: "Acceso excepcional concedido a %p1%."
     action_inconnue: "Acción desconocida."
     action_refusee_token_csrf_invalide: "Acción rechazada: token CSRF no válido."

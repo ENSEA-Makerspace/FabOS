@@ -386,6 +386,7 @@ mail_editor:
     part_note: "⚠️ Questo testo vale per TUTTE le e-mail inviate in questa lingua, comprese le password dimenticate. Il link di disiscrizione resta sotto il piè di pagina: non è spostabile."
     preview_part_note: "L’anteprima lo mostra su una mail di esempio: è l’unico posto dove si vede se il testo sta su una riga."
     tpl:
+        event_announced: "Annuncio di un evento"
         _header: "Intestazione comune a tutte le e-mail"
         _footer: "Piè di pagina comune a tutte le e-mail"
         booking_accepted: "Prenotazione accettata"
@@ -1432,6 +1433,11 @@ mail:
             title: "Iscrizione annullata"
             intro: "La tua iscrizione a %event% è stata annullata."
             note: "Puoi iscriverti di nuovo finché restano posti."
+        announced:
+            subject: "In arrivo: %event%"
+            title: "Un nuovo evento in laboratorio"
+            intro: "%event% è appena stato aggiunto al calendario. Ecco i dettagli."
+            note: "Ricevi questo messaggio perché sei membro. Il link qui sotto interrompe questi annunci senza toccare le conferme di iscrizione."
         called_off:
             subject: "Annullato: %event%"
             title: "Questo evento è stato annullato"
@@ -2957,6 +2963,12 @@ formation_content:
 
 # Édition d’un événement — S134c.
 event_edit:
+    announce_heading: "Annunciare ai membri"
+    announce_help: "Un messaggio per persona, nella sua lingua, con link di disiscrizione. ⚠️ Una volta sola: il gesto non si ripete, e una mail partita non si recupera. I membri che hanno disattivato gli annunci non sono conteggiati."
+    announce_button: "Annuncia a %n% membri"
+    announce_confirm: "Scrivere a %n% membri adesso? È definitivo: l’annuncio non può essere rinviato né ritirato."
+    announce_done: "Annunciato il %date% a %n% membri"
+    announce_closed: "Non annunciabile: evento annullato, archiviato o già iniziato"
     title: "Modificare un evento"
     back: "Torna agli eventi"
     fields_heading: "Campi modificabili"
@@ -3745,6 +3757,8 @@ admin_formation_form:
     help_requires_practical: "Da spuntare per ogni macchina dove un errore fa male. Senza, il badge si ottiene col solo quiz. ⚠️ Prima di S180b questo si indovinava dal titolo."
 
 flash:
+    evenement_annonce: "Annuncio inviato a %p1% membri per «%p2%»."
+    evenement_annonce_impossible: "Impossibile annunciare: questo evento è già stato annunciato, oppure è annullato, archiviato o passato."
     acces_exceptionnel_accorde_a: "Accesso eccezionale concesso a %p1%."
     action_inconnue: "Azione sconosciuta."
     action_refusee_token_csrf_invalide: "Azione rifiutata: token CSRF non valido."

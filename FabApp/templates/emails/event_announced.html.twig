@@ -1,0 +1,25 @@
+{% extends 'emails/_layout.html.twig' %}
+
+{# L'ANNONCE D'UN ÉVÉNEMENT AUX MEMBRES (S163).
+
+   ⚠️ **Ce mail est le seul de la famille « événement » qui soit
+   DÉSABONNABLE.** Il part sous `NEWS`, pas sous `EVENT` : les quatre autres
+   répondent à quelque chose que la personne a fait elle-même (elle s'est
+   inscrite, elle a été promue), celui-ci arrive sans qu'on l'ait demandé. Le
+   layout pose donc le lien de désinscription ; c'est ce qui rend l'annonce
+   acceptable.
+
+   ⚠️ **Pas de lien d'inscription ici, et c'est volontaire** : le mail dit ce qui
+   se passe et où, la page publique dit comment s'inscrire. Un bouton
+   « s'inscrire » dans le mail devrait porter une URL absolue que le contexte
+   d'un envoi différé ne garantit pas — voir `event_edit.qr_no_url`, qui existe
+   pour la même raison. #}
+
+{% block subject %}{{ 'mail.event.announced.subject'|trans({'%event%': event}) }}{% endblock %}
+
+{% block body %}
+    <h2 style="margin:0 0 12px; font-size:19px;">{{ 'mail.event.announced.title'|trans }}</h2>
+    <p style="margin:0 0 16px;">{{ 'mail.event.announced.intro'|trans({'%event%': event}) }}</p>
+    {% include 'emails/_event_details.html.twig' %}
+    <p style="margin:0; color:#6b7280; font-size:13px;">{{ 'mail.event.announced.note'|trans }}</p>
+{% endblock %}

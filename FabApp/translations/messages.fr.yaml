@@ -452,6 +452,7 @@ mail_editor:
     part_note: "⚠️ Ce texte s’applique à TOUS les e-mails envoyés dans cette langue, y compris les mots de passe oubliés. Le lien de désinscription reste posé sous le pied : il n’est pas déplaçable."
     preview_part_note: "L’aperçu le montre sur un mail d’exemple : c’est le seul endroit où l’on voit si le texte tient sur une ligne."
     tpl:
+        event_announced: "Annonce d’un événement"
         _header: "En-tête commun à tous les e-mails"
         _footer: "Pied commun à tous les e-mails"
         booking_accepted: "Réservation acceptée"
@@ -1498,6 +1499,11 @@ mail:
             title: "Inscription annulée"
             intro: "Votre inscription à %event% a été annulée."
             note: "Vous pouvez vous réinscrire tant qu'il reste de la place."
+        announced:
+            subject: "À l’agenda : %event%"
+            title: "Un nouvel événement au labo"
+            intro: "%event% vient d’être ajouté à l’agenda. Voici les détails."
+            note: "Vous recevez ce message parce que vous êtes membre. Le lien ci-dessous coupe ces annonces sans toucher à vos confirmations d’inscription."
         called_off:
             subject: "Annulé : %event%"
             title: "Cet événement est annulé"
@@ -2959,6 +2965,12 @@ formation_content:
 
 # Édition d’un événement — S134c.
 event_edit:
+    announce_heading: "Annoncer aux membres"
+    announce_help: "Un message par personne, dans sa langue, avec un lien de désinscription. ⚠️ Une seule fois : le geste ne se répète pas, et un e-mail parti ne se rattrape pas. Les membres qui ont coupé les annonces ne sont pas comptés."
+    announce_button: "Annoncer à %n% membres"
+    announce_confirm: "Écrire à %n% membres maintenant ? C’est définitif : l’annonce ne peut pas être renvoyée ni rappelée."
+    announce_done: "Annoncé le %date% à %n% membres"
+    announce_closed: "Pas annonçable : événement annulé, archivé, ou déjà commencé"
     title: "Modifier un événement"
     back: "Retour aux événements"
     fields_heading: "Champs modifiables"
@@ -3747,6 +3759,8 @@ admin_formation_form:
     help_requires_practical: "À cocher pour toute machine où une erreur blesse. Sans elle, le badge s’obtient au quiz seul. ⚠️ Avant S180b, cette exigence se devinait à partir du titre — « Découpe au CO2 » ou un intitulé en anglais n’exigeait rien."
 
 flash:
+    evenement_annonce: "Annonce envoyée à %p1% membres pour « %p2% »."
+    evenement_annonce_impossible: "Annonce impossible : cet événement a déjà été annoncé, ou il est annulé, archivé ou passé."
     acces_exceptionnel_accorde_a: "Accès exceptionnel accordé à %p1%."
     action_inconnue: "Action inconnue."
     action_refusee_token_csrf_invalide: "Action refusée : token CSRF invalide."

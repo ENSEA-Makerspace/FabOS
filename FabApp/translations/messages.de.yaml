@@ -386,6 +386,7 @@ mail_editor:
     part_note: "⚠️ Dieser Text gilt für ALLE E-Mails in dieser Sprache, auch für Passwort-Zurücksetzungen. Der Abmeldelink bleibt unter der Fußzeile: er lässt sich nicht verschieben."
     preview_part_note: "Die Vorschau zeigt ihn an einer Beispiel-Mail — nur dort sieht man, ob der Text in eine Zeile passt."
     tpl:
+        event_announced: "Veranstaltungsankündigung"
         _header: "Kopfzeile aller E-Mails"
         _footer: "Fußzeile aller E-Mails"
         booking_accepted: "Buchung angenommen"
@@ -1432,6 +1433,11 @@ mail:
             title: "Anmeldung storniert"
             intro: "Ihre Anmeldung für %event% wurde storniert."
             note: "Sie können sich erneut anmelden, solange Plätze frei sind."
+        announced:
+            subject: "Demnächst: %event%"
+            title: "Eine neue Veranstaltung im Labor"
+            intro: "%event% wurde soeben in den Kalender aufgenommen. Hier die Einzelheiten."
+            note: "Sie erhalten dies, weil Sie Mitglied sind. Der Link unten stoppt diese Ankündigungen, ohne Ihre Anmeldebestätigungen zu berühren."
         called_off:
             subject: "Abgesagt: %event%"
             title: "Diese Veranstaltung wurde abgesagt"
@@ -2957,6 +2963,12 @@ formation_content:
 
 # Édition d’un événement — S134c.
 event_edit:
+    announce_heading: "Mitglieder benachrichtigen"
+    announce_help: "Eine Nachricht pro Person, in ihrer Sprache, mit Abmeldelink. ⚠️ Nur einmal: die Aktion wiederholt sich nicht, und eine gesendete E-Mail lässt sich nicht zurückholen. Mitglieder, die Ankündigungen abbestellt haben, werden nicht mitgezählt."
+    announce_button: "An %n% Mitglieder ankündigen"
+    announce_confirm: "Jetzt an %n% Mitglieder schreiben? Das ist endgültig: die Ankündigung kann weder erneut gesendet noch zurückgerufen werden."
+    announce_done: "Am %date% an %n% Mitglieder angekündigt"
+    announce_closed: "Nicht ankündbar: Veranstaltung abgesagt, archiviert oder bereits begonnen"
     title: "Veranstaltung bearbeiten"
     back: "Zurück zu den Veranstaltungen"
     fields_heading: "Bearbeitbare Felder"
@@ -3745,6 +3757,8 @@ admin_formation_form:
     help_requires_practical: "Für jede Maschine ankreuzen, bei der ein Fehler verletzt. Ohne sie wird das Abzeichen allein durch das Quiz erworben. ⚠️ Vor S180b wurde das aus dem Titel geraten."
 
 flash:
+    evenement_annonce: "Ankündigung an %p1% Mitglieder für „%p2%“ gesendet."
+    evenement_annonce_impossible: "Ankündigung nicht möglich: diese Veranstaltung wurde bereits angekündigt, oder sie ist abgesagt, archiviert oder vorbei."
     acces_exceptionnel_accorde_a: "Ausnahmezugang für %p1% gewährt."
     action_inconnue: "Unbekannte Aktion."
     action_refusee_token_csrf_invalide: "Aktion abgelehnt: ungültiges CSRF-Token."

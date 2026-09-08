@@ -68,6 +68,50 @@
                     confirm: (event.archived ? 'adm.restore_record_confirm' : 'adm.archive_record_confirm')|trans({'%name%': event.titre}),
                 } only %}
 
+                {# ANNONCER AUX MEMBRES (S163/S164).
+
+                   🔴 **Le bouton dit COMBIEN de personnes il va toucher, avant
+                   de partir.** « Annoncer » sans compte demande de cliquer pour
+                   savoir ce qu'on déclenche — et un e-mail parti à trois cents
+                   personnes ne se rattrape pas. Le compte est celui réellement
+                   mis en file : mêmes filtres que l'envoi, pas « tous les
+                   membres ».
+
+                   ⚠️ **Une fois annoncé, le bouton DISPARAÎT** — il ne devient
+                   pas gris. Un bouton désactivé invite à chercher comment le
+                   réactiver ; la phrase qui le remplace dit ce qui s'est passé
+                   et quand. Le geste n'est pas répétable, et c'est ce qui rend
+                   l'idempotence lisible plutôt que subie.
+
+                   ⚠️ **Ni sur un événement annulé, archivé, ou déjà commencé.**
+                   `canAnnounce()` tranche, et la même garde est refaite côté
+                   contrôleur : un bouton caché n'est pas une garde. #}
+                <div class="admin-edit-extra">
+                    <div class="sep"></div>
+                    <h2>{{ 'event_edit.announce_heading'|trans }}</h2>
+                    <p class="hint">{{ 'event_edit.announce_help'|trans }}</p>
+
+                    {% if event.announced %}
+                        {% include 'site/_cell_state.html.twig' with {
+                            label: 'event_edit.announce_done'|trans({
+                                '%date%': event.announcedAt|lab_date('d/m/Y H:i'),
+                                '%n%': event.announcedCount ?? 0,
+                            }),
+                            signal: 'go',
+                        } only %}
+                    {% elseif canAnnounce %}
+                        <form method="post" action="{{ path('app_admin_event_announce', {id: event.id}) }}"
+                              data-controller="confirm"
+                              data-action="submit->confirm#ask"
+                              data-confirm-message-value="{{ 'event_edit.announce_confirm'|trans({'%n%': announceCount})|e('html_attr') }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('event_announce_' ~ event.id) }}">
+                            <button type="submit" class="btn-action">{{ 'event_edit.announce_button'|trans({'%n%': announceCount}) }}</button>
+                        </form>
+                    {% else %}
+                        {% include 'site/_cell_empty.html.twig' with {reason: 'event_edit.announce_closed'} only %}
+                    {% endif %}
+                </div>
+
                 {# The other QR: this one is per-event and points at the public
                    page, for printing on posters and flyers. Not to be confused
                    with the per-attendee ticket QR, which staff scan at the door. #}

@@ -121,6 +121,26 @@ class Event
     #[ORM\Column(name: 'archivedAt', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $archivedAt = null;
 
+    /**
+     * 🔴 **La trace qui rend « annoncer aux membres » idempotent (S163).** Sans
+     * elle, deux clics — ou un rechargement de page après le POST — réécrivent à
+     * tout le labo, et un e-mail parti ne se rattrape pas. C'est ce champ, et
+     * pas un drapeau en session, parce que l'idempotence doit survivre à un
+     * autre navigateur et à un autre administrateur.
+     */
+    #[ORM\Column(name: 'announcedAt', type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $announcedAt = null;
+
+    /**
+     * 🅿️ **Un compte FIGÉ, pas un calcul.** Il dit à combien de personnes on a
+     * écrit CE JOUR-LÀ. Recompter plus tard donnerait le nombre de membres
+     * d'aujourd'hui, qui n'est pas ce qui s'est passé.
+     * ⚠️ `null` ≠ `0` : `null` veut dire « jamais annoncé », `0` voudrait dire
+     * « annoncé à personne » — deux faits différents.
+     */
+    #[ORM\Column(name: 'announcedCount', nullable: true)]
+    private ?int $announcedCount = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -192,6 +212,12 @@ class Event
 
     public function getArchivedAt(): ?\DateTimeImmutable { return $this->archivedAt; }
     public function isArchived(): bool { return $this->archivedAt !== null; }
+
+    public function getAnnouncedAt(): ?\DateTimeImmutable { return $this->announcedAt; }
+    public function setAnnouncedAt(?\DateTimeImmutable $announcedAt): self { $this->announcedAt = $announcedAt; return $this; }
+    public function isAnnounced(): bool { return $this->announcedAt !== null; }
+    public function getAnnouncedCount(): ?int { return $this->announcedCount; }
+    public function setAnnouncedCount(?int $announcedCount): self { $this->announcedCount = $announcedCount; return $this; }
     public function archive(): self { $this->archivedAt ??= new \DateTimeImmutable(); return $this; }
     public function restore(): self { $this->archivedAt = null; return $this; }
 }

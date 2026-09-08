@@ -34,6 +34,7 @@ use App\Entity\RfidReader;
 use App\Account\AccountAnonymiser;
 use App\Account\AccountGuard;
 use App\Entity\Utilisateur;
+use App\Event\EventAnnouncer;
 use App\Event\EventRegistrationService;
 use App\Event\EventShareQr;
 use App\Event\TicketLinker;
@@ -3924,7 +3925,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/events/{id}/edit', name: 'app_admin_event_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
-    public function editEvent(Event $event, Request $request, EntityManagerInterface $entityManager, EventShareQr $qr, VenueRepository $venues): Response
+    public function editEvent(Event $event, Request $request, EntityManagerInterface $entityManager, EventShareQr $qr, VenueRepository $venues, EventAnnouncer $announcer): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
@@ -3952,7 +3953,60 @@ final class AdminController extends AbstractController
             'form' => $form,
             'shareUrl' => $qr->publicUrl($event),
             'shareQr' => $qr->svgDataUri($event),
+            /*
+             * 🔴 **Le compte annoncé est celui qui sera RÉELLEMENT mis en file
+             * (S164).** `recipients()` applique les mêmes trois filtres que
+             * l'envoi — compte actif, courrier accepté, catégorie non refusée.
+             * Annoncer « 120 personnes » puis n'écrire qu'à 87 ferait chercher
+             * une panne d'envoi là où il n'y a que des membres qui ont dit non.
+             */
+            'announceCount' => $announcer->canAnnounce($event) ? \count($announcer->recipients()) : 0,
+            'canAnnounce' => $announcer->canAnnounce($event),
         ]);
+    }
+
+    /**
+     * Annoncer un événement à tous les membres — **une fois** (S163).
+     *
+     * 🔴 **Un geste explicite, pas un effet de bord de l'enregistrement.** Il
+     * n'existe aucun état « brouillon » sur un événement : notifier à la
+     * création annoncerait les titres provisoires et les erreurs de date, et un
+     * e-mail parti ne se rattrape pas. Le raisonnement complet est dans
+     * `EventAnnouncer`.
+     *
+     * ⚠️ **POST seulement, avec jeton.** Une annonce à tout le labo derrière un
+     * `GET` partirait au premier robot d'indexation, ou au premier préchargement
+     * de lien du navigateur.
+     */
+    #[Route('/events/{id}/annoncer', name: 'app_admin_event_announce', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function announceEvent(Event $event, Request $request, EventAnnouncer $announcer): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if (!$this->isCsrfTokenValid('event_announce_' . $event->getId(), (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        // ⚠️ Re-vérifié ICI et pas seulement à l'affichage : entre le rendu de la
+        // page et le clic, l'événement a pu être annulé, archivé, ou annoncé par
+        // quelqu'un d'autre. Un bouton caché n'est pas une garde.
+        if (!$announcer->canAnnounce($event)) {
+            $this->addFlash('error', 'flash.evenement_annonce_impossible');
+
+            return $this->redirectToRoute('app_admin_event_edit', ['id' => $event->getId()]);
+        }
+
+        $result = $announcer->announce($event);
+
+        // 🔴 La course est tranchée par la base, pas par ce `if` : `announce()`
+        // pose la marque avec un `UPDATE … WHERE announcedAt IS NULL`. Deux
+        // clics simultanés arrivent ici tous les deux ; un seul repart avec
+        // `claimed`.
+        $this->addFlash($result['claimed'] ? 'success' : 'error', $result['claimed']
+            ? ['flash.evenement_annonce', ['%p1%' => (string) $result['sent'], '%p2%' => $event->getTitre()]]
+            : 'flash.evenement_annonce_impossible');
+
+        return $this->redirectToRoute('app_admin_event_edit', ['id' => $event->getId()]);
     }
 
     /**
