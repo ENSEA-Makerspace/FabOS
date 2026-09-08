@@ -2,6 +2,20 @@
 
 namespace App\Service;
 
+use App\Media\SiteMediaLibrary;
+
+/**
+ * Le brouillon de thème, son aperçu et sa publication.
+ *
+ * 🔴 **`logoPath` porte désormais un `mediaId`, plus un nom de fichier (S165).**
+ * Avant, c'était une chaîne libre désignant un fichier qui devait DÉJÀ se trouver
+ * dans `public/images/` : poser un logo demandait un accès au serveur, ce qui
+ * n'est pas un thème, c'est un déploiement.
+ * 🅿️ **Aucune branche de compatibilité, et c'est mesuré** : le 2026-09-08,
+ * `SITE_SETTING` ne contient aucune ligne `site_logo_path` et le brouillon porte
+ * `logoPath: ""`. Il n'existe pas une seule valeur héritée à convertir — écrire
+ * la branche aurait été écrire du code sans cas d'usage, puis le maintenir.
+ */
 final class ThemeManager
 {
     private const DRAFT_KEY = 'theme_draft_v1';
@@ -41,8 +55,13 @@ final class ThemeManager
         if ($draft['primaryColor'] !== '' && preg_match('/^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i', $draft['primaryColor']) !== 1) {
             throw new \InvalidArgumentException('La couleur doit être un code hexadécimal, par exemple #9E1B56.');
         }
-        if ($draft['logoPath'] !== '' && preg_match('/^[A-Za-z0-9._-]+\.(png|jpe?g|webp|svg)$/i', $draft['logoPath']) !== 1) {
-            throw new \InvalidArgumentException('Le logo doit être un nom de fichier image dans public/images/.');
+        // 🔴 **Un identifiant de médiathèque, pas un chemin.** La forme est
+        // vérifiée ici même si l'écran ne propose qu'une liste : ce point de
+        // passage est aussi celui d'un import ou d'une commande, et une valeur
+        // qui atteindrait `asset()` sans être un mediaId serait un chemin libre
+        // de retour.
+        if ($draft['logoPath'] !== '' && !SiteMediaLibrary::isMediaId($draft['logoPath'])) {
+            throw new \InvalidArgumentException('Le logo doit être choisi dans la médiathèque.');
         }
         $this->settings->set(self::DRAFT_KEY, json_encode($draft, JSON_THROW_ON_ERROR));
 
@@ -56,6 +75,28 @@ final class ThemeManager
         $this->settings->set('venue_label', $draft['venueLabel']);
         $this->settings->set('site_primary_color', $draft['primaryColor']);
         $this->settings->set('site_logo_path', $draft['logoPath']);
+    }
+
+    /**
+     * Les images qu'un thème utilise — publiées **ET** en brouillon.
+     *
+     * 🔴 **Le brouillon compte autant que le publié.** Supprimer l'image qu'un
+     * brouillon référence laisserait la publication suivante poser un logo qui
+     * n'existe plus : un site à moitié rhabillé, découvert par les visiteurs.
+     *
+     * @return list<string>
+     */
+    public function referencedMediaIds(): array
+    {
+        $ids = [];
+        foreach ([$this->published()['logoPath'] ?? '', $this->draft()['logoPath'] ?? ''] as $value) {
+            $value = trim((string) $value);
+            if ($value !== '' && !in_array($value, $ids, true)) {
+                $ids[] = $value;
+            }
+        }
+
+        return $ids;
     }
 
     public function discardDraft(): void

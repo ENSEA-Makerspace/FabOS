@@ -39,6 +39,7 @@ use App\Event\EventRegistrationService;
 use App\Event\EventShareQr;
 use App\Event\TicketLinker;
 use App\Mail\MailLog;
+use App\Media\SiteMediaLibrary;
 use App\Mail\Mailer;
 use App\Mail\MailSettings;
 use App\Mail\NotificationCategory;
@@ -306,7 +307,7 @@ final class AdminController extends AbstractController
      * jeton propres.
      */
     #[Route('/themes', name: 'app_admin_themes', methods: ['GET', 'POST'])]
-    public function themes(Request $request, ThemeManager $themes): Response
+    public function themes(Request $request, ThemeManager $themes, SiteMediaLibrary $media): Response
     {
         if ($request->isMethod('POST') && $request->request->getString('action') === 'discard') {
             if (!$this->isCsrfTokenValid('admin_themes_discard', (string) $request->request->get('_token'))) {
@@ -352,7 +353,72 @@ final class AdminController extends AbstractController
             'draft' => $themes->draft(),
             'published' => $themes->published(),
             'preview' => $request->query->getBoolean('preview'),
+            'media' => $media->all(),
+            // ⚠️ Passé à l'écran pour qu'il ne PROPOSE pas une suppression qui
+            // sera refusée : une affordance qui existe et refuse est pire qu'une
+            // affordance absente. La garde est refaite côté action, évidemment.
+            'referenced' => $themes->referencedMediaIds(),
         ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
+    }
+
+    /**
+     * Téléverser une image d'identité (S165).
+     *
+     * ⚠️ **Un formulaire séparé, comme l'affiche d'un événement.** Un envoi de
+     * fichier POSTe seul : le mêler au brouillon de thème rendrait le
+     * téléversement impossible tant qu'un autre champ est refusé — c'est-à-dire
+     * au moment où l'on veut s'en servir.
+     */
+    #[Route('/themes/medias', name: 'app_admin_theme_media_upload', methods: ['POST'])]
+    public function uploadThemeMedia(Request $request, SiteMediaLibrary $media): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if (!$this->isCsrfTokenValid('admin_theme_media', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'flash.action_refusee_token_csrf_invalide');
+
+            return $this->redirectToRoute('app_admin_themes');
+        }
+
+        $file = $request->files->get('image');
+        if (!$file instanceof UploadedFile) {
+            $this->addFlash('error', 'media.error_format');
+
+            return $this->redirectToRoute('app_admin_themes');
+        }
+
+        $result = $media->store($file);
+
+        // ⚠️ Le message d'erreur vient de la médiathèque, en CLÉ de traduction :
+        // c'est elle qui sait si le refus tient au format, à la taille ou au
+        // stockage, et un message générique enverrait chercher au mauvais endroit.
+        $this->addFlash($result['ok'] ? 'success' : 'error', $result['ok'] ? 'media.uploaded' : ($result['error'] ?? 'media.error_storage'));
+
+        return $this->redirectToRoute('app_admin_themes');
+    }
+
+    /**
+     * Supprimer une image — **refusé tant qu'un thème s'en sert** (S165).
+     *
+     * 🔴 **Le brouillon compte autant que le publié.** Supprimer l'image qu'un
+     * brouillon référence laisserait la publication suivante poser un logo qui
+     * n'existe plus.
+     */
+    #[Route('/themes/medias/{mediaId}/supprimer', name: 'app_admin_theme_media_delete', requirements: ['mediaId' => '[0-9a-f]{32}'], methods: ['POST'])]
+    public function deleteThemeMedia(string $mediaId, Request $request, SiteMediaLibrary $media, ThemeManager $themes): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if (!$this->isCsrfTokenValid('admin_theme_media', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'flash.action_refusee_token_csrf_invalide');
+
+            return $this->redirectToRoute('app_admin_themes');
+        }
+
+        $result = $media->delete($mediaId, $themes->referencedMediaIds());
+        $this->addFlash($result['ok'] ? 'success' : 'error', $result['ok'] ? 'media.deleted' : ($result['error'] ?? 'media.error_storage'));
+
+        return $this->redirectToRoute('app_admin_themes');
     }
 
     #[Route('/machines', name: 'app_admin_machines', methods: ['GET'])]

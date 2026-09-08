@@ -3091,12 +3091,19 @@ admin_homepage:
 
 # Thèmes — S134c.
 admin_themes:
+    logo_none: "— shipped logo —"
+    media_heading: "Identity media"
+    media_help: "Images usable as a logo. PNG, JPEG or WebP. ⚠️ SVG is refused: it is a document that can carry code, served from our own domain. An image used by the published theme or by the draft cannot be deleted."
+    media_file: "Image to upload"
+    media_empty: "No image yet. While the library is empty, the site shows the shipped logo."
+    media_in_use: "Used by the theme"
+    media_delete_confirm: "Delete this image? The file is removed from the server."
     browser_title: "Themes - FabOS"
     panel_title: "Theme draft"
     org_name: "Organisation"
     venue_label: "Venue name"
     primary_color: "Primary colour"
-    logo_path: "Logo in public/images/"
+    logo_path: "Site logo"
     preview_note: "Desktop/mobile and light/dark preview through the global switcher."
     save: "Save the draft"
     preview: "Preview"
@@ -4016,3 +4023,13 @@ groups:
 
 security:
     account_unavailable: "Cannot sign in with these credentials."
+
+# La médiathèque d’identité (S165).
+media:
+    uploaded: "Image added to the library."
+    deleted: "Image deleted."
+    error_format: "Format refused. PNG, JPEG or WebP only — SVG can carry code and is not accepted."
+    error_too_big: "File too large (12 MB maximum)."
+    error_storage: "Could not store the image. The media library may not be installed yet."
+    error_in_use: "Cannot delete: this image is used by the published theme or by the draft."
+    error_unknown: "That image does not exist."

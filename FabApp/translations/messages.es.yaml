@@ -3090,12 +3090,19 @@ admin_homepage:
 
 # Thèmes — S134c.
 admin_themes:
+    logo_none: "— logotipo entregado —"
+    media_heading: "Medios de identidad"
+    media_help: "Imágenes utilizables como logotipo. PNG, JPEG o WebP. ⚠️ El SVG se rechaza: es un documento que puede contener código, servido desde nuestro propio dominio. Una imagen usada por el tema publicado o por el borrador no se puede eliminar."
+    media_file: "Imagen a subir"
+    media_empty: "Ninguna imagen. Mientras la biblioteca esté vacía, el sitio muestra el logotipo entregado."
+    media_in_use: "Usada por el tema"
+    media_delete_confirm: "¿Eliminar esta imagen? El archivo se borra del servidor."
     browser_title: "Temas - FabOS"
     panel_title: "Borrador del tema"
     org_name: "Organización"
     venue_label: "Nombre del lugar"
     primary_color: "Color principal"
-    logo_path: "Logotipo en public/images/"
+    logo_path: "Logotipo del sitio"
     preview_note: "Vista previa de ordenador/móvil y claro/oscuro mediante el selector global."
     save: "Guardar el borrador"
     preview: "Vista previa"
@@ -4015,3 +4022,13 @@ groups:
 
 security:
     account_unavailable: "No se puede iniciar sesión con estas credenciales."
+
+# La médiathèque d’identité (S165).
+media:
+    uploaded: "Imagen añadida a la biblioteca."
+    deleted: "Imagen eliminada."
+    error_format: "Formato rechazado. Solo PNG, JPEG o WebP — el SVG puede contener código y no se acepta."
+    error_too_big: "Archivo demasiado pesado (12 MB máximo)."
+    error_storage: "No se pudo guardar la imagen. Puede que la biblioteca aún no esté instalada."
+    error_in_use: "Imposible: esta imagen la usa el tema publicado o el borrador."
+    error_unknown: "Esa imagen no existe."

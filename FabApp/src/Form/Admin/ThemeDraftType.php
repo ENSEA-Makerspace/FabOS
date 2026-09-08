@@ -2,7 +2,9 @@
 
 namespace App\Form\Admin;
 
+use App\Media\SiteMediaLibrary;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -26,6 +28,10 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 final class ThemeDraftType extends AbstractType
 {
+    public function __construct(private readonly SiteMediaLibrary $media)
+    {
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
@@ -56,15 +62,45 @@ final class ThemeDraftType extends AbstractType
                     message: 'La couleur doit être un code hexadécimal, par exemple #9E1B56.',
                 )],
             ])
-            ->add('logoPath', TextType::class, [
+            /*
+             * 🔴 **Une LISTE, plus un champ de texte (S165).** Le champ demandait
+             * le nom d'un fichier qui devait déjà se trouver sur le serveur : on
+             * pouvait donc y taper n'importe quoi, et la seule façon d'y mettre
+             * une valeur juste était d'avoir un accès SSH. Une liste ne peut
+             * proposer que ce qui existe.
+             * ⚠️ **Vide reste une réponse** — c'est « le logo livré », qui est le
+             * cas normal, pas un champ qu'on aurait oublié de remplir.
+             */
+            ->add('logoPath', ChoiceType::class, [
                 'label' => 'admin_themes.logo_path',
                 'required' => false,
-                'attr' => ['maxlength' => 255, 'placeholder' => 'logo.svg'],
-                'constraints' => [new Assert\Regex(
-                    pattern: '/^[A-Za-z0-9._-]+\.(png|jpe?g|webp|svg)$/i',
-                    message: 'Le logo doit être un nom de fichier image dans public/images/.',
-                )],
+                'placeholder' => 'admin_themes.logo_none',
+                'choices' => $this->logoChoices(),
             ]);
+    }
+
+    /**
+     * ⚠️ **L'étiquette est le nom d'ORIGINE du fichier**, pas son nom sur disque.
+     * Le second est un identifiant tiré au sort : lisible par la machine,
+     * illisible pour la personne qui a envoyé `logo-2026-final.png`.
+     *
+     * @return array<string, string>
+     */
+    private function logoChoices(): array
+    {
+        $choices = [];
+        foreach ($this->media->all() as $row) {
+            $label = trim((string) ($row['originalName'] ?? '')) ?: (string) $row['filename'];
+            // ⚠️ Deux fichiers peuvent porter le même nom d'origine : on suffixe
+            // avec les dimensions plutôt que d'en perdre un silencieusement — un
+            // tableau PHP écraserait la clé en double sans rien dire.
+            if (isset($choices[$label])) {
+                $label .= ' (' . ($row['width'] ?? '?') . '×' . ($row['height'] ?? '?') . ')';
+            }
+            $choices[$label] = (string) $row['mediaId'];
+        }
+
+        return $choices;
     }
 
     public function configureOptions(OptionsResolver $resolver): void

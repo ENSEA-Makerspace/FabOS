@@ -1100,6 +1100,11 @@ final class S147FormProbeCommand extends Command
         $draftBefore = $db->fetchOne("SELECT settingValue FROM SITE_SETTING WHERE settingKey = 'theme_draft_v1'");
         $org = 'Organisation tapée à la main';
         $venue = 'Lieu tapé à la main';
+        // 🔴 **S165 a changé ce champ, et cette sonde le suit.** `logoPath` était
+        // un champ de TEXTE nommant un fichier déjà présent sur le serveur ;
+        // c'est maintenant une liste tirée de la médiathèque. Un nom libre n'est
+        // donc plus « conservé à l'écran » : il est REFUSÉ, ce qui est le bon
+        // comportement et pas une régression de J-22.
         $logo = 'logo-tape-a-la-main.svg';
 
         $post = Request::create($path, 'POST', [
@@ -1123,7 +1128,7 @@ final class S147FormProbeCommand extends Command
             ['la couleur refusée est encore à l\'écran' => str_contains($body, 'value="9E1B56"') ? '✅ OUI' : '🔴 NON'],
             ['le nom d\'organisation tapé est encore là' => str_contains($body, htmlspecialchars($org, ENT_QUOTES)) ? '✅ OUI' : '🔴 NON'],
             ['le nom de lieu tapé est encore là' => str_contains($body, htmlspecialchars($venue, ENT_QUOTES)) ? '✅ OUI' : '🔴 NON'],
-            ['le logo tapé est encore là' => str_contains($body, $logo) ? '✅ OUI' : '🔴 NON'],
+            ['un logo hors médiathèque est refusé (S165)' => str_contains($body, $logo) ? '🔴 il a été retenu' : '✅ OUI'],
             ['l\'erreur est SUR le champ' => preg_match('/form-errors[^>]*>\s*<ul/', $body) === 1 ? '✅ oui' : 'à vérifier à l\'œil'],
         );
     }

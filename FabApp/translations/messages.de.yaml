@@ -3090,12 +3090,19 @@ admin_homepage:
 
 # Thèmes — S134c.
 admin_themes:
+    logo_none: "— mitgeliefertes Logo —"
+    media_heading: "Identitäts-Medien"
+    media_help: "Als Logo verwendbare Bilder. PNG, JPEG oder WebP. ⚠️ SVG wird abgelehnt: es ist ein Dokument, das Code enthalten kann, ausgeliefert von unserer eigenen Domain. Ein vom veröffentlichten Theme oder vom Entwurf verwendetes Bild kann nicht gelöscht werden."
+    media_file: "Hochzuladendes Bild"
+    media_empty: "Noch kein Bild. Solange die Mediathek leer ist, zeigt die Website das mitgelieferte Logo."
+    media_in_use: "Vom Theme verwendet"
+    media_delete_confirm: "Dieses Bild löschen? Die Datei wird vom Server entfernt."
     browser_title: "Themes - FabOS"
     panel_title: "Theme-Entwurf"
     org_name: "Organisation"
     venue_label: "Name des Standorts"
     primary_color: "Hauptfarbe"
-    logo_path: "Logo in public/images/"
+    logo_path: "Website-Logo"
     preview_note: "Vorschau für Desktop/Mobil und Hell/Dunkel über die globale Umschaltung."
     save: "Entwurf speichern"
     preview: "Vorschau"
@@ -4015,3 +4022,13 @@ groups:
 
 security:
     account_unavailable: "Anmeldung mit diesen Zugangsdaten nicht möglich."
+
+# La médiathèque d’identité (S165).
+media:
+    uploaded: "Bild zur Mediathek hinzugefügt."
+    deleted: "Bild gelöscht."
+    error_format: "Format abgelehnt. Nur PNG, JPEG oder WebP — SVG kann Code enthalten und wird nicht akzeptiert."
+    error_too_big: "Datei zu groß (maximal 12 MB)."
+    error_storage: "Bild konnte nicht gespeichert werden. Die Mediathek ist möglicherweise noch nicht installiert."
+    error_in_use: "Nicht möglich: dieses Bild wird vom veröffentlichten Theme oder vom Entwurf verwendet."
+    error_unknown: "Dieses Bild existiert nicht."

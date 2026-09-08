@@ -2,6 +2,7 @@
 
 namespace App\Twig;
 
+use App\Media\SiteMediaLibrary;
 use App\Service\SiteSettingService;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
@@ -18,6 +19,7 @@ final class PortalExtension extends AbstractExtension
 {
     public function __construct(
         private readonly SiteSettingService $settings,
+        private readonly SiteMediaLibrary $media,
     ) {
     }
 
@@ -25,7 +27,13 @@ final class PortalExtension extends AbstractExtension
     {
         return [
             new TwigFunction('portal_name', $this->name(...)),
-            new TwigFunction('portal_logo_path', $this->logoPath(...)),
+            // 🔴 **`site_logo` depuis S165, et `portal_logo_path` est SUPPRIMÉ.**
+            // L'ancien nom renvoyait à un écran « Portails » qui n'existe plus,
+            // et il rendait un NOM DE FICHIER que l'appelant devait préfixer
+            // lui-même — donc un chemin construit dans un gabarit. Le nouveau
+            // rend le chemin public complet, ou `null`. Garder un alias aurait
+            // laissé les deux vocabulaires cohabiter sans que rien ne tranche.
+            new TwigFunction('site_logo', $this->siteLogo(...)),
             new TwigFunction('portal_primary_color', $this->primaryColor(...)),
         ];
     }
@@ -36,18 +44,23 @@ final class PortalExtension extends AbstractExtension
     }
 
     /**
-     * A filename inside `public/images/`, or null.
+     * Le chemin public du logo choisi dans la médiathèque, ou `null`.
      *
-     * Path separators are refused rather than sanitised. The value reaches
-     * `asset('images/' ~ …)`, so `../../.env` would otherwise resolve to a URL
-     * pointing outside the image directory — and the admin who set it would have
-     * no idea they had done that.
+     * 🔴 **Plus de chemin libre.** Le réglage porte un `mediaId` ; le nom du
+     * fichier vient de la table, pas de la valeur. Un `../../.env` n'a donc plus
+     * d'endroit où atterrir : il ne ressemble pas à un mediaId, et même s'il en
+     * portait la forme, il ne correspondrait à aucune ligne.
+     *
+     * ⚠️ **`null` veut dire « rien de choisi », et c'est le cas normal** — le
+     * gabarit rend alors le logo livré. Il veut dire la même chose quand la
+     * médiathèque n'est pas encore migrée : dans les deux cas le site s'habille
+     * comme avant, ce qui est la seule réponse acceptable.
      */
-    public function logoPath(): ?string
+    public function siteLogo(): ?string
     {
         $value = trim((string) $this->settings->get('site_logo_path'));
 
-        return $value !== '' && preg_match('/^[A-Za-z0-9._-]+\.(png|jpe?g|webp|svg)$/i', $value) === 1 ? $value : null;
+        return $value === '' ? null : $this->media->assetPath($value);
     }
 
     /**

@@ -32,6 +32,9 @@
 /public/uploads/profile-banners/*
 /public/uploads/creations/images/*
 /public/uploads/creations/files/*
+# La médiathèque d'identité (S165) : les images sont téléversées par
+# l'opérateur, elles n'appartiennent pas au dépôt.
+/public/uploads/identity/*
 
 # Garder les dossiers vides dans Git si besoin
 !/public/uploads/avatars/.gitkeep
@@ -39,4 +42,5 @@
 !/public/uploads/creations/images/.gitkeep
 !/public/uploads/creations/files/.gitkeep
 !/public/uploads/creations/thumbs/.gitkeep
+!/public/uploads/identity/.gitkeep
 ###< fabos ###

@@ -1,19 +1,27 @@
 {#
-    Logo centralisé.
-    Pour remplacer le logo sur tout le site, modifier uniquement :
-    public/images/Logo_ENSEA.png
+    Logo centralisé — et depuis S165, il se CHANGE depuis l'écran.
 
-    Un portail peut en afficher un autre : le réglage `portal_logo_path` (écran
-    Portails) nomme un fichier de public/images/. Il est lu ici et nulle part
-    ailleurs — c'est le seul endroit du site qui rend le logo, ce qui est
-    précisément ce qui rend le réglage tenable.
+    🔴 **Avant, remplacer le logo demandait de déposer un fichier dans
+    `public/images/`**, c'est-à-dire un accès au serveur. Le réglage nommait un
+    fichier libre ; rien ne le téléversait. `site_logo()` rend maintenant le
+    chemin d'une image de la médiathèque (`/admin/themes`), ou `null`.
 
-    La valeur de `v` force le navigateur à charger la nouvelle version du fichier.
+    ⚠️ **`null` est le cas NORMAL**, pas une panne : personne n'a choisi de logo,
+    on rend celui livré. C'est aussi ce qu'on rend tant que la médiathèque n'est
+    pas migrée — dans les deux cas le site s'habille exactement comme avant.
+
+    ⚠️ **C'est le seul endroit du site qui rend le logo**, et c'est précisément ce
+    qui rend le réglage tenable. Un second `<img>` ailleurs serait un logo qui ne
+    change pas quand on change le logo.
+
+    ⚠️ **Le `?v=` ne va que sur le fichier livré.** Une image de médiathèque porte
+    un nom unique et immuable : son URL change quand l'image change, donc rien
+    n'est à invalider. Le fichier livré, lui, garde son nom pour toujours.
 #}
-{% set portal_logo = portal_logo_path() %}
+{% set logo = site_logo() %}
 <img
-    src="{{ portal_logo ? asset('images/' ~ portal_logo) : asset('images/Logo_ENSEA.png') ~ '?v=20260706-3' }}"
-    alt="{{ portal_logo ? portal_name() : 'ENSEA' }}"
+    src="{{ logo ? asset(logo) : asset('images/Logo_ENSEA.png') ~ '?v=20260706-3' }}"
+    alt="{{ logo ? portal_name() : 'ENSEA' }}"
     class="ensea-logo-svg"
     width="127"
     height="125"

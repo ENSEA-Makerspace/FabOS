@@ -3092,12 +3092,19 @@ admin_homepage:
 
 # Thèmes — S134c.
 admin_themes:
+    logo_none: "— logo livré —"
+    media_heading: "Médiathèque d’identité"
+    media_help: "Les images utilisables comme logo. PNG, JPEG ou WebP. ⚠️ Le SVG est refusé : c’est un document qui peut contenir du code, servi depuis notre propre domaine. Une image utilisée par le thème publié ou par le brouillon ne peut pas être supprimée."
+    media_file: "Image à téléverser"
+    media_empty: "Aucune image. Tant que la médiathèque est vide, le site affiche le logo livré."
+    media_in_use: "Utilisée par le thème"
+    media_delete_confirm: "Supprimer cette image ? Le fichier est effacé du serveur."
     browser_title: "Thèmes - FabOS"
     panel_title: "Brouillon du thème"
     org_name: "Organisation"
     venue_label: "Nom du lieu"
     primary_color: "Couleur principale"
-    logo_path: "Logo dans public/images/"
+    logo_path: "Logo du site"
     preview_note: "Aperçu ordinateur/mobile, clair/sombre via le sélecteur global."
     save: "Enregistrer le brouillon"
     preview: "Prévisualiser"
@@ -4017,3 +4024,13 @@ groups:
 
 security:
     account_unavailable: "Connexion impossible avec ces identifiants."
+
+# La médiathèque d’identité (S165).
+media:
+    uploaded: "Image ajoutée à la médiathèque."
+    deleted: "Image supprimée."
+    error_format: "Format refusé. PNG, JPEG ou WebP uniquement — le SVG peut contenir du code et n’est pas accepté."
+    error_too_big: "Fichier trop lourd (12 Mo maximum)."
+    error_storage: "Impossible d’enregistrer l’image. La médiathèque n’est peut-être pas encore installée."
+    error_in_use: "Impossible : cette image est utilisée par le thème publié ou par le brouillon."
+    error_unknown: "Cette image n’existe pas."

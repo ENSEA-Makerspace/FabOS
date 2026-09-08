@@ -1,6 +1,27 @@
 {% extends 'base.html.twig' %}
 {% block title %}{{ 'admin_themes.browser_title'|trans }}{% endblock %}
-{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">{% endblock %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">
+    <style>
+        /* La médiathèque d'identité (S165). Une grille de vignettes : ce qu'on
+           choisit ici est une IMAGE, et une liste de noms de fichiers ne dit pas
+           laquelle. */
+        .media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; margin: 12px 0 0; }
+        .media-card { border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+        /* Damier : un logo transparent sur fond blanc a l'air d'un logo blanc, et
+           on ne s'en aperçoit qu'une fois le site publié. */
+        .media-card__frame { height: 96px; display: flex; align-items: center; justify-content: center; border-radius: 6px;
+            background-color: var(--theme-surface-elevated, var(--theme-surface));
+            background-image: linear-gradient(45deg, rgba(128,128,128,.18) 25%, transparent 25%, transparent 75%, rgba(128,128,128,.18) 75%),
+                              linear-gradient(45deg, rgba(128,128,128,.18) 25%, transparent 25%, transparent 75%, rgba(128,128,128,.18) 75%);
+            background-size: 16px 16px; background-position: 0 0, 8px 8px; }
+        .media-card__frame img { max-width: 100%; max-height: 92px; display: block; }
+        .media-card__name { font-size: 12.5px; word-break: break-word; }
+        .media-card__meta { color: var(--color-text-light); font-size: 12px; }
+        .media-upload { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+        .media-hint { color: var(--color-text-light); font-size: 13px; margin: 0; line-height: 1.55; }
+    </style>
+{% endblock %}
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {panel_title: 'admin_themes.panel_title'|trans, list_route: 'app_admin_themes'} %}
     {% block content %}
@@ -33,6 +54,55 @@
             <button class="btn-link" type="submit">{{ 'admin_themes.discard'|trans }}</button>
             <a class="btn-link" href="{{ path('app_admin_homepage') }}">{{ 'admin_themes.order_blocks'|trans }}</a>
         </form>
+
+        {# LA MÉDIATHÈQUE D'IDENTITÉ (S165).
+
+           🔴 **Avant, changer le logo demandait un accès au serveur.** Le champ
+           réclamait le nom d'un fichier qui devait DÉJÀ être dans
+           `public/images/` : un réglage qu'on ne pouvait pas régler depuis
+           l'écran qui le proposait.
+
+           ⚠️ **Des vignettes, pas une liste de noms.** Ce qu'on choisit est une
+           IMAGE ; un nom de fichier ne dit pas laquelle, et le nom sur disque est
+           un identifiant tiré au sort.
+
+           ⚠️ **Une image utilisée n'a PAS de bouton Supprimer** — publiée ou en
+           brouillon. Un bouton qui existe et refuse est pire qu'un bouton absent,
+           et la garde est refaite côté action de toute façon. #}
+        <div class="admin-edit-panel-header"><h2>{{ 'admin_themes.media_heading'|trans }}</h2></div>
+        <p class="media-hint">{{ 'admin_themes.media_help'|trans }}</p>
+
+        <form method="post" action="{{ path('app_admin_theme_media_upload') }}" enctype="multipart/form-data" class="media-upload">
+            <input type="hidden" name="_token" value="{{ csrf_token('admin_theme_media') }}">
+            <input type="file" name="image" accept="image/png,image/jpeg,image/webp" required aria-label="{{ 'admin_themes.media_file'|trans }}">
+            <button type="submit" class="btn-action">{{ 'common.upload'|trans }}</button>
+        </form>
+
+        {% if media is empty %}
+            <p class="media-hint">{{ 'admin_themes.media_empty'|trans }}</p>
+        {% else %}
+            <div class="media-grid">
+                {% for item in media %}
+                    {% set in_use = item.mediaId in referenced %}
+                    <div class="media-card">
+                        <div class="media-card__frame"><img src="{{ asset('uploads/identity/' ~ item.filename) }}" alt="{{ item.originalName ?: item.filename }}"></div>
+                        <span class="media-card__name">{{ item.originalName ?: item.filename }}</span>
+                        <span class="media-card__meta">{{ item.width ?? '?' }}×{{ item.height ?? '?' }}</span>
+                        {% if in_use %}
+                            {% include 'site/_cell_state.html.twig' with {label: 'admin_themes.media_in_use'|trans, signal: 'go'} only %}
+                        {% else %}
+                            <form method="post" action="{{ path('app_admin_theme_media_delete', {mediaId: item.mediaId}) }}"
+                                  data-controller="confirm"
+                                  data-action="submit->confirm#ask"
+                                  data-confirm-message-value="{{ 'admin_themes.media_delete_confirm'|trans|e('html_attr') }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('admin_theme_media') }}">
+                                <button type="submit" class="btn-link btn-danger-admin">{{ 'common.delete'|trans }}</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
     {% endblock %}
 {% endembed %}
 {% endblock %}

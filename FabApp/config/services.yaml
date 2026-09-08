@@ -49,6 +49,20 @@ services:
         arguments:
             $templateDir: '%kernel.project_dir%/templates/emails'
 
+    # ⚠️ La médiathèque d'identité écrit des fichiers : elle a besoin du dossier
+    # de destination, qui n'est pas autowirable. Un seul endroit le nomme — deux
+    # constantes du même chemin finissent par diverger, et la panne est un
+    # fichier écrit là où personne ne le lit.
+    App\Media\SiteMediaLibrary:
+        arguments:
+            $uploadDir: '%kernel.project_dir%/public/uploads/identity'
+
+    # ⚠️ La sonde vérifie que le FICHIER est bien écrit puis effacé, pas seulement
+    # la ligne en base : elle a donc besoin du même dossier, et de la même source.
+    App\Command\S165MediaProbeCommand:
+        arguments:
+            $uploadDir: '%kernel.project_dir%/public/uploads/identity'
+
     # Serves the repo's own docs/*.md; needs the project dir, not autowirable.
     App\Service\MarkdownDocService:
         arguments:
