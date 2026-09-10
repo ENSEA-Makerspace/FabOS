@@ -1258,7 +1258,71 @@ intentions).
 
 | Session | Livre | Ce qu'on mesure |
 |---|---|---|
-| **S165** | La **médiathèque d'identité** : téléversement, validation, renommage serveur, identifiant stable, suppression refusée tant qu'un thème référence le fichier. Fin du chemin libre. Renommage `portal_logo_path` → `site_logo` | 🔴 On pose un logo **sans toucher au serveur** ; un fichier référencé ne se supprime pas ; ⚠️ l'orientation EXIF est lue AVANT les dimensions, et `exif_read_data()` ne lit pas le PNG |
+| **S165** ✅ | **Livré le 2026-09-10** : la médiathèque d'identité. Téléversement depuis l'écran, nommage serveur, identifiant stable, suppression refusée tant qu'un thème référence le fichier. `portal_logo_path` → `site_logo` | ✅ Sonde `app:s165:media-probe`, 18 assertions, **médiathèque rendue vide et thème non touché** |
+
+### ✅ S165 — un réglage qu'on ne pouvait pas régler depuis l'écran qui le proposait
+
+🔴 **`site_logo_path` était une CHAÎNE** : le nom d'un fichier qui devait DÉJÀ se
+trouver dans `public/images/`. Rien ne téléversait, donc poser un logo demandait
+un accès SSH — ce qui n'est pas un thème, c'est un déploiement.
+
+🔴 **Le nom du fichier téléversé n'atteint JAMAIS le disque.** Le fichier
+s'appelle `<mediaId>.<ext>`, tiré au sort ; le nom d'origine ne sert qu'à
+l'affichage. Deux personnes qui envoient `logo.png` ne s'écrasent pas.
+✅ **Et Symfony réduit déjà ce nom d'affichage à son `basename` avant qu'on le
+voie** — « logo maison ../../.env.png » revient « .env.png ». La sonde le MESURE
+plutôt que de le supposer : le jour où cette garde amont change, ce nom est écrit
+tel quel dans une page d'administration.
+
+🔴 **Le SVG est REFUSÉ, et ce n'est pas un oubli** — l'ancienne expression
+régulière l'acceptait. Un SVG est un document XML qui peut porter `<script>`,
+servi depuis NOTRE origine : du code exécuté dans la session de chaque visiteur.
+⚠️ **Le type est décidé par le CONTENU**, pas par l'extension : la sonde envoie le
+même SVG renommé `.png`, et il est refusé aussi.
+⚠️ La contrepartie est réelle et l'écran l'annonce : un logo vectoriel devient un
+PNG. Le format redeviendra acceptable le jour où les fichiers seront servis
+depuis un domaine séparé.
+
+🔴 **CORRECTION de la mesure de sortie ci-contre** : « l'orientation EXIF est lue
+AVANT les dimensions, et `exif_read_data()` ne lit pas le PNG » décrivait une
+capacité qui **existe déjà**, dans `ImageNormalizer`, avec son propre historique
+de pannes. S165 la RÉUTILISE au lieu d'en écrire une seconde — deux
+implémentations divergent, et le défaut est une photo couchée que personne ne
+remarque pendant un mois.
+✅ Ce qui en découle et qui se mesure : les dimensions sont enregistrées **après**
+normalisation, donc ce sont celles qu'on verra ; et un PNG opaque est rangé en
+`.jpg`, ce qui prouve que la normalisation s'est appliquée au fichier RANGÉ et
+pas à une copie.
+
+🅿️ **Aucune branche de compatibilité, et c'est mesuré** : le 2026-09-08,
+`SITE_SETTING` ne contenait aucune ligne `site_logo_path` et le brouillon portait
+`logoPath: ""`. Pas une seule valeur héritée à convertir — l'écrire aurait été
+écrire du code sans cas d'usage, puis le maintenir.
+
+⚠️ **`portal_logo_path()` est SUPPRIMÉ, pas aliasé.** Il renvoyait à un écran
+« Portails » qui n'existe plus, et rendait un nom de fichier que l'appelant devait
+préfixer — donc un chemin construit dans un gabarit. Garder un alias aurait laissé
+les deux vocabulaires cohabiter sans que rien ne tranche.
+✅ Vérifié à l'écran : la page d'accueil sert toujours
+`Logo_ENSEA.png?v=20260706-3`, à l'identique.
+
+⚠️ **La sonde ne touche pas au thème** : elle passe une liste de références
+SYNTHÉTIQUE à `delete()`, ce que l'API permet justement parce que la médiathèque
+ne connaît pas les thèmes. Le brouillon de l'opérateur n'est ni lu ni écrit.
+✅ Résidu vérifié après coup : **0 ligne** en base, **0 fichier** dans
+`public/uploads/identity/`.
+
+## Ce que l'opérateur vérifie — Phase M
+
+| Session | Où | Ce qui doit être vrai |
+|---|---|---|
+| **S165** ✅ | `/admin/themes`, section « Médiathèque d'identité » | Un champ de fichier et un bouton Téléverser. ⚠️ Vide au départ : le site affiche le logo livré, et l'écran le dit |
+| **S165** ✅ | y déposer un PNG | La vignette apparaît, sur un damier — un logo transparent sur fond blanc a l'air d'un logo blanc |
+| **S165** ✅ | essayer d'y déposer un SVG | 🔴 **Refusé, avec la raison** : un SVG peut contenir du code |
+| **S165** ✅ | le champ « Logo du site » | Une **liste** de ce qui est dans la médiathèque, plus « — logo livré — ». Plus de nom de fichier à taper |
+| **S165** ✅ | choisir le logo, enregistrer le brouillon, puis revenir à la médiathèque | L'image porte « Utilisée par le thème » et **n'a plus de bouton Supprimer** — le brouillon compte autant que le publié |
+| **S165** ✅ | publier, puis regarder l'en-tête du site | Le logo a changé partout. ⚠️ Un seul gabarit rend le logo, c'est ce qui rend le réglage tenable |
+| **S165** ✅ | la sonde | `php bin/console app:s165:media-probe` — 18 assertions, médiathèque rendue vide, thème non touché |
 | **S166** | L'**éditeur guidé** : palette avec contrastes, rayon / typo / densité en préréglages, variantes de logo (clair, sombre, compact, favicon, image de partage). 🔴 **ET LES 66 COULEURS DE MARQUE ÉCRITES EN DUR**, mesurées le 2026-09-05 : `#9E1B56` et `#6b7280` apparaissent **66 fois dans les gabarits du SITE** — `register` 11, `_formation_visual` 10, `person-booking`, `login`, `machine-detail` 6 chacun. Un éditeur de palette qui laisse 66 endroits ignorer la palette ne change pas le thème, il le contredit. ⚠️ **Les 41 occurrences des E-MAILS ne comptent pas** : un client de messagerie ne sait pas lire `var()`, la couleur littérale y est la bonne réponse | 🔴 **Le contraste est MESURÉ, pas affirmé** — c'est déjà la pratique du dépôt (7,65:1 relevé sur une proposition de tableau de bord). Une palette qui échoue est refusée, pas signalée |
 | **S167** | L'**aperçu sur de VRAIES surfaces** : accueil, catalogue, détail, un écran admin, un kiosk — desktop et mobile, clair et sombre. Publication **atomique** des réglages ET des fichiers | 🔴 L'aperçu rend les vraies pages, pas des vignettes dessinées à la main : c'est la leçon de `feedback-fabos-verify-pixels`, où un balisage présent ne prouvait pas qu'on le voyait |
 | **S168** | **Kiosks et navigation** : aucun favicon, logo ou couleur en dur ne survit dans un kiosk ; ordre et visibilité des entrées de menu, destinations limitées aux routes autorisées, entrées système protégées | 🔴 Une page dépubliée rétablit l'accueil FabOS **avec trace**, sans page blanche ni boucle de redirection |

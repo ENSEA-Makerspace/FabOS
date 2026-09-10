@@ -91,8 +91,35 @@ final class S165MediaProbeCommand extends Command
             // et un nom choisi par l'utilisateur ne doit pas traverser le système
             // de fichiers.
             $this->check($io, $failures, '🔴 aucun séparateur de chemin dans le nom sur disque', !str_contains((string) ($row['filename'] ?? ''), '/'));
-            $this->check($io, $failures, 'le nom d\'ORIGINE est conservé, pour l\'affichage', str_contains((string) ($row['originalName'] ?? ''), 'logo maison'));
             $this->check($io, $failures, 'le fichier existe vraiment sur disque', is_file($this->uploadDir . '/' . $row['filename']));
+
+            /*
+             * 🔴 **Le nom D'AFFICHAGE est déjà réduit à son `basename` — par
+             * Symfony, avant qu'on le voie.** `UploadedFile::getClientOriginalName()`
+             * ne rend jamais un chemin : « logo maison ../../.env.png » revient
+             * « .env.png ». C'est une garde de plus en amont de la nôtre, et il
+             * vaut mieux la MESURER que la supposer : le jour où elle change, ce
+             * nom est écrit tel quel dans une page d'administration.
+             * ⚠️ D'où deux téléversements ici et non un : celui-ci prouve qu'un
+             * nom hostile est neutralisé, le suivant qu'un nom ordinaire survit.
+             */
+            $this->check($io, $failures, '🔴 le nom d\'affichage ne contient aucun chemin', !str_contains((string) ($row['originalName'] ?? ''), '/'));
+
+            $clean = $tmp . '/clean.png';
+            $this->writePng($clean, 64, 64);
+            $second = $this->media->store(new UploadedFile($clean, 'logo-maison.png', 'image/png', null, true));
+            $this->check($io, $failures, 'un second téléversement passe', $second['ok']);
+            if ($second['ok'] ?? false) {
+                $created[] = (string) $second['mediaId'];
+                $secondRow = $this->media->find((string) $second['mediaId']);
+                $this->check($io, $failures, 'un nom ordinaire est conservé pour l\'affichage', ($secondRow['originalName'] ?? '') === 'logo-maison.png');
+                // ⚠️ Deux fichiers, deux identifiants : un nom d'origine partagé
+                // ne doit jamais faire collision sur disque.
+                $this->check($io, $failures, 'et son nom sur disque est DIFFÉRENT du premier', ($secondRow['filename'] ?? '') !== ($row['filename'] ?? ''));
+
+                $this->media->delete((string) $second['mediaId'], []);
+                $created = array_values(array_diff($created, [(string) $second['mediaId']]));
+            }
 
             $io->section('4. Le normaliseur a bien tourné sur le fichier STOCKÉ');
             // Un PNG sans canal alpha est une photo dans un format qui ne
