@@ -17,9 +17,9 @@
         .lab-detail-children ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
         .lab-detail-children a {
             display: inline-block; padding: 8px 16px; border-radius: 999px;
-            background: rgba(158, 27, 86, 0.08); color: #9E1B56; text-decoration: none; font-weight: 600;
+            background: color-mix(in srgb, var(--color-primary) 8%, transparent); color: var(--color-primary-text); text-decoration: none; font-weight: 600;
         }
-        .lab-detail-children a:hover { background: rgba(158, 27, 86, 0.15); }
+        .lab-detail-children a:hover { background: color-mix(in srgb, var(--color-primary) 15%, transparent); }
         .lab-gallery { margin-top: 32px; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
         .lab-gallery img { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 10px; border: 1px solid var(--border-color); }
     </style>

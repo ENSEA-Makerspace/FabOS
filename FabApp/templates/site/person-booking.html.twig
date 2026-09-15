@@ -12,7 +12,7 @@
         .person-booking-header { display: flex; align-items: center; gap: 18px; margin: 16px 0 8px; }
         .person-booking-header .fabos-user-avatar { border-radius: 50%; object-fit: cover; }
         .person-booking-header h1 { margin: 0 0 4px; }
-        .person-roles { font-size: 13px; color: #9E1B56; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+        .person-roles { font-size: 13px; color: var(--color-primary-text); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
         .person-note { color: #4b5563; margin: 0 0 20px; max-width: 70ch; }
         .person-booking-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-top: 16px; }
         .duration-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
@@ -20,7 +20,7 @@
             padding: 7px 14px; border-radius: 999px; border: 1px solid var(--border-color);
             font-size: 14px; font-weight: 700; color: var(--color-text); text-decoration: none;
         }
-        .duration-tabs a.is-active { background: #9E1B56; border-color: #9E1B56; color: #fff; }
+        .duration-tabs a.is-active { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
         .slot-day { margin-bottom: 18px; }
         .slot-day-title { font-weight: 700; font-size: 14px; color: var(--color-text); margin-bottom: 8px; }
         .slot-list { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -30,8 +30,8 @@
             display: inline-block; padding: 8px 14px; border-radius: 8px;
             border: 1px solid var(--border-color); font-size: 14px; font-weight: 700; color: var(--color-text); cursor: pointer;
         }
-        .slot input:checked + span { background: #9E1B56; border-color: #9E1B56; color: #fff; }
-        .slot input:focus-visible + span { outline: 2px solid #9E1B56; outline-offset: 2px; }
+        .slot input:checked + span { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+        .slot input:focus-visible + span { outline: 2px solid var(--color-primary); outline-offset: 2px; }
         .person-form { display: grid; gap: 14px; margin-top: 8px; }
         .person-form label { display: block; font-weight: 700; margin-bottom: 6px; color: var(--color-text); }
         .person-form input, .person-form textarea {

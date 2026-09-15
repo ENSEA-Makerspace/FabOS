@@ -198,7 +198,6 @@ qu'aucune autre liste n'a. ⚠️ Et le regroupement ne vaut que pour les objets
 DATÉS : une machine n'a rien à regrouper.
 
 
-
 **Source** : trois captures de Fabmanager (instance Technistub) décrites dans
 `Stage/Drive/Images/Fabmanager UI/README.md` — événements, formations, machines.
 ⚠️ **Fabmanager, pas Fabman** : c'est une seconde source, distincte des 73 captures
@@ -896,7 +895,6 @@ un forfait mais une appartenance datée. ⚠️ Au passage, il citait une table
 ---
 
 
-
 ---
 
 # Phase I — messagerie Formation (S155–S157) 🅿️ ABSORBÉE PAR LA PHASE FORMATIONS
@@ -1259,6 +1257,9 @@ intentions).
 | Session | Livre | Ce qu'on mesure |
 |---|---|---|
 | **S165** ✅ | **Livré le 2026-09-10** : la médiathèque d'identité. Téléversement depuis l'écran, nommage serveur, identifiant stable, suppression refusée tant qu'un thème référence le fichier. `portal_logo_path` → `site_logo` | ✅ Sonde `app:s165:media-probe`, 18 assertions, **médiathèque rendue vide et thème non touché** |
+| **S166** ⏳ | **Les 68 littéraux de marque sont TOMBÉS le 2026-09-15**, et un outil les empêche de revenir. 🅿️ **Reste** : l'éditeur guidé lui-même (palette à contraste mesuré, préréglages, variantes de logo) | ✅ `tools/brand_literals.py`, **vérifié dans les deux sens** : 68 avant, 0 après |
+| **S167** | L'**aperçu sur de VRAIES surfaces** : accueil, catalogue, détail, un écran admin, un kiosk — desktop et mobile, clair et sombre. Publication **atomique** des réglages ET des fichiers | 🔴 L'aperçu rend les vraies pages, pas des vignettes dessinées à la main : c'est la leçon de `feedback-fabos-verify-pixels`, où un balisage présent ne prouvait pas qu'on le voyait |
+| **S168** | **Kiosks et navigation** : aucun favicon, logo ou couleur en dur ne survit dans un kiosk ; ordre et visibilité des entrées de menu, destinations limitées aux routes autorisées, entrées système protégées | 🔴 Une page dépubliée rétablit l'accueil FabOS **avec trace**, sans page blanche ni boucle de redirection |
 
 ### ✅ S165 — un réglage qu'on ne pouvait pas régler depuis l'écran qui le proposait
 
@@ -1312,20 +1313,49 @@ ne connaît pas les thèmes. Le brouillon de l'opérateur n'est ni lu ni écrit.
 ✅ Résidu vérifié après coup : **0 ligne** en base, **0 fichier** dans
 `public/uploads/identity/`.
 
-## Ce que l'opérateur vérifie — Phase M
+### ✅ S166a — le compte de la feuille de route était faux DANS LES DEUX SENS
 
-| Session | Où | Ce qui doit être vrai |
-|---|---|---|
-| **S165** ✅ | `/admin/themes`, section « Médiathèque d'identité » | Un champ de fichier et un bouton Téléverser. ⚠️ Vide au départ : le site affiche le logo livré, et l'écran le dit |
-| **S165** ✅ | y déposer un PNG | La vignette apparaît, sur un damier — un logo transparent sur fond blanc a l'air d'un logo blanc |
-| **S165** ✅ | essayer d'y déposer un SVG | 🔴 **Refusé, avec la raison** : un SVG peut contenir du code |
-| **S165** ✅ | le champ « Logo du site » | Une **liste** de ce qui est dans la médiathèque, plus « — logo livré — ». Plus de nom de fichier à taper |
-| **S165** ✅ | choisir le logo, enregistrer le brouillon, puis revenir à la médiathèque | L'image porte « Utilisée par le thème » et **n'a plus de bouton Supprimer** — le brouillon compte autant que le publié |
-| **S165** ✅ | publier, puis regarder l'en-tête du site | Le logo a changé partout. ⚠️ Un seul gabarit rend le logo, c'est ce qui rend le réglage tenable |
-| **S165** ✅ | la sonde | `php bin/console app:s165:media-probe` — 18 assertions, médiathèque rendue vide, thème non touché |
-| **S166** | L'**éditeur guidé** : palette avec contrastes, rayon / typo / densité en préréglages, variantes de logo (clair, sombre, compact, favicon, image de partage). 🔴 **ET LES 66 COULEURS DE MARQUE ÉCRITES EN DUR**, mesurées le 2026-09-05 : `#9E1B56` et `#6b7280` apparaissent **66 fois dans les gabarits du SITE** — `register` 11, `_formation_visual` 10, `person-booking`, `login`, `machine-detail` 6 chacun. Un éditeur de palette qui laisse 66 endroits ignorer la palette ne change pas le thème, il le contredit. ⚠️ **Les 41 occurrences des E-MAILS ne comptent pas** : un client de messagerie ne sait pas lire `var()`, la couleur littérale y est la bonne réponse | 🔴 **Le contraste est MESURÉ, pas affirmé** — c'est déjà la pratique du dépôt (7,65:1 relevé sur une proposition de tableau de bord). Une palette qui échoue est refusée, pas signalée |
-| **S167** | L'**aperçu sur de VRAIES surfaces** : accueil, catalogue, détail, un écran admin, un kiosk — desktop et mobile, clair et sombre. Publication **atomique** des réglages ET des fichiers | 🔴 L'aperçu rend les vraies pages, pas des vignettes dessinées à la main : c'est la leçon de `feedback-fabos-verify-pixels`, où un balisage présent ne prouvait pas qu'on le voyait |
-| **S168** | **Kiosks et navigation** : aucun favicon, logo ou couleur en dur ne survit dans un kiosk ; ordre et visibilité des entrées de menu, destinations limitées aux routes autorisées, entrées système protégées | 🔴 Une page dépubliée rétablit l'accueil FabOS **avec trace**, sans page blanche ni boucle de redirection |
+🔴 **« 66 couleurs en dur », mesuré le 2026-09-05. Le vrai chiffre est 68**, et
+l'écart est instructif — c'est exactement pourquoi un outil valait mieux qu'un
+comptage :
+- **trop bas** : il ne cherchait que `#9E1B56`, pas `rgba(158, 27, 86, …)`, qui
+  est la MÊME couleur écrite autrement — **quinze occurrences de plus**, dont les
+  puces de `/machines/{id}` et de `badge-detail` ;
+- **trop haut** : il comptait des littéraux CITÉS DANS DES COMMENTAIRES, qui
+  documentent une correction passée, et ceux d'`event-ticket.html.twig`.
+⚠️ Et il avait déjà dérivé : 70 hex le 2026-09-15 contre 66 dix jours plus tôt.
+Sans garde, ils reviennent.
+
+🔴 **Le CONTEXTE décide du jeton, et c'est là qu'est le vrai défaut.** Une couleur
+de TEXTE devient `--color-primary-text`, qui s'éclaircit en thème sombre ; un
+fond, une bordure, un contour ou un `fill` SVG devient `--color-primary`, qui ne
+bouge pas. Les confondre rend du bordeaux sur du bordeaux — c'est le trou de mode
+sombre que `admin-loans` documentait déjà pour un seul `style="color:#6b7280"`.
+
+⚠️ **`#7a1542` n'était pas dans le compte et méritait d'y être** : c'est la fin du
+dégradé du primaire. Mesuré plutôt que deviné — 158·0,78 = 123 (0x7B ≈ 0x7A),
+27·0,78 = 21 (0x15), 86·0,78 = 67 (0x43 ≈ 0x42) — donc
+`color-mix(in srgb, var(--color-primary) 78%, black)`, à un point près.
+
+🔴 **TROIS exclusions, et chacune tient :**
+- `templates/emails/` — un client de messagerie ne sait pas lire `var()`. Le
+  littéral y est la BONNE réponse, pas une dette ;
+- `event-ticket.html.twig` — délibérément autonome (« no site stylesheet »),
+  parce qu'un billet s'ouvre sur un téléphone avec un mauvais réseau et s'imprime
+  sur ce qui traîne. Sans feuille du site, il n'y a pas de jeton à lire ;
+- `admin-design.html.twig` — c'est la page qui DOCUMENTE le système : les hex y
+  sont le SUJET, dans des `<code>`.
+🔴 **Cette dernière a été apprise en la cassant.** La première passe a réécrit une
+phrase de cette page et l'a rendue absurde : « les trois icônes portaient
+`stroke="var(--color-primary)"`, le hex littéral de l'accent ». Repérée à la
+relecture du diff, annulée, et l'exclusion est maintenant dans l'outil avec cette
+raison écrite.
+
+🅿️ **Ce qui n'est PAS vérifié : les pixels.** `app:render` prouve que le rendu ne
+contient plus un seul littéral et porte bien les jetons — il ne prouve pas qu'on
+VOIE la bonne couleur. `color-mix()` en particulier est écarté en bloc par un
+moteur qui ne le connaît pas. Le dépôt s'en sert déjà dans `style.css` et
+`components.css`, donc le pari est le même qu'avant ; il reste à le regarder.
 
 ## 🔴 Les pièges que cette phase va rencontrer, nommés d'avance
 
@@ -1435,6 +1465,20 @@ menu, images. Si cette ligne est encore là dans trois mois, c'est que la règle
 ⚠️ Non traduite, comme `/admin/pages-manquantes` : un écran d'outillage caché
 derrière le drapeau n'entre pas dans les cinq catalogues. Seule l'entrée de menu
 l'est.
+
+## Ce que l'opérateur vérifie — Phase M
+
+| Session | Où | Ce qui doit être vrai |
+|---|---|---|
+| **S165** ✅ | `/admin/themes`, section « Médiathèque d'identité » | Un champ de fichier et un bouton Téléverser. ⚠️ Vide au départ : le site affiche le logo livré, et l'écran le dit |
+| **S165** ✅ | y déposer un PNG | La vignette apparaît, sur un damier — un logo transparent sur fond blanc a l'air d'un logo blanc |
+| **S165** ✅ | essayer d'y déposer un SVG | 🔴 **Refusé, avec la raison** : un SVG peut contenir du code |
+| **S165** ✅ | le champ « Logo du site » | Une **liste** de ce qui est dans la médiathèque, plus « — logo livré — ». Plus de nom de fichier à taper |
+| **S165** ✅ | choisir le logo, enregistrer le brouillon, puis revenir à la médiathèque | L'image porte « Utilisée par le thème » et **n'a plus de bouton Supprimer** — le brouillon compte autant que le publié |
+| **S165** ✅ | publier, puis regarder l'en-tête du site | Le logo a changé partout. ⚠️ Un seul gabarit rend le logo, c'est ce qui rend le réglage tenable |
+| **S165** ✅ | la sonde | `php bin/console app:s165:media-probe` — 18 assertions, médiathèque rendue vide, thème non touché |
+| **S166** ⏳ | `/machines/{id}`, `/login`, `/register`, `/`, en thème **SOMBRE** | 🅿️ **La ligne que je n'ai pas pu mesurer.** Les puces de matière, les icônes et les libellés d'accent doivent être LISIBLES — plus de bordeaux sur fond sombre. Le rendu ne porte plus aucun littéral, mais seul un œil voit une couleur |
+| **S166** ⏳ | n'importe quelle page publique | Les icônes et les pastilles suivent la couleur principale du thème. Changer `primaryColor` dans `/admin/themes` doit les faire bouger TOUTES |
 
 # Phase N — le cleanup (S169–S170)
 
