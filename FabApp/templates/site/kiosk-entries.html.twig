@@ -12,7 +12,7 @@
     <meta name="robots" content="noindex, nofollow, noarchive">
     <meta http-equiv="refresh" content="15">
     <title>{{ venue_label() }} — {{ 'kiosk.entries_title'|trans }}</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    {% include 'site/_favicon.html.twig' %}
     <link rel="stylesheet" href="{{ asset('css/kiosk.css') ~ '?v=' ~ css_version }}">
     <style>        body { min-height: 100vh; padding: 3vh 4vw; }
         .entries { display: flex; flex-direction: column; gap: 1.4vh; }

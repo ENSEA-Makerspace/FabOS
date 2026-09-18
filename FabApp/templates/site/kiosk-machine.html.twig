@@ -12,7 +12,7 @@
     <meta name="robots" content="noindex, nofollow, noarchive">
     <meta http-equiv="refresh" content="60">
     <title>{{ venue_label() }} — {{ machine.name }}</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    {% include 'site/_favicon.html.twig' %}
     <link rel="stylesheet" href="{{ asset('css/kiosk.css') ~ '?v=' ~ css_version }}">
     <style>        body { height: 100vh; overflow: hidden; }
         .station { height: 100vh; display: grid; grid-template-columns: 1.05fr 1fr; }

@@ -25,7 +25,7 @@
        the 23 pages already extending this file had no icon at all — and a page
        converted to the shell would have lost one. `base_public.html.twig` has
        carried it all along; this is the same line. #}
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    {% include 'site/_favicon.html.twig' %}
     {# AssetMapper — Stimulus seul, Turbo délibérément désactivé (assets/controllers.json).
 
        ⚠️ Ceci ne remplace PAS les <script src="{{ asset('js/...') }}"> existants et ne

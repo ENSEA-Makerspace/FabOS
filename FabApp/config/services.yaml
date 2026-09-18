@@ -63,6 +63,13 @@ services:
         arguments:
             $uploadDir: '%kernel.project_dir%/public/uploads/identity'
 
+    # ⚠️ La sonde S168 compte les émissions de `rel="icon"` dans les SOURCES :
+    # rendre les huit pages demanderait huit décors, dont un kiosque qui n'existe
+    # que pour un lieu donné. Il lui faut donc le dossier des gabarits.
+    App\Command\S168FaviconProbeCommand:
+        arguments:
+            $templateDir: '%kernel.project_dir%/templates'
+
     # Serves the repo's own docs/*.md; needs the project dir, not autowirable.
     App\Service\MarkdownDocService:
         arguments:

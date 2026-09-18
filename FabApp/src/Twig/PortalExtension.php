@@ -56,6 +56,10 @@ final class PortalExtension extends AbstractExtension
             // rend le chemin public complet, ou `null`. Garder un alias aurait
             // laissé les deux vocabulaires cohabiter sans que rien ne tranche.
             new TwigFunction('site_logo', $this->siteLogo(...)),
+            // ⚠️ Même forme que `site_logo()` : un chemin public, ou `null` pour
+            // « rends celle livrée ». Un second vocabulaire pour la même idée
+            // finirait par diverger.
+            new TwigFunction('site_favicon', $this->siteFavicon(...)),
             new TwigFunction('portal_primary_color', $this->primaryColor(...)),
             /*
              * 🔴 **S166b — le jeton de TEXTE d'accent, calculé en PHP.** En thème
@@ -109,6 +113,14 @@ final class PortalExtension extends AbstractExtension
     public function siteLogo(): ?string
     {
         $value = $this->value('site_logo_path', 'logoPath');
+
+        return $value === '' ? null : $this->media->assetPath($value);
+    }
+
+    /** Le chemin public de l'icône d'onglet choisie, ou `null`. */
+    public function siteFavicon(): ?string
+    {
+        $value = $this->value('site_favicon_path', 'faviconPath');
 
         return $value === '' ? null : $this->media->assetPath($value);
     }

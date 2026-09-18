@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ 'event.ticket.title'|trans }}{% if event is defined and event %} — {{ event.titre }}{% endif %}</title>
+    {# ⚠️ **Pas `_favicon.html.twig`, et pour la même raison que le reste de ce
+       fichier** : un billet est autonome. Il ne lit ni la feuille du site ni la
+       médiathèque, parce qu'il s'ouvre sur un téléphone avec un mauvais réseau et
+       s'imprime sur ce qui traîne. #}
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
     <meta name="robots" content="noindex, nofollow">
     <style>

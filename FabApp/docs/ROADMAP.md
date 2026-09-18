@@ -1259,7 +1259,37 @@ intentions).
 | **S165** ✅ | **Livré le 2026-09-10** : la médiathèque d'identité. Téléversement depuis l'écran, nommage serveur, identifiant stable, suppression refusée tant qu'un thème référence le fichier. `portal_logo_path` → `site_logo` | ✅ Sonde `app:s165:media-probe`, 18 assertions, **médiathèque rendue vide et thème non touché** |
 | **S166** ⏳ | **Les 68 littéraux de marque sont TOMBÉS le 2026-09-15** ; **le contraste REFUSE le 2026-09-18**. 🅿️ **Reste** : préréglages (rayon / typo / densité) et variantes de logo | ✅ `tools/brand_literals.py` (68 → 0, deux sens) et `app:s166:contrast-probe` (27 assertions, **rien écrit**) |
 | **S167** ✅ | **Livré le 2026-09-18** : l'aperçu rend de VRAIES pages (accueil + catalogue, desktop et mobile, clair et sombre) ; la publication devient atomique et refuse un logo disparu | ✅ Sonde `app:s167:theme-probe` (14 assertions, thème remis en place) + trois mesures `app:render` |
-| **S168** | **Kiosks et navigation** : aucun favicon, logo ou couleur en dur ne survit dans un kiosk ; ordre et visibilité des entrées de menu, destinations limitées aux routes autorisées, entrées système protégées | 🔴 Une page dépubliée rétablit l'accueil FabOS **avec trace**, sans page blanche ni boucle de redirection |
+| **S168** ⏳ | **L'icône d'onglet devient THÉMABLE le 2026-09-18** — elle était écrite en dur dans huit gabarits, dont les quatre kiosques. 🅿️ **Reste** : l'ordre et la visibilité des entrées de menu, et la page dépubliée qui rétablit l'accueil avec trace | ✅ Sonde `app:s168:favicon-probe`, 13 assertions, **rien écrit** |
+
+### ✅ S168a — l'icône que personne ne pouvait changer
+
+🔴 **`asset('images/favicon.png')` était écrit à la main dans HUIT gabarits**,
+dont les quatre kiosques. Un labo qui posait son logo dans `/admin/themes`
+gardait donc l'icône de FabOS dans l'onglet **et sur le mur de son atelier** — la
+moitié la plus visible d'une identité, et la seule que personne ne pensait à
+changer parce qu'elle n'était proposée nulle part.
+
+✅ **Un seul gabarit l'écrit désormais**, comme pour le logo : c'est ce qui rend le
+réglage tenable. Un second `<link rel="icon">` ailleurs serait une icône qui ne
+change pas quand on change l'icône.
+🅿️ **Une exception, attendue explicitement par la sonde** : `event-ticket`, qui ne
+lit ni la feuille du site ni la médiathèque, parce qu'un billet s'ouvre sur un
+téléphone avec un mauvais réseau et s'imprime sur ce qui traîne.
+
+⚠️ **La sonde compte les émissions dans les SOURCES, pas dans un rendu** — rendre
+les huit pages demanderait huit décors, dont un kiosque qui n'existe que pour un
+lieu donné. Ce qui est vérifiable partout et sans décor : qu'il ne reste qu'un
+seul endroit qui écrive cette balise.
+
+✅ **L'icône est protégée comme le logo** : la médiathèque refuse de supprimer une
+image que le thème publié **ou** le brouillon référence — les deux valeurs
+comptent maintenant pour quatre.
+
+🅿️ **Aucune variante n'est GÉNÉRÉE.** Une image de 2400 px servie comme icône
+marche — les navigateurs la réduisent — mais elle coûte un téléchargement inutile
+sur chaque page. Une vraie variante 32 px est le travail des « variantes de logo »
+que S166 garde en réserve, et le dire vaut mieux que de laisser croire que c'est
+fait.
 
 ### ✅ S165 — un réglage qu'on ne pouvait pas régler depuis l'écran qui le proposait
 
@@ -1589,6 +1619,10 @@ l'est.
 | **S167** ✅ | changer la couleur du brouillon **sans publier**, puis prévisualiser | Les quatre cadres bougent. ⚠️ Le site public, lui, ne bouge pas : le brouillon n'est pas publié |
 | **S167** ✅ | ouvrir `/?theme=draft` **déconnecté** | Le site normal. Le brouillon ne fuit pas |
 | **S167** ✅ | la sonde | `php bin/console app:s167:theme-probe` — 14 assertions, thème remis à son état de départ |
+| **S168** ✅ | `/admin/themes`, champ « Icône d'onglet » | Une **liste** de la médiathèque, comme le logo. Vide = celle du produit |
+| **S168** ✅ | choisir une icône, publier, puis recharger n'importe quelle page | L'onglet du navigateur change. ⚠️ Un navigateur met une icône en cache plus longtemps que tout le reste : forcer le rechargement |
+| **S168** ✅ | `/kiosk/entries` sur le mur | **La même icône.** C'était le vrai trou : un kiosque en plein écran montre son onglet à tout l'atelier |
+| **S168** ✅ | la sonde | `php bin/console app:s168:favicon-probe` — 13 assertions |
 
 # Phase N — le cleanup (S169–S170)
 

@@ -14,7 +14,7 @@
        appears without anyone touching the machine. #}
     <meta http-equiv="refresh" content="120">
     <title>{{ venue_label() }} — {{ 'kiosk.events_title'|trans }}</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    {% include 'site/_favicon.html.twig' %}
     <link rel="stylesheet" href="{{ asset('css/kiosk.css') ~ '?v=' ~ css_version }}">
     <style>
         /* Everything is sized in vw/vh: this renders on whatever screen is

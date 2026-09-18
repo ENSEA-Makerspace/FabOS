@@ -28,7 +28,7 @@ final class ThemeManager
     ) {
     }
 
-    /** @return array{orgName: string, venueLabel: string, primaryColor: string, logoPath: string} */
+    /** @return array{orgName: string, venueLabel: string, primaryColor: string, logoPath: string, faviconPath: string} */
     public function published(): array
     {
         return [
@@ -36,6 +36,10 @@ final class ThemeManager
             'venueLabel' => $this->settings->getVenueLabel(),
             'primaryColor' => $this->settings->get('site_primary_color') ?? '',
             'logoPath' => $this->settings->get('site_logo_path') ?? '',
+            // 🔴 **S168 — l'icône d'onglet était écrite en dur dans HUIT
+            // gabarits**, dont les quatre kiosques. Un labo qui posait son logo
+            // gardait l'icône de FabOS sur le mur de son atelier.
+            'faviconPath' => $this->settings->get('site_favicon_path') ?? '',
         ];
     }
 
@@ -54,6 +58,7 @@ final class ThemeManager
             'venueLabel' => mb_substr(trim((string) ($input['venueLabel'] ?? '')), 0, 80),
             'primaryColor' => trim((string) ($input['primaryColor'] ?? '')),
             'logoPath' => trim((string) ($input['logoPath'] ?? '')),
+            'faviconPath' => trim((string) ($input['faviconPath'] ?? '')),
         ];
         if ($draft['orgName'] === '' || $draft['venueLabel'] === '') {
             throw new \InvalidArgumentException('Les deux noms publics sont obligatoires.');
@@ -79,8 +84,10 @@ final class ThemeManager
         // passage est aussi celui d'un import ou d'une commande, et une valeur
         // qui atteindrait `asset()` sans être un mediaId serait un chemin libre
         // de retour.
-        if ($draft['logoPath'] !== '' && !SiteMediaLibrary::isMediaId($draft['logoPath'])) {
-            throw new \InvalidArgumentException('Le logo doit être choisi dans la médiathèque.');
+        foreach (['logoPath' => 'Le logo', 'faviconPath' => 'L\'icône d\'onglet'] as $field => $label) {
+            if ($draft[$field] !== '' && !SiteMediaLibrary::isMediaId($draft[$field])) {
+                throw new \InvalidArgumentException($label . ' doit être choisi dans la médiathèque.');
+            }
         }
         $this->settings->set(self::DRAFT_KEY, json_encode($draft, JSON_THROW_ON_ERROR));
 
@@ -111,8 +118,10 @@ final class ThemeManager
     {
         $draft = $this->draft();
 
-        if ($draft['logoPath'] !== '' && $this->media->assetPath($draft['logoPath']) === null) {
-            throw new \InvalidArgumentException('Le logo choisi n\'existe plus dans la médiathèque. Rien n\'a été publié.');
+        foreach (['logoPath' => 'Le logo', 'faviconPath' => 'L\'icône d\'onglet'] as $field => $label) {
+            if ($draft[$field] !== '' && $this->media->assetPath($draft[$field]) === null) {
+                throw new \InvalidArgumentException($label . ' choisi n\'existe plus dans la médiathèque. Rien n\'a été publié.');
+            }
         }
 
         $this->settings->transactional(function () use ($draft): void {
@@ -120,6 +129,7 @@ final class ThemeManager
             $this->settings->set('venue_label', $draft['venueLabel']);
             $this->settings->set('site_primary_color', $draft['primaryColor']);
             $this->settings->set('site_logo_path', $draft['logoPath']);
+            $this->settings->set('site_favicon_path', $draft['faviconPath']);
         });
     }
 
@@ -163,7 +173,9 @@ final class ThemeManager
     public function referencedMediaIds(): array
     {
         $ids = [];
-        foreach ([$this->published()['logoPath'] ?? '', $this->draft()['logoPath'] ?? ''] as $value) {
+        $published = $this->published();
+        $draft = $this->draft();
+        foreach ([$published['logoPath'] ?? '', $draft['logoPath'] ?? '', $published['faviconPath'] ?? '', $draft['faviconPath'] ?? ''] as $value) {
             $value = trim((string) $value);
             if ($value !== '' && !in_array($value, $ids, true)) {
                 $ids[] = $value;

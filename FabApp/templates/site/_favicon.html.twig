@@ -1,0 +1,24 @@
+{#
+    L'ICÔNE D'ONGLET, CENTRALISÉE — et depuis S168, elle se CHANGE depuis l'écran.
+
+    🔴 **Huit gabarits écrivaient `asset('images/favicon.png')` à la main**, dont
+    les quatre kiosques. Un labo qui pose son logo dans `/admin/themes` gardait
+    donc l'icône de FabOS dans l'onglet et sur le mur — la moitié la plus visible
+    d'une identité, et la seule que personne ne pensait à changer parce qu'elle
+    n'était proposée nulle part.
+
+    ⚠️ **`null` est le cas NORMAL** : personne n'a choisi d'icône, on rend celle
+    livrée. C'est aussi ce qu'on rend tant que la médiathèque n'est pas migrée.
+
+    ⚠️ **Le `?v=` ne va que sur le fichier livré.** Une image de médiathèque porte
+    un nom unique et immuable — son URL change quand l'image change. Le fichier
+    livré, lui, garde son nom pour toujours, et un navigateur met une icône en
+    cache plus longtemps que n'importe quoi d'autre.
+
+    🅿️ **Ce gabarit ne REDIMENSIONNE rien.** Une image de 2400 px servie comme
+    icône marche — les navigateurs la réduisent — mais elle coûte un
+    téléchargement inutile sur chaque page. Générer une vraie variante 32 px est
+    le travail des « variantes de logo » que S166 garde en réserve.
+#}
+{% set favicon = site_favicon() %}
+<link rel="icon" type="image/png" href="{{ favicon ? asset(favicon) : asset('images/favicon.png') ~ '?v=20260706-3' }}">

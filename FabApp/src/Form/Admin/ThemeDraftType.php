@@ -91,6 +91,20 @@ final class ThemeDraftType extends AbstractType
                 'required' => false,
                 'placeholder' => 'admin_themes.logo_none',
                 'choices' => $this->logoChoices(),
+            ])
+            /*
+             * 🔴 **S168 — l'icône d'onglet, qui n'était proposée NULLE PART.**
+             * Huit gabarits l'écrivaient en dur, dont les quatre kiosques : un
+             * labo qui posait son logo gardait l'icône de FabOS sur le mur de son
+             * atelier. Même liste que le logo — c'est la même médiathèque, et une
+             * seconde source d'images serait un second endroit à tenir.
+             */
+            ->add('faviconPath', ChoiceType::class, [
+                'label' => 'admin_themes.favicon_path',
+                'help' => 'admin_themes.favicon_help',
+                'required' => false,
+                'placeholder' => 'admin_themes.logo_none',
+                'choices' => $this->logoChoices(),
             ]);
     }
 

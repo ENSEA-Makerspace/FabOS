@@ -62,7 +62,7 @@
        reinvents. It is token-only and adds no literal colours. #}
     <link rel="stylesheet" href="{{ asset('css/components.css') ~ '?v=' ~ css_version }}">
     {%- block stylesheets %}{% endblock %}
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    {% include 'site/_favicon.html.twig' %}
     {%- block page_styles %}{% endblock %}
     {# AssetMapper — Stimulus seul, Turbo délibérément désactivé (assets/controllers.json).
 
