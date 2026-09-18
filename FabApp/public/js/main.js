@@ -75,7 +75,17 @@ window.FabosTheme = (() => {
         mediaQuery.addListener(handleSystemChange);
     }
 
-    apply(getStoredPreference(), { persist: false });
+    /* 🔴 **S167 — l'aperçu de thème VERROUILLE le thème posé par le serveur.**
+       Sans ce test, les quatre cadres de la grille d'aperçu — qui partagent le
+       même `localStorage` — se repeindraient tous dans la préférence de
+       l'opérateur au chargement, et la moitié sombre de l'aperçu serait un
+       mensonge. Le verrou ne vaut que pour les pages rendues avec le paramètre
+       d'aperçu, réservé aux administrateurs. */
+    if (!document.documentElement.dataset.themeLocked) {
+        apply(getStoredPreference(), { persist: false });
+    } else {
+        currentPreference = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+    }
 
     return { apply, getPreference, getTheme };
 })();

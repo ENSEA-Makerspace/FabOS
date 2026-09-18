@@ -1258,7 +1258,7 @@ intentions).
 |---|---|---|
 | **S165** ✅ | **Livré le 2026-09-10** : la médiathèque d'identité. Téléversement depuis l'écran, nommage serveur, identifiant stable, suppression refusée tant qu'un thème référence le fichier. `portal_logo_path` → `site_logo` | ✅ Sonde `app:s165:media-probe`, 18 assertions, **médiathèque rendue vide et thème non touché** |
 | **S166** ⏳ | **Les 68 littéraux de marque sont TOMBÉS le 2026-09-15** ; **le contraste REFUSE le 2026-09-18**. 🅿️ **Reste** : préréglages (rayon / typo / densité) et variantes de logo | ✅ `tools/brand_literals.py` (68 → 0, deux sens) et `app:s166:contrast-probe` (27 assertions, **rien écrit**) |
-| **S167** | L'**aperçu sur de VRAIES surfaces** : accueil, catalogue, détail, un écran admin, un kiosk — desktop et mobile, clair et sombre. Publication **atomique** des réglages ET des fichiers | 🔴 L'aperçu rend les vraies pages, pas des vignettes dessinées à la main : c'est la leçon de `feedback-fabos-verify-pixels`, où un balisage présent ne prouvait pas qu'on le voyait |
+| **S167** ✅ | **Livré le 2026-09-18** : l'aperçu rend de VRAIES pages (accueil + catalogue, desktop et mobile, clair et sombre) ; la publication devient atomique et refuse un logo disparu | ✅ Sonde `app:s167:theme-probe` (14 assertions, thème remis en place) + trois mesures `app:render` |
 | **S168** | **Kiosks et navigation** : aucun favicon, logo ou couleur en dur ne survit dans un kiosk ; ordre et visibilité des entrées de menu, destinations limitées aux routes autorisées, entrées système protégées | 🔴 Une page dépubliée rétablit l'accueil FabOS **avec trace**, sans page blanche ni boucle de redirection |
 
 ### ✅ S165 — un réglage qu'on ne pouvait pas régler depuis l'écran qui le proposait
@@ -1312,6 +1312,64 @@ SYNTHÉTIQUE à `delete()`, ce que l'API permet justement parce que la médiath�
 ne connaît pas les thèmes. Le brouillon de l'opérateur n'est ni lu ni écrit.
 ✅ Résidu vérifié après coup : **0 ligne** en base, **0 fichier** dans
 `public/uploads/identity/`.
+
+### ✅ S167 — l'aperçu rend les vraies pages, et la publication ne se coupe plus en deux
+
+🔴 **Ce qui était là : une bande DESSINÉE À LA MAIN.** Un `<strong>`, un `<span>`
+et un `<i>` teintés de la couleur du brouillon. Elle prouvait qu'on savait
+dessiner une bande. Elle ne disait rien de ce qu'on veut savoir — si le badigeon
+`!important` de `style.css` repeint l'accent, si un jeton est lu là où on croit,
+si le logo tient dans l'en-tête. C'est la leçon de
+[[feedback-fabos-verify-pixels]], appliquée à l'écran qui en avait le plus besoin.
+
+✅ **Quatre cadres : l'accueil et le catalogue, deux largeurs, deux thèmes.**
+L'accueil porte l'en-tête, le logo et les blocs ; la liste porte les cartes, les
+pastilles et les filtres — l'autre moitié du thème. Deux fois l'accueil n'aurait
+montré qu'une moitié.
+
+🔴 **Le thème sombre de l'aperçu est IMPOSÉ par l'URL, et VERROUILLÉ.** Le thème
+du site est appliqué par `main.js` depuis `localStorage` : quatre cadres dans une
+même page partagent ce stockage, donc afficheraient tous le même thème — et la
+moitié sombre de l'aperçu aurait été un mensonge. `data-theme-locked` dit au
+script de ne pas réécrire ce que le serveur vient de poser.
+
+🔴 **`?theme=draft` est réservé aux administrateurs, et vérifié par la page
+APERÇUE.** Ce sont l'accueil et le catalogue qui liraient le brouillon, et aucun
+des deux n'appartient à l'administration : mettre la garde dans le contrôleur de
+la grille n'aurait protégé que la grille.
+⚠️ Rien n'est mis en session : le mode ne vit que dans l'URL de la requête en
+cours. Un drapeau en session survivrait à la fermeture de l'aperçu et montrerait
+un thème non publié pendant des heures, sans rien qui l'explique.
+
+✅ **Les DEUX moitiés de la garde sont mesurées, par deux outils différents** — la
+sonde n'a pas de session, `app:render` en a une :
+- sans droits : `?theme=draft` ne suffit pas, le mode forcé est nul ;
+- avec droits : `/?theme=draft&theme_mode=dark` rend
+  `<html lang="en" data-theme="dark" data-theme-locked="1">` ;
+- et `/` ordinaire rend `<html lang="en">` — **aucune fuite dans les pages
+  ordinaires**.
+
+🔴 **La publication était QUATRE publications.** Quatre `set()` à la suite : une
+panne entre le deuxième et le troisième laissait le site avec le nouveau nom et
+l'ancienne couleur, à moitié rhabillé, sans moyen de savoir où ça s'était arrêté.
+Une transaction rend l'ensemble atomique.
+🔴 **Et le FICHIER compte autant que les réglages** : publier un logo supprimé
+entre la saisie et la publication poserait une image cassée sur chaque page. On
+refuse AVANT d'écrire — mesuré, avec les quatre réglages publiés vérifiés
+INTACTS après le refus.
+⚠️ La médiathèque interdit déjà de supprimer une image que le brouillon
+référence ; cette garde couvre ce que l'autre ne peut pas voir — une suppression
+en base à la main, une restauration, un fichier parti du disque.
+
+🔴 **Une première version de `transactional()` RÉESSAYAIT hors transaction** quand
+celle-ci échouait — ce qui aurait réécrit par-dessus une transaction partiellement
+appliquée, c'est-à-dire exactement le demi-thème qu'on prétend empêcher. Elle ne
+rattrape plus rien : l'échec remonte, et l'écran dit « rien n'a été publié », ce
+qui est alors la vérité.
+
+✅ **Et la limite notée en S166b tombe** : `--color-primary-text` est maintenant
+émis depuis PHP avec `--color-primary`. Un repli statique ne pouvait pas suivre un
+thème ; celui-ci le suit partout, aperçu compris.
 
 ### ✅ S166b — le contraste est mesuré, et il REFUSE
 
@@ -1526,6 +1584,11 @@ l'est.
 | **S166** ✅ | `/admin/themes`, sous les champs | Deux lignes de contraste **avec leurs nombres** : « Texte blanc sur la couleur 7,65:1 », « Éclaircie, en thème sombre 5,13:1 » |
 | **S166** ✅ | y taper `#4caf50` (un vert clair) et enregistrer | 🔴 **REFUSÉ**, avec le nombre mesuré et le seuil — pas un avertissement qu'on peut ignorer |
 | **S166** ✅ | y taper `#000000` | 🔴 **Refusé aussi**, et c'est le point : il passe le premier contrôle à 21:1 et échoue le second à 3,39:1 |
+| **S167** ✅ | `/admin/themes`, bouton « Prévisualiser » | **Quatre cadres avec de VRAIES pages** : accueil et catalogue, desktop et mobile, clair et sombre. Plus aucune vignette dessinée |
+| **S167** ✅ | le cadre « sombre » | Il est **vraiment** sombre, même si ta préférence est claire — le thème est imposé par l'URL et verrouillé |
+| **S167** ✅ | changer la couleur du brouillon **sans publier**, puis prévisualiser | Les quatre cadres bougent. ⚠️ Le site public, lui, ne bouge pas : le brouillon n'est pas publié |
+| **S167** ✅ | ouvrir `/?theme=draft` **déconnecté** | Le site normal. Le brouillon ne fuit pas |
+| **S167** ✅ | la sonde | `php bin/console app:s167:theme-probe` — 14 assertions, thème remis à son état de départ |
 
 # Phase N — le cleanup (S169–S170)
 

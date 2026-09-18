@@ -23,6 +23,19 @@
         .contrast-rows { display: flex; flex-direction: column; gap: 6px; margin: 4px 0 14px; }
         .contrast-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; }
         .contrast-need { color: var(--color-text-light); }
+        /* L'aperçu sur de vraies surfaces (S167). Les cadres portent une largeur
+           FIXE et sont mis à l'échelle : un cadre « mobile » large de 900 px
+           rendrait la mise en page desktop et ne prouverait rien. */
+        .tp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin: 12px 0 18px; }
+        .tp-frame { margin: 0; border: 1px solid var(--border-color); border-radius: var(--border-radius); overflow: hidden; background: var(--theme-surface); }
+        .tp-frame figcaption { padding: 8px 12px; font-size: 12.5px; color: var(--color-text-light); border-bottom: 1px solid var(--border-color); }
+        .tp-frame iframe { display: block; border: 0; height: 420px; background: #fff; }
+        .tp-frame--desktop iframe { width: 1280px; transform: scale(.32); transform-origin: 0 0; height: 1312px; }
+        .tp-frame--mobile iframe { width: 390px; transform: scale(.62); transform-origin: 0 0; height: 677px; }
+        /* ⚠️ La mise à l'échelle laisse la place d'origine dans le flux : le
+           conteneur doit être ramené à la hauteur VUE, sinon chaque cadre traîne
+           800 px de blanc derrière lui. */
+        .tp-frame--desktop { height: 460px; } .tp-frame--mobile { height: 460px; }
     </style>
 {% endblock %}
 {% block body %}
@@ -72,7 +85,38 @@
                 {% endfor %}
             </div>
 
-            {% if preview %}<section class="theme-preview" style="--theme-preview-accent: {{ draft.primaryColor ?: 'var(--color-primary)' }}"><strong>{{ draft.orgName }} · {{ draft.venueLabel }}</strong><span>{{ 'admin_themes.preview_note'|trans }}</span><i></i></section>{% endif %}
+            {# 🔴 **S167 — l'aperçu rend les VRAIES pages.**
+
+               Ce qui était ici : une bande dessinée à la main, un `<strong>`, un
+               `<span>` et un `<i>` teintés de la couleur du brouillon. Elle
+               prouvait qu'on savait dessiner une bande. Elle ne disait RIEN de ce
+               qu'on veut savoir — si le badigeon `!important` de `style.css`
+               repeint l'accent, si un jeton est lu là où on croit, si le logo
+               tient dans l'en-tête. C'est la leçon de
+               `feedback-fabos-verify-pixels`, appliquée à l'écran qui en a le
+               plus besoin.
+
+               ⚠️ **Quatre cadres : deux largeurs × deux thèmes.** Un aperçu qui
+               ne montre que le clair en grand laisse passer précisément ce que
+               S166 a trouvé — du bordeaux sur un panneau sombre.
+
+               ⚠️ **`?theme=draft` est réservé aux administrateurs**, et vérifié
+               par la page APERÇUE, pas par celle-ci : ce sont l'accueil et le
+               catalogue qui liraient le brouillon, et aucun des deux n'appartient
+               à l'administration. #}
+            {% if preview %}
+                <div class="tp-grid">
+                    {% for frame in preview_frames %}
+                        <figure class="tp-frame tp-frame--{{ frame.width }}">
+                            <figcaption>{{ frame.label|trans }}</figcaption>
+                            {# ⚠️ Pas de `sandbox` : ces pages sont les nôtres, et un
+                               bac à sable couperait le script qui pose le thème. #}
+                            <iframe src="{{ frame.src }}" title="{{ frame.label|trans }}" loading="lazy"></iframe>
+                        </figure>
+                    {% endfor %}
+                </div>
+                <p class="media-hint">{{ 'admin_themes.preview_note'|trans }}</p>
+            {% endif %}
             <div class="admin-actions">
                 <button class="btn-link" name="action" value="save">{{ 'admin_themes.save'|trans }}</button>
                 <button class="btn-link" name="action" value="preview">{{ 'admin_themes.preview'|trans }}</button>

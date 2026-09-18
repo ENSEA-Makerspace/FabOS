@@ -45,7 +45,12 @@
    today; the door is open so the next such page does not copy this file again.
 #}
 <!DOCTYPE html>
-<html lang="{{ app.request.locale }}"{% if html_attrs is defined and html_attrs %} {{ html_attrs|raw }}{% endif %}>
+{%- set forced_theme = theme_forced_mode() -%}
+{# 🔴 **L'aperçu impose son thème, et le VERROUILLE (S167)** — voir la note
+   identique dans `base.html.twig`. Sans le verrou, `main.js` réécrirait le thème
+   depuis `localStorage` au chargement, et les quatre cadres de la grille
+   d'aperçu, qui partagent ce stockage, afficheraient tous la même chose. #}
+<html lang="{{ app.request.locale }}"{% if forced_theme %} data-theme="{{ forced_theme }}" data-theme-locked="1"{% endif %}{% if html_attrs is defined and html_attrs %} {{ html_attrs|raw }}{% endif %}>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

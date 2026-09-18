@@ -10,7 +10,17 @@
    site keeps rendering byte-identical markup. #}
 {% set portal_color = portal_primary_color() %}
 {% if portal_color %}
-    <style>:root { --color-primary: {{ portal_color }}; --border-color-primary: {{ portal_color }}; }</style>
+    {# 🔴 **`--color-primary-text` est émis AUSSI, et calculé en PHP (S166b/S167).**
+       `style.css` le dérive en thème sombre avec `color-mix()` et garde un repli
+       statique — or un repli statique ne peut pas suivre un thème : sur un moteur
+       sans `color-mix()`, un labo qui change sa couleur gardait l'accent de
+       FabOS. Calculé ici, il suit la palette partout, et l'aperçu montre la même
+       chose que la publication.
+       ⚠️ En thème CLAIR le jeton vaut la couleur elle-même ; ce n'est qu'en
+       sombre qu'il s'éclaircit, d'où les deux règles. #}
+    <style>:root { --color-primary: {{ portal_color }}; --border-color-primary: {{ portal_color }}; --color-primary-text: {{ portal_color }}; }
+    {%- set portal_text = portal_primary_text() -%}
+    {%- if portal_text %} html[data-theme="dark"] { --color-primary-text: {{ portal_text }}; }{% endif %}</style>
 {% endif %}
 
 <div class="alert-bar">

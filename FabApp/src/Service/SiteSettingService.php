@@ -416,6 +416,29 @@ final class SiteSettingService
         return is_string($value) ? $value : null;
     }
 
+    /**
+     * Exécute des écritures de réglages **en tout ou rien** (S167).
+     *
+     * 🔴 **Publier un thème, c'est quatre écritures qui n'ont de sens
+     * qu'ensemble.** Sans transaction, une panne au milieu laisse le site avec le
+     * nouveau nom et l'ancienne couleur — à moitié rhabillé, sans que rien ne le
+     * dise. La méthode vit ici et pas dans `ThemeManager` parce que c'est ce
+     * dépôt qui connaît la connexion, et parce que la prochaine publication
+     * groupée aura le même besoin.
+     *
+     * 🔴 **Elle ne RATTRAPE rien, délibérément.** Une première version réessayait
+     * hors transaction quand celle-ci échouait — ce qui aurait réécrit par-dessus
+     * une transaction partiellement appliquée, c'est-à-dire exactement le
+     * demi-thème qu'on prétend empêcher. L'échec remonte ; l'appelant dit « rien
+     * n'a été publié », ce qui est alors la vérité.
+     */
+    public function transactional(callable $writes): void
+    {
+        $this->db->transactional(static function () use ($writes): void {
+            $writes();
+        });
+    }
+
     public function set(string $key, string $value): void
     {
         $this->db->executeStatement(

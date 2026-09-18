@@ -4,7 +4,14 @@
    this shell never did. It is not cosmetic — `lang` is what a screen reader picks a
    voice from and what a browser offers to translate, so an English admin was being
    read aloud in French. #}
-<html lang="{{ app.request.locale }}">
+{%- set forced_theme = theme_forced_mode() -%}
+{# 🔴 **L'aperçu impose son thème, et le VERROUILLE (S167).** Le thème du site
+   est appliqué par `main.js` depuis `localStorage` : quatre cadres dans la même
+   page d'aperçu partagent le même stockage, donc afficheraient tous le même
+   thème et la moitié sombre de l'aperçu serait un mensonge. `data-theme-locked`
+   dit au script de ne pas réécrire ce que le serveur vient de poser.
+   ⚠️ Vide hors aperçu : aucune page ordinaire ne porte ces attributs. #}
+<html lang="{{ app.request.locale }}"{% if forced_theme %} data-theme="{{ forced_theme }}" data-theme-locked="1"{% endif %}>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

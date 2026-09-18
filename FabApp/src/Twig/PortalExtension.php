@@ -3,6 +3,9 @@
 namespace App\Twig;
 
 use App\Media\SiteMediaLibrary;
+use App\Service\ThemeManager;
+use App\Theme\ContrastGate;
+use App\Theme\ThemePreview;
 use App\Service\SiteSettingService;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
@@ -20,7 +23,26 @@ final class PortalExtension extends AbstractExtension
     public function __construct(
         private readonly SiteSettingService $settings,
         private readonly SiteMediaLibrary $media,
+        private readonly ThemeManager $themes,
+        private readonly ThemePreview $preview,
+        private readonly ContrastGate $contrast,
     ) {
+    }
+
+    /**
+     * La valeur publiée — ou celle du BROUILLON quand on prévisualise (S167).
+     *
+     * ⚠️ **Un seul endroit décide**, pour les trois fonctions. Dupliquer le test
+     * aurait fini par donner un aperçu où le logo suit le brouillon et la couleur
+     * non, ce qui est exactement le genre d'aperçu qui ment.
+     */
+    private function value(string $settingKey, string $draftKey): string
+    {
+        if ($this->preview->isPreviewing()) {
+            return trim((string) ($this->themes->draft()[$draftKey] ?? ''));
+        }
+
+        return trim((string) $this->settings->get($settingKey));
     }
 
     public function getFunctions(): array
@@ -35,12 +57,40 @@ final class PortalExtension extends AbstractExtension
             // laissé les deux vocabulaires cohabiter sans que rien ne tranche.
             new TwigFunction('site_logo', $this->siteLogo(...)),
             new TwigFunction('portal_primary_color', $this->primaryColor(...)),
+            /*
+             * 🔴 **S166b — le jeton de TEXTE d'accent, calculé en PHP.** En thème
+             * sombre, `style.css` le dérive avec `color-mix()` et garde un repli
+             * statique qui, lui, ne peut pas suivre un thème : un labo qui change
+             * sa couleur gardait l'accent de FabOS sur un moteur sans
+             * `color-mix()`. Émis d'ici, il suit la palette partout.
+             */
+            new TwigFunction('portal_primary_text', $this->primaryText(...)),
+            // ⚠️ Rend `null` hors aperçu : hors de la grille, personne n'impose
+            // un thème à personne.
+            new TwigFunction('theme_forced_mode', $this->preview->forcedMode(...)),
         ];
     }
 
     public function name(): string
     {
-        return $this->settings->getOrgName();
+        $preview = $this->preview->isPreviewing() ? trim((string) ($this->themes->draft()['orgName'] ?? '')) : '';
+
+        return $preview !== '' ? $preview : $this->settings->getOrgName();
+    }
+
+    /**
+     * La variante d'accent LISIBLE sur le panneau sombre, ou `null`.
+     *
+     * ⚠️ `null` quand aucune couleur n'est choisie : `style.css` garde alors ses
+     * deux déclarations, qui sont justes pour la marque livrée. Émettre quelque
+     * chose ici dans ce cas ne changerait rien et ferait un `<style>` de plus sur
+     * chaque page.
+     */
+    public function primaryText(): ?string
+    {
+        $value = $this->primaryColor();
+
+        return $value === null ? null : $this->contrast->darkVariant($value);
     }
 
     /**
@@ -58,7 +108,7 @@ final class PortalExtension extends AbstractExtension
      */
     public function siteLogo(): ?string
     {
-        $value = trim((string) $this->settings->get('site_logo_path'));
+        $value = $this->value('site_logo_path', 'logoPath');
 
         return $value === '' ? null : $this->media->assetPath($value);
     }
@@ -74,7 +124,7 @@ final class PortalExtension extends AbstractExtension
      */
     public function primaryColor(): ?string
     {
-        $value = trim((string) $this->settings->get('site_primary_color'));
+        $value = $this->value('site_primary_color', 'primaryColor');
 
         return preg_match('/^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i', $value) === 1 ? $value : null;
     }

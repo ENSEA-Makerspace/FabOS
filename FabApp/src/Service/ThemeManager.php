@@ -24,6 +24,7 @@ final class ThemeManager
     public function __construct(
         private readonly SiteSettingService $settings,
         private readonly ContrastGate $contrast,
+        private readonly SiteMediaLibrary $media,
     ) {
     }
 
@@ -86,13 +87,40 @@ final class ThemeManager
         return $draft;
     }
 
+    /**
+     * Publie — **les quatre réglages ET le fichier, ou rien** (S167).
+     *
+     * 🔴 **Quatre `set()` à la suite, c'était quatre publications.** Une panne
+     * entre le deuxième et le troisième laissait le site avec le nouveau nom et
+     * l'ancienne couleur : à moitié rhabillé, sans que rien ne le dise, et sans
+     * moyen de savoir où ça s'était arrêté. La transaction rend l'ensemble
+     * atomique — c'est le sens exact de « publication atomique » dans le plan.
+     *
+     * 🔴 **Et le FICHIER compte autant que les réglages.** Publier un logo qui a
+     * été supprimé de la médiathèque entre la saisie et la publication poserait
+     * une image cassée sur chaque page, découverte par les visiteurs. On refuse
+     * AVANT d'écrire quoi que ce soit.
+     * ⚠️ La médiathèque interdit déjà de supprimer une image référencée par le
+     * brouillon — cette garde-ci couvre ce que l'autre ne peut pas voir : une
+     * suppression en base à la main, une restauration, un fichier disparu du
+     * disque.
+     *
+     * @throws \InvalidArgumentException quand le logo du brouillon ne résout plus
+     */
     public function publish(): void
     {
         $draft = $this->draft();
-        $this->settings->set('org_name', $draft['orgName']);
-        $this->settings->set('venue_label', $draft['venueLabel']);
-        $this->settings->set('site_primary_color', $draft['primaryColor']);
-        $this->settings->set('site_logo_path', $draft['logoPath']);
+
+        if ($draft['logoPath'] !== '' && $this->media->assetPath($draft['logoPath']) === null) {
+            throw new \InvalidArgumentException('Le logo choisi n\'existe plus dans la médiathèque. Rien n\'a été publié.');
+        }
+
+        $this->settings->transactional(function () use ($draft): void {
+            $this->settings->set('org_name', $draft['orgName']);
+            $this->settings->set('venue_label', $draft['venueLabel']);
+            $this->settings->set('site_primary_color', $draft['primaryColor']);
+            $this->settings->set('site_logo_path', $draft['logoPath']);
+        });
     }
 
     /**

@@ -346,6 +346,13 @@ final class AdminController extends AbstractController
                 // Ce que les contraintes n'ont pas vu — le point de passage a le
                 // dernier mot, et son message se pose sur le formulaire.
                 $form->addError(new FormError($exception->getMessage()));
+            } catch (\Throwable) {
+                // ⚠️ **S167 — une publication qui échoue se DIT.** Elle est
+                // désormais transactionnelle : si elle lève, rien n'a été écrit,
+                // et c'est ce qu'il faut annoncer. Laisser passer un 500 sur un
+                // écran d'administration dirait « cassé » là où la vérité est
+                // « rien n'a bougé ».
+                $form->addError(new FormError('La publication a échoué. Rien n\'a été modifié — le thème publié est intact.'));
             }
         }
 
@@ -365,6 +372,22 @@ final class AdminController extends AbstractController
              * dans le cas le plus courant.
              */
             'contrast' => $contrast->check($themes->draft()['primaryColor'] ?: '#9E1B56'),
+            /*
+             * 🔴 **S167 — de VRAIES pages, pas des vignettes.** Les quatre cadres
+             * sont l'accueil et le catalogue, aux deux largeurs et dans les deux
+             * thèmes : c'est là que se voit ce qu'une vignette dessinée à la main
+             * ne peut pas montrer — le badigeon `!important`, un jeton lu ailleurs
+             * qu'on croit, un logo qui déborde de l'en-tête.
+             * ⚠️ **L'accueil ET une liste**, pas deux fois l'accueil : l'un porte
+             * l'en-tête, le logo et les blocs ; l'autre porte les cartes, les
+             * pastilles et les filtres, qui sont l'autre moitié du thème.
+             */
+            'preview_frames' => $request->query->getBoolean('preview') ? [
+                ['label' => 'admin_themes.frame_home_light', 'width' => 'desktop', 'src' => $this->generateUrl('app_home', ['theme' => 'draft', 'theme_mode' => 'light'])],
+                ['label' => 'admin_themes.frame_home_dark', 'width' => 'desktop', 'src' => $this->generateUrl('app_home', ['theme' => 'draft', 'theme_mode' => 'dark'])],
+                ['label' => 'admin_themes.frame_list_light', 'width' => 'mobile', 'src' => $this->generateUrl('app_machines', ['theme' => 'draft', 'theme_mode' => 'light'])],
+                ['label' => 'admin_themes.frame_list_dark', 'width' => 'mobile', 'src' => $this->generateUrl('app_machines', ['theme' => 'draft', 'theme_mode' => 'dark'])],
+            ] : [],
             // ⚠️ Passé à l'écran pour qu'il ne PROPOSE pas une suppression qui
             // sera refusée : une affordance qui existe et refuse est pire qu'une
             // affordance absente. La garde est refaite côté action, évidemment.
