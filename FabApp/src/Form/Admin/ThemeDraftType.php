@@ -3,12 +3,15 @@
 namespace App\Form\Admin;
 
 use App\Media\SiteMediaLibrary;
+use App\Service\ThemeManager;
+use App\Theme\ContrastGate;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 /**
  * `/admin/themes`, le brouillon de thème (S148, J-22).
@@ -28,8 +31,10 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 final class ThemeDraftType extends AbstractType
 {
-    public function __construct(private readonly SiteMediaLibrary $media)
-    {
+    public function __construct(
+        private readonly SiteMediaLibrary $media,
+        private readonly ContrastGate $contrast,
+    ) {
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -57,10 +62,20 @@ final class ThemeDraftType extends AbstractType
                 'label' => 'admin_themes.primary_color',
                 'required' => false,
                 'attr' => ['maxlength' => 7, 'placeholder' => '#9E1B56'],
-                'constraints' => [new Assert\Regex(
-                    pattern: '/^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i',
-                    message: 'La couleur doit être un code hexadécimal, par exemple #9E1B56.',
-                )],
+                'constraints' => [
+                    new Assert\Regex(
+                        pattern: '/^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i',
+                        message: 'La couleur doit être un code hexadécimal, par exemple #9E1B56.',
+                    ),
+                    /*
+                     * 🔴 **Le contraste est MESURÉ, et il REFUSE (S166).** La
+                     * règle vit dans `ThemeManager`, qui est le point de
+                     * passage ; ce qu'elle fait ici, c'est le dire AVANT, sur le
+                     * champ, sans perdre les trois autres valeurs saisies —
+                     * c'est la leçon de J-22, dont ce formulaire est né.
+                     */
+                    new Assert\Callback($this->assertContrast(...)),
+                ],
             ])
             /*
              * 🔴 **Une LISTE, plus un champ de texte (S165).** Le champ demandait
@@ -77,6 +92,24 @@ final class ThemeDraftType extends AbstractType
                 'placeholder' => 'admin_themes.logo_none',
                 'choices' => $this->logoChoices(),
             ]);
+    }
+
+    /**
+     * ⚠️ **Une couleur VIDE passe** : « rien de choisi » veut dire « garde celle
+     * du produit », qui est mesurée et bonne. Refuser le vide obligerait à
+     * choisir une couleur pour enregistrer un nom d'organisation.
+     */
+    private function assertContrast(?string $value, ExecutionContextInterface $context): void
+    {
+        $value = trim((string) $value);
+        if ($value === '' || ContrastGate::normalise($value) === null) {
+            return;
+        }
+
+        $verdict = $this->contrast->check($value);
+        if (!$verdict['ok']) {
+            $context->buildViolation(ThemeManager::contrastMessage($verdict))->addViolation();
+        }
     }
 
     /**

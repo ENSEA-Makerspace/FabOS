@@ -2849,7 +2849,19 @@ html[data-theme="dark"] {
      *
      * Two declarations on purpose: the first is a static fallback for engines
      * without `color-mix()`, the second wins wherever it is supported. */
-    --color-primary-text: #f3a8c8;
+    /* 🔴 **S166 — les deux déclarations DISAIENT la même chose et ne la disaient
+       pas.** Le repli valait `#f3a8c8`, le `color-mix()` rend `#ce8daa` : deux
+       accents différents selon le moteur, avec deux points d'écart de contraste
+       (7,17:1 contre 5,11:1). Le commentaire d'origine affirmait l'équivalence ;
+       elle n'a jamais été vraie. Le repli porte maintenant la valeur que
+       `color-mix()` produit réellement pour la marque livrée.
+       ⚠️ Tolérance assumée de ±1/255 par canal : PHP et le navigateur n'arrondissent
+       pas 206,5 dans le même sens. Sans effet mesurable sur le contraste.
+       🅿️ **Et un repli STATIQUE ne peut pas suivre un thème** : sur un moteur sans
+       `color-mix()`, un labo qui change sa couleur garde cet accent-ci. C'est la
+       limite de la forme, pas un oubli — la corriger demande d'émettre le jeton
+       calculé depuis PHP, ce que S167 fera avec la publication atomique. */
+    --color-primary-text: #ce8daa;
     --color-primary-text: color-mix(in srgb, var(--color-primary) 50%, white);
 
     --color-danger: #fca5a5;

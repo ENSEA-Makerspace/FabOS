@@ -1257,7 +1257,7 @@ intentions).
 | Session | Livre | Ce qu'on mesure |
 |---|---|---|
 | **S165** ✅ | **Livré le 2026-09-10** : la médiathèque d'identité. Téléversement depuis l'écran, nommage serveur, identifiant stable, suppression refusée tant qu'un thème référence le fichier. `portal_logo_path` → `site_logo` | ✅ Sonde `app:s165:media-probe`, 18 assertions, **médiathèque rendue vide et thème non touché** |
-| **S166** ⏳ | **Les 68 littéraux de marque sont TOMBÉS le 2026-09-15**, et un outil les empêche de revenir. 🅿️ **Reste** : l'éditeur guidé lui-même (palette à contraste mesuré, préréglages, variantes de logo) | ✅ `tools/brand_literals.py`, **vérifié dans les deux sens** : 68 avant, 0 après |
+| **S166** ⏳ | **Les 68 littéraux de marque sont TOMBÉS le 2026-09-15** ; **le contraste REFUSE le 2026-09-18**. 🅿️ **Reste** : préréglages (rayon / typo / densité) et variantes de logo | ✅ `tools/brand_literals.py` (68 → 0, deux sens) et `app:s166:contrast-probe` (27 assertions, **rien écrit**) |
 | **S167** | L'**aperçu sur de VRAIES surfaces** : accueil, catalogue, détail, un écran admin, un kiosk — desktop et mobile, clair et sombre. Publication **atomique** des réglages ET des fichiers | 🔴 L'aperçu rend les vraies pages, pas des vignettes dessinées à la main : c'est la leçon de `feedback-fabos-verify-pixels`, où un balisage présent ne prouvait pas qu'on le voyait |
 | **S168** | **Kiosks et navigation** : aucun favicon, logo ou couleur en dur ne survit dans un kiosk ; ordre et visibilité des entrées de menu, destinations limitées aux routes autorisées, entrées système protégées | 🔴 Une page dépubliée rétablit l'accueil FabOS **avec trace**, sans page blanche ni boucle de redirection |
 
@@ -1312,6 +1312,50 @@ SYNTHÉTIQUE à `delete()`, ce que l'API permet justement parce que la médiath�
 ne connaît pas les thèmes. Le brouillon de l'opérateur n'est ni lu ni écrit.
 ✅ Résidu vérifié après coup : **0 ligne** en base, **0 fichier** dans
 `public/uploads/identity/`.
+
+### ✅ S166b — le contraste est mesuré, et il REFUSE
+
+🔴 **Refusé, pas signalé** — c'est la mesure de sortie, et la différence est
+tout : un avertissement qu'on peut ignorer se fait ignorer, et le texte illisible
+part en production avec l'aval apparent de l'écran qui l'a laissé passer. Le
+refus vit dans `ThemeManager::saveDraft()`, le point de passage, pour qu'un
+import ou une commande bute sur la même règle que le formulaire.
+⚠️ **Et le message porte les NOMBRES** : « 2,78:1 alors qu'il en faut 4,5:1 » dit
+de combien assombrir. « Contraste insuffisant » n'aide personne à choisir la
+couleur suivante.
+
+⚠️ **DEUX contrôles, et un piège qui aurait fait croire à trois.** Le contraste
+WCAG est SYMÉTRIQUE : « blanc sur la couleur » et « la couleur sur blanc »
+donnent exactement le même nombre. Les lister séparément aurait affiché deux
+lignes toujours identiques — l'illusion d'une vérification de plus.
+
+🔴 **Le second contrôle n'est PAS redondant, et un exemple le prouve** : du NOIR
+pur passe le premier à **21:1** et échoue le second à **3,39:1** — sa variante
+éclaircie devient un gris moyen, illisible sur le panneau sombre. Sans lui,
+« noir » serait accepté comme accent et casserait le thème sombre de tout le
+site.
+⚠️ Mesuré sur `#342b41`, le panneau ÉLEVÉ : il est plus clair que `#2b2335`, donc
+plus dur pour un accent clair. La marque y fait 5,13 contre 5,75.
+
+✅ **Les nombres de la sonde sont calculés À PART, à la main.** Comparer la sortie
+du code à elle-même ne prouverait rien ; ces valeurs viennent de la formule WCAG
+appliquée séparément, et c'est ce qui permet de détecter une erreur de luminance.
+✅ Corrobore le relevé du 2026-09-05 : la marque fait bien **7,65:1**.
+
+🔴 **Une trouvaille en chemin : `--color-primary-text` avait DEUX valeurs.** Le
+repli statique valait `#f3a8c8`, le `color-mix()` rend `#ce8daa` — deux accents
+différents selon le moteur, **deux points de contraste d'écart** (7,17 contre
+5,11), sous un commentaire qui affirmait leur équivalence. Le repli porte
+désormais ce que `color-mix()` produit réellement.
+🅿️ **Et la limite de la forme est dite** : un repli STATIQUE ne peut pas suivre un
+thème. Sur un moteur sans `color-mix()`, un labo qui change sa couleur garde cet
+accent-ci. La corriger demande d'émettre le jeton calculé depuis PHP — c'est le
+travail de S167, avec la publication atomique.
+
+⚠️ **La sonde capture le brouillon AVANT et le remet APRÈS, quoi qu'il arrive.**
+Elle compte sur le refus pour ne rien écrire — mais si la garde venait à laisser
+passer, l'appel écraserait le thème de l'opérateur. Une sonde ne doit pas
+dépendre de ce qu'elle mesure pour être inoffensive.
 
 ### ✅ S166a — le compte de la feuille de route était faux DANS LES DEUX SENS
 
@@ -1479,6 +1523,9 @@ l'est.
 | **S165** ✅ | la sonde | `php bin/console app:s165:media-probe` — 18 assertions, médiathèque rendue vide, thème non touché |
 | **S166** ⏳ | `/machines/{id}`, `/login`, `/register`, `/`, en thème **SOMBRE** | 🅿️ **La ligne que je n'ai pas pu mesurer.** Les puces de matière, les icônes et les libellés d'accent doivent être LISIBLES — plus de bordeaux sur fond sombre. Le rendu ne porte plus aucun littéral, mais seul un œil voit une couleur |
 | **S166** ⏳ | n'importe quelle page publique | Les icônes et les pastilles suivent la couleur principale du thème. Changer `primaryColor` dans `/admin/themes` doit les faire bouger TOUTES |
+| **S166** ✅ | `/admin/themes`, sous les champs | Deux lignes de contraste **avec leurs nombres** : « Texte blanc sur la couleur 7,65:1 », « Éclaircie, en thème sombre 5,13:1 » |
+| **S166** ✅ | y taper `#4caf50` (un vert clair) et enregistrer | 🔴 **REFUSÉ**, avec le nombre mesuré et le seuil — pas un avertissement qu'on peut ignorer |
+| **S166** ✅ | y taper `#000000` | 🔴 **Refusé aussi**, et c'est le point : il passe le premier contrôle à 21:1 et échoue le second à 3,39:1 |
 
 # Phase N — le cleanup (S169–S170)
 

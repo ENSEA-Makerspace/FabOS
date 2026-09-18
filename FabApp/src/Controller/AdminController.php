@@ -40,6 +40,7 @@ use App\Event\EventShareQr;
 use App\Event\TicketLinker;
 use App\Mail\MailLog;
 use App\Media\SiteMediaLibrary;
+use App\Theme\ContrastGate;
 use App\Mail\Mailer;
 use App\Mail\MailSettings;
 use App\Mail\NotificationCategory;
@@ -307,7 +308,7 @@ final class AdminController extends AbstractController
      * jeton propres.
      */
     #[Route('/themes', name: 'app_admin_themes', methods: ['GET', 'POST'])]
-    public function themes(Request $request, ThemeManager $themes, SiteMediaLibrary $media): Response
+    public function themes(Request $request, ThemeManager $themes, SiteMediaLibrary $media, ContrastGate $contrast): Response
     {
         if ($request->isMethod('POST') && $request->request->getString('action') === 'discard') {
             if (!$this->isCsrfTokenValid('admin_themes_discard', (string) $request->request->get('_token'))) {
@@ -354,6 +355,16 @@ final class AdminController extends AbstractController
             'published' => $themes->published(),
             'preview' => $request->query->getBoolean('preview'),
             'media' => $media->all(),
+            /*
+             * ⚠️ **Les nombres sont MONTRÉS, pas seulement opposés en cas de
+             * refus.** Une mesure qui n'apparaît qu'au moment du rejet apprend
+             * la règle par l'échec ; affichée, elle dit de combien on a de la
+             * marge — et c'est ce qui permet de choisir la couleur suivante.
+             * ⚠️ Couleur vide = celle du produit : on mesure `--color-primary`
+             * tel que `style.css` le définit, sinon l'écran n'afficherait rien
+             * dans le cas le plus courant.
+             */
+            'contrast' => $contrast->check($themes->draft()['primaryColor'] ?: '#9E1B56'),
             // ⚠️ Passé à l'écran pour qu'il ne PROPOSE pas une suppression qui
             // sera refusée : une affordance qui existe et refuse est pire qu'une
             // affordance absente. La garde est refaite côté action, évidemment.

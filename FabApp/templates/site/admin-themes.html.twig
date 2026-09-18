@@ -20,6 +20,9 @@
         .media-card__meta { color: var(--color-text-light); font-size: 12px; }
         .media-upload { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
         .media-hint { color: var(--color-text-light); font-size: 13px; margin: 0; line-height: 1.55; }
+        .contrast-rows { display: flex; flex-direction: column; gap: 6px; margin: 4px 0 14px; }
+        .contrast-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; }
+        .contrast-need { color: var(--color-text-light); }
     </style>
 {% endblock %}
 {% block body %}
@@ -41,6 +44,34 @@
                 {{ form_row(form.primaryColor) }}
                 {{ form_row(form.logoPath) }}
             </div>
+            {# LE CONTRASTE, MESURÉ ET AFFICHÉ (S166).
+
+               🔴 **Une palette qui échoue est REFUSÉE**, pas signalée : un
+               avertissement qu'on peut ignorer se fait ignorer. Ce bloc ne sert
+               donc pas à prévenir — il sert à montrer la MARGE, pour choisir la
+               couleur suivante en connaissance de cause.
+
+               ⚠️ **Deux contrôles et pas trois.** Le contraste WCAG est
+               symétrique : « blanc sur la couleur » et « la couleur sur blanc »
+               donnent le même nombre. Les afficher tous les deux aurait fait
+               croire à une vérification de plus.
+
+               ⚠️ **Le second n'est pas redondant** : du noir pur passe le premier
+               à 21:1 et échoue le second à 3,39:1 — sa variante éclaircie devient
+               un gris moyen, illisible sur le panneau sombre. #}
+            <div class="contrast-rows">
+                {% for check in contrast.checks %}
+                    <div class="contrast-row">
+                        {% include 'site/_cell_state.html.twig' with {
+                            label: ('admin_themes.contrast_' ~ check.key)|trans,
+                            signal: check.ok ? 'go' : 'stop',
+                        } only %}
+                        <b>{{ check.ratio|number_format(2, ',', ' ') }}:1</b>
+                        <span class="contrast-need">{{ 'admin_themes.contrast_needed'|trans({'%n%': check.needed|number_format(1, ',', ' ')}) }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+
             {% if preview %}<section class="theme-preview" style="--theme-preview-accent: {{ draft.primaryColor ?: 'var(--color-primary)' }}"><strong>{{ draft.orgName }} · {{ draft.venueLabel }}</strong><span>{{ 'admin_themes.preview_note'|trans }}</span><i></i></section>{% endif %}
             <div class="admin-actions">
                 <button class="btn-link" name="action" value="save">{{ 'admin_themes.save'|trans }}</button>
