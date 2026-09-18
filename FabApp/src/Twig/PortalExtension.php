@@ -5,6 +5,7 @@ namespace App\Twig;
 use App\Media\SiteMediaLibrary;
 use App\Service\ThemeManager;
 use App\Theme\ContrastGate;
+use App\Theme\ThemePresets;
 use App\Theme\ThemePreview;
 use App\Service\SiteSettingService;
 use Twig\Extension\AbstractExtension;
@@ -26,6 +27,7 @@ final class PortalExtension extends AbstractExtension
         private readonly ThemeManager $themes,
         private readonly ThemePreview $preview,
         private readonly ContrastGate $contrast,
+        private readonly ThemePresets $presets,
     ) {
     }
 
@@ -60,6 +62,9 @@ final class PortalExtension extends AbstractExtension
             // « rends celle livrée ». Un second vocabulaire pour la même idée
             // finirait par diverger.
             new TwigFunction('site_favicon', $this->siteFavicon(...)),
+            // ⚠️ `null` quand aucun logo sombre n'est choisi : le gabarit rend
+            // alors une seule image, comme avant.
+            new TwigFunction('site_logo_dark', $this->siteLogoDark(...)),
             new TwigFunction('portal_primary_color', $this->primaryColor(...)),
             /*
              * 🔴 **S166b — le jeton de TEXTE d'accent, calculé en PHP.** En thème
@@ -72,6 +77,9 @@ final class PortalExtension extends AbstractExtension
             // ⚠️ Rend `null` hors aperçu : hors de la grille, personne n'impose
             // un thème à personne.
             new TwigFunction('theme_forced_mode', $this->preview->forcedMode(...)),
+            // ⚠️ Rend une CHAÎNE VIDE au préréglage livré : aucune règle n'est
+            // alors émise, et le balisage reste identique au bit près.
+            new TwigFunction('theme_preset_css', $this->presetCss(...)),
         ];
     }
 
@@ -117,10 +125,40 @@ final class PortalExtension extends AbstractExtension
         return $value === '' ? null : $this->media->assetPath($value);
     }
 
-    /** Le chemin public de l'icône d'onglet choisie, ou `null`. */
+    /**
+     * Les règles des trois préréglages, ou une chaîne vide.
+     *
+     * ⚠️ **Les trois axes lisent le brouillon en aperçu comme le reste.** Un
+     * aperçu où la couleur suit le brouillon mais pas la densité serait
+     * exactement le genre d'aperçu qui ment.
+     */
+    public function presetCss(): string
+    {
+        return $this->presets->css(
+            $this->value('site_radius', 'radius') ?: 'standard',
+            $this->value('site_density', 'density') ?: 'standard',
+            $this->value('site_type_scale', 'typeScale') ?: 'standard',
+        );
+    }
+
+    /**
+     * L'icône d'onglet — la **petite variante**, pas l'image entière.
+     *
+     * ⚠️ Une image de 2400 px servie comme icône marche, mais coûte un
+     * téléchargement inutile sur chaque page, et les kiosques tournent toute la
+     * journée. `iconPath()` retombe sur l'originale si la dérivée manque.
+     */
     public function siteFavicon(): ?string
     {
         $value = $this->value('site_favicon_path', 'faviconPath');
+
+        return $value === '' ? null : $this->media->iconPath($value);
+    }
+
+    /** Le logo du thème sombre, ou `null` quand un seul logo sert aux deux. */
+    public function siteLogoDark(): ?string
+    {
+        $value = $this->value('site_logo_dark_path', 'logoDarkPath');
 
         return $value === '' ? null : $this->media->assetPath($value);
     }

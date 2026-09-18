@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Media\SiteMediaLibrary;
 use App\Theme\ContrastGate;
+use App\Theme\ThemePresets;
 
 /**
  * Le brouillon de thème, son aperçu et sa publication.
@@ -40,6 +41,16 @@ final class ThemeManager
             // gabarits**, dont les quatre kiosques. Un labo qui posait son logo
             // gardait l'icône de FabOS sur le mur de son atelier.
             'faviconPath' => $this->settings->get('site_favicon_path') ?? '',
+            // 🔴 **S166 — un logo SOMBRE, parce qu'un logo foncé sur un en-tête
+            // sombre est invisible.** Un seul fichier pour les deux thèmes était
+            // un pari sur la couleur du logo de chaque labo.
+            'logoDarkPath' => $this->settings->get('site_logo_dark_path') ?? '',
+            // 🅿️ **Des PRÉRÉGLAGES, pas des nombres (S166).** Un champ « rayon »
+            // laisse taper 40 px et transforme chaque carte en gélule ; trois
+            // choix par axe, ça se regarde avant de livrer.
+            'radius' => $this->settings->get('site_radius') ?: 'standard',
+            'density' => $this->settings->get('site_density') ?: 'standard',
+            'typeScale' => $this->settings->get('site_type_scale') ?: 'standard',
         ];
     }
 
@@ -59,6 +70,10 @@ final class ThemeManager
             'primaryColor' => trim((string) ($input['primaryColor'] ?? '')),
             'logoPath' => trim((string) ($input['logoPath'] ?? '')),
             'faviconPath' => trim((string) ($input['faviconPath'] ?? '')),
+            'logoDarkPath' => trim((string) ($input['logoDarkPath'] ?? '')),
+            'radius' => trim((string) ($input['radius'] ?? '')) ?: 'standard',
+            'density' => trim((string) ($input['density'] ?? '')) ?: 'standard',
+            'typeScale' => trim((string) ($input['typeScale'] ?? '')) ?: 'standard',
         ];
         if ($draft['orgName'] === '' || $draft['venueLabel'] === '') {
             throw new \InvalidArgumentException('Les deux noms publics sont obligatoires.');
@@ -84,11 +99,20 @@ final class ThemeManager
         // passage est aussi celui d'un import ou d'une commande, et une valeur
         // qui atteindrait `asset()` sans être un mediaId serait un chemin libre
         // de retour.
-        foreach (['logoPath' => 'Le logo', 'faviconPath' => 'L\'icône d\'onglet'] as $field => $label) {
+        foreach (['logoPath' => 'Le logo', 'logoDarkPath' => 'Le logo sombre', 'faviconPath' => 'L\'icône d\'onglet'] as $field => $label) {
             if ($draft[$field] !== '' && !SiteMediaLibrary::isMediaId($draft[$field])) {
                 throw new \InvalidArgumentException($label . ' doit être choisi dans la médiathèque.');
             }
         }
+        // ⚠️ Vérifié ICI aussi, alors que l'écran ne propose qu'une liste : ce
+        // point de passage est celui d'un import ou d'une commande, et une valeur
+        // inconnue atteindrait le `<style>` du site.
+        foreach (['radius', 'density', 'typeScale'] as $axis) {
+            if (!ThemePresets::isKnown($axis, $draft[$axis])) {
+                throw new \InvalidArgumentException('Préréglage inconnu : ' . $draft[$axis] . '.');
+            }
+        }
+
         $this->settings->set(self::DRAFT_KEY, json_encode($draft, JSON_THROW_ON_ERROR));
 
         return $draft;
@@ -118,7 +142,7 @@ final class ThemeManager
     {
         $draft = $this->draft();
 
-        foreach (['logoPath' => 'Le logo', 'faviconPath' => 'L\'icône d\'onglet'] as $field => $label) {
+        foreach (['logoPath' => 'Le logo', 'logoDarkPath' => 'Le logo sombre', 'faviconPath' => 'L\'icône d\'onglet'] as $field => $label) {
             if ($draft[$field] !== '' && $this->media->assetPath($draft[$field]) === null) {
                 throw new \InvalidArgumentException($label . ' choisi n\'existe plus dans la médiathèque. Rien n\'a été publié.');
             }
@@ -130,6 +154,10 @@ final class ThemeManager
             $this->settings->set('site_primary_color', $draft['primaryColor']);
             $this->settings->set('site_logo_path', $draft['logoPath']);
             $this->settings->set('site_favicon_path', $draft['faviconPath']);
+            $this->settings->set('site_logo_dark_path', $draft['logoDarkPath']);
+            $this->settings->set('site_radius', $draft['radius']);
+            $this->settings->set('site_density', $draft['density']);
+            $this->settings->set('site_type_scale', $draft['typeScale']);
         });
     }
 
@@ -175,7 +203,13 @@ final class ThemeManager
         $ids = [];
         $published = $this->published();
         $draft = $this->draft();
-        foreach ([$published['logoPath'] ?? '', $draft['logoPath'] ?? '', $published['faviconPath'] ?? '', $draft['faviconPath'] ?? ''] as $value) {
+        $fields = ['logoPath', 'logoDarkPath', 'faviconPath'];
+        $values = [];
+        foreach ($fields as $field) {
+            $values[] = $published[$field] ?? '';
+            $values[] = $draft[$field] ?? '';
+        }
+        foreach ($values as $value) {
             $value = trim((string) $value);
             if ($value !== '' && !in_array($value, $ids, true)) {
                 $ids[] = $value;

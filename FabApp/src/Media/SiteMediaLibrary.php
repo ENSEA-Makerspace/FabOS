@@ -62,6 +62,9 @@ final class SiteMediaLibrary
      */
     private const MAX_BYTES = 12_000_000;
 
+    /** ⚠️ Un suffixe, pas un sous-dossier : la suppression doit rester une ligne. */
+    private const ICON_SUFFIX = '-icon.png';
+
     public function __construct(
         private readonly Connection $db,
         private readonly ImageNormalizer $images,
@@ -105,6 +108,25 @@ final class SiteMediaLibrary
         $row = $this->find($mediaId);
 
         return $row === null ? null : 'uploads/identity/' . $row['filename'];
+    }
+
+    /**
+     * La petite variante carrée, **ou l'image d'origine** si elle n'existe pas.
+     *
+     * ⚠️ **Le repli est silencieux et c'est voulu** : une dérivée est un confort.
+     * Une icône manquante parce que GD a refusé une image serait un défaut bien
+     * plus visible que quelques kilo-octets de trop.
+     */
+    public function iconPath(string $mediaId): ?string
+    {
+        $full = $this->assetPath($mediaId);
+        if ($full === null) {
+            return null;
+        }
+
+        return is_file($this->uploadDir . '/' . $mediaId . self::ICON_SUFFIX)
+            ? 'uploads/identity/' . $mediaId . self::ICON_SUFFIX
+            : $full;
     }
 
     /**
@@ -168,6 +190,19 @@ final class SiteMediaLibrary
                 $extension = $written;
             }
         }
+
+        /*
+         * 🅿️ **Une variante d'icône, écrite pour CHAQUE image.** Une image de
+         * 2400 px servie comme icône d'onglet marche — le navigateur la réduit —
+         * mais elle coûte un téléchargement inutile sur chaque page du site, et
+         * les kiosques tournent toute la journée.
+         * ⚠️ Générée à l'entrée plutôt qu'au moment du choix : un cache différé
+         * demanderait une invalidation, donc un second état à tenir d'accord. Le
+         * prix est un PNG de quelques kilo-octets par image, y compris pour
+         * celles qui ne serviront jamais d'icône.
+         * ⚠️ L'échec n'est pas une erreur : sans dérivée, on sert l'originale.
+         */
+        $this->images->writeIcon($path, $this->uploadDir . '/' . $mediaId . self::ICON_SUFFIX);
 
         $final = @getimagesize($path);
 
@@ -234,6 +269,9 @@ final class SiteMediaLibrary
         // laisse une ligne qui pointe sur rien — et l'écran affiche une image
         // cassée que personne ne peut retirer.
         @unlink($this->uploadDir . '/' . basename((string) $row['filename']));
+        // ⚠️ La dérivée part avec l'originale. Une icône orpheline continuerait
+        // d'être servie par une page qui la référence encore.
+        @unlink($this->uploadDir . '/' . $mediaId . self::ICON_SUFFIX);
 
         return ['ok' => true];
     }

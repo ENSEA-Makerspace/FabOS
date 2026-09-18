@@ -520,6 +520,17 @@ html[data-theme="dark"] :is(.breadcrumb, .breadcrumb-current, .breadcrumb-separa
 }
 .cell-fix:hover { text-decoration: underline; }
 .cell-fix--flat { color: var(--color-text-light); font-weight: 400; }
+
+/* ---- les deux logos (S166) ----
+   🔴 Un logo foncé sur un en-tête sombre est invisible, et personne ne s'en
+   aperçoit tant qu'il ne bascule pas. Deux images, une bascule CSS.
+   ⚠️ **`display`, jamais l'attribut `hidden`** : la couverture de `style.css`
+   pose des `display` explicites qui gagnent contre `hidden`.
+   ⚠️ Ces règles n'existent que quand un logo sombre est choisi — sans lui, le
+   gabarit n'émet ni la classe ni la seconde image. */
+.logo-variant--dark { display: none; }
+html[data-theme="dark"] .logo-variant--light { display: none; }
+html[data-theme="dark"] .logo-variant--dark { display: block; }
 /* ⚠️ La variante ALERTE (S162) — pour une ligne où le défaut est DÉJÀ arrivé,
    pas seulement possible. Elle reste un verbe discret : le point rouge suffit à
    la distinguer dans une colonne, et repeindre la ligne entière ferait chercher

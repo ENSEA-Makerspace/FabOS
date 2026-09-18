@@ -246,6 +246,85 @@ final class ImageNormalizer
     }
 
     /**
+     * Écrit une petite variante CARRÉE, **transparence conservée** (S166).
+     *
+     * 🔴 **Elle ne peut PAS réutiliser `scaleWithin()`, et c'est le point.**
+     * Celle-là aplatit sur du BLANC, parce que ses deux conteneurs de sortie sont
+     * destructifs et que JPEG n'a pas de canal alpha. Une icône d'onglet, elle,
+     * est presque toujours un logo détouré : l'aplatir lui colle un carré blanc
+     * dans un onglet sombre. Deux besoins opposés, deux méthodes.
+     *
+     * ⚠️ **Carrée et centrée, pas déformée.** Un logo large réduit à 64×64 par
+     * étirement devient illisible ; il est posé au centre d'un carré transparent,
+     * ce qu'un navigateur affiche correctement à toutes les tailles.
+     *
+     * 🅿️ Rend `false` sans rien écrire au moindre problème : une icône dérivée
+     * est un CONFORT — sans elle on sert l'image d'origine, qui marche.
+     */
+    public function writeIcon(string $sourcePath, string $targetPath, int $edge = 64): bool
+    {
+        if (!$this->isAvailable() || !is_file($sourcePath)) {
+            return false;
+        }
+
+        $size = @getimagesize($sourcePath);
+        if ($size === false || ($size[0] ?? 0) < 1 || ($size[1] ?? 0) < 1) {
+            return false;
+        }
+
+        $source = null;
+        $target = null;
+
+        try {
+            $raw = @file_get_contents($sourcePath);
+            $source = $raw !== false ? @imagecreatefromstring($raw) : false;
+            unset($raw);
+            if ($source === false) {
+                return false;
+            }
+
+            $source = $this->upright($source, $this->orientation($sourcePath, (string) ($size['mime'] ?? '')));
+            $width = imagesx($source);
+            $height = imagesy($source);
+            $ratio = min(1, $edge / max($width, $height));
+            $w = max(1, (int) round($width * $ratio));
+            $h = max(1, (int) round($height * $ratio));
+
+            $target = @imagecreatetruecolor($edge, $edge);
+            if ($target === false) {
+                return false;
+            }
+
+            // L'ordre compte : désactiver le mélange AVANT de remplir, sinon le
+            // fond transparent est composé avec du noir.
+            imagealphablending($target, false);
+            imagesavealpha($target, true);
+            imagefilledrectangle($target, 0, 0, $edge, $edge, (int) imagecolorallocatealpha($target, 0, 0, 0, 127));
+            imagealphablending($target, true);
+
+            if (!@imagecopyresampled($target, $source, (int) (($edge - $w) / 2), (int) (($edge - $h) / 2), 0, 0, $w, $h, $width, $height)) {
+                return false;
+            }
+
+            imagealphablending($target, false);
+            imagesavealpha($target, true);
+
+            $tmp = $targetPath . '.tmp';
+
+            return @imagepng($target, $tmp, 6) && @rename($tmp, $targetPath);
+        } catch (\Throwable) {
+            return false;
+        } finally {
+            if ($source instanceof \GdImage) {
+                imagedestroy($source);
+            }
+            if ($target instanceof \GdImage) {
+                imagedestroy($target);
+            }
+        }
+    }
+
+    /**
      * Copy scaled to fit within $maxEdge, never enlarged.
      *
      * ⚠️ Flattened onto white, because both output containers here are lossy and

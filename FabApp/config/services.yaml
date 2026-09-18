@@ -70,6 +70,14 @@ services:
         arguments:
             $templateDir: '%kernel.project_dir%/templates'
 
+    # ⚠️ La sonde des préréglages LIT `style.css` pour vérifier que le palier
+    # mobile qu'elle protège existe vraiment — sans quoi la précaution serait du
+    # bruit. Elle a donc besoin du dossier du projet et de celui des images.
+    App\Command\S166PresetsProbeCommand:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+            $uploadDir: '%kernel.project_dir%/public/uploads/identity'
+
     # Serves the repo's own docs/*.md; needs the project dir, not autowirable.
     App\Service\MarkdownDocService:
         arguments:

@@ -5,6 +5,7 @@ namespace App\Form\Admin;
 use App\Media\SiteMediaLibrary;
 use App\Service\ThemeManager;
 use App\Theme\ContrastGate;
+use App\Theme\ThemePresets;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -99,13 +100,67 @@ final class ThemeDraftType extends AbstractType
              * atelier. Même liste que le logo — c'est la même médiathèque, et une
              * seconde source d'images serait un second endroit à tenir.
              */
+            /*
+             * 🔴 **Un logo pour le thème SOMBRE.** Un seul fichier pour les deux
+             * thèmes était un pari sur la couleur du logo de chaque labo : un
+             * logo foncé sur un en-tête sombre est invisible, et personne ne s'en
+             * aperçoit tant qu'il ne bascule pas.
+             * ⚠️ Vide = on garde le même dans les deux thèmes, ce qui est correct
+             * pour un logo clair ou détouré.
+             */
+            ->add('logoDarkPath', ChoiceType::class, [
+                'label' => 'admin_themes.logo_dark_path',
+                'help' => 'admin_themes.logo_dark_help',
+                'required' => false,
+                'placeholder' => 'admin_themes.logo_dark_none',
+                'choices' => $this->logoChoices(),
+            ])
             ->add('faviconPath', ChoiceType::class, [
                 'label' => 'admin_themes.favicon_path',
                 'help' => 'admin_themes.favicon_help',
                 'required' => false,
                 'placeholder' => 'admin_themes.logo_none',
                 'choices' => $this->logoChoices(),
+            ])
+            /*
+             * 🔴 **Trois axes, trois listes FERMÉES (S166).** Pas des champs de
+             * nombre : un rayon libre laisse taper 40 px et transforme chaque
+             * carte en gélule, une taille de texte libre fait déborder chaque
+             * composant à hauteur fixe. Neuf combinaisons en tout, toutes
+             * visibles dans l'aperçu.
+             */
+            ->add('radius', ChoiceType::class, [
+                'label' => 'admin_themes.radius',
+                'choices' => self::presetChoices('radius', array_keys(ThemePresets::RADIUS)),
+            ])
+            ->add('density', ChoiceType::class, [
+                'label' => 'admin_themes.density',
+                'help' => 'admin_themes.density_help',
+                'choices' => self::presetChoices('density', array_keys(ThemePresets::DENSITY)),
+            ])
+            ->add('typeScale', ChoiceType::class, [
+                'label' => 'admin_themes.type_scale',
+                'choices' => self::presetChoices('type', array_keys(ThemePresets::TYPE)),
             ]);
+    }
+
+    /**
+     * ⚠️ **Les clés de traduction sont dérivées de la liste**, pas retapées : une
+     * liste en dur ici divergerait le jour où un préréglage s'ajoute, et l'écran
+     * afficherait la clé brute.
+     *
+     * @param list<string> $keys
+     *
+     * @return array<string, string>
+     */
+    private static function presetChoices(string $axis, array $keys): array
+    {
+        $choices = [];
+        foreach ($keys as $key) {
+            $choices['admin_themes.preset_' . $axis . '_' . $key] = $key;
+        }
+
+        return $choices;
     }
 
     /**

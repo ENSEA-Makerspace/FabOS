@@ -8,6 +8,21 @@
 
    Nothing is emitted at all when the portal overrides nothing, so the default
    site keeps rendering byte-identical markup. #}
+{# 🔴 **Les préréglages (S166) sortent AVANT la couleur, et séparément.** Ils
+   n'ont pas la même condition : un labo peut choisir une densité sans changer sa
+   couleur, et l'inverse. Les mêler dans un seul `{% if %}` aurait fait dépendre
+   l'un de l'autre.
+   ⚠️ Chaîne vide au préréglage livré ⇒ aucune balise émise, balisage identique au
+   bit près.
+
+   ⚠️ **`|raw` est correct ICI** : la chaîne est fabriquée par `ThemePresets` à
+   partir d'entiers calculés et de noms de jetons écrits en dur. Aucune saisie
+   d'exploitant n'y entre — les trois axes sont des listes FERMÉES, vérifiées au
+   point de passage. Sans `raw`, les accolades sortiraient échappées et la règle
+   ne s'appliquerait pas. #}
+{% set preset_css = theme_preset_css() %}
+{% if preset_css %}<style>{{ preset_css|raw }}</style>{% endif %}
+
 {% set portal_color = portal_primary_color() %}
 {% if portal_color %}
     {# 🔴 **`--color-primary-text` est émis AUSSI, et calculé en PHP (S166b/S167).**

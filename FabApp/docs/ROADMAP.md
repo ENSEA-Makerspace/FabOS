@@ -1257,7 +1257,7 @@ intentions).
 | Session | Livre | Ce qu'on mesure |
 |---|---|---|
 | **S165** ✅ | **Livré le 2026-09-10** : la médiathèque d'identité. Téléversement depuis l'écran, nommage serveur, identifiant stable, suppression refusée tant qu'un thème référence le fichier. `portal_logo_path` → `site_logo` | ✅ Sonde `app:s165:media-probe`, 18 assertions, **médiathèque rendue vide et thème non touché** |
-| **S166** ⏳ | **Les 68 littéraux de marque sont TOMBÉS le 2026-09-15** ; **le contraste REFUSE le 2026-09-18**. 🅿️ **Reste** : préréglages (rayon / typo / densité) et variantes de logo | ✅ `tools/brand_literals.py` (68 → 0, deux sens) et `app:s166:contrast-probe` (27 assertions, **rien écrit**) |
+| **S166** ✅ | **CLOSE le 2026-09-18** : 68 littéraux tombés, le contraste REFUSE, les trois préréglages, le logo sombre et l'icône dérivée. 🅿️ **Reste hors phase** : l'image de partage — voir ci-dessous | ✅ `tools/brand_literals.py` (68 → 0), `app:s166:contrast-probe` (27), `app:s166:presets-probe` (21) |
 | **S167** ✅ | **Livré le 2026-09-18** : l'aperçu rend de VRAIES pages (accueil + catalogue, desktop et mobile, clair et sombre) ; la publication devient atomique et refuse un logo disparu | ✅ Sonde `app:s167:theme-probe` (14 assertions, thème remis en place) + trois mesures `app:render` |
 | **S168** ⏳ | **L'icône d'onglet devient THÉMABLE le 2026-09-18** — elle était écrite en dur dans huit gabarits, dont les quatre kiosques. 🅿️ **Reste** : l'ordre et la visibilité des entrées de menu, et la page dépubliée qui rétablit l'accueil avec trace | ✅ Sonde `app:s168:favicon-probe`, 13 assertions, **rien écrit** |
 
@@ -1400,6 +1400,65 @@ qui est alors la vérité.
 ✅ **Et la limite notée en S166b tombe** : `--color-primary-text` est maintenant
 émis depuis PHP avec `--color-primary`. Un repli statique ne pouvait pas suivre un
 thème ; celui-ci le suit partout, aperçu compris.
+
+### ✅ S166c — des préréglages, pas des curseurs ; et deux logos plutôt qu'un pari
+
+🔴 **Trois axes, trois listes FERMÉES.** Un champ « rayon » laisse taper 40 px et
+transforme chaque carte en gélule ; un champ « taille du texte » laisse taper
+24 px et fait déborder chaque composant à hauteur fixe. Trois choix par axe — neuf
+combinaisons — ça se REGARDE avant de livrer, et l'aperçu de S167 les montre.
+
+🔴 **Le piège central, trouvé en LISANT `style.css`, pas en livrant.** Sous
+576 px, `--spacing-lg`, `--xl`, `--2xl` et `--3xl` descendent d'un cran dans un
+`@media`. Le `<style>` du thème est émis APRÈS la feuille, à spécificité égale :
+un `:root` de thème aurait donc GAGNÉ partout, mobile compris, et supprimé cette
+réduction **en silence**. La densité réémet le palier dans le même `@media`.
+✅ **Et la sonde vérifie les DEUX moitiés** : que `style.css` déclare bien ce
+palier — sinon la précaution serait du bruit et personne ne le saurait — et que
+le thème le réémet.
+
+✅ **Au préréglage livré, RIEN n'est émis.** Vérifié à l'écran : la page d'accueil
+ne porte aucune balise `<style>` de plus qu'avant, et aucun jeton de barème. La
+même garantie qu'à S160 pour les e-mails — « je n'ai rien changé » se vérifie au
+lieu de se promettre.
+⚠️ **`--font-size-md` n'est PAS réémis** : `style.css` le définit comme
+`var(--font-size-base)`, donc il suit tout seul. Le figer en pixels le ferait
+cesser de suivre au premier changement de barème.
+
+🔴 **Un logo SOMBRE, parce qu'un seul fichier pour les deux thèmes était un
+pari.** Un logo foncé sur un en-tête sombre est invisible — et personne ne s'en
+aperçoit tant qu'il ne bascule pas.
+⚠️ **Deux `<img>` et une bascule CSS, pas un `src` échangé en JavaScript** : le
+thème est posé sur `<html>` par un script, donc échanger le `src` après coup
+ferait clignoter l'ancien logo à chaque chargement.
+⚠️ **`display`, jamais l'attribut `hidden`** — la couverture de `style.css` pose
+des `display` explicites qui gagnent contre `hidden` ([[feedback-fabos-css-cascade]]).
+✅ Sans logo sombre choisi, ni la classe ni la seconde image ne sont émises :
+balisage inchangé.
+
+✅ **L'icône d'onglet est une VRAIE petite variante** — le 🅿️ laissé ouvert en
+S168a. Une image de 2400 px servie comme icône marche, mais coûte un
+téléchargement inutile sur chaque page, et les kiosques tournent toute la journée.
+🔴 **Elle ne pouvait PAS réutiliser le redimensionneur existant** : celui-là
+aplatit sur du BLANC (ses conteneurs de sortie sont destructifs), ce qui collerait
+un carré blanc dans un onglet sombre. Deux besoins opposés, deux méthodes — et la
+sonde lit l'octet 25 du PNG pour vérifier que le canal alpha est bien là.
+⚠️ Générée à l'entrée plutôt qu'au moment du choix : un cache différé demanderait
+une invalidation, donc un second état à tenir d'accord.
+
+🔴 **Une assertion de la sonde passait POUR LA MAUVAISE RAISON, et l'échec l'a
+montrée.** Elle soumettait `$brouillon + ['radius' => 'gelule']` : l'union de
+tableaux PHP garde la valeur de gauche quand la clé existe des deux côtés — le
+brouillon a déjà `radius`, donc la valeur hostile n'entrait jamais, et
+« le brouillon n'a pas bougé » était vrai trivialement. `array_merge`, et le refus
+est maintenant mesuré pour de bon.
+
+🅿️ **L'image de partage n'est PAS livrée, et la raison est mesurée** : le dépôt ne
+contient **aucune** balise `og:` — zéro, sur 232 gabarits. Une image de partage
+demanderait donc d'introduire tout Open Graph (titre, description, par page ou
+pour le site), ce qui est une fonctionnalité à part entière — et le site est
+derrière une liste blanche NPM, donc rien ne peut aller chercher cette image
+aujourd'hui. À reprendre le jour où le site s'ouvre.
 
 ### ✅ S166b — le contraste est mesuré, et il REFUSE
 
@@ -1623,6 +1682,11 @@ l'est.
 | **S168** ✅ | choisir une icône, publier, puis recharger n'importe quelle page | L'onglet du navigateur change. ⚠️ Un navigateur met une icône en cache plus longtemps que tout le reste : forcer le rechargement |
 | **S168** ✅ | `/kiosk/entries` sur le mur | **La même icône.** C'était le vrai trou : un kiosque en plein écran montre son onglet à tout l'atelier |
 | **S168** ✅ | la sonde | `php bin/console app:s168:favicon-probe` — 13 assertions |
+| **S166** ✅ | `/admin/themes` → « Densité : Aérée », enregistrer, prévisualiser | Les quatre cadres respirent. ⚠️ Le cadre **mobile** doit garder des écarts plus serrés que le desktop — c'est le palier sous 576 px, qui aurait sauté en silence |
+| **S166** ✅ | « Arrondis : Nets » puis « Doux » | Les cartes, boutons et champs suivent — 118 usages de `--border-radius` d'un coup |
+| **S166** ✅ | tout remettre sur « Standard » | **Aucune balise `<style>` en plus** sur les pages : le préréglage livré n'émet rien |
+| **S166** ✅ | téléverser un logo clair, le choisir en « Logo sombre », basculer en thème sombre | L'en-tête change de logo. ⚠️ Vide = le même dans les deux thèmes |
+| **S166** ✅ | la sonde | `php bin/console app:s166:presets-probe` — 21 assertions, brouillon et médiathèque remis en place |
 
 # Phase N — le cleanup (S169–S170)
 
