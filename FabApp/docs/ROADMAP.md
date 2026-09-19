@@ -61,244 +61,39 @@ besoin**, avec une expérience cohérente.
 
 # Phase J — « boutonner » ✅ CLOSE le 2026-09-05
 
-**Demande opérateur, 2026-08-21** : *« before commerce i want to smooth out a lot
-of things… act like apple engineers and button everything up. »*
+✅ **Livrée (S147–S169).** La revue S147 a rendu et mesuré 146 pages → 25 défauts
+J-1…J-25 ; les 25 sont soldés. La barrière du commerce tombe.
+📖 **Le récit, les dix points, le détail des 25 défauts et les mesures →
+`docs/history/phase-J-boutonner-S147-S169.md`** (et `S147-REVUE.md` pour la revue
+elle-même).
 
-🔴 **BLOQUANTE avant la Phase H.** G était la barrière du MODÈLE ; J est celle de
-la FINITION. Vendre une surface non finie fige ses défauts dans un contrat client.
+## ⏳ Ce qui reste ouvert de cette phase
 
-## Les dix points — un écran est fini quand les dix réponses sont oui
+- **J-2** — huit objets se supprimaient en dur, corrigé. ⚠️ **Reste à vérifier la
+  promesse S134f** : archiver une ressource réservable doit annuler ses
+  réservations à venir.
+- **Documents attachés à une machine** (livré le 2026-08-28) : 🅿️ **il reste à
+  l'opérateur d'y déposer les vrais documents**. Et 🅿️ le jour où un document
+  devra être réservé aux membres, il faudra **le sortir de `public/`** — un
+  contrôle d'accès devant un fichier que le serveur web sert directement ne
+  contrôle rien.
+- **Les affiches de remplacement d'événement** : les six par défaut sont livrées
+  et rendues. 🅿️ **Reste** de pouvoir téléverser SES propres logos pour qu'ils
+  entrent dans le tirage — une table, donc une migration, donc l'opérateur, et ça
+  se décide après avoir jugé les six.
+  🔴 **Et une question à trancher qui n'est pas graphique** : `/events` passe par
+  `_catalogue.html.twig`, partagé avec six autres listes. Un en-tête de mois veut
+  dire soit une grille PAR mois (les cartes du dernier mois ne s'alignent plus sur
+  le précédent), soit un `grid-column: 1 / -1` dans une grille unique, qui garde
+  l'alignement mais demande au shell une notion de « séparateur » qu'aucune autre
+  liste n'a. ⚠️ Et le regroupement ne vaut que pour les objets **DATÉS** : une
+  machine n'a rien à regrouper.
 
-1. **Coquille partagée.** Pas de `<head>` maison, pas de `<style>` local qui ne
-   soit pas devenu une règle du guide.
-2. **Le titre vient de `NavBuilder`**, jamais recopié.
-3. **Listes** : cinq colonnes max, actions comprises ; autant de cellules que
-   d'en-têtes ; pas de `colspan` compté à la main.
-4. **Chaque objet annoncé est créable, éditable, archivable** depuis son workspace.
-5. **Aucune affordance morte** : pas de bouton qui n'aboutit pas, pas de lien qui
-   404, pas de filtre qui ne filtre rien.
-6. **Cinq langues, sombre, mobile, clavier.** Vérifié à l'écran, pas supposé.
-7. **Le nombre de clics est COMPTÉ**, avant et après.
-8. 🔴 **Un champ invalide ne fait JAMAIS ressaisir le reste du formulaire.** Prouvé
-   par un vrai POST refusé, pas relu.
-9. **Zéro champ non indispensable.**
-10. **Les primitives sont dans `/admin/design`** avec le vrai composant.
-
-## Découpage
-
-| Étape | Livre | Qui |
-|---|---|---|
-| ✅ **S147 — LA REVUE** | passée 2026-08-22, aucun code hors la sonde. 146 pages rendues + passe navigateur (375/768/1280, cascade, clavier, sombre, un vrai POST refusé) → **25 défauts J-1…J-25**. Détail : `S147-REVUE.md` | Terra mesure, opérateur arbitre |
-| **S148 — le socle** | Réglages, Fonctionnalités, E-mails, Logs RFID, Thèmes, Setup/assistant, Tableau de bord. ⚠️ Absorbe ce qui restait de S132 | Luna + Terra |
-| **S149 — feature par feature** | machines, espaces, événements, formations, prêts, matériaux, badges, projets, réservations, packages/quotas. Chacune finie selon les dix points | Luna + Terra |
-| **S149z — la sortie** | revue conjointe finale : la liste S147 est vide ou consciemment reportée | Opérateur + Terra |
-
-⚠️ **La revue vient EN PREMIER et elle ne code pas.** Un chiffre inventé a cadré
-une session entière (S134j). On mesure, on montre, on décide, puis on fait.
-⚠️ **La revue de fin est UNE FOIS PAR PHASE**, pas par étape (opérateur,
-2026-08-20). Mandat « designer d'Apple ». Lui donner les **URLs et les parcours**,
-pas le diff.
-
-## Les 25 défauts — état au 2026-08-23
-
-| # | Défaut | État | Étape |
-|---|---|---|---|
-| **J-25** | ✅ **RÉGLÉ le 2026-09-04.** « Accès complet » (#20, les 4 capacités, SANS exemption d'horaires) est attribué à l'audience `user`. Mesuré : la portée passe de **3 personnes à 9**, et `machines` de **2 à 9**. ⚠️ S158/S159 avaient construit la route ; **personne n'était dessus** — un modèle complet dont aucune donnée n'emprunte le chemin se lit comme une panne | opérateur, 2026-09-04 | `app:j25:open-booking` |
-| **J-8** | un champ refusé fait ressaisir le reste | ✅ **CLOS le 2026-09-05** — le dernier écran défaillant (`/profil`, branche profil public) rend désormais la page avec la saisie, prouvé par la sonde. Historique : **le chiffre de 15 était FAUX.** Au 2026-08-23 : **9 écrans prouvés sains** par un POST refusé (`app:s147:form-probe`, 13 sondes), 4 de plus convertis par le même mécanisme mais non sondés un par un. 🔴 **Reste `/profil`, branche « profil public » — le seul défaut prouvé, et il n'est pas admin** | S149 |
-| **J-9** | trois maquettes S103 en prod, titres en dur, clés brutes à l'écran | ✅ **CADUC, mesuré le 2026-09-04** : `debug:router` ne connaît plus `design/droits-quotas`, `design/workspaces` ni `design/structure` — le nettoyage de S159 les a supprimées, page, route et lien. Le défaut n'a plus de sujet | S159 |
-| **J-10** | formulaires les plus lourds | ✅ **CLOS le 2026-09-05** : la moitié « taux d'aide » est réglée et reformulée (voir Phase N), la moitié « écran de contenu, 35 champs » appartient à la Phase Q (S181). Historique : **l'éditeur de packages : 28 champs visibles à l'arrivée → 7** (les 4 éditeurs « ajouter » repliés, 2026-08-24). Barème et chiffres dans `S149-REVUE.md` § qualité des formulaires. 🔴 **CORRECTION du 2026-09-06 : « `admin-formation-content` (35) » est PÉRIMÉ.** Mesuré ce jour-là : **1 champ visible à l'arrivée**, et c'est la recherche de l'en-tête du site. S149 avait replié les neuf cartes ; le chiffre d'avant a survécu quatre phases dans ce document. Voir Phase Q § S181 | S149+ |
-| **J-23** | `/admin/usage-rights/shadow` : bascule finie, audit encore utile | ✅ **CADUC, mesuré le 2026-09-04** : la route n'existe plus (S159 l'a retirée, avec le retour arrière qui était devenu un piège). ⚠️ Le réglage `usage_rights_v2_*` reste en base pour une écriture explicite | S159 |
-| **J-4** | « (s) » au lieu de pluriels ICU | ✅ 2026-08-24 — **77 clés** migrées, 5 langues, 0 « (s) » restant. Validateur statique : `tools/i18n/icu_audit.py` (395 motifs, 0 faute) | — |
-| **J-5** | CSS local par page rendue | ✅ **CLOS PAR LA MESURE le 2026-09-05** : 544 sélecteurs locaux, **9 dupliqués dont 6 artefacts de comptage**, une seule duplication réelle laissée sciemment (voir Phase N). Historique : 708 → **653 règles dans 37 gabarits**. Les deux familles à duplication PROUVÉE sont rassemblées (kiosque, authentification) et ont révélé 2 défauts visibles. Le reste est du CSS réellement spécifique à sa page | S149+ |
-| **J-7** | emoji bruts comme icônes | ✅ 2026-08-24 — **0 emoji d'interface** sur 16 pages rendues. Les 33 signes typographiques restants sont une décision écrite en tête de `_icon.html.twig` | — |
-| **J-22** | formulaires admin hors thème | ✅ 2026-08-23 — **27 conversions**, 13 écrans, 13 sondes vertes. Restent, écrits : la matrice de fonctionnalités (partial partagé), 5 filtres GET, la semaine d'horaires, les contrôles en boucle des tableaux | — |
-| **J-1** | déploiement partiel : l'upload d'images fatalait en prod | ✅ 2026-08-22 | — |
-| **J-2** | huit objets se supprimaient en dur | ✅ 2026-08-22. ⚠️ **Reste à vérifier la promesse S134f** : archiver une ressource réservable doit annuler ses réservations à venir | — |
-| **J-3** | flashs en dur | ✅ 37 → **0** | — |
-| **J-6** | `style=""` sur `/admin/utilisateurs/{id}` | ✅ 78 → **1** | — |
-| **J-11** | `/machines/{id}` cassé sur téléphone | ✅ 2026-08-22 | — |
-| **J-12** | barre d'outils du calendrier | ✅ 2026-08-22 — ⚠️ le constat initial était faux, 5 contrôles réellement inatteignables | — |
-| **J-13** | « Réserver une machine » menait au calendrier lecture seule | ✅ 2026-08-22 | — |
-| **J-14** | pas de lien d'évitement, focus invisible | ✅ | — |
-| **J-15** | fonds clairs sans variante sombre | ✅ 101 → **0** | — |
-| **J-16** | `/formations/{id}/suivi` imprimait ID/titre/slug au public | ✅ | — |
-| **J-17** | `/machines/{id}` « Connexion requise » ×4, favoris mort | ✅ | — |
-| **J-18** | `/admin/maintenance/batch` sans lien | ✅ | — |
-| **J-19** | « Loans » ouvrait le catalogue d'objets | ✅ | — |
-| **J-20** | le calendrier ignorait les plages horaires | ✅ 2026-08-22 | — |
-| **J-21** | catégorie d'un grant comparée par libellé exact | ✅ 2026-08-23 — l'identifiant décide | — |
-| **J-24** | messages de validation en français en dur | ✅ 69 → **0**, cinq langues complètes | — |
-
-⚠️ **Rien de cette liste n'est reporté hors de la Phase J.**
-
-## Critères de sortie
-
-- la liste S147 est vide, ou chaque reste est **consciemment reporté et écrit** ;
-- **aucun gabarit ne porte de `<style>` local** hors `admin-design`, ou chaque
-  exception est une règle nommée du guide ;
-- ✅ **gabarits à `<head>` propre : ATTEINT** — ils sont **5** (`event-ticket` +
-  4 kiosques), et c'est l'exception que ce critère prévoyait ;
-- les dix points passent sur **chaque** écran du socle et des features ;
-- `/admin/design` montre chaque primitive utilisée, avec le vrai composant.
-
-## 🅿️ Parqué — n'entre PAS dans J
+## 🅿️ Parqué — n'entrait PAS dans J, et reste à faire
 
 Sélecteur de langue (`app_switch_locale` n'est lié nulle part) · suppression en
 masse d'événements · catégories comme entrées de menu. Ce sont des
-fonctionnalités, pas de la finition. ⚠️ Le tableau de bord « qui doit re-briller »
-est le seul des quatre qui touche J : il est dans **S148**.
-
-## ✅ `/prets/{id}` n'avait pas de navigation — corrigé le 2026-08-27
-
-**Signalé** : *« the whole menu disappears in that page! »* — https://fabos.dstei.fr/prets/1
-
-`loan-item.html.twig` étendait **`base.html.twig`**, la coquille nue : elle n'a ni
-bloc `header` ni `include` de `_header`, seulement un `{% block body %}` et un pied
-de page. Les 39 autres gabarits qui l'étendent sont des écrans admin ou staff, et
-eux reçoivent l'en-tête par `_admin_list.html.twig` ; celui-ci n'incluait rien.
-⚠️ Le pied de page était bien là — d'où « le menu disparaît » et non « la page est
-nue ». Balayage de 29 pages publiques : c'était **la seule**.
-
-Corrigé en une ligne — `{% extends 'site/base_public.html.twig' %}`, comme `/prets`.
-Les trois blocs utilisés (`title`, `stylesheets`, `body`) existent des deux côtés.
-Au passage, son cache-buster était resté sur `?v=20260816-s134`.
-
-**Vérifié sur la page en ligne** : en-tête, navigation, recherche et bouton de
-connexion sont revenus, « Fablab » s'allume comme section active. Nouveau balayage,
-**31 pages publiques cette fois** (avec `/prets/2` et `/lab/3`) : **0 sans coquille**.
-
----
-
-## 🅿️ Une proposition d'écran « événements », d'après Fabmanager (opérateur, 2026-08-27)
-
-✅ **La première moitié est faite et regardable : `/admin/design#evenements`.**
-Les **six affiches de remplacement** y sont rendues, chacune avec sa géométrie —
-pas seulement sa couleur, parce qu'à luminosité égale six teintes seraient la même
-image. Elles vivent dans `templates/site/_event_placeholder.html.twig`.
-- 🔴 **Le tirage est stable** : `id % 6`, jamais `random()`. Un tirage par rendu
-  ferait changer l'affiche à chaque rechargement et deux membres ne verraient pas
-  la même page.
-- ✅ **La question « dark/light » s'annule** : en DESSINANT au lieu de téléverser,
-  `var(--color-primary)` et `var(--tone-primary-soft)` suivent le thème du membre.
-  Mesuré sur la page rendue — fond `srgb 0.223 0.133 0.223` en sombre,
-  `srgb 0.954 0.893 0.920` en clair, **un seul fichier**. Pas douze PNG, pas de
-  préférence à lire.
-🅿️ **Ce qui reste de cette moitié** : téléverser SES propres logos pour qu'ils
-entrent dans le tirage. Ça demande une table, donc une migration, donc l'opérateur
-— et ça se décide après avoir jugé les six.
-✅ **La seconde moitié aussi** — le regroupement par mois est un spécimen dans la
-même section, rendu avec les VRAIES classes du catalogue. « AOÛT · 1 événement »
-puis « SEPTEMBRE · 4 » : la hauteur des blocs dit le volume avant le compte.
-🔴 **La question à trancher n'est pas graphique** : `/events` passe par
-`_catalogue.html.twig`, partagé avec six autres listes. Un en-tête de mois veut
-dire soit une grille PAR mois (le spécimen — et les cartes du dernier mois ne
-s'alignent plus sur le précédent), soit un `grid-column: 1 / -1` dans une grille
-unique, qui garde l'alignement mais demande au shell une notion de « séparateur »
-qu'aucune autre liste n'a. ⚠️ Et le regroupement ne vaut que pour les objets
-DATÉS : une machine n'a rien à regrouper.
-
-
-**Source** : trois captures de Fabmanager (instance Technistub) décrites dans
-`Stage/Drive/Images/Fabmanager UI/README.md` — événements, formations, machines.
-⚠️ **Fabmanager, pas Fabman** : c'est une seconde source, distincte des 73 captures
-qui ont donné le barème de qualité de formulaire.
-
-**La demande** : une **page d'exemple** d'une version améliorée de nos événements.
-Donc une proposition à regarder, pas un remplacement à déployer — elle passe par
-`/admin/design` en propositions comparables, comme le format de liste
-([[feedback-fabos-design-review-loop]]), et la revue designer est **une fois par
-phase**.
-
-### Ce que l'opérateur retient de la référence
-
-1. ✅ **Les dates sont visibles**, et fortes : « Le 28/08/2026 » en rouge et en gras
-   est l'élément le plus lourd de la carte, l'horaire juste dessous en plus petit.
-2. ✅ **Le regroupement par mois donne le VOLUME d'un coup d'œil** — « AOÛT, 2026 »
-   avec une carte, « SEPTEMBRE, 2026 » avec neuf : on voit que la rentrée est
-   chargée sans lire une seule ligne. Une liste à plat ne le dit pas.
-3. ✅ **Le logo en remplacement d'affiche est malin** — la moitié image d'une carte
-   sans photo est remplie par le logo du lab, pas par un vide ni une icône générique.
-
-### Le point neuf : plusieurs logos de remplacement, tirés au sort
-
-⚠️ **Le défaut de la référence est justement là** : toutes les cartes portent le
-même logo, donc quinze cartes identiques. Le remède devient le symptôme.
-
-**Ce qui est demandé :**
-- pouvoir **enregistrer un OU PLUSIEURS logos** de remplacement, affectés
-  **aléatoirement** aux événements sans affiche ;
-- **six images par défaut livrées avec FabOS**, un pseudo-logo décliné en
-  **variations de couleurs proches du thème par défaut** ;
-- **une variante claire et une variante sombre**, pour suivre la préférence
-  d'affichage du membre.
-
-**Ce qu'il faut trancher avant de dessiner :**
-- 🔴 **« Aléatoire » doit être STABLE.** Un tirage à chaque rendu fait changer
-  l'image d'un événement à chaque rechargement, et deux membres ne voient pas la
-  même page. Le tirage doit être une fonction de l'id de l'événement
-  (`id % nombre_de_logos`), pas de `rand()`.
-- ⚠️ **Clair/sombre : deux fichiers, ou un SVG qui suit `currentColor` ?** Le second
-  est la façon dont le jeu d'icônes est déjà fait (`_icon.html.twig`) et il n'a
-  besoin d'aucune préférence à lire. À comparer avant de produire douze PNG.
-  ⚠️ Rappel : `--color-text-inverse` vaut `#FFFFFF` et **n'est jamais redéfini en
-  sombre** — une image qui s'appuie dessus reste blanche sur fond sombre.
-- ⚠️ **Où vivent les logos téléversés** : `public/uploads/<famille>/`, motif de
-  `AdminController` ~3282, et la même question que pour les documents machine —
-  supprimer la ligne n'efface pas le fichier.
-- ⚠️ **Nos cartes disent déjà des choses que la référence ne dit pas** : garder
-  l'état, le prochain créneau et les compteurs. La comparaison des trois captures
-  (fin du README de référence) montre que Fabmanager ne les a pas.
-
-### Ce qu'on ne copie PAS
-
-- Le pied de carte à deux verbes (« Réserver · Consulter ») vient des écrans
-  **formations et machines** de Fabmanager, pas de celui des événements. Il vaut
-  d'être discuté pour NOS cartes machine — l'opérateur avait justement signalé
-  « je n'ai que le bouton Voir » — mais c'est un autre sujet, à ne pas glisser dans
-  celui-ci.
-
----
-
-## ✅ Documents attachés à une machine — FAIT le 2026-08-28
-
-**Demandé** : *« add on the machine pages files to download related to each
-machine, example: usage guide, safety sheet, etc. »*
-
-Un bloc « Documents attachés » sur `/admin/machines/{id}/edit` — téléverser,
-retirer — et un onglet « Documents » sur la fiche publique, dans la barre qui
-existait déjà. Migration `Version20260828100000` passée par l'opérateur le
-2026-08-28 à 08:32, **avant** le déploiement du code qui lit la table.
-
-🔴 **Ces fichiers sont PUBLICS.** Ils vivent sous `public/uploads/`, donc leur
-adresse suffit. C'est le bon défaut pour une fiche de sécurité — elle se lit AVANT
-d'être formé — et l'écran d'admin prévient en toutes lettres de ne rien y mettre
-d'interne. 🅿️ **Le jour où un document devra être réservé aux membres, il faudra
-le sortir de `public/`** : un contrôle d'accès devant un fichier que le serveur web
-sert directement ne contrôle rien.
-
-**Les décisions prises, pour ne pas les re-litiger :**
-- le type est **constaté** (`getMimeType()`, finfo), jamais annoncé — liste blanche
-  de douze types ;
-- le nom sur le disque est construit à partir du type constaté, jamais du nom
-  envoyé (qui peut contenir des `../`), mais `originalName` est rendu au
-  téléchargement ;
-- **supprimer efface aussi le fichier**, contrairement aux avatars : l'octet est
-  public, le laisser laisserait une fiche retirée toujours lisible ;
-- l'onglet public n'apparaît que s'il y a des documents ;
-- le formulaire d'ajout est un `<form>` à part, APRÈS `_machine_form` — imbriquer
-  des formulaires est interdit en HTML.
-
-⚠️ **Le piège qui a mordu au premier déploiement** : `naming_strategy: underscore`
-dans `doctrine.yaml` faisait chercher `stored_name` là où la table dit
-`storedName`. L'entité déclare ses noms de colonnes explicitement.
-
-✅ Sonde d'écriture `app:s152:document-probe` verte. ⚠️ Elle ne couvre pas le
-téléversement HTTP lui-même (validation de type, déplacement du fichier), qui
-demande un vrai POST authentifié.
-
-🅿️ **Reste à faire, et c'est à l'opérateur** : y déposer les vrais documents.
-
----
+fonctionnalités, pas de la finition.
 
 ## ✅ CE QUE L'OPÉRATEUR VÉRIFIE — Phase J (S169)
 
@@ -306,6 +101,8 @@ demande un vrai POST authentifié.
 teste.** Elle est délibérément faite de gestes, pas de fichiers : ce que la
 machine sait mesurer est déjà mesuré, et ce qu'elle ne sait pas voir est
 exactement ce qui suit.
+⏳ **Cette liste n'a pas encore été parcourue** — elle reste ici tant qu'elle est
+du travail qui attend.
 
 | # | Le geste | Ce qui doit se produire |
 |---|---|---|
@@ -922,182 +719,26 @@ explicite. **Aucun message privé ne bascule implicitement vers la cohorte.**
 
 # Phase K — les gabarits d'e-mail deviennent modifiables ✅ CLOSE le 2026-09-07
 
-**Demandé par l'opérateur le 2026-09-04**, sur la trouvaille du dépouillement
-Fabmanager : *« Customize email templates »*, **10 votes**, et le seul écart à la
-fois bien voté, petit, et absent de notre plan. Détail dans
-`FABMANAGER-ECARTS.md`.
+✅ **Livrée (S160–S162).** Un exploitant réécrit le texte d'un e-mail, par langue,
+sans écrire une ligne de Twig ; `_header` et `_footer` se réécrivent une fois pour
+les vingt ; et 🔴 une surcharge cassée n'empêche jamais un mot de passe oublié de
+partir — mesuré, incident journalisé.
+📖 **Le récit, les tensions tranchées et les mesures → `docs/history/phase-K-emails-S160-S162.md`.**
 
-## Ce qui existe déjà, mesuré
+✅ **Plus rien de bloquant : la migration `Version20260907090000` a été lancée par
+l'opérateur le 2026-09-07 à 18:30**, service redémarré. 65 sur 65.
 
-- **23 gabarits Twig** dans `templates/emails/`, tous héritant de
-  `_layout.html.twig`. Le sujet est un `{% block subject %}`.
-- 🔴 **Le texte n'est PAS dans les gabarits : il est en CLÉS DE TRADUCTION**
-  (`mail.event.registered.subject`), donc en cinq langues.
-- `Mailer::queue()` enregistre `template` + `context` + `locale` dans le journal ;
-  **le rendu a lieu plus tard, à l'envoi**, par le worker.
-- ✅ `sendNow()` avec `NotificationCategory::TEST` existe déjà — l'aperçu et le
-  « m'envoyer un test » sont donc à moitié construits.
+## 🅿️ Ce qui reste ouvert
 
-## 🔴 La tension à trancher AVANT d'écrire une ligne
-
-**Un texte modifié par l'opérateur est du CONTENU, pas de l'interface.** La règle
-de la maison est explicite : *on traduit l'UI, jamais le contenu*. Donc une
-surcharge est **par langue**, et les traductions livrées restent le repli. Il n'y
-a pas de version « une seule langue » qui tienne : un lab bilingue qui ne
-surcharge que le français casserait ses mails anglais s'il remplaçait la clé.
-
-🔴 **Et l'opérateur n'écrira JAMAIS de Twig.** Laisser saisir du Twig, c'est
-offrir l'exécution de code arbitraire dans un gabarit. Deux issues seulement :
-le bac à sable Twig, ou une syntaxe de champs restreinte (`{{ event }}`) validée
-à l'enregistrement. **La seconde est recommandée** : elle est vérifiable, elle
-n'a pas de surface d'évasion, et personne n'a demandé de boucles dans un e-mail.
-
-⚠️ **Le rendu a lieu à l'ENVOI, pas à la mise en file.** Un gabarit modifié entre
-les deux change le mail déjà en attente. À trancher : figer le rendu à la mise en
-file, ou rendre à l'envoi. Rendre à l'envoi est plus simple et cohérent avec
-l'existant — mais alors **une surcharge cassée ne doit jamais empêcher un mail
-transactionnel de partir**.
-
-| Session | Livre | Ce qu'on mesure |
-|---|---|---|
-| **S160** ✅ | **Livré le 2026-09-06** : le modèle, le repli, la substitution de champs. Pas d'éditeur — c'est S161 | ✅ **Empreinte IDENTIQUE, octet à octet** : `70c853d3ba295630…` avant comme après, sur 40 rendus (20 gabarits × 2 langues). `app:s160:mail-render-probe` |
-
-### ✅ S160 — le repli prouvé dans son état le plus fort
-
-🔴 **Le code est déployé et la table n'existe PAS encore** — la migration attend
-l'opérateur. C'est la meilleure preuve possible du repli : `MailOverrides` est en
-DBAL, sonde l'existence de la table une fois par processus, et rend « aucune
-surcharge » sur n'importe quelle exception. Résultat mesuré : **les 40 rendus
-sont identiques au bit près**.
-⚠️ C'est aussi la seule direction sûre : une table NEUVE se déploie avant sa
-migration ; une colonne sur une entité chargée partout, jamais
-([[feedback-fabos-migration-hazard]]).
-
-🔴 **Le texte de l'exploitant ne passe JAMAIS par le compilateur Twig.** Il est
-substitué en PHP sur une liste FERMÉE de champs (`{{ event }}`), échappé, puis
-`nl2br`, puis injecté dans `_override.html.twig` qui n'apporte que le chrome du
-layout. Aucune boucle, aucune condition, aucun filtre : personne n'a demandé de
-`{% for %}` dans un e-mail, et chaque construction acceptée serait une surface
-d'évasion de plus.
-⚠️ **Un champ inconnu reste écrit tel quel, visible** — pas rendu vide. Une phrase
-amputée ne se remarque pas ; `{{ nimportequoi }}` en clair, si.
-
-🔴 **Une surcharge ne peut pas empêcher un mail de partir.** La lecture est
-enveloppée, le rendu de la surcharge aussi : la moindre exception retombe sur le
-gabarit livré, sans que le destinataire voie quoi que ce soit. C'est le critère
-de sortie de la phase, tenu dès S160.
-⚠️ Et une surcharge VIDE n'est pas une surcharge : elle vaut « rien à ajouter ».
-Rendre une chaîne vide enverrait un mail sans objet ni corps — pire que pas de
-fonctionnalité.
-
-⚠️ **`locale` fait partie de la clé.** Un texte réécrit par l'exploitant est du
-CONTENU, et la règle de la maison est « on traduit l'UI, jamais le contenu ». Une
-surcharge sans langue casserait les mails anglais d'un labo bilingue qui n'aurait
-réécrit que le français.
-| **S161** ✅ | **L’éditeur.** ✅ **Livré le 2026-09-07** : un écran par gabarit ET par langue, les champs déduits du gabarit, refus d'un champ inconnu, aperçu par le VRAI moteur. 🅿️ **L'envoi de test est REPORTÉ** — voir ci-dessous | ✅ Sonde `app:s161:mail-editor-probe`, 12 assertions, **aucun courrier envoyé** |
-
-### ✅ S161 — les champs sont DÉDUITS, pas retapés
-
-**`MailTemplateCatalog` lit la source Twig du gabarit et de ses partiels.** Une
-liste tenue à la main diverge du jour où quelqu'un ajoute une variable — et
-personne ne s'en aperçoit, parce que l'éditeur continue de proposer l'ancienne.
-⚠️ Le scan cherche DEUX formes, et la seconde est le cas majoritaire ici : le
-texte de ces mails vit en clés de traduction, donc
-`|trans({'%event%': event})`. Un scan qui ne verrait que `{{ … }}` raterait
-presque tout.
-🅿️ **Ce qu'il ne voit pas, dit franchement** : un champ passé par un appelant PHP
-sans jamais apparaître dans le Twig. La liste est donc « ce que le gabarit sait
-afficher » — la bonne définition pour un éditeur, pas « tout le contexte ».
-
-✅ **L'aperçu passe par `MailSender::render()`, la méthode qui ENVOIE** (rendue
-publique pour ça). Un second moteur de rendu pour la prévisualisation finirait
-par diverger de celui qui envoie — exactement le défaut qu'un aperçu prévient.
-⚠️ Et l'écran DIT que le contexte est un exemple : les valeurs sont en capitales
-(« ÉVÉNEMENT ») pour qu'on voie où elles atterrissent. Une valeur plausible ferait
-croire qu'on regarde un vrai mail.
-⚠️ L'aperçu est dans un `iframe sandbox` : un gabarit d'e-mail porte ses propres
-styles en ligne, et sans isolation ses règles fuiraient dans la page d'admin et
-inversement.
-
-✅ **Vérifié par sonde, avec écriture puis retrait exact** : la surcharge
-s'applique (objet ET corps), le champ est REMPLACÉ et pas écrit tel quel, le
-chrome du layout est conservé, `{{ 7 * 7 }}` **n'est pas évalué**, `<script>` est
-échappé, vider les deux champs SUPPRIME la ligne, et le rendu revient **identique
-au bit près**. Table vérifiée vide avant et après — et la sonde refuse de démarrer
-si elle ne l'est pas, plutôt que d'écraser le texte de quelqu'un.
-
-🅿️ **L'envoi de test n'est pas livré, et c'est un choix.** `sendNow()` existe et
+**L'envoi de test n'est pas livré, délibérément.** `sendNow()` existe et
 marcherait. Poser un bouton qui envoie du vrai courrier depuis une session
-automatisée n'est pas à moi de décider : ça s'ajoute quand quelqu'un peut le
+automatisée n'est pas une décision d'agent : ça s'ajoute quand quelqu'un peut le
 regarder partir.
-| **S162** ✅ | **Livré le 2026-09-07** : l'en-tête et le pied réécrivables SÉPARÉMENT, la garde du transactionnel PROUVÉE, et le journal qui dit quelle version a servi | ✅ Sonde `app:s162:layout-probe`, 26 assertions, **aucun courrier envoyé** |
-
-### ✅ S162 — le repli n'est plus silencieux, et le chrome se réécrit une fois
-
-🔴 **La mesure de sortie, tenue et mesurée** : une surcharge volontairement
-cassée sur `password_reset` — un objet sur deux lignes, écrit en SQL direct — et
-le mail part **avec le texte livré, identique au bit près**, l'objet cassé ne
-fuit pas dans l'en-tête, et l'incident est journalisé (`ERROR`, avec le gabarit,
-la langue, la partie et la raison).
-
-⚠️ **Casser une surcharge demande de la MALICE, et c'est une bonne nouvelle.** Le
-texte de l'exploitant ne voit jamais le compilateur Twig : il n'y a ni boucle, ni
-condition, ni filtre à faire échouer. Le seul défaut réellement atteignable est
-un objet contenant un saut de ligne — un en-tête SMTP mal formé — et il n'est
-atteignable que par un POST fabriqué à la main, un navigateur retirant les
-retours d'un `<input>`.
-🅿️ **Ce n'était donc pas un défaut observé en production** : c'est une panne
-fabriquée pour mettre le repli à l'épreuve. Le dire ainsi vaut mieux que de
-laisser croire qu'on a réparé quelque chose de cassé.
-
-🔴 **Le repli reste un FILET, il ne devient pas une porte d'entrée.** L'éditeur
-refuse désormais l'objet multi-ligne **avec une phrase, sur le champ concerné**,
-et `save()` refuse en plus l'UTF-8 invalide. Absorber à l'envoi ce qu'on laisse
-entrer à l'écriture signifierait qu'un exploitant voit son texte enregistré ici
-et le texte livré dans sa boîte, sans rien qui explique l'écart.
-
-✅ **`_header` et `_footer` — deux clés réservées, la même table.** Ce sont les
-deux seuls morceaux de chrome communs aux vingt e-mails : les réécrire gabarit
-par gabarit obligerait à saisir cent fois le même pied, et à le corriger cent
-fois. Une seconde table pour deux lignes aurait été un second endroit où chercher
-« qui a changé ce texte », et un second repli à écrire et à prouver.
-🔴 **Le lien de désinscription reste émis par le layout, sous le texte du pied,
-et `unsubscribe_url` n'est PAS proposé comme champ du pied.** L'exploitant
-réécrit la phrase ; il ne déplace ni ne retire la sortie de secours. Un pied qui
-l'aurait « déplacé » puis perdu supprimerait une obligation par inadvertance.
-⚠️ **Les trois replis sont INDÉPENDANTS**, et la sonde le mesure d'un coup : un
-corps cassé laisse l'en-tête et le pied réécrits en place
-(`override_failed+header+footer`).
-
-✅ **Le journal dit QUELLE VERSION a servi** — critère de sortie de la phase.
-`EMAIL_LOG.renderedFrom` porte une trace, pas un booléen : le corps (livré,
-réécrit, ou réécrit-mais-cassé) **et** les deux parties du chrome. « Réécrit »
-tout court ne dirait pas que c'est le pied commun qui a changé le mail, alors que
-c'est justement le cas qui touche vingt gabarits d'un coup.
-⚠️ **`—` pour les mails partis avant la colonne** : on ne le sait pas
-rétroactivement, et écrire « livré » par défaut serait une affirmation inventée.
-🔴 **Et l'écran des textes marque en ROUGE les couples dont le dernier envoi est
-retombé** — dérivé du journal, pas d'un drapeau stocké qu'il faudrait penser à
-remettre à zéro quand quelqu'un répare son texte.
-
-✅ **La sortie des 40 rendus est IDENTIQUE à celle d'avant le changement de
-layout** — mesuré en remettant l'ancien `_layout.html.twig` sur la boîte, en
-vidant le cache, en rendant les 40, puis en le remettant : `diff` vide. C'est la
-seule forme de preuve qui ne dépende ni de la date ni de l'état de la base.
-
-✅ **Migration `Version20260907090000` exécutée par l'opérateur le 2026-09-07**,
-service redémarré. 65 migrations sur 65, aucune en attente.
-✅ **Et la colonne est ÉCRITE, pas seulement présente** — mesuré par
-`app:s162:layout-probe --log-write` : une ligne marquée est insérée en statut
-`sent` (jamais `queued`, qu'un worker prendrait pour un vrai envoi), la trace est
-relue telle quelle, `fallbackKeys()` la remonte, puis la ligne est supprimée et le
-journal rendu à son compte de départ (126 lignes).
-⚠️ **L'option est OPT-IN, jamais par défaut** : c'est la seule section de la sonde
-qui écrit dans le vrai journal des envois.
-🅿️ Les 126 lignes existantes affichent « avant le suivi » — elles sont parties
-avant la colonne, et l'inventer serait une affirmation fausse.
 
 ## Ce que l'opérateur vérifie — Phase K
+
+⏳ **Cette liste n'a pas encore été parcourue** — elle reste ici tant qu'elle est
+du travail qui attend.
 
 | Session | Où | Ce qui doit être vrai |
 |---|---|---|
@@ -1114,15 +755,6 @@ avant la colonne, et l'inventer serait une affirmation fausse.
 | **S162** ✅ | `/admin/emails/gabarits/password_reset/fr`, coller un objet sur deux lignes | **Refusé, avec une phrase**, sur le champ Objet |
 | **S162** ✅ | `/admin/emails`, colonne **Texte** | La colonne existe et s'écrit (migration passée). ⚠️ Les 126 mails déjà partis disent « avant le suivi » : le prochain envoi sera le premier renseigné |
 | **S162** ✅ | la sonde, pour ce qui ne se voit pas à l'écran | `php bin/console app:s162:layout-probe` — 26 assertions (29 avec `--log-write`), dont le mot de passe oublié qui part malgré une surcharge cassée |
-
-## Critères de sortie
-
-- Aucune surcharge en base ⇒ aucun changement visible nulle part.
-- 🔴 **Un mot de passe oublié part toujours**, quelle que soit la bêtise saisie.
-- Une surcharge s'applique dans la langue du destinataire, et seulement là.
-- ✅ Le journal des mails dit **quelle version** a servi — livrée, surchargée, ou
-  surchargée-mais-retombée, et les deux parties du chrome séparément.
-  ⚠️ Effectif **après** `Version20260907090000` et un redémarrage.
 
 ---
 
@@ -1728,10 +1360,14 @@ Espaces, les trois P0 des boîtiers par la phase Machines.
 
 # Phase O — Machines & boîtiers (S171–S174) — ✅ **CLOSE le 2026-09-05**
 
-**Planifiée le 2026-09-04**, d'après les huit planches et la revue Sol
-(`/admin/references`). Absorbe les **trois P0 de sécurité** vérifiés le même jour.
+✅ **Livrée.** Les trois P0 de sécurité, les états réels d'un boîtier, la fiche
+machine séparée en deux publics, et la matière ramenée à une seule vérité.
+📖 **Le récit, les décisions et les mesures → `docs/history/phase-O-machines-boitiers-S171-S174.md`.**
 
 ## 🔴 La règle des trois phases issues des planches — lire AVANT de les ouvrir
+
+⚠️ **Cette règle reste ICI, et pas dans l'historique** : la Phase P et la Phase Q
+la citent en pointant « en tête de la Phase O ».
 
 **On AMÉLIORE, on ne refait pas.** L'opérateur, 2026-09-04 : *« les screenshots
 ont de bonnes idées, dérives-en des upgrades, pas des refontes entières »*.
@@ -1753,29 +1389,13 @@ disponibilité lisible dès la carte », « une zone Exploitation séparée du c
 public ». ⚠️ Toute planche qui semblerait exiger un shell neuf, une couleur neuve
 ou un composant neuf est le signe qu'on l'a mal lue.
 
-## Ce qui existe déjà, mesuré
-
-`Machine`, `MachineDocument` (S152), `MachineFavorite`, `MaintenanceTask`,
-`RfidReader`, `AccessRfidLog`, `MachineAccessService`, `Material` +
-`MACHINE_MATERIAL`, les kiosques, `/admin/machines` et `/machines/{id}`.
-🔴 **Et `Machine::materials`, un tableau texte, EN PLUS de la relation** — deux
-sources de vérité, dont l'une retombe sur une liste codée en dur
-(`['PLA','PETG','TPU','Support']`) quand elle est vide. Une découpeuse sans
-matériaux annoncerait donc du PLA.
-
-| Session | Livre | Ce qu'on mesure |
-|---|---|---|
-| **S171** | 🔴 **La sécurité des boîtiers, d'abord.** Garde `fail-closed` quand `FABOS_RFID_API_TOKEN` manque ; retrait de l'exemple `.env` qui donne `FABOS_DB_*` à un boîtier ; décision explicite sur `/kiosk/entries` | Un POST sans en-tête rend **401**, pas 404. ✅ Sans risque mesuré : un seul lecteur, vu la dernière fois le 2026-07-10 |
-| **S172** | **Identité et santé d'un boîtier** : secret propre au device, révélé UNE fois, rotation et révocation, dernière connexion, état réel — prêt / hors ligne / non configuré / erreur / association invalide — au lieu d'un booléen plus `lastSeenAt` | Chacun des cinq états est atteignable et distinguable à l'écran |
-| **S173** | **La fiche machine se sépare en deux publics** : membre (statut utilisable, prochaine action, prérequis exacts, matériaux compatibles, réserver) et une zone **Exploitation** staff/admin. ⚠️ La page RESTE une page — pas deux routes, pas un shell neuf | Le membre atteint « puis-je l'utiliser ? » sans quitter la fiche ; le staff ne voit plus ses outils mélangés au contenu public |
-| **S174** | **La matière devient une seule vérité** : `MACHINE_MATERIAL` canonique, `Machine::materials` rétrogradé en note de transition, et une fiche `/materiaux/{id}` avec les machines réellement compatibles. **Plus de liste codée en dur** | 🔴 Aucune machine n'annonce un matériau qu'elle ne prend pas ; le repli en dur n'existe plus |
-
-
 ## Ce que l'opérateur vérifie — Phase O
 
 🔴 **L'opérateur est le relecteur** (sa demande, 2026-09-05). Donc chaque session
 finit par une chose CONSTATABLE À L'ÉCRAN, pas par un rapport. Une ligne qui dit
 « vérifié en interne » n'est pas une ligne de cette liste.
+⏳ **Cette liste n'a pas encore été parcourue** — elle reste ici tant qu'elle est
+du travail qui attend.
 
 ⚠️ **Un test qui échoue ici n'est pas un détail de finition** : c'est la preuve que
 la session a livré autre chose que ce qu'elle annonce.
@@ -1793,51 +1413,27 @@ la session a livré autre chose que ce qu'elle annonce.
 | **S174** ✅ | `/machines/{id}` | **Une seule** section matériaux. Il y en avait deux, côte à côte, l'une sur le texte libre et l'autre sur `MACHINE_MATERIAL` |
 | **S174** ✅ | `/materiaux`, puis un clic sur un matériau | On arrive sur **sa fiche**, avec les machines qui l'acceptent, cliquables. Avant, chaque carte renvoyait à la liste d'où l'on venait de cliquer |
 | **S174** ✅ | `GET /api/machines/5` **sans être connecté** | `machineToken` vaut **null**. 🔴 Il valait `"prusa-mk3s-01"` — le segment qui adresse la machine sur l'API des boîtiers, publié à qui passait. ✅ Pas un contournement : S171 a rendu cette API `fail-closed`. Une divulgation inutile, pas une porte ouverte |
-## La passe de fond de cette phase
 
-⚠️ Une phase qui ne fait que sa fonctionnalité laisse le socle où il était.
-- **Réemploi** : les patterns locaux de la fiche machine (matériaux, maintenance)
-  remontent dans le système de design s'ils servent ailleurs — sinon ils restent,
-  et on l'écrit.
-- **Conformité** : `tools/dead_affordances.py`, `tools/a11y_static.py`,
-  `tools/form_placement.py` et `tools/ctor_arity.py` passés en début ET en fin de
-  phase, l'écart commenté.
-- ⚠️ **Le kiosque garde favicon, CSS et styles locaux** : soit il rejoint le shell
-  et le thème publié (ce que la phase Thèmes demande aussi), soit on écrit
-  pourquoi il reste à part. Pas de troisième option silencieuse.
+## ⏳ Ce que la passe de fond a laissé ouvert
+
+⚠️ **Le kiosque garde favicon, CSS et styles locaux.** Soit il rejoint le shell et
+le thème publié — ce que la **Phase M** demande aussi — soit on écrit pourquoi il
+reste à part. **Pas de troisième option silencieuse.**
 
 ---
 
 # Phase P — Espaces & accès d'entrée (S175–S178) — ✅ **CLOSE le 2026-09-06**
 
-**Planifiée le 2026-09-04**, d'après les huit planches et la revue Sol. Absorbe le
-todo « contrôle d'accès aux LIEUX » du 2026-09-03.
-⚠️ **La règle de lecture des planches est en tête de la Phase O** : présentation
-de contenu uniquement, jamais le thème, et pas une liste de tâches.
-
-## 🔴 Le fait de modèle qui commande toute la phase
-
-**Un lecteur RFID est aujourd'hui rattaché OBLIGATOIREMENT à une machine.** Une
-porte ne peut donc être représentée qu'en inventant une machine fictive — ce qui
-est exactement le genre de contournement qui se paie deux ans plus tard. La revue
-propose `AccessPoint`, distinct de `Machine` : porte, portail, casier, zone.
-✅ C'est la réponse au todo de l'opérateur sur les gâches électriques.
-
-⚠️ **Et le verdict d'une porte est plus riche que celui d'une machine** : les axes
-lieu / jours / horaires d'un forfait le décrivent DÉJÀ (`PackageSpec`), là où
-l'accès machine est un booléen sur les badges. On ne réinvente rien ; on branche.
-
-| Session | Livre | Ce qu'on mesure |
-|---|---|---|
-| **S175** | `AccessPoint`, et le lecteur s'y rattache aussi bien qu'à une machine. **Migration additive**, aucun lecteur existant déplacé | Un lecteur existant continue de répondre exactement comme avant — comparaison avant/après, annulée sinon |
-| **S176** | **La mise en service** : créer → associer porte/lieu → révéler le secret UNE fois → tester la connexion. Et les **incidents** d'accès actionnables : une cause mène vers le membre, le badge, la formation, le lecteur | Un refus se corrige depuis l'incident, sans chercher dans un journal |
-| **S177** | **Le parcours membre** : disponibilité lisible dès la carte (« Disponible à 14:00 » plutôt que « Occupé »), fiche d'espace qui répond « puis-je réserver, quand, qu'est-ce qui est inclus, comment j'entre », et « Mes réservations » avec la prochaine et sa fenêtre d'accès | 🔴 **Compté en clics**, cibles de la revue : trouver un espace libre 1–2, réserver 2–3, retrouver sa réservation 1 |
-| **S178** | **L'accès temporaire lié à une réservation** : une marge courte avant/après, révoqué à l'annulation. Et `Espaces > Exploitation` : réservations proches, fermetures, points hors ligne, refus | 🔴 Annuler une réservation retire l'accès **immédiatement**, prouvé par une sonde |
+✅ **Livrée.** `AccessPoint` existe : un boîtier commande une **PORTE**, plus
+seulement une machine. Mise en service et incidents actionnables, parcours membre,
+accès temporaire lié à une réservation.
+📖 **Le récit, les décisions et les mesures → `docs/history/phase-P-espaces-acces-S175-S178.md`.**
 
 ## Ce que l'opérateur vérifie — Phase P
 
 🔴 **L'opérateur est le relecteur.** Une ligne par constat visible à l'écran ;
-jamais « vérifié en interne ».
+jamais « vérifié en interne ». ⏳ **Cette liste n'a pas encore été parcourue** —
+elle reste ici tant qu'elle est du travail qui attend.
 
 | Session | Où | Ce qui doit être vrai |
 |---|---|---|
@@ -1859,15 +1455,6 @@ jamais « vérifié en interne ».
 main** : l'API des boîtiers rend `503 device_api_not_configured` faute de
 `FABOS_RFID_API_TOKEN` (S171 fait son travail). Aucune autorisation de bout en
 bout n'est vérifiable ici — seulement la base et l'écran.
-
-
-## La passe de fond de cette phase
-
-- **Réemploi** : le calendrier, les créneaux et les politiques de réservation
-  existent — cette phase ne doit pas en écrire une seconde version.
-- ⚠️ **Le kiosque d'entrée est PUBLIC** : ni identité, ni UID de badge, ni journal,
-  ni secret. C'est un critère de sortie, pas une intention.
-- **Conformité** : mêmes outils, début et fin.
 
 ---
 

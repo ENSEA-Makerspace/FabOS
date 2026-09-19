@@ -30,6 +30,12 @@ La nouvelle = commerce (S150–S154, pas commencée). Le numéro de session tran
 | S146 — le calendrier unique | S146 a→g | 2026-08 | `history/phase-S146-calendrier.md` |
 | Ancien `WORKING_BRIEF` complet (journal des positions + anciennes règles) | — | 2026-08 | `history/positions-log-2026-08.md` |
 | État du projet, version 2026-08-09 | — | 2026-08 | `history/project-state-2026-08-09.md` |
+| S153 — la saisie, et les propositions soldées | S153 | 2026-08 | `history/phase-S153-saisie.md` |
+| S158–S159 — les groupes deviennent le modèle | S158–S159 | 2026-09 | `history/phase-S158-S159-groupes.md` |
+| J — « boutonner » | S147–S169 | 2026-08/09 | `history/phase-J-boutonner-S147-S169.md` |
+| O — machines & boîtiers | S171–S174 | 2026-09 | `history/phase-O-machines-boitiers-S171-S174.md` |
+| P — espaces & accès d'entrée | S175–S178 | 2026-09 | `history/phase-P-espaces-acces-S175-S178.md` |
+| K — gabarits d'e-mail modifiables | S160–S162 | 2026-09 | `history/phase-K-emails-S160-S162.md` |
 
 ---
 
@@ -102,7 +108,43 @@ attribution personnelle), avec l'appartenance datée. « package » devient
 **forfait**. Quatre écrans obsolètes retirés. Détail →
 `history/phase-S158-S159-groupes.md`.
 
-**Phase J — boutonner (en cours).** S147 la revue : 146 pages rendues et mesurées
-+ passe navigateur → 25 défauts J-1…J-25. Corrigés à ce jour : J-1, J-11, J-12,
-J-13, J-20, J-21, J-24, et J-22 pour 5 formulaires sur 6. Détail →
-`S147-REVUE.md`.
+**Phase J — « boutonner » ✅ CLOSE le 2026-09-05 (S147–S169).** S147 la revue :
+146 pages rendues et mesurées + passe navigateur → 25 défauts J-1…J-25. Les 25
+sont soldés — dont **trois qui se sont révélés caducs ou périmés dans leur
+énoncé** parce qu'une autre phase avait supprimé leur sujet pendant que le plan
+continuait de les décrire. Au passage : `/prets/{id}` rendu à sa coquille, les six
+affiches de remplacement d'événement, les documents attachés à une machine. Détail
+→ `history/phase-J-boutonner-S147-S169.md` et `S147-REVUE.md`.
+⚠️ **La section « Ce que l'opérateur vérifie » de cette phase reste dans
+`ROADMAP.md`** : c'est du travail qui l'attend, pas de l'historique.
+
+**Phase K — les gabarits d'e-mail deviennent modifiables ✅ CLOSE le 2026-09-07
+(S160–S162).** Un exploitant réécrit le texte d'un e-mail **par langue**, sans
+écrire une ligne de Twig — substitution PHP sur une liste FERMÉE de champs, jamais
+le compilateur Twig. `_header` et `_footer` se réécrivent **une fois pour les
+vingt**. 🔴 La mesure de sortie : une surcharge volontairement cassée sur
+`password_reset`, et le mot de passe oublié part quand même, **identique au bit
+près**, incident journalisé. S160 a prouvé le repli dans son état le plus fort —
+code déployé, **table absente**, 40 rendus identiques. Détail →
+`history/phase-K-emails-S160-S162.md`. ✅ `Version20260907090000` passée par
+l'opérateur le 2026-09-07, colonne mesurée écrite.
+
+**Phase O — Machines & boîtiers ✅ CLOSE le 2026-09-05 (S171–S174).** Les trois P0
+de sécurité (API des boîtiers `fail-closed`, `FABOS_DB_*` retiré des DEUX endroits
+du mode d'emploi, `machineToken` retiré de l'API publique), les états réels d'un
+boîtier au lieu d'un booléen, la fiche machine séparée en deux publics, et la
+matière ramenée à **une seule vérité** — plus de repli codé en dur qui faisait
+annoncer du PLA à une découpeuse. 🔴 Trouvé en passant : un `%count%` numérique
+faisait **disparaître** « Bookings: » dans les quatre langues sauf le français.
+Détail → `history/phase-O-machines-boitiers-S171-S174.md`.
+
+**Phase P — Espaces & accès d'entrée ✅ CLOSE le 2026-09-06 (S175–S178).**
+`AccessPoint` existe : un boîtier commande une **PORTE**, plus seulement une
+machine — auparavant il fallait inventer une machine fictive. Migration additive,
+et la mesure de S175 est un **non-changement** : deux lignes de diff sur la liste
+des boîtiers. Les 72 refus d'accès portent tous une action cliquable, zéro lien
+mort. ⚠️ Rien n'est révoqué à l'annulation **parce que rien n'est accordé** : la
+question est reposée à chaque badge. Détail →
+`history/phase-P-espaces-acces-S175-S178.md`.
+🅿️ Une ligne de revue reste ouverte dans `ROADMAP.md` : la pastille « Libre à
+14:00 » sur `/places`, non mesurable la nuit.
