@@ -3090,6 +3090,14 @@ admin_homepage:
 
 # Thèmes — S134c.
 admin_themes:
+    section_identity: "Identità"
+    section_colour: "Colore"
+    section_images: "Immagini"
+    section_layout: "Impaginazione"
+    sample_button: "Pulsante"
+    sample_text: "Testo d’accento"
+    discard_help: "Scarta la bozza e riparte dal tema in linea. Il sito pubblicato non viene toccato."
+    discard_confirm: "Sì, scarta la bozza"
     logo_dark_path: "Logo scuro"
     logo_dark_help: "Mostrato al posto del logo quando il tema scuro è attivo. Lasciare vuoto per mantenere lo stesso nei due temi."
     logo_dark_none: "— lo stesso —"
@@ -3117,7 +3125,7 @@ admin_themes:
     contrast_needed: "servono %n%:1"
     logo_none: "— logo fornito —"
     media_heading: "Media di identità"
-    media_help: "Immagini utilizzabili come logo. PNG, JPEG o WebP. ⚠️ L’SVG è rifiutato: è un documento che può contenere codice, servito dal nostro stesso dominio. Un’immagine usata dal tema pubblicato o dalla bozza non può essere eliminata."
+    media_help: "Immagini utilizzabili come logo o icona. PNG, JPEG o WebP."
     media_file: "Immagine da caricare"
     media_empty: "Nessuna immagine. Finché la libreria è vuota, il sito mostra il logo fornito."
     media_in_use: "Usata dal tema"

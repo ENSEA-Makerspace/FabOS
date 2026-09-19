@@ -1,0 +1,59 @@
+{#
+    LA MÉDIATHÈQUE D'IDENTITÉ — les vignettes, AU-DESSUS des sélecteurs (S165, S166d).
+
+    🔴 **Avant, changer le logo demandait un accès au serveur** : le champ
+    réclamait le nom d'un fichier qui devait DÉJÀ être dans `public/images/`.
+
+    🔴 **Et ce bloc était sous le pli, APRÈS la bande de boutons** — mesuré à
+    1217 px sur un écran de 1100. Trois champs demandaient donc de choisir une
+    image par son NOM pendant que ses vignettes étaient hors écran, et le geste
+    « je veux mettre mon logo » tombait sur une liste vide sans rien qui dise où
+    téléverser.
+
+    ⚠️ **Des vignettes, pas une liste de noms.** Ce qu'on choisit est une IMAGE ;
+    un nom de fichier ne dit pas laquelle, et le nom sur disque est un
+    identifiant tiré au sort.
+
+    ⚠️ **Sur un damier** : un logo transparent sur fond blanc a l'air d'un logo
+    blanc, et on ne s'en aperçoit qu'une fois le site publié.
+
+    ⚠️ **Une image utilisée n'a PAS de bouton Supprimer** — publiée ou en
+    brouillon. Un bouton qui existe et refuse est pire qu'un bouton absent, et la
+    garde est refaite côté action de toute façon.
+
+    ⚠️ **L'aide a été RAMENÉE à un fait (S166d).** Elle en portait trois d'un coup :
+    formats acceptés, refus du SVG avec sa raison, et règle de suppression — 200
+    caractères lus par tout le monde pour deux informations qui n'intéressent que
+    celui qui vient d'échouer. Le refus du SVG est déjà écrit, mot pour mot, dans
+    le message d'erreur ; la règle de suppression se lit sur la vignette, qui
+    porte « Utilisée par le thème » au lieu d'un bouton.
+
+    ⚠️ **Les contrôles citent leur `<form>` par `id`** : voir
+    `_theme_media_forms.html.twig`, qui les déclare avant le formulaire de thème.
+#}
+<div class="media-upload">
+    <input type="hidden" name="_token" form="theme-media-upload" value="{{ csrf_token('admin_theme_media') }}">
+    <input type="file" name="image" form="theme-media-upload" accept="image/png,image/jpeg,image/webp" required aria-label="{{ 'admin_themes.media_file'|trans }}">
+    <button type="submit" form="theme-media-upload" class="btn-action">{{ 'common.upload'|trans }}</button>
+</div>
+
+{% if media is empty %}
+    <p class="media-hint">{{ 'admin_themes.media_empty'|trans }}</p>
+{% else %}
+    <div class="media-grid">
+        {% for item in media %}
+            {% set in_use = item.mediaId in referenced %}
+            <div class="media-card">
+                <div class="media-card__frame"><img src="{{ asset('uploads/identity/' ~ item.filename) }}" alt="{{ item.originalName ?: item.filename }}"></div>
+                <span class="media-card__name">{{ item.originalName ?: item.filename }}</span>
+                <span class="media-card__meta">{{ item.width ?? '?' }}×{{ item.height ?? '?' }}</span>
+                {% if in_use %}
+                    {% include 'site/_cell_state.html.twig' with {label: 'admin_themes.media_in_use'|trans, signal: 'go'} only %}
+                {% else %}
+                    <input type="hidden" name="_token" form="theme-media-delete-{{ item.mediaId }}" value="{{ csrf_token('admin_theme_media') }}">
+                    <button type="submit" form="theme-media-delete-{{ item.mediaId }}" class="btn-link btn-danger-admin">{{ 'common.delete'|trans }}</button>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}

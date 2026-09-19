@@ -3091,6 +3091,14 @@ admin_homepage:
 
 # Thèmes — S134c.
 admin_themes:
+    section_identity: "Identity"
+    section_colour: "Colour"
+    section_images: "Images"
+    section_layout: "Layout"
+    sample_button: "Button"
+    sample_text: "Accent text"
+    discard_help: "Discards the draft and starts again from the live theme. The published site is untouched."
+    discard_confirm: "Yes, discard the draft"
     logo_dark_path: "Dark logo"
     logo_dark_help: "Shown instead of the logo when the dark theme is on. Leave empty to keep the same one in both themes."
     logo_dark_none: "— the same one —"
@@ -3118,7 +3126,7 @@ admin_themes:
     contrast_needed: "%n%:1 required"
     logo_none: "— shipped logo —"
     media_heading: "Identity media"
-    media_help: "Images usable as a logo. PNG, JPEG or WebP. ⚠️ SVG is refused: it is a document that can carry code, served from our own domain. An image used by the published theme or by the draft cannot be deleted."
+    media_help: "Images usable as a logo or an icon. PNG, JPEG or WebP."
     media_file: "Image to upload"
     media_empty: "No image yet. While the library is empty, the site shows the shipped logo."
     media_in_use: "Used by the theme"

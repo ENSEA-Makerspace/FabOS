@@ -32,6 +32,24 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
  */
 final class ThemeDraftType extends AbstractType
 {
+    /**
+     * 🔴 **Neuf champs à plat, c'était une liste de courses (S166d).** Mesuré sur
+     * l'écran rendu : 9 champs, **0 section**, sur un document de 2299 px. Trois
+     * familles — identité, images, mise en forme — au même niveau, dans l'ordre
+     * où les sessions les avaient ajoutées. Chaque session a ajouté un champ ;
+     * aucune n'a rouvert l'écran.
+     *
+     * ⚠️ **Le même motif `SECTIONS` que les autres formulaires lourds du dépôt.**
+     * `_form_sections.html.twig` le déroule ; un dixième champ tombera dans sa
+     * section sans que personne ne touche au gabarit.
+     */
+    public const SECTIONS = [
+        ['title' => 'admin_themes.section_identity', 'fields' => ['orgName', 'venueLabel']],
+        ['title' => 'admin_themes.section_colour', 'fields' => ['primaryColor']],
+        ['title' => 'admin_themes.section_images', 'fields' => ['logoPath', 'logoDarkPath', 'faviconPath']],
+        ['title' => 'admin_themes.section_layout', 'fields' => ['radius', 'density', 'typeScale']],
+    ];
+
     public function __construct(
         private readonly SiteMediaLibrary $media,
         private readonly ContrastGate $contrast,

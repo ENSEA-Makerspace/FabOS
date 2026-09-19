@@ -20,6 +20,21 @@
         .media-card__meta { color: var(--color-text-light); font-size: 12px; }
         .media-upload { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
         .media-hint { color: var(--color-text-light); font-size: 13px; margin: 0; line-height: 1.55; }
+        /* ⚠️ L'entretoise pousse « Publier » à l'opposé des deux gestes
+           réversibles. Un `margin-left: auto` sur le bouton ferait la même chose,
+           mais se perdrait le jour où un quatrième bouton arrive avant lui. */
+        .theme-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .theme-actions__spacer { flex: 1 1 auto; }
+        .theme-footer { padding: 0 24px 22px; display: flex; flex-direction: column; gap: 12px; }
+        /* L'échantillon de couleur (S166d) : la pastille montre la couleur, la
+           puce montre du blanc dessus, le mot montre la variante de texte — les
+           trois situations que les deux ratios chiffrent. Un nombre seul demande
+           de faire confiance. */
+        .tc-colour { display: grid; grid-template-columns: 56px 1fr; gap: 12px; align-items: start; padding: 0 0 14px; }
+        .tc-chip { width: 56px; height: 56px; border-radius: var(--border-radius); border: 1px solid var(--border-color); background: var(--color-primary); }
+        .tc-sample { display: flex; align-items: center; gap: 10px; margin: 0 0 8px; }
+        .tc-sample b { background: var(--color-primary); color: #fff; padding: 5px 12px; border-radius: 999px; font-size: 12.5px; }
+        .tc-sample span { color: var(--color-primary-text); font-weight: 700; font-size: 12.5px; }
         .contrast-rows { display: flex; flex-direction: column; gap: 6px; margin: 4px 0 14px; }
         .contrast-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; }
         .contrast-need { color: var(--color-text-light); }
@@ -49,66 +64,70 @@
            ⚠️ **« Remplacer le brouillon » sort du formulaire.** C'est une action qui
            ne lit aucun champ ; la laisser dedans la rendrait impossible tant qu'un
            champ est refusé, c'est-à-dire précisément quand on en a besoin. #}
+        {% include 'site/_theme_media_forms.html.twig' with {media: media} only %}
         {{ form_start(form, {action: path('app_admin_themes'), attr: {class: 'theme-editor'}}) }}
             {% form_theme form 'form/admin_theme.html.twig' %}
-            <div class="form-grid">
-                {{ form_row(form.orgName) }}
-                {{ form_row(form.venueLabel) }}
-                {{ form_row(form.primaryColor) }}
-                {{ form_row(form.logoPath) }}
-                {{ form_row(form.logoDarkPath) }}
-                {{ form_row(form.faviconPath) }}
-                {{ form_row(form.radius) }}
-                {{ form_row(form.density) }}
-                {{ form_row(form.typeScale) }}
-            </div>
-            {# LE CONTRASTE, MESURÉ ET AFFICHÉ (S166).
+            {# 🔴 **S166d — neuf champs à plat, c'était une liste de courses.**
+               Mesuré sur l'écran rendu : 9 champs, **0 section**, 2299 px de
+               document, dans l'ordre où les sessions les avaient ajoutés. Quatre
+               sections maintenant, et le motif `SECTIONS` que le reste du dépôt
+               utilise déjà.
 
-               🔴 **Une palette qui échoue est REFUSÉE**, pas signalée : un
-               avertissement qu'on peut ignorer se fait ignorer. Ce bloc ne sert
-               donc pas à prévenir — il sert à montrer la MARGE, pour choisir la
-               couleur suivante en connaissance de cause.
+               ⚠️ **Une inclusion PAR SECTION, et pas une seule pour les quatre.**
+               Cet écran intercale du contenu QUI N'EST PAS UN CHAMP à l'intérieur
+               de deux sections — les mesures de contraste sous la couleur, la
+               médiathèque au-dessus des sélecteurs d'images. `_form_sections` ne
+               sait pas faire ça, et lui apprendre pour un seul appelant serait une
+               option à porter pour toujours. Découper l'appel donne le même
+               résultat sans toucher au partiel, et sans recopier son balisage :
+               les champs passent tous par lui. #}
+            {% set _sections = constant('App\\Form\\Admin\\ThemeDraftType::SECTIONS') %}
 
-               ⚠️ **Deux contrôles et pas trois.** Le contraste WCAG est
-               symétrique : « blanc sur la couleur » et « la couleur sur blanc »
-               donnent le même nombre. Les afficher tous les deux aurait fait
-               croire à une vérification de plus.
+            {% include 'site/_form_sections.html.twig' with {form: form, sections: [_sections[0]]} only %}
 
-               ⚠️ **Le second n'est pas redondant** : du noir pur passe le premier
-               à 21:1 et échoue le second à 3,39:1 — sa variante éclaircie devient
-               un gris moyen, illisible sur le panneau sombre. #}
-            <div class="contrast-rows">
-                {% for check in contrast.checks %}
-                    <div class="contrast-row">
-                        {% include 'site/_cell_state.html.twig' with {
-                            label: ('admin_themes.contrast_' ~ check.key)|trans,
-                            signal: check.ok ? 'go' : 'stop',
-                        } only %}
-                        <b>{{ check.ratio|number_format(2, ',', ' ') }}:1</b>
-                        <span class="contrast-need">{{ 'admin_themes.contrast_needed'|trans({'%n%': check.needed|number_format(1, ',', ' ')}) }}</span>
+            {% include 'site/_form_sections.html.twig' with {form: form, sections: [_sections[1]]} only %}
+            {# 🔴 **Le contraste touche la couleur QU'IL MESURE.** Il était 434 px
+               plus bas, sous « Taille du texte », séparé d'elle par cinq champs
+               sans rapport : personne ne pouvait relier « 7,65:1 » au champ qui le
+               produit. Une mesure qu'on ne rattache pas à sa cause ne sert à rien.
+
+               ⚠️ **Et un ÉCHANTILLON, pas seulement des nombres.** La pastille
+               montre la couleur, la puce montre du blanc dessus, le mot montre la
+               variante de texte : les trois situations que les deux ratios
+               chiffrent. Un nombre seul demande de faire confiance. #}
+            <div class="tc-colour">
+                <span class="tc-chip" aria-hidden="true"></span>
+                <div class="tc-readout">
+                    <p class="tc-sample"><b>{{ 'admin_themes.sample_button'|trans }}</b><span>{{ 'admin_themes.sample_text'|trans }}</span></p>
+                    <div class="contrast-rows">
+                        {% for check in contrast.checks %}
+                            <div class="contrast-row">
+                                {% include 'site/_cell_state.html.twig' with {
+                                    label: ('admin_themes.contrast_' ~ check.key)|trans,
+                                    signal: check.ok ? 'go' : 'stop',
+                                } only %}
+                                <b>{{ check.ratio|number_format(2, ',', ' ') }}:1</b>
+                                <span class="contrast-need">{{ 'admin_themes.contrast_needed'|trans({'%n%': check.needed|number_format(1, ',', ' ')}) }}</span>
+                            </div>
+                        {% endfor %}
                     </div>
-                {% endfor %}
+                </div>
             </div>
 
-            {# 🔴 **S167 — l'aperçu rend les VRAIES pages.**
+            {# 🔴 **La médiathèque passe AVANT les trois sélecteurs.** Elle était à
+               1217 px, sous le pli d'un écran de 1100 — et **après** la bande de
+               boutons. Trois champs demandaient donc de choisir une image par son
+               NOM DE FICHIER pendant que ses vignettes étaient hors écran, et le
+               geste « je veux mettre mon logo » tombait sur une liste vide sans
+               rien qui dise où téléverser. #}
+            <div class="admin-edit-panel-header"><h2>{{ 'admin_themes.media_heading'|trans }}</h2></div>
+            <p class="media-hint">{{ 'admin_themes.media_help'|trans }}</p>
+            {% include 'site/_theme_media.html.twig' with {media: media, referenced: referenced} only %}
 
-               Ce qui était ici : une bande dessinée à la main, un `<strong>`, un
-               `<span>` et un `<i>` teintés de la couleur du brouillon. Elle
-               prouvait qu'on savait dessiner une bande. Elle ne disait RIEN de ce
-               qu'on veut savoir — si le badigeon `!important` de `style.css`
-               repeint l'accent, si un jeton est lu là où on croit, si le logo
-               tient dans l'en-tête. C'est la leçon de
-               `feedback-fabos-verify-pixels`, appliquée à l'écran qui en a le
-               plus besoin.
+            {% include 'site/_form_sections.html.twig' with {form: form, sections: [_sections[2]]} only %}
 
-               ⚠️ **Quatre cadres : deux largeurs × deux thèmes.** Un aperçu qui
-               ne montre que le clair en grand laisse passer précisément ce que
-               S166 a trouvé — du bordeaux sur un panneau sombre.
+            {% include 'site/_form_sections.html.twig' with {form: form, sections: [_sections[3]]} only %}
 
-               ⚠️ **`?theme=draft` est réservé aux administrateurs**, et vérifié
-               par la page APERÇUE, pas par celle-ci : ce sont l'accueil et le
-               catalogue qui liraient le brouillon, et aucun des deux n'appartient
-               à l'administration. #}
             {% if preview %}
                 <div class="tp-grid">
                     {% for frame in preview_frames %}
@@ -122,67 +141,40 @@
                 </div>
                 <p class="media-hint">{{ 'admin_themes.preview_note'|trans }}</p>
             {% endif %}
-            <div class="admin-actions">
+            {# 🔴 **Trois boutons de même poids, dont le seul irréversible.**
+               « Publier » avait l'apparence d'« Enregistrer ». Il est maintenant
+               détaché à droite : les deux gestes réversibles à gauche, celui qui
+               engage à l'opposé.
+
+               ⚠️ **« Revenir à la version publiée » descend dans un repli**, et
+               reste un formulaire SÉPARÉ : c'est une action destructrice qui ne
+               lit aucun champ, et la faire passer par la validation la rendrait
+               impossible tant qu'un champ est refusé — c'est-à-dire exactement
+               quand on veut s'en servir.
+
+               ⚠️ **« Ordonner les blocs d'accueil » sort de la bande d'actions** :
+               c'est une NAVIGATION, elle n'avait rien à faire à côté de deux
+               boutons qui écrivent. #}
+            <div class="admin-actions theme-actions">
                 <button class="btn-link" name="action" value="save">{{ 'admin_themes.save'|trans }}</button>
                 <button class="btn-link" name="action" value="preview">{{ 'admin_themes.preview'|trans }}</button>
+                <span class="theme-actions__spacer"></span>
                 <button class="btn-link btn-primary-admin" name="action" value="publish">{{ 'admin_themes.publish'|trans }}</button>
             </div>
         {{ form_end(form) }}
-        <form method="post" action="{{ path('app_admin_themes') }}" class="admin-actions">
-            <input type="hidden" name="_token" value="{{ csrf_token('admin_themes_discard') }}">
-            <input type="hidden" name="action" value="discard">
-            <button class="btn-link" type="submit">{{ 'admin_themes.discard'|trans }}</button>
-            <a class="btn-link" href="{{ path('app_admin_homepage') }}">{{ 'admin_themes.order_blocks'|trans }}</a>
-        </form>
 
-        {# LA MÉDIATHÈQUE D'IDENTITÉ (S165).
-
-           🔴 **Avant, changer le logo demandait un accès au serveur.** Le champ
-           réclamait le nom d'un fichier qui devait DÉJÀ être dans
-           `public/images/` : un réglage qu'on ne pouvait pas régler depuis
-           l'écran qui le proposait.
-
-           ⚠️ **Des vignettes, pas une liste de noms.** Ce qu'on choisit est une
-           IMAGE ; un nom de fichier ne dit pas laquelle, et le nom sur disque est
-           un identifiant tiré au sort.
-
-           ⚠️ **Une image utilisée n'a PAS de bouton Supprimer** — publiée ou en
-           brouillon. Un bouton qui existe et refuse est pire qu'un bouton absent,
-           et la garde est refaite côté action de toute façon. #}
-        <div class="admin-edit-panel-header"><h2>{{ 'admin_themes.media_heading'|trans }}</h2></div>
-        <p class="media-hint">{{ 'admin_themes.media_help'|trans }}</p>
-
-        <form method="post" action="{{ path('app_admin_theme_media_upload') }}" enctype="multipart/form-data" class="media-upload">
-            <input type="hidden" name="_token" value="{{ csrf_token('admin_theme_media') }}">
-            <input type="file" name="image" accept="image/png,image/jpeg,image/webp" required aria-label="{{ 'admin_themes.media_file'|trans }}">
-            <button type="submit" class="btn-action">{{ 'common.upload'|trans }}</button>
-        </form>
-
-        {% if media is empty %}
-            <p class="media-hint">{{ 'admin_themes.media_empty'|trans }}</p>
-        {% else %}
-            <div class="media-grid">
-                {% for item in media %}
-                    {% set in_use = item.mediaId in referenced %}
-                    <div class="media-card">
-                        <div class="media-card__frame"><img src="{{ asset('uploads/identity/' ~ item.filename) }}" alt="{{ item.originalName ?: item.filename }}"></div>
-                        <span class="media-card__name">{{ item.originalName ?: item.filename }}</span>
-                        <span class="media-card__meta">{{ item.width ?? '?' }}×{{ item.height ?? '?' }}</span>
-                        {% if in_use %}
-                            {% include 'site/_cell_state.html.twig' with {label: 'admin_themes.media_in_use'|trans, signal: 'go'} only %}
-                        {% else %}
-                            <form method="post" action="{{ path('app_admin_theme_media_delete', {mediaId: item.mediaId}) }}"
-                                  data-controller="confirm"
-                                  data-action="submit->confirm#ask"
-                                  data-confirm-message-value="{{ 'admin_themes.media_delete_confirm'|trans|e('html_attr') }}">
-                                <input type="hidden" name="_token" value="{{ csrf_token('admin_theme_media') }}">
-                                <button type="submit" class="btn-link btn-danger-admin">{{ 'common.delete'|trans }}</button>
-                            </form>
-                        {% endif %}
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
+        <div class="theme-footer">
+            <form method="post" action="{{ path('app_admin_themes') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_themes_discard') }}">
+                <input type="hidden" name="action" value="discard">
+                <details class="settings-danger settings-danger--neutral">
+                    <summary>{{ 'admin_themes.discard'|trans }}</summary>
+                    <p class="media-hint" style="margin: 10px 0 12px;">{{ 'admin_themes.discard_help'|trans }}</p>
+                    <button class="btn-link" type="submit">{{ 'admin_themes.discard_confirm'|trans }}</button>
+                </details>
+            </form>
+            <p class="media-hint"><a href="{{ path('app_admin_homepage') }}">{{ 'admin_themes.order_blocks'|trans }}</a></p>
+        </div>
     {% endblock %}
 {% endembed %}
 {% endblock %}

@@ -1,0 +1,30 @@
+{#
+    LES FORMULAIRES DE LA MÉDIATHÈQUE — vides, et posés AVANT le formulaire de
+    thème (S166d).
+
+    🔴 **Pourquoi ils sont ici et pas avec leurs boutons.** La médiathèque doit se
+    voir AU-DESSUS des trois sélecteurs qui s'en servent : on choisissait une
+    image par son nom de fichier pendant que ses vignettes étaient hors écran.
+    Mais cet emplacement-là est à l'intérieur du formulaire de thème, et un
+    `<form>` ne s'imbrique pas dans un `<form>` — le navigateur ferme le premier
+    et le téléversement partirait sans son jeton.
+
+    ✅ **La réponse est l'attribut `form` de HTML5** : un contrôle peut appartenir
+    à un formulaire dans lequel il n'est pas imbriqué, en citant son `id`. Les
+    `<form>` sont donc déclarés ici, vides, et leurs boutons vivent dans les
+    vignettes de `_theme_media.html.twig`.
+
+    ⚠️ **Le schéma d'identifiants est le contrat entre les deux partiels** :
+    `theme-media-upload` et `theme-media-delete-<mediaId>`. Les changer d'un côté
+    seulement donne un bouton qui ne soumet rien — et rien ne le signale.
+
+    ⚠️ Un `<form>` sans contrôle visible ne dessine rien ; ce bloc n'occupe aucune
+    place à l'écran.
+#}
+<form method="post" id="theme-media-upload" action="{{ path('app_admin_theme_media_upload') }}" enctype="multipart/form-data" hidden></form>
+{% for item in media %}
+    <form method="post" id="theme-media-delete-{{ item.mediaId }}" action="{{ path('app_admin_theme_media_delete', {mediaId: item.mediaId}) }}"
+          data-controller="confirm"
+          data-action="submit->confirm#ask"
+          data-confirm-message-value="{{ 'admin_themes.media_delete_confirm'|trans|e('html_attr') }}" hidden></form>
+{% endfor %}

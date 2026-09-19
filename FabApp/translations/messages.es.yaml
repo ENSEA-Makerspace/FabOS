@@ -3090,6 +3090,14 @@ admin_homepage:
 
 # Thèmes — S134c.
 admin_themes:
+    section_identity: "Identidad"
+    section_colour: "Color"
+    section_images: "Imágenes"
+    section_layout: "Disposición"
+    sample_button: "Botón"
+    sample_text: "Texto de acento"
+    discard_help: "Descarta el borrador y parte del tema en línea. El sitio publicado no se toca."
+    discard_confirm: "Sí, descartar el borrador"
     logo_dark_path: "Logotipo oscuro"
     logo_dark_help: "Se muestra en lugar del logotipo cuando el tema oscuro está activo. Dejar vacío para conservar el mismo en ambos temas."
     logo_dark_none: "— el mismo —"
@@ -3117,7 +3125,7 @@ admin_themes:
     contrast_needed: "se requiere %n%:1"
     logo_none: "— logotipo entregado —"
     media_heading: "Medios de identidad"
-    media_help: "Imágenes utilizables como logotipo. PNG, JPEG o WebP. ⚠️ El SVG se rechaza: es un documento que puede contener código, servido desde nuestro propio dominio. Una imagen usada por el tema publicado o por el borrador no se puede eliminar."
+    media_help: "Imágenes utilizables como logotipo o icono. PNG, JPEG o WebP."
     media_file: "Imagen a subir"
     media_empty: "Ninguna imagen. Mientras la biblioteca esté vacía, el sitio muestra el logotipo entregado."
     media_in_use: "Usada por el tema"

@@ -3092,6 +3092,14 @@ admin_homepage:
 
 # Thèmes — S134c.
 admin_themes:
+    section_identity: "Identité"
+    section_colour: "Couleur"
+    section_images: "Images"
+    section_layout: "Mise en forme"
+    sample_button: "Bouton"
+    sample_text: "Texte d’accent"
+    discard_help: "Efface le brouillon et repart du thème en ligne. Le site publié n’est pas touché."
+    discard_confirm: "Oui, effacer le brouillon"
     logo_dark_path: "Logo sombre"
     logo_dark_help: "Affiché à la place du logo quand le thème sombre est actif. Laisser vide pour garder le même dans les deux thèmes."
     logo_dark_none: "— le même —"
@@ -3119,7 +3127,7 @@ admin_themes:
     contrast_needed: "il en faut %n%:1"
     logo_none: "— logo livré —"
     media_heading: "Médiathèque d’identité"
-    media_help: "Les images utilisables comme logo. PNG, JPEG ou WebP. ⚠️ Le SVG est refusé : c’est un document qui peut contenir du code, servi depuis notre propre domaine. Une image utilisée par le thème publié ou par le brouillon ne peut pas être supprimée."
+    media_help: "Les images utilisables comme logo ou comme icône. PNG, JPEG ou WebP."
     media_file: "Image à téléverser"
     media_empty: "Aucune image. Tant que la médiathèque est vide, le site affiche le logo livré."
     media_in_use: "Utilisée par le thème"

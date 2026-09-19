@@ -3090,6 +3090,14 @@ admin_homepage:
 
 # Thèmes — S134c.
 admin_themes:
+    section_identity: "Identität"
+    section_colour: "Farbe"
+    section_images: "Bilder"
+    section_layout: "Layout"
+    sample_button: "Schaltfläche"
+    sample_text: "Akzenttext"
+    discard_help: "Verwirft den Entwurf und beginnt beim Live-Thema neu. Die veröffentlichte Website bleibt unberührt."
+    discard_confirm: "Ja, Entwurf verwerfen"
     logo_dark_path: "Dunkles Logo"
     logo_dark_help: "Wird statt des Logos angezeigt, wenn das dunkle Thema aktiv ist. Leer lassen, um in beiden Themen dasselbe zu behalten."
     logo_dark_none: "— dasselbe —"
@@ -3117,7 +3125,7 @@ admin_themes:
     contrast_needed: "%n%:1 erforderlich"
     logo_none: "— mitgeliefertes Logo —"
     media_heading: "Identitäts-Medien"
-    media_help: "Als Logo verwendbare Bilder. PNG, JPEG oder WebP. ⚠️ SVG wird abgelehnt: es ist ein Dokument, das Code enthalten kann, ausgeliefert von unserer eigenen Domain. Ein vom veröffentlichten Theme oder vom Entwurf verwendetes Bild kann nicht gelöscht werden."
+    media_help: "Als Logo oder Symbol verwendbare Bilder. PNG, JPEG oder WebP."
     media_file: "Hochzuladendes Bild"
     media_empty: "Noch kein Bild. Solange die Mediathek leer ist, zeigt die Website das mitgelieferte Logo."
     media_in_use: "Vom Theme verwendet"
