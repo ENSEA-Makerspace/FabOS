@@ -86,9 +86,9 @@
                             <h2>{{ page.titre }}</h2>
                             {% if page.contenu %}<p>{{ page.contenu|striptags|slice(0, 140) }}{{ page.contenu|length > 140 ? '…' : '' }}</p>{% endif %}
                         </a>
-                        {% if page.children is not empty %}
+                        {% if page.liveChildren is not empty %}
                             <ul class="lab-catalog-children">
-                                {% for child in page.children %}
+                                {% for child in page.liveChildren %}
                                     <li><a href="{{ path('app_lab_page', {id: child.id}) }}">{{ child.titre }}</a></li>
                                 {% endfor %}
                             </ul>

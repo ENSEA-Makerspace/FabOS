@@ -57,6 +57,28 @@ class LabPage
     #[ORM\Column(name: 'archivedAt', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $archivedAt = null;
 
+    /**
+     * Les sous-pages ENCORE PUBLIÉES (S168b).
+     *
+     * 🔴 **« Dépubliée » n'était vrai que dans UNE requête.**
+     * `findTopLevelWithChildrenLive()` filtrait les archivées pour le MENU, et
+     * trois autres surfaces lisaient `getChildren()` tel quel : `/lab` listait
+     * les sous-pages archivées sous leur parent vivant, et la page de détail les
+     * liait. Le menu disait « cette page n'existe plus », la page d'à côté la
+     * proposait — c'est le motif « deux vérités pour un fait », et la bonne
+     * réponse est UNE définition que tout le monde traverse.
+     *
+     * ⚠️ **Sur l'entité et pas dans un dépôt** : un dépôt ne sert que les
+     * appelants qui pensent à lui. Un gabarit écrit `page.liveChildren` sans rien
+     * savoir de la règle, et c'est exactement le cas où l'oubli se produit.
+     *
+     * @return Collection<int, self>
+     */
+    public function getLiveChildren(): Collection
+    {
+        return $this->children->filter(static fn (self $child): bool => $child->getArchivedAt() === null);
+    }
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();

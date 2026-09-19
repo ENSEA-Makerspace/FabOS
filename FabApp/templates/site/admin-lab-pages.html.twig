@@ -51,10 +51,19 @@
                                    `.lab-child-title` for the indent — a class this page
                                    defined for itself. `_cell_title` with the parent as the
                                    subtitle says the same thing in the vocabulary. #}
+                                {# ⚠️ **La sous-page dépubliée était indiscernable d'une
+                                   vivante (S168b).** La ligne de tête porte « Archivée »
+                                   depuis toujours ; celle des enfants ne montrait que le nom
+                                   du parent. Sur un écran fait POUR restaurer, ne pas dire
+                                   lesquelles sont retirées est la seule information qui
+                                   manque.
+                                   ⚠️ Et ce commentaire est ICI, pas dans le littéral de
+                                   l'`include` : un `{# #}` dans un hash Twig casse le
+                                   gabarit, et `lint:twig` ne le voit que sur la boîte. #}
                                 <td>{% include 'site/_cell_title.html.twig' with {
                                     title: child.titre,
                                     href: path('app_admin_lab_page_edit', {id: child.id}),
-                                    subtitle: page.titre,
+                                    subtitle: child.archived ? 'adm.archived'|trans ~ ' · ' ~ page.titre : page.titre,
                                 } only %}</td>
                                 <td class="is-numeric">{{ child.images|length }}</td>
                                 <td class="is-actions">{% include 'site/_cell_actions.html.twig' with {

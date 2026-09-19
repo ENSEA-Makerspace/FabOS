@@ -30,7 +30,7 @@ de références et cinq phases neuves ont rendu la lecture linéaire impossible.
 | **Q** | Formations (absorbe la messagerie de cohorte) | S179–S183 |
 | **K** ✅ | Gabarits d'e-mail modifiables | S160–S162 — **close le 2026-09-07** |
 | **L** ✅ | Annoncer un événement aux membres | S163–S164 — **close le 2026-09-08** |
-| **M** | Thèmes, en profondeur | S165–S168 |
+| **M** ✅ | Thèmes, en profondeur | S165–S168 — **close le 2026-09-19** |
 | **S** | Comptes, adhésion et confiance (MFA, récupération) | S189–S192 |
 | **T** | Surfaces restantes : prêts, recherche, rapports, créations | S193–S195 |
 | **R** | Commerce — **la dernière**, et bloquée par J | S184–S188 |
@@ -865,7 +865,7 @@ comme les 23 autres.
 
 ---
 
-# Phase M — les thèmes, en profondeur (S165–S168)
+# Phase M — les thèmes, en profondeur ✅ CLOSE le 2026-09-19
 
 **Demandé par l'opérateur le 2026-09-04.** Reprend le chantier « Thèmes » qui
 traînait sans plan (voir plus bas, section conservée pour le détail des
@@ -891,7 +891,54 @@ intentions).
 | **S165** ✅ | **Livré le 2026-09-10** : la médiathèque d'identité. Téléversement depuis l'écran, nommage serveur, identifiant stable, suppression refusée tant qu'un thème référence le fichier. `portal_logo_path` → `site_logo` | ✅ Sonde `app:s165:media-probe`, 18 assertions, **médiathèque rendue vide et thème non touché** |
 | **S166** ✅ | **CLOSE le 2026-09-18** : 68 littéraux tombés, le contraste REFUSE, les trois préréglages, le logo sombre et l'icône dérivée. 🅿️ **Reste hors phase** : l'image de partage — voir ci-dessous | ✅ `tools/brand_literals.py` (68 → 0), `app:s166:contrast-probe` (27), `app:s166:presets-probe` (21) |
 | **S167** ✅ | **Livré le 2026-09-18** : l'aperçu rend de VRAIES pages (accueil + catalogue, desktop et mobile, clair et sombre) ; la publication devient atomique et refuse un logo disparu | ✅ Sonde `app:s167:theme-probe` (14 assertions, thème remis en place) + trois mesures `app:render` |
-| **S168** ⏳ | **L'icône d'onglet devient THÉMABLE le 2026-09-18** — elle était écrite en dur dans huit gabarits, dont les quatre kiosques. 🅿️ **Reste** : l'ordre et la visibilité des entrées de menu, et la page dépubliée qui rétablit l'accueil avec trace | ✅ Sonde `app:s168:favicon-probe`, 13 assertions, **rien écrit** |
+| **S168** ✅ | **CLOSE le 2026-09-19** : l'icône d'onglet thémable, et 🔴 **« dépublier » dépublie enfin**. 🅿️ **Hors phase** : un menu dont l'opérateur ordonne les entrées — voir la mesure ci-dessous | ✅ `app:s168:favicon-probe` (13) et `app:s168:unpublished-probe` (11, table rendue intacte) |
+
+### ✅ S168b — « dépublier » ne dépubliait pas
+
+🔴 **Le défaut, sur TROIS pages en production.** Archiver une page du lab la
+retirait du MENU — `findTopLevelWithChildrenLive()` filtre — et la laissait
+**entièrement lisible à son URL**. Un signet, un lien dans un mail, un partage,
+un moteur de recherche : le contenu restait servi à tout le monde. Le contrôleur
+faisait quatre lignes et ne regardait pas `archivedAt`.
+
+🔴 **« Dépubliée » n'était vrai que dans UNE requête sur quatre.** Le même fait
+avait quatre lecteurs et un seul le connaissait :
+- le menu filtrait ✅ ;
+- `/lab` listait les sous-pages archivées sous leur parent vivant ✗ ;
+- la page de détail les liait ✗ ;
+- et la route de détail les rendait ✗.
+C'est le motif « deux vérités pour un fait », et la réponse est **une** définition
+que tout le monde traverse : `LabPage::getLiveChildren()`, **sur l'entité** — un
+dépôt ne sert que les appelants qui pensent à lui, alors qu'un gabarit écrit
+`page.liveChildren` sans rien savoir de la règle.
+
+✅ **L'accueil, avec trace, et sans boucle possible** — le critère de sortie, mot
+pour mot. Mesuré : `302 → /`, l'accueil répond **200**, et un message explique le
+renvoi. La cible est écrite en dur : viser le référent est exactement la façon
+dont on fabrique une boucle.
+⚠️ **Ni 404 ni page blanche**, délibérément : un 404 sur un lien qui marchait hier
+ressemble à une panne du site.
+
+🔴 **Sauf pour qui peut la rééditer.** Sans ça, archiver devient irréversible en
+pratique — il faudrait restaurer à l'aveugle pour relire. La page s'ouvre pour
+l'opérateur avec un bandeau qui dit qu'elle est dépubliée. Mesuré par
+`app:render` : **200 + « This page is UNPUBLISHED »**.
+⚠️ Le droit est demandé à `canReach()` sur l'écran d'édition, pas à un rôle écrit
+en dur : il n'y a pas de hiérarchie de rôles ici, et une seconde définition de
+« qui administre les pages » divergerait.
+
+⚠️ **Un quatrième défaut trouvé en passant** : dans la liste d'administration, la
+ligne de tête portait « Archivée » et **celle des sous-pages ne portait rien**.
+Sur un écran fait POUR restaurer, c'est la seule information qui manque.
+
+🅿️ **Ce que S168 ne livre PAS, et la mesure qui le justifie** : « l'ordre et la
+visibilité des entrées de menu, les entrées système protégées ». Mesuré — les
+pages du lab ont DÉJÀ ordre (`position`) et visibilité (archivage) ; le reste du
+menu est une liste littérale dans `NavBuilder::header()`, gâtée par feature et par
+`canReach()`. Rendre ces entrées-là ordonnables par l'opérateur, c'est construire
+un éditeur de menu — une fonctionnalité, pas une finition. Et « destinations
+limitées aux routes autorisées » **existe déjà** : `safeDestinations()` dérive du
+pied de page, lui-même gâté.
 
 ### ✅ S168a — l'icône que personne ne pouvait changer
 
@@ -1314,6 +1361,11 @@ l'est.
 | **S168** ✅ | choisir une icône, publier, puis recharger n'importe quelle page | L'onglet du navigateur change. ⚠️ Un navigateur met une icône en cache plus longtemps que tout le reste : forcer le rechargement |
 | **S168** ✅ | `/kiosk/entries` sur le mur | **La même icône.** C'était le vrai trou : un kiosque en plein écran montre son onglet à tout l'atelier |
 | **S168** ✅ | la sonde | `php bin/console app:s168:favicon-probe` — 13 assertions |
+| **S168** ✅ | archiver une page du lab, puis ouvrir son URL **déconnecté** | 🔴 Renvoyé à l'accueil, **avec un message**. Avant : la page s'affichait entièrement |
+| **S168** ✅ | la même URL, **connecté en admin** | La page s'ouvre, avec un bandeau « DÉPUBLIÉE » — sinon on ne peut plus relire ce qu'on vient d'archiver |
+| **S168** ✅ | archiver une SOUS-page, puis `/lab` et la page du parent | Elle disparaît des deux. Avant : listée et cliquable |
+| **S168** ✅ | `/admin/lab-pages` | La sous-page archivée porte « Archivée », comme les pages de tête |
+| **S168** ✅ | la sonde | `php bin/console app:s168:unpublished-probe` — 11 assertions, table rendue intacte |
 | **S166** ✅ | `/admin/themes` → « Densité : Aérée », enregistrer, prévisualiser | Les quatre cadres respirent. ⚠️ Le cadre **mobile** doit garder des écarts plus serrés que le desktop — c'est le palier sous 576 px, qui aurait sauté en silence |
 | **S166** ✅ | « Arrondis : Nets » puis « Doux » | Les cartes, boutons et champs suivent — 118 usages de `--border-radius` d'un coup |
 | **S166** ✅ | tout remettre sur « Standard » | **Aucune balise `<style>` en plus** sur les pages : le préréglage livré n'émet rien |

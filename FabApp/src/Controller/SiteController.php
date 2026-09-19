@@ -21,6 +21,8 @@ use App\Repository\EventRepository;
 use App\Repository\FormationRepository;
 use App\Nav\NavBuilder;
 use App\Repository\LabPageRepository;
+use App\Security\RouteAccessChecker;
+use Psr\Log\LoggerInterface;
 use App\Repository\LogUtilisationRepository;
 use App\Repository\PlaceRepository;
 use App\Repository\MachineFavoriteRepository;
@@ -1763,11 +1765,49 @@ final class SiteController extends AbstractController
         ]);
     }
 
+    /**
+     * Une page du lab — **et une page dépubliée n'est plus lisible** (S168b).
+     *
+     * 🔴 **Le défaut : « dépublier » ne dépubliait pas.** Archiver une page la
+     * retirait du menu (`findTopLevelWithChildrenLive()` filtre) et la laissait
+     * entièrement lisible à son URL. Un lien dans un mail, un signet, un partage,
+     * un moteur de recherche : le contenu restait servi à tout le monde. C'est la
+     * mesure de sortie de la phase, et elle était fausse sur trois pages en
+     * production.
+     *
+     * ✅ **L'accueil, avec TRACE, et sans boucle possible.** La redirection vise
+     * `app_home` en dur — jamais le référent, qui est précisément par où on
+     * fabrique une boucle. Le message dit ce qui s'est passé : sans lui, la page
+     * d'accueil qui apparaît à la place ressemble à un clic raté.
+     *
+     * 🔴 **Sauf pour qui peut la rééditer.** Un opérateur doit pouvoir relire ce
+     * qu'il vient d'archiver, sinon archiver devient irréversible en pratique — il
+     * faudrait restaurer à l'aveugle pour voir. La page s'ouvre donc pour lui,
+     * avec un bandeau qui dit qu'elle est dépubliée.
+     * ⚠️ Le droit est demandé à `canReach()` sur l'écran d'édition, pas à un rôle
+     * écrit ici : il n'y a pas de hiérarchie de rôles dans cette application, et
+     * une seconde définition de « qui administre les pages » divergerait.
+     */
     #[Route('/lab/{id}', name: 'app_lab_page', requirements: ['id' => '\d+'], methods: ['GET'])]
-    public function labPage(LabPage $page): Response
+    public function labPage(LabPage $page, RouteAccessChecker $access, LoggerInterface $logger): Response
     {
+        $editable = $access->canReach('app_admin_lab_page_edit', ['id' => $page->getId()]);
+
+        if ($page->isArchived() && !$editable) {
+            $logger->info('Une page du lab dépubliée a été demandée par son URL.', [
+                'page' => $page->getId(),
+                'title' => $page->getTitre(),
+            ]);
+            $this->addFlash('info', 'lab.page_unpublished');
+
+            return $this->redirectToRoute('app_home');
+        }
+
         return $this->render('site/lab-page-detail.html.twig', [
             'page' => $page,
+            // ⚠️ Vrai UNIQUEMENT pour qui peut la rééditer : c'est ce qui
+            // distingue « je relis mon brouillon » de « cette page est publique ».
+            'unpublishedNotice' => $page->isArchived(),
         ]);
     }
 
