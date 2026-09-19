@@ -3610,6 +3610,10 @@ form:
     storage_location: "Ubicación de almacenamiento"
 
 admin_maintenance_form:
+    help_type: "Una etiqueta, para leer la lista. ⚠️ No cambia nada: «correctiva» no bloquea la máquina ni provoca ningún envío."
+    help_due_date: "Pasada esta fecha, cada miembro del equipo recibe un recordatorio por correo. ⚠️ Sin fecha no se envía ningún recordatorio: la tarea simplemente espera."
+    help_recurrence_days: "Al cerrarla, se recrea una tarea idéntica para dentro de estos días. ⚠️ Se cuenta desde el día en que se HACE, no desde el vencimiento: una tarea hecha tarde retrasa la siguiente otro tanto."
+    help_link: "⚠️ El enlace viaja EN el correo de recordatorio: no es una nota interna."
     machines: "Máquinas afectadas"
     submit_batch: "Crear para todas las máquinas"
     choice_preventive: "Preventiva"

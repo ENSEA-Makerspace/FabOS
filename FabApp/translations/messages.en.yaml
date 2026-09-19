@@ -3611,6 +3611,10 @@ form:
     storage_location: "Storage location"
 
 admin_maintenance_form:
+    help_type: "A label, for reading the list. ⚠️ It changes nothing: “corrective” does not lock the machine and sends nothing."
+    help_due_date: "Past this date, every team member gets an e-mail reminder. ⚠️ With no date, no reminder is ever sent — the task simply waits."
+    help_recurrence_days: "On completion, an identical task is recreated this many days out. ⚠️ Counted from the day it is DONE, not from the due date: a task done late pushes the next one back by as much."
+    help_link: "⚠️ The link travels IN the reminder e-mail — it is not an internal note."
     machines: "Machines concerned"
     submit_batch: "Create for every machine"
     choice_preventive: "Preventive"

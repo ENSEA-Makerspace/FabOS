@@ -3610,6 +3610,10 @@ form:
     storage_location: "Luogo di stoccaggio"
 
 admin_maintenance_form:
+    help_type: "Un’etichetta, per leggere l’elenco. ⚠️ Non cambia nulla: «correttiva» non blocca la macchina e non invia niente."
+    help_due_date: "Passata questa data, ogni membro del team riceve un promemoria via e-mail. ⚠️ Senza data non parte alcun promemoria: l’attività resta semplicemente in attesa."
+    help_recurrence_days: "Alla chiusura viene ricreata un’attività identica fra questi giorni. ⚠️ Si conta dal giorno in cui è FATTA, non dalla scadenza: un’attività fatta in ritardo sposta la successiva di altrettanto."
+    help_link: "⚠️ Il link parte NELLA mail di promemoria: non è una nota interna."
     machines: "Macchine interessate"
     submit_batch: "Crea per tutte le macchine"
     choice_preventive: "Preventiva"

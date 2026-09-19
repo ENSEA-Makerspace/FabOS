@@ -3610,6 +3610,10 @@ form:
     storage_location: "Lagerort"
 
 admin_maintenance_form:
+    help_type: "Ein Etikett, zum Lesen der Liste. ⚠️ Es ändert nichts: „korrektiv“ sperrt die Maschine nicht und löst keinen Versand aus."
+    help_due_date: "Nach diesem Datum erhält jedes Teammitglied eine Erinnerung per E-Mail. ⚠️ Ohne Datum wird nie erinnert — die Aufgabe wartet einfach."
+    help_recurrence_days: "Beim Abschluss wird eine identische Aufgabe für so viele Tage später neu angelegt. ⚠️ Gezählt ab dem Tag der ERLEDIGUNG, nicht ab dem Fälligkeitsdatum: eine spät erledigte Aufgabe verschiebt die nächste entsprechend."
+    help_link: "⚠️ Der Link geht IN die Erinnerungs-E-Mail — es ist keine interne Notiz."
     machines: "Betroffene Maschinen"
     submit_batch: "Für alle Maschinen anlegen"
     choice_preventive: "Vorbeugend"

@@ -3612,6 +3612,10 @@ form:
     storage_location: "Emplacement de stockage"
 
 admin_maintenance_form:
+    help_type: "Une étiquette, pour lire la liste. ⚠️ Elle ne change rien : « corrective » ne bloque pas la machine et ne déclenche aucun envoi."
+    help_due_date: "Passée cette date, chaque membre de l’équipe reçoit un rappel par e-mail. ⚠️ Sans date, aucun rappel ne part — la tâche reste simplement en attente."
+    help_recurrence_days: "À la clôture, une tâche identique est recréée pour dans ce nombre de jours. ⚠️ Le compte part du jour où elle est FAITE, pas de l’échéance : une tâche faite en retard décale la suivante d’autant."
+    help_link: "⚠️ Le lien part DANS le mail de rappel : ce n’est pas une note interne."
     machines: "Machines concernées"
     submit_batch: "Créer pour toutes les machines"
     choice_preventive: "Préventive"
