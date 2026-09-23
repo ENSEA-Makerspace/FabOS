@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Account;
 
+use App\Security\MfaService;
 use App\Security\SessionRegistry;
 use App\Entity\AccessRfidLog;
 use App\Entity\Creation;
@@ -69,6 +70,7 @@ final class AccountAnonymiser
         private readonly string $projectDir,
         private readonly FormationThreads $threads,
         private readonly SessionRegistry $sessions,
+        private readonly MfaService $mfa,
     ) {
     }
 
@@ -124,6 +126,8 @@ final class AccountAnonymiser
         $this->threads->forgetLearner($id);
             // S191a — l'historique des connexions (IP tronquées comprises) part aussi.
             $this->sessions->forget($id);
+            // S191b — et le second facteur (secret chiffré, codes de secours).
+            $this->mfa->forget($id);
 
         $user->setEmail(sprintf('anonymised-%d@%s', $id, self::SENTINEL_DOMAIN));
         $user->setUsername(sprintf('anonymised-%d', $id));

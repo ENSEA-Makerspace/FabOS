@@ -1918,7 +1918,7 @@ parcours d'adhésion.
 |---|---|---|
 | **S189** ✅ 2026-09-23 | **L'entrée** : inscription courte qui annonce ses prochaines étapes, activation par e-mail avec renvoi et correction d'adresse — **sans impasse**. 🔴 **Et c'est là que `/register` cesse d'être un oracle d'appartenance** : la réponse devient la même que l'adresse existe ou non, ce qui n'est possible QUE parce que l'activation par e-mail arrive dans la même session | Une adresse mal tapée se corrige sans recréer un compte. 🔴 Et une sonde : deux adresses, l'une connue l'autre non, **réponses identiques** — la même mesure que S191 |
 | **S190** ✅ 2026-09-23 | **L'adhésion.** 🔴 **Tranché par l'opérateur : PAS de validation par l'équipe** — l'équipe doit seulement pouvoir DÉSACTIVER un compte, et que ça coupe vraiment. Livré : la désactivation coupe la connexion, les sessions ouvertes et le badge | ✅ `app:s190:deactivation-probe` : avant/après sur le même compte, machine, porte, page, API |
-| **S191** ⏳ S191a livrée (migration en attente), S191b à faire | **Sécurité du profil** : sessions visibles et révocables, MFA. ⚠️ Et une **récupération de compte NON DIVULGUANTE** — la réponse est la même que l'adresse existe ou non | 🔴 Prouvé par une sonde : deux adresses, l'une connue l'autre non, réponses identiques |
+| **S191** ✅ 2026-09-24 | **Sécurité du profil** : sessions visibles et révocables, MFA. ⚠️ Et une **récupération de compte NON DIVULGUANTE** — la réponse est la même que l'adresse existe ou non | 🔴 Prouvé par une sonde : deux adresses, l'une connue l'autre non, réponses identiques |
 | **S192** ✅ 2026-09-23 | **Les droits EXPLIQUÉS** côté admin — par rôle, lieu, formation et durée — et « mon badge » sans identifiant sensible | Un admin répond à « pourquoi cette personne a-t-elle ce droit ? » **depuis l'écran** |
 
 ### ✅ S189 — l'entrée : une adresse prouvée, et plus d'oracle d'appartenance
@@ -2000,6 +2000,35 @@ dans une transaction annulée. ⚠️ **Piège trouvé en l'écrivant** : une re
 simulée sans cookie de session repart anonyme (`hasPreviousSession()`), donc la
 première version « prouvait » la coupure sur des sessions jamais connectées.
 Elle exige maintenant `/profil` à 200 AVANT, puis 302 après.
+
+### ✅ S191b — la double authentification (TOTP)
+
+✅ **`/profil/double-authentification`** : Activer → QR code + clé à recopier
+(groupes de 4) → premier code accepté = activée, et **10 codes de secours**
+affichés UNE fois. Régénérer les codes et désactiver demandent un code valide
+(on ne coupe pas le second facteur avec le seul mot de passe). Fiche admin :
+l'état, et « Retirer sa double authentification » (téléphone perdu).
+✅ **À la connexion** : mot de passe juste + second facteur actif → session
+EN ATTENTE ; TOUTE page renvoie à `/connexion/verification`, l'API répond 401,
+seules la page du code et la déconnexion passent (`MfaGateListener`, au même
+endroit que les coupures de S190/S191a). 5 codes faux → la session est
+refermée, recommencer exige le mot de passe (et la limite de S196a).
+🔴 **Le secret est chiffré** (libsodium, clé dérivée d'APP_SECRET) ; **les codes
+de secours sont en HMAC** (50 bits d'aléa : un simple SHA-256 se retrouvait par
+force brute depuis une copie de la table) ; **un code déjà servi ne se rejoue
+pas** (`lastUsedStep`, mis à jour sous condition). En attente d'un premier code,
+rien n'est exigé : un QR mal scanné n'enferme personne.
+⚠️ Faire tourner APP_SECRET rend les seconds facteurs illisibles → retrait admin.
+✅ **Aucune dépendance ajoutée** : TOTP écrit ici (vingt lignes de HMAC), le QR par
+`endroid/qr-code`, DÉJÀ utilisé pour les billets — `bacon/bacon-qr-code`, que
+j'allais ajouter, en était déjà une dépendance ; la ligne a été retirée.
+✅ **Sonde `app:s191:mfa-probe`** : l'algorithme contre les **vecteurs de la RFC
+6238** (5 sur 5), puis tout le parcours comme un navigateur (transaction
+annulée). 🔴 Elle a attrapé la page du code… absente — une chaîne `&&` coupée
+avant sa création ; la barrière renvoyait vers une page 500.
+🔴 **Trouvé en regardant les pixels** : `.btn-text` restait rose de marque
+(**2:1**) sur les pages publiques en sombre — son correctif ne vivait que dans
+`admin.css`. Corrigé à la source (`--color-primary-text`), doublon retiré.
 
 ### ✅ S191a — les sessions : visibles, et fermables (migration passée le 2026-09-24)
 
@@ -2121,6 +2150,11 @@ transaction annulée, journal intact) ; chemins = forfaits du verdict
 | **S190** ✅ | `php bin/console app:s190:deactivation-probe` | Verte |
 | **S196a** ✅ | `/login`, 6 mauvais mots de passe de suite | Au 6ᵉ : « Trop de tentatives… réessayez dans 5 minutes » ; même chose avec une adresse qui n'existe pas |
 | **S196a** ✅ | `/login` et l'accueil | Plus aucune mention de « CAS » |
+| **S191b** ✅ | `/profil` → Sécurité → « Double authentification » | Scanner le QR avec Aegis / FreeOTP / Google Authenticator, taper le code : activée, 10 codes de secours affichés une fois |
+| **S191b** ✅ | se déconnecter puis se reconnecter | Après le mot de passe : « Code de vérification ». Toute autre page y ramène |
+| **S191b** ✅ | un code de secours à la place | Il marche UNE fois ; le profil dit combien il en reste |
+| **S191b** ✅ | fiche admin du compte | « Double authentification : activée » et « Retirer » |
+| **S191b** ✅ | `php bin/console app:s191:mfa-probe` | Verte |
 | **S191a** ✅ | après la migration : `/profil` → Sécurité → « Sessions ouvertes » | Tes appareils, « cet appareil » marqué, réseau tronqué ; « Fermer » sur l'autre → il est renvoyé à la connexion à son clic suivant |
 | **S191a** ✅ | fiche admin d'un compte connecté | « N sessions ouvertes » et « Fermer toutes ses sessions » |
 | **S191a** ✅ | `php bin/console app:s191:session-probe` (après la migration) | Verte : deux appareils, fermer, fermer les autres, mot de passe, admin, déconnexion |

@@ -692,6 +692,17 @@
 
                                 {# S191a — un LIEN vers sa page : fermer une session est un bouton,
                                    et cette section vit dans le formulaire des réglages. #}
+                                {% if mfaStatus is not null %}
+                                    <div class="setting-item">
+                                        <div class="setting-info">
+                                            <h4>{{ 'mfa.title'|trans }}</h4>
+                                            <p>{{ (mfaStatus == 'enabled' ? 'mfa.profile_on' : 'mfa.profile_off')|trans }}</p>
+                                        </div>
+                                        <div class="setting-action">
+                                            <a href="{{ path('app_profile_mfa') }}" class="btn btn-sm">{{ 'sessions.manage'|trans }}</a>
+                                        </div>
+                                    </div>
+                                {% endif %}
                                 {% if openSessions is not null %}
                                     <div class="setting-item">
                                         <div class="setting-info">

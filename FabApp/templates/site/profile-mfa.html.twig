@@ -1,0 +1,97 @@
+{% extends 'site/base_public.html.twig' %}
+
+{% block title %}{{ 'mfa.title'|trans }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+    {# S191b — activer, confirmer, garder ses codes de secours, désactiver.
+       Chaque geste qui affaiblit le compte (désactiver, régénérer) demande un code. #}
+    <main id="main-content" tabindex="-1" class="main-content">
+        <section class="auth-section">
+            <div class="auth-container">
+                <div class="auth-card mfa-card">
+                    <div class="auth-header">
+                        <h1 class="auth-title">{{ 'mfa.title'|trans }}</h1>
+                        <p class="auth-subtitle">{{ 'mfa.intro'|trans }}</p>
+                    </div>
+
+                    {% for message in app.flashes('success') %}<div class="auth-flash success" role="status">{{ message|trans }}</div>{% endfor %}
+                    {% for message in app.flashes('error') %}<div class="auth-flash error" role="alert">{{ message|trans }}</div>{% endfor %}
+
+                    {% if codes is not empty %}
+                        <section class="mfa-codes" aria-labelledby="mfa-codes-title">
+                            <h2 id="mfa-codes-title" class="auth-subheading">{{ 'mfa.codes_title'|trans }}</h2>
+                            <p class="auth-help">{{ 'mfa.codes_help'|trans }}</p>
+                            <ol class="mfa-codes__list">
+                                {% for code in codes %}<li><code>{{ code }}</code></li>{% endfor %}
+                            </ol>
+                        </section>
+                    {% endif %}
+
+                    {% if status == 'none' %}
+                        <p class="auth-help">{{ 'mfa.none_help'|trans }}</p>
+                        <form method="post" action="{{ path('app_profile_mfa_action', {action: 'activer'}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('mfa_activer') }}">
+                            <button class="btn btn-primary" type="submit">{{ 'mfa.start'|trans }}</button>
+                        </form>
+                    {% elseif status == 'pending' %}
+                        <ol class="auth-steps">
+                            <li>{{ 'mfa.step_app'|trans }}</li>
+                            <li>{{ 'mfa.step_scan'|trans }}</li>
+                            <li>{{ 'mfa.step_code'|trans }}</li>
+                        </ol>
+                        {% if qr %}<img class="mfa-qr" src="{{ qr }}" width="220" height="220" alt="{{ 'mfa.qr_alt'|trans }}">{% endif %}
+                        <p class="auth-help">{{ 'mfa.manual_key'|trans }}</p>
+                        <p class="mfa-key" aria-label="{{ 'mfa.manual_key'|trans }}">{% for group in secretGroups %}<span>{{ group }}</span>{% endfor %}</p>
+                        <form class="auth-form" method="post" action="{{ path('app_profile_mfa_action', {action: 'confirmer'}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('mfa_confirmer') }}">
+                            <div class="form-group">
+                                <label class="form-label" for="mfa-confirm">{{ 'mfa.code_label'|trans }}</label>
+                                <input class="form-input mfa-code-input" id="mfa-confirm" type="text" name="code" required autocomplete="one-time-code" inputmode="numeric">
+                            </div>
+                            <button class="btn btn-primary" type="submit">{{ 'mfa.confirm'|trans }}</button>
+                        </form>
+                        <form method="post" action="{{ path('app_profile_mfa_action', {action: 'annuler'}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('mfa_annuler') }}">
+                            <button class="btn btn-text" type="submit">{{ 'mfa.cancel_setup'|trans }}</button>
+                        </form>
+                    {% else %}
+                        <p class="mfa-state">{{ 'mfa.enabled_state'|trans }}</p>
+                        <p class="auth-help">{{ 'mfa.recovery_left'|trans({'count': recoveryLeft}) }}</p>
+
+                        <h2 class="auth-subheading">{{ 'mfa.regenerate_title'|trans }}</h2>
+                        <form class="auth-form" method="post" action="{{ path('app_profile_mfa_action', {action: 'regenerer'}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('mfa_regenerer') }}">
+                            <div class="form-group">
+                                <label class="form-label" for="mfa-regen">{{ 'mfa.code_label'|trans }}</label>
+                                <input class="form-input mfa-code-input" id="mfa-regen" type="text" name="code" required autocomplete="one-time-code" inputmode="numeric">
+                            </div>
+                            <button class="btn btn-secondary" type="submit">{{ 'mfa.regenerate'|trans }}</button>
+                        </form>
+
+                        <h2 class="auth-subheading">{{ 'mfa.disable_title'|trans }}</h2>
+                        <form class="auth-form" method="post" action="{{ path('app_profile_mfa_action', {action: 'desactiver'}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('mfa_desactiver') }}">
+                            <div class="form-group">
+                                <label class="form-label" for="mfa-disable">{{ 'mfa.code_label'|trans }}</label>
+                                <input class="form-input mfa-code-input" id="mfa-disable" type="text" name="code" required autocomplete="one-time-code">
+                            </div>
+                            <button class="btn btn-secondary" type="submit">{{ 'mfa.disable'|trans }}</button>
+                        </form>
+                    {% endif %}
+
+                    <div class="auth-links">
+                        <p><a href="{{ path('app_profile') }}#settings">{{ 'sessions.back'|trans }}</a></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('js/main.js') ~ '?v=' ~ js_version }}"></script>
+{% endblock %}

@@ -134,6 +134,7 @@ use App\UsageRights\UsagePackageRepository;
 use App\UsageRights\UserGroupRepository;
 use App\UsageRights\AudienceResolver;
 use App\UsageRights\RightsExplainer;
+use App\Security\MfaService;
 use App\Security\SessionRegistry;
 use App\Reservation\LabClock;
 use App\Venue\VenueContext;
@@ -1853,6 +1854,7 @@ final class AdminController extends AbstractController
         AudienceResolver $audiences,
         RightsExplainer $explainer,
         SessionRegistry $sessionRegistry,
+        MfaService $mfa,
     ): Response {
         $user = $users->find($id);
         if (!$user) {
@@ -1921,6 +1923,7 @@ final class AdminController extends AbstractController
             'usageRightsSummary' => $explained['capabilities'],
             // S191a — null sans la migration : le bouton n'apparaît pas.
             'openSessions' => $sessionRegistry->isReady() ? \count($sessionRegistry->aliveFor($user)) : null,
+            'mfaStatus' => $mfa->isReady() ? $mfa->status($user) : null,
             // Staff answering "why was I refused?" need the same figures the
             // member sees, on the same screen they are already looking at.
             'usageBudgets' => $usageBudgets->summaryFor($user),

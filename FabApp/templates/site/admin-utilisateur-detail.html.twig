@@ -85,6 +85,17 @@
 
                 {# S191a — compte volé, poste du labo resté connecté : fermer partout.
                    Absent tant que la migration S191 n'est pas passée. #}
+                {% if mfaStatus is not null %}
+                    <div class="admin-sessions">
+                        <p>{{ (mfaStatus == 'enabled' ? 'mfa.admin_on' : 'mfa.admin_off')|trans }}</p>
+                        {% if mfaStatus != 'none' %}
+                            <form method="post" action="{{ path('app_admin_user_mfa_reset', {id: user.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('admin_mfa_reset_' ~ user.id) }}">
+                                <button type="submit" class="admin-secondary-button">{{ 'mfa.admin_reset'|trans }}</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                {% endif %}
                 {% if openSessions is not null %}
                     <div class="admin-sessions">
                         <p>{{ 'sessions.admin_count'|trans({'count': openSessions}) }}</p>

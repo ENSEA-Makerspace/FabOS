@@ -208,3 +208,7 @@ badge_reach:
 sessions:
     profile_hint: "{count, plural, =0 {Aucune autre session ouverte.} one {# session ouverte en ce moment.} other {# sessions ouvertes en ce moment.}}"
     admin_count: "{count, plural, =0 {Aucune session ouverte.} one {# session ouverte en ce moment.} other {# sessions ouvertes en ce moment.}}"
+
+mfa:
+    recovery_left: "{count, plural, =0 {Plus aucun code de secours : générez-en de nouveaux.} one {# code de secours restant.} other {# codes de secours restants.}}"
+    used_recovery: "{count, plural, =0 {Code de secours utilisé. C’était le dernier : générez-en de nouveaux.} one {Code de secours utilisé. Il en reste #.} other {Code de secours utilisé. Il en reste #.}}"

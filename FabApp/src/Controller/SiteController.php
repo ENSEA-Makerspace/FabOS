@@ -50,6 +50,7 @@ use App\Entity\Machine;
 use App\Entity\Utilisateur;
 use App\Repository\UtilisateurRepository;
 use App\Security\AccountActivation;
+use App\Security\MfaService;
 use App\Security\SessionRegistry;
 use App\UsageRights\RightsExplainer;
 use App\Service\BookingIdentityPolicy;
@@ -2297,6 +2298,7 @@ final class SiteController extends AbstractController
         UsageAllowanceService $usageBudgets,
         RightsExplainer $explainer,
         SessionRegistry $sessionRegistry,
+        MfaService $mfa,
         VenueRepository $venues,
         LocaleCatalog $locales,
     ): Response
@@ -2673,6 +2675,8 @@ final class SiteController extends AbstractController
             'usageRightsSummary' => $explained['capabilities'],
             // S191a — null tant que la migration n'est pas passée : pas de lien.
             'openSessions' => $sessionRegistry->isReady() ? \count($sessionRegistry->aliveFor($user)) : null,
+            // S191b — null sans la migration.
+            'mfaStatus' => $mfa->isReady() ? $mfa->status($user) : null,
             // ⚠️ What a package METERS, beside what it allows (S144c). A member
             // who only learns their limit at the moment of refusal reads a
             // budget they were sold as an arbitrary rule.

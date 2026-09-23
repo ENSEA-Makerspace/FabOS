@@ -669,16 +669,20 @@ img, svg {
     border-color: var(--color-primary);
 }
 
+/* S191b — le jeton « accent comme texte », à la source. Le correctif sombre ne
+   vivait que dans `admin.css` : sur les pages publiques (qui ne la chargent
+   pas), « Annuler » restait à 2:1 sur la carte sombre. En clair, le jeton vaut
+   exactement `--color-primary` : rien ne bouge. */
 .btn-text {
     background: transparent;
-    color: var(--color-primary);
+    color: var(--color-primary-text);
     border: none;
     padding: var(--spacing-sm) 0;
     font-weight: 500;
 }
 
 .btn-text:hover {
-    color: #7a1542;
+    color: var(--color-primary-text);
     text-decoration: underline;
 }
 

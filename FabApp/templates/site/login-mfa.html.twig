@@ -1,0 +1,46 @@
+{% extends 'site/base_public.html.twig' %}
+
+{% block title %}{{ 'mfa.challenge_title'|trans }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+    {# S191b — le mot de passe est juste ; tant que ce code n'est pas donné,
+       toute autre page ramène ici (MfaGateListener). #}
+    <main id="main-content" tabindex="-1" class="main-content">
+        <section class="auth-section">
+            <div class="auth-container">
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <h1 class="auth-title">{{ 'mfa.challenge_title'|trans }}</h1>
+                        <p class="auth-subtitle">{{ 'mfa.challenge_intro'|trans }}</p>
+                    </div>
+
+                    {% for message in app.flashes('error') %}<div class="auth-flash error" role="alert">{{ message|trans }}</div>{% endfor %}
+
+                    <form class="auth-form" method="post" action="{{ path('app_mfa_challenge') }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('mfa_challenge') }}">
+                        <div class="form-group">
+                            <label class="form-label" for="mfa-code">{{ 'mfa.code_label'|trans }}</label>
+                            <input class="form-input mfa-code-input" id="mfa-code" type="text" name="code" required
+                                   autocomplete="one-time-code" inputmode="numeric" autofocus
+                                   aria-describedby="mfa-code-help">
+                            <p class="auth-help" id="mfa-code-help">{{ 'mfa.code_help'|trans }}</p>
+                        </div>
+                        <button class="btn btn-primary" type="submit">{{ 'mfa.verify'|trans }}</button>
+                    </form>
+
+                    <div class="auth-links">
+                        <p><a href="{{ path('app_logout') }}">{{ 'mfa.cancel_login'|trans }}</a></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('js/main.js') ~ '?v=' ~ js_version }}"></script>
+{% endblock %}
