@@ -2017,6 +2017,8 @@ Elle exige maintenant `/profil` à 200 AVANT, puis 302 après.
 | **S190** ✅ | badger ce compte sur une machine | Refusé ; le journal RFID dit « Compte désactivé » |
 | **S190** ✅ | `/admin/utilisateurs` après une inscription non confirmée | Pastille orange « Adresse non confirmée » |
 | **S190** ✅ | `php bin/console app:s190:deactivation-probe` | Verte |
+| **S196a** ✅ | `/login`, 6 mauvais mots de passe de suite | Au 6ᵉ : « Trop de tentatives… réessayez dans 5 minutes » ; même chose avec une adresse qui n'existe pas |
+| **S196a** ✅ | `/login` et l'accueil | Plus aucune mention de « CAS » |
 
 ## La passe de fond
 
@@ -2121,6 +2123,38 @@ sans fédération (associations, entreprises, AD interne).
 | **S199** | **CAS** (protocole v2/v3 : `serviceValidate` + attributs), écrit en interne avec `HttpClient` — le protocole est petit, et `phpCAS` impose un état global. Déconnexion unique en option | Contre un Apereo CAS de test : ticket valide, ticket rejoué, ticket pour un autre service → refus. Le mot de passe ne touche jamais FabOS |
 | **S200** | **SAML 2 — Shibboleth, fédération Renater, ADFS.** Métadonnées du fournisseur de service publiées par FabOS, métadonnées de l'IdP importées (URL ou fichier), assertions signées exigées, horloge tolérée ±3 min. En fédération : la page de choix de l'établissement (WAYF). Bibliothèque éprouvée (`onelogin/php-saml`) — ⚠️ **nouvelle dépendance : accord de l'opérateur** | Contre un Keycloak de test en SAML : assertion non signée, expirée, pour une autre audience, rejouée → refus |
 | **S201** | **Le cycle de vie : les départs.** Une commande de nuit, par module : LDAP/AD interrogent l'annuaire (fiche absente, ou désactivée → **désactivation S190** avec le motif « annuaire », réversible) ; pour les modules par redirection, qui ne permettent pas d'interroger, une règle optionnelle « jamais revu depuis N jours ». Un rapport à l'exploitant, pas une surprise. 🔴 **La porte de secours** : FabOS refuse de désactiver la connexion locale tant qu'il n'existe pas au moins un admin avec un mot de passe local — une panne de l'annuaire ne doit pas enfermer le labo dehors | Une sonde : trois comptes liés, un retiré de l'annuaire, un désactivé → deux désactivations motivées, badge compris (S190), et la troisième intacte. Annuaire injoignable → la synchro NE DÉSACTIVE PERSONNE |
+
+### ✅ S196a — livré d'avance le 2026-09-23 : la limite d'essais, et un libellé qui dit vrai
+
+L'opérateur a demandé ces deux morceaux de S196 tout de suite, sans attendre les
+modules.
+
+✅ **La limite d'essais** : `login_throttling` (5 essais par identifiant et IP,
+25 par IP, sur 5 minutes). 🔴 **Seuls les ÉCHECS comptent** — mesuré, et
+contraire à ce que j'avais écrit d'abord : Symfony 8 regarde le compteur sans le
+consommer et ne décompte qu'une connexion ratée ; une réussite ne coûte rien,
+mais ne remet pas non plus le compteur à zéro. Une salle de classe derrière une
+seule IP qui se connecte ne consomme donc rien. Il a fallu
+`symfony/rate-limiter` (composant Symfony, 8.1.6, seul paquet ajouté ; lock
+vérifié identique avant). ⚠️ Mesuré avant d'activer : le proxy NPM est déclaré
+de confiance (`framework.trusted_proxies`), donc chaque visiteur a sa propre IP —
+sans ça, 25 fautes de n'importe qui auraient fermé la connexion à tout le monde.
+✅ Le frein tombe AVANT le mot de passe et répond pareil pour une adresse
+inconnue et pour un membre : la sonde exige les six mêmes messages.
+⚠️ Son état vit dans `var/share/prod/pools/app` : il survit à `cache:clear` et
+aux déploiements, ce qui est voulu.
+
+✅ **« Adresse email ou identifiant CAS » → « Adresse e-mail »**, et l'accueil ne
+promet plus « inscrivez-vous via votre compte CAS » (5 langues). Plus aucune
+mention de CAS sur `/login` ni sur `/`. Le libellé nommera les fournisseurs
+réellement activés quand S196 existera.
+
+✅ **Sonde `app:s196:throttle-probe`** (et `--measure-global`, qui a mesuré le
+frein par IP au 26ᵉ essai dans une fenêtre vierge). ⚠️ Deux pièges de sonde
+trouvés en route, consignés : le limiteur de 127.0.0.1 se partage entre sondes
+(attendre 5 min entre deux passages), et les services — gestionnaire d'entités
+compris — sont remis à zéro entre deux requêtes simulées : un `flush()` sur une
+entité chargée avant n'écrit RIEN.
 
 ## Les invariants de la phase
 

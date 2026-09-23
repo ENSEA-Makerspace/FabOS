@@ -27,6 +27,23 @@ security:
             # could be, and which was reachable over HTTP.
             custom_authenticators:
                 - App\Security\ConsoleRenderAuthenticator
+            # 🔴 S196a — une limite aux essais de mot de passe. Il n'y en avait
+            # AUCUNE : n'importe quel compte se devinait à la vitesse du serveur,
+            # et un module d'annuaire (Phase U) aurait fait de FabOS un relais
+            # pour deviner les mots de passe de l'établissement.
+            # 5 ÉCHECS par (identifiant, IP) et 25 par IP toutes les 5 minutes.
+            # Seuls les échecs comptent (Symfony 8 regarde le compteur sans le
+            # consommer, et ne décompte qu'une connexion ratée — mesuré par la
+            # sonde) : une salle de classe derrière une seule IP qui se connecte
+            # ne consomme rien. ⚠️ Une réussite ne remet PAS le compteur à zéro.
+            # ⚠️ Le proxy NPM est déclaré de confiance
+            # (`framework.trusted_proxies`) : sans lui, TOUS les visiteurs
+            # partageraient une IP et 25 fautes fermeraient le site à tout le monde.
+            # Le refus tombe avant la vérification du mot de passe et vaut pour
+            # une adresse inconnue comme pour un membre : il ne révèle rien.
+            login_throttling:
+                max_attempts: 5
+                interval: '5 minutes'
             form_login:
                 login_path: app_login
                 check_path: app_login
