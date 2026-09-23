@@ -383,9 +383,28 @@
                         <p class="form-help">{{ 'formation_content.sections_help'|trans }}</p>
                         <div class="admin-form-actions"><a class="admin-save-button" href="{{ path('app_admin_formation_section_new', {id: formation.id}) }}">{{ 'journey.create_section'|trans }}</a></div>
                         <div class="admin-list">
+                            {# S181 — l'ordre se DÉPLACE : deux flèches par étape, un POST
+                               chacune. Le numéro affiché est la POSITION (`loop.index`),
+                               jamais la colonne : c'est ce que voit l'apprenant.
+                               Au retour, la flèche du même sens reprend le focus — et
+                               l'autre si celle-là vient de s'éteindre en bout de liste. #}
+                            {% set movedId = app.request.query.get('deplace') %}
+                            {% set movedUp = app.request.query.get('sens') == 'up' %}
                             {% for section in sections %}
-                                <article class="admin-list-row">
-                                    <div><h3>{{ section.ordre }}. {{ section.titre }}</h3><p>{{ section.videoUrl ?: 'formation_content.no_video'|trans }}</p></div>
+                                {% set isMoved = movedId is not null and movedId == section.id ~ '' %}
+                                <article class="admin-list-row" id="section-{{ section.id }}">
+                                    <form class="admin-step-move" method="post" action="{{ path('app_admin_formation_section_move', {id: formation.id, sectionId: section.id}) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('section_move_' ~ section.id) }}">
+                                        <button type="submit" class="admin-icon-button" name="direction" value="up"
+                                                aria-label="{{ 'formation_content.move_up'|trans({'%step%': section.titre}) }}"
+                                                {{ loop.first ? 'disabled' }}
+                                                {{ isMoved and not loop.first and (movedUp or loop.last) ? 'autofocus' }}>↑</button>
+                                        <button type="submit" class="admin-icon-button" name="direction" value="down"
+                                                aria-label="{{ 'formation_content.move_down'|trans({'%step%': section.titre}) }}"
+                                                {{ loop.last ? 'disabled' }}
+                                                {{ isMoved and not loop.last and (not movedUp or loop.first) ? 'autofocus' }}>↓</button>
+                                    </form>
+                                    <div><h3>{{ loop.index }}. {{ section.titre }}</h3><p>{{ section.videoUrl ?: 'formation_content.no_video'|trans }}</p></div>
                                     <div class="admin-list-row__meta">
                                         {% set linkedQuiz = null %}
                                         {% for row in quizRows %}{% if row.section and row.section.id == section.id %}{% set linkedQuiz = row %}{% endif %}{% endfor %}

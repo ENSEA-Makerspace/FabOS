@@ -4,7 +4,6 @@ namespace App\Form\FormationContent;
 
 use App\Repository\SectionRepository;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\UrlType;
@@ -47,11 +46,6 @@ final class FormationSectionType extends AbstractType
                         message: 'Ce préfixe de titre est réservé au contenu de la page.',
                     ),
                 ],
-            ])
-            ->add('ordre', IntegerType::class, [
-                'label' => 'formation_section.field_order',
-                'attr' => ['min' => 1],
-                'constraints' => [new Assert\Positive(message: "L'ordre doit être un entier positif.")],
             ])
             ->add('videoUrl', UrlType::class, [
                 'label' => 'formation_section.field_video',

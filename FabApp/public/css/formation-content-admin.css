@@ -278,6 +278,22 @@ textarea.admin-form-control {
     background: var(--theme-surface-elevated, #fcfafb);
 }
 
+/* S181 — une étape de parcours porte ses flèches en tête de ligne. */
+.admin-list-row:has(> .admin-step-move) {
+    grid-template-columns: auto minmax(0, 1.6fr) minmax(160px, 0.6fr) auto;
+}
+
+.admin-step-move {
+    display: flex;
+    gap: 6px;
+    margin: 0;
+}
+
+.admin-step-move .admin-icon-button:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
 .admin-list-row h3 {
     margin: 0 0 4px;
     font-size: 1rem;
@@ -470,8 +486,16 @@ textarea.admin-form-control {
         justify-content: flex-start;
     }
 
-    .admin-list-row {
+    .admin-list-row,
+    .admin-list-row:has(> .admin-step-move) {
         grid-template-columns: 1fr;
+    }
+
+    /* Au doigt : 29×34 px mesurés, trop petit pour une flèche qu'on enchaîne. */
+    .admin-step-move .admin-icon-button,
+    .admin-choice-move .admin-icon-button {
+        min-width: 40px;
+        min-height: 40px;
     }
 }
 

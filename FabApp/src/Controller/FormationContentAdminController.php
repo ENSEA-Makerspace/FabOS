@@ -22,6 +22,7 @@ use App\Service\FormationPageContentService;
 use App\Service\QuizCatalogService;
 use App\Service\TrainingQualificationService;
 use App\Training\CohortAnnouncer;
+use App\Training\JourneyOrder;
 use App\Training\PublishChecklist;
 use App\Training\QuizDraft;
 use Doctrine\ORM\EntityManagerInterface;
@@ -404,6 +405,41 @@ final class FormationContentAdminController extends AbstractController
         return $this->handleSectionForm($formation, $section, $request, $entityManager, false);
     }
 
+    /**
+     * S181 — monter ou descendre une étape du parcours. Un formulaire par flèche,
+     * sans JavaScript : Turbo est coupé, la page revient sur la liste ouverte, et
+     * la flèche du même sens reprend le focus pour enchaîner au clavier.
+     */
+    #[Route('/{id}/sections/{sectionId}/move', name: 'app_admin_formation_section_move', requirements: ['id' => '\\d+', 'sectionId' => '\\d+'], methods: ['POST'])]
+    public function moveSection(
+        int $id,
+        int $sectionId,
+        Request $request,
+        FormationRepository $formations,
+        SectionRepository $sections,
+        JourneyOrder $order,
+    ): Response {
+        $formation = $this->findVisibleFormation($id, $formations);
+        $section = $sections->find($sectionId);
+        if (!$section instanceof Section || $section->getFormation()?->getId() !== $formation->getId() || SectionRepository::isPageContentBlock($section)) {
+            throw $this->createNotFoundException('Section introuvable pour cette formation.');
+        }
+        if (!$this->isCsrfTokenValid('section_move_' . $sectionId, (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        $direction = $request->request->get('direction') === 'up' ? 'up' : 'down';
+        $order->move($formation, $section, $direction === 'up' ? -1 : 1);
+
+        return $this->redirectToRoute('app_admin_formation_content', [
+            'id' => $formation->getId(),
+            'ouvrir' => 'sections',
+            'deplace' => $sectionId,
+            'sens' => $direction,
+            '_fragment' => 'section-' . $sectionId,
+        ], Response::HTTP_SEE_OTHER);
+    }
+
     #[Route('/{id}/quizzes/new', name: 'app_admin_formation_quiz_new', requirements: ['id' => '\\d+'], methods: ['GET', 'POST'])]
     public function newQuiz(
         int $id,
@@ -505,7 +541,6 @@ final class FormationContentAdminController extends AbstractController
 
                 $section
                     ->setTitre(trim((string) $data['titre']))
-                    ->setOrdre(max(1, (int) $data['ordre']))
                     ->setVideoUrl($this->nullableText($data['videoUrl'] ?? null))
                     ->setContenu(json_encode($content, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
 
@@ -775,7 +810,6 @@ final class FormationContentAdminController extends AbstractController
 
         return [
             'titre' => $section->getTitre(),
-            'ordre' => $section->getOrdre(),
             'videoUrl' => $section->getVideoUrl() ?? '',
             'intro' => trim((string) ($content['intro'] ?? $section->getContenu() ?? '')),
             'objectives' => implode("\n", array_map('strval', $content['objectives'] ?? [])),

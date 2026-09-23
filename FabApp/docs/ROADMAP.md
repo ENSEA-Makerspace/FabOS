@@ -1573,7 +1573,7 @@ supprimer la lecture des mots-clés dans `TrainingPolicyService`. À faire une f
 que le code qui écrit toujours la colonne aura tourné un moment — expand, soak,
 contract. ⚠️ Tant que le repli existe, une formation créée par un code plus
 ancien reste jugée sur son intitulé.
-| **S181** ⏳ | **Le constructeur.** ✅ **Livré le 2026-09-06** : la **checklist de mise en ligne**. 🔴 **Et la cible « 35 → sous 12 » était PÉRIMÉE** — voir la mesure ci-dessous. L'aperçu apprenant existait déjà (bouton « Voir la page »). 🅿️ **Reste** : le parcours en étapes ORDONNABLES | Voir la mesure ci-dessous |
+| **S181** ✅ | **Le constructeur.** ✅ La **checklist de mise en ligne** (2026-09-06). 🔴 **Et la cible « 35 → sous 12 » était PÉRIMÉE** — voir la mesure ci-dessous. L'aperçu apprenant existait déjà (bouton « Voir la page »). ✅ **Les étapes se DÉPLACENT** (S181b, 2026-09-23) | ✅ `app:s181:journey-order-probe`, la route comprise, base rendue à l'identique |
 
 ### 🔴 S181 — la cible de J-10 était déjà atteinte, et le plan ne le savait pas
 
@@ -1610,6 +1610,35 @@ elle repasse `is-done`. Base rendue à l'identique.
 s'annonçait « Mise en service » sur une page de formation. Un composant qui
 impose le vocabulaire de son premier appelant n'est pas un composant, c'est une
 copie qui s'ignore. `title` est maintenant obligatoire.
+### ✅ S181b — l'ordre d'un parcours se déplace, il ne se tape plus
+
+**Mesuré avant** : l'ordre d'une étape était un NUMÉRO saisi dans son formulaire.
+Passer la 4ᵉ en tête = rouvrir quatre formulaires et renuméroter à la main ; deux
+étapes au même numéro s'ordonnaient par leur id, un ordre que l'auteur ne voyait
+nulle part. (La base est propre aujourd'hui : 1..n partout — c'est le geste qui
+était cher, pas les données qui étaient fausses.)
+
+✅ **Deux flèches ↑ ↓ par étape** dans « Sections du parcours ». Un formulaire par
+flèche, sans JavaScript ; chaque bouton dit ce qu'il déplace ; au retour la page
+rouvre la liste, s'ancre sur l'étape et **rend le focus à la flèche** (à l'autre
+si celle-là vient de s'éteindre en bout de liste) : on enchaîne au clavier.
+`JourneyOrder` renumérote tout le parcours 1..n puis échange deux voisines, dans
+une transaction ; les blocs de contenu de la page, rangés dans la même table,
+ne bougent jamais. Le numéro affiché est la POSITION.
+✅ **Le champ « Ordre » quitte le formulaire d'une section** : il était la source
+des doublons. Une nouvelle étape se place en fin de parcours.
+⚠️ **Aucune progression n'est réécrite** : l'accès à une étape se calcule à
+l'affichage (la précédente est-elle réussie ?). Réordonner un parcours déjà
+entamé peut donc demander à un apprenant l'étape passée devant lui — c'est le
+même choix que S182 : on l'exige, on ne révoque rien.
+
+✅ **Sonde** : déplacements réels dans une transaction annulée (échange avec la
+seule voisine, 1..n sans trou, bornes refusées, aller-retour neutre, blocs de
+page intacts, section d'une autre formation refusée), puis **la route comme un
+navigateur** — page, jeton, POST : jeton faux → 403 sans rien bouger, bon jeton →
+303 ancré sur l'étape. Relecture de `SECTION` : identique à la ligne près.
+Mobile : flèches de 29×34 à 40×40 px (ici et dans l'éditeur de quiz).
+
 | **S182** ✅ | **Le quiz.** ✅ L'invariant (2026-09-06) ; ✅ **l'écran de résultat et la correction côté serveur** (S182c, 2026-09-23) ; ✅ **les types « remettre dans l'ordre » et « réponse courte »**, et un constructeur qui ne corrompt plus les bonnes réponses (S182d, 2026-09-23) | ✅ `app:s182:retake-probe` ; `app:s182:quiz-integrity-probe` (53 quiz, 2 960 combinaisons, 185 questions rouvertes) |
 
 ### 🔴 S182 — le défaut n'était pas là où la feuille de route le cherchait
@@ -1778,6 +1807,10 @@ fois ça s'est bien passé, la signature prouve qu'aucun chemin n'existe pour qu
 | **S180b** ✅ | `/admin/formations/2/edit` | Une case **« Exige une validation pratique »**, cochée pour la découpe laser, décochée pour l'imprimante 3D. 🔴 Avant, ça se DEVINAIT à partir du titre : « Découpe au CO2 » ou tout intitulé anglais n'exigeait rien |
 | **S181** ✅ | `/admin/formations/2/content` | Une carte **« Prête à être publiée ? »** en haut, cinq étapes. 🔴 La cible « 35 champs → sous 12 » était PÉRIMÉE : mesuré, **1 seul champ est visible à l'arrivée**, et c'est la recherche de l'en-tête du site |
 | **S182** ✅ | `php bin/console app:s182:retake-probe` | Verte. 🔴 Le défaut n'était pas la reprise d'un quiz — c'était **ajouter un quiz obligatoire**, qui « dé-diplômait » tous ceux qui avaient fini et effaçait leur date de fin. Vérifié dans les deux sens |
+| **S181** ✅ | `/admin/formations/2/content`, « Sections du parcours » | Deux flèches ↑ ↓ devant chaque étape ; ↑ éteinte sur la première, ↓ sur la dernière |
+| **S181** ✅ | cliquer ↓ sur la 1ʳᵉ étape | La page revient sur la liste ouverte, l'étape est 2ᵉ, **le focus est sur sa flèche ↓** — Entrée la redescend. Puis la remonter : on revient à l'ordre de départ |
+| **S181** ✅ | « Modifier » une étape | Plus de champ « Ordre » |
+| **S181** ✅ | `php bin/console app:s181:journey-order-probe` | Verte, base rendue à l'identique |
 | **S182** ✅ | `/formations/9/quiz/1`, « Afficher le code source » | Aucun `"correct"` dans la page. Avant : les bonnes réponses y étaient, lisibles par un visiteur |
 | **S182** ✅ | finir un quiz en se trompant | Le résultat liste **les questions à relire**, sans donner les bonnes réponses ; « Repasser le quiz » n'apparaît qu'en cas d'échec |
 | **S182** ✅ | `/admin/formations/1/quizzes/1/edit` | Chaque question a un **type**. En « Remettre dans l'ordre », les cases « Juste » disparaissent, des rangs et des flèches apparaissent |

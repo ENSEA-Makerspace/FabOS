@@ -32,9 +32,11 @@ Twig ; l'en-tête et le pied se réécrivent une seule fois pour les vingt ; et
 🔴 **une surcharge cassée n'empêche jamais un mot de passe oublié de partir** —
 mesuré, avec l'incident journalisé et le journal qui dit quelle version a servi.
 
-⏳ **Q — Formations, en cours.** S179 à S183 sont livrés ; il reste trois 🅿️
-consignés dans `ROADMAP.md` (le fil privé, les types de questions, les étapes
-ordonnables).
+✅ **Q — Formations : tout est livré** (2026-09-23). S179 à S183, puis les trois
+🅿️ qui restaient : le fil privé (S183b), les types de questions et l'écran de
+résultat (S182c/d), les étapes ordonnables (S181b). ⏳ **Reste ta relecture** —
+la section « Ce que l'opérateur vérifie » de la Phase Q — avant de clore la phase
+et d'en sortir le récit vers `docs/history/`.
 
 ## 🔴 Ce qui t'attend, toi
 
