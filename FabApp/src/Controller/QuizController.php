@@ -20,9 +20,14 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Training\QuizScorer;
 
 final class QuizController extends AbstractController
 {
+    public function __construct(private readonly QuizScorer $scorer)
+    {
+    }
+
     #[Route('/formations/{formationId}/quiz/{quizId}', name: 'app_quiz_show', requirements: ['formationId' => '\\d+', 'quizId' => '\\d+'], methods: ['GET'])]
     public function show(
         int $formationId,
@@ -119,6 +124,59 @@ final class QuizController extends AbstractController
         }
 
         return $this->renderQuiz($factory->create($machine), null, $machine, null, $progressions, $catalog);
+    }
+
+    /**
+     * Corrige une tentative SANS l'enregistrer (S182c).
+     *
+     * 🔴 **Pourquoi une seconde porte.** Tant que les bonnes réponses étaient dans
+     * la page, un visiteur non connecté — ou un quiz qui ne s'enregistre pas —
+     * était corrigé par le navigateur. Les réponses n'y sont plus : il faut que le
+     * serveur corrige aussi quand il n'enregistre rien. Le correcteur est le MÊME
+     * que celui de `saveResult()` ; seule l'écriture manque.
+     *
+     * ⚠️ **Elle ne révèle pas de réponse**, seulement « juste / à revoir » par
+     * question, comme l'enregistrement. 🅿️ Elle permet, comme les reprises,
+     * d'éliminer les mauvaises réponses par essais — c'est inhérent à toute
+     * correction question par question, et c'est dit dans `QuizScorer`.
+     */
+    #[Route('/api/quizzes/{quizId}/check', name: 'app_quiz_check', requirements: ['quizId' => '\\d+'], methods: ['POST'])]
+    public function check(int $quizId, Request $request, QuizRepository $quizzes): JsonResponse
+    {
+        $quiz = $quizzes->find($quizId);
+        if (!$quiz instanceof Quiz) {
+            return $this->json(['ok' => false, 'message' => 'Quiz introuvable.'], Response::HTTP_NOT_FOUND);
+        }
+
+        try {
+            $payload = $request->toArray();
+        } catch (\Throwable) {
+            return $this->json(['ok' => false, 'message' => 'Données de résultat invalides.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        if (!$this->isCsrfTokenValid('quiz_check_' . $quizId, (string) ($payload['_token'] ?? ''))) {
+            return $this->json(['ok' => false, 'message' => 'La correction a été refusée. Rechargez la page puis réessayez.'], Response::HTTP_FORBIDDEN);
+        }
+
+        $answers = $payload['answers'] ?? null;
+        if (!is_array($answers)) {
+            return $this->json(['ok' => false, 'message' => 'Les réponses transmises sont invalides.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $scored = $this->scorer->score($quiz, $answers);
+        $passing = max(0, min(100, $quiz->getNoteMinimale()));
+
+        return $this->json([
+            'ok' => true,
+            'result' => [
+                'attemptScore' => $scored['score'],
+                'correctCount' => $scored['correctCount'],
+                'questionCount' => $scored['questionCount'],
+                'passed' => $scored['score'] >= $passing,
+                'review' => $scored['review'],
+                'saved' => false,
+            ],
+        ]);
     }
 
     #[Route('/api/quizzes/{quizId}/result', name: 'app_quiz_result_save', requirements: ['quizId' => '\\d+'], methods: ['POST'])]
@@ -240,35 +298,11 @@ final class QuizController extends AbstractController
         QuestionRepository $questions,
         ChoixRepository $choices,
     ): array {
-        $questionRows = [];
-        foreach ($questions->findBy(['quiz' => $quiz], ['ordre' => 'ASC']) as $question) {
-            $choiceRows = [];
-            $correctCount = 0;
-
-            foreach ($choices->findBy(['question' => $question], ['ordre' => 'ASC']) as $choice) {
-                if ($choice->isEstCorrect()) {
-                    ++$correctCount;
-                }
-
-                $choiceRows[] = [
-                    'id' => (string) $choice->getId(),
-                    'text' => $choice->getTexte(),
-                    'correct' => $choice->isEstCorrect(),
-                ];
-            }
-
-            if ($choiceRows === []) {
-                continue;
-            }
-
-            $questionRows[] = [
-                'id' => (string) $question->getId(),
-                'order' => $question->getOrdre(),
-                'text' => $question->getTexte(),
-                'type' => $correctCount > 1 ? 'multiple' : 'single',
-                'choices' => $choiceRows,
-            ];
-        }
+        // 🔴 S182c — plus AUCUNE bonne réponse dans la page : les questions
+        // viennent de `QuizScorer::payload()`, qui n'en porte pas. Avant, chaque
+        // réponse partait avec `correct: true|false`, lisible dans le code source,
+        // y compris par un visiteur non connecté.
+        $questionRows = $this->scorer->payload($quiz);
 
         $formation = $quiz->getFormation();
         $passingScore = max(0, min(100, $quiz->getNoteMinimale()));

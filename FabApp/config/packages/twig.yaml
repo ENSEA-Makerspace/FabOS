@@ -21,12 +21,12 @@ twig:
     # changement de leur fichier. Vérifié le 2026-09-03 — c'est la discipline qui
     # marche, pas de la dérive.
     globals:
-        css_version: '20260923-s183c'
+        css_version: '20260923-s182d'
         # ⚠️ Même raison, un cran plus petit : `main.js`, `section-journey.js` et
         # `quiz.js` partageaient déjà cette valeur dans 19 gabarits. Séparée du
         # CSS pour qu'un changement de feuille n'invalide pas le JS et
         # réciproquement — les deux ne changent presque jamais ensemble.
-        js_version: '20260811-s134c-i18n'
+        js_version: '20260923-s182c'
 
 when@test:
     twig:

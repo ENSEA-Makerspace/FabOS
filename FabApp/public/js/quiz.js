@@ -52,6 +52,10 @@
         enabled: app.dataset.persistenceEnabled === '1',
         saveUrl: app.dataset.saveUrl || '',
         csrfToken: app.dataset.csrfToken || '',
+        // S182c — la correction sans enregistrement, pour un visiteur ou un quiz
+        // qui ne s'enregistre pas. Le navigateur ne connaît plus les réponses.
+        checkUrl: app.dataset.checkUrl || '',
+        checkToken: app.dataset.checkToken || '',
     };
 
     const elements = {
@@ -80,6 +84,9 @@
         correctCount: app.querySelector('[data-correct-count]'),
         wrongCount: app.querySelector('[data-wrong-count]'),
         review: app.querySelector('[data-review]'),
+        reviewPoints: app.querySelector('[data-review-points]'),
+        reviewPointsBlock: app.querySelector('[data-review-points-block]'),
+        backLink: app.querySelector('[data-back-link]'),
         restart: app.querySelector('[data-restart]'),
     };
 
@@ -240,12 +247,15 @@
 
     const isAnswered = (question) => selectedFor(question).length > 0;
 
-    const questionIsCorrect = (question) => {
-        const expected = normalizeIds(question.choices.filter((choice) => choice.correct).map((choice) => choice.id));
-        const actual = normalizeIds(selectedFor(question));
-        return expected.length === actual.length && expected.every((value, index) => value === actual[index]);
-    };
-
+    /*
+     * 🔴 **S182c — ce fichier ne corrige PLUS rien.** Il recevait les bonnes
+     * réponses dans `quiz-data` et calculait le score lui-même : la solution d'un
+     * quiz de sécurité était lisible dans le code source, par n'importe qui. Le
+     * serveur est désormais le seul à connaître les réponses ; ce fichier envoie
+     * une tentative et affiche ce qu'on lui répond.
+     * ⚠️ Conséquence assumée : sans réseau, pas de correction. Un quiz qui ouvre
+     * l'accès à une machine ne se corrige pas hors ligne.
+     */
     const formatAnswer = (question, ids) => {
         const selected = new Set(normalizeIds(ids));
         const texts = question.choices
@@ -271,17 +281,22 @@
         return answers;
     };
 
-    const saveResult = async () => {
-        if (!persistence.enabled || !persistence.saveUrl) {
-            setSaveStatus('Résultat calculé localement. Connectez-vous et utilisez un quiz persistant pour l’enregistrer.');
-            return null;
+    /**
+     * Envoie la tentative : à l'enregistrement si le quiz s'enregistre, sinon à la
+     * simple correction. ⚠️ Le MÊME correcteur répond dans les deux cas.
+     *
+     * @returns {Promise<{result: object|null, message: string}>}
+     */
+    const submitAttempt = async () => {
+        const saving = persistence.enabled && persistence.saveUrl;
+        const url = saving ? persistence.saveUrl : persistence.checkUrl;
+        const token = saving ? persistence.csrfToken : persistence.checkToken;
+        if (!url) {
+            return { result: null, message: t('js_check_failed') };
         }
 
-        state.saving = true;
-        setSaveStatus(t('js_saving'));
-
         try {
-            const response = await fetch(persistence.saveUrl, {
+            const response = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -289,24 +304,18 @@
                     'X-Requested-With': 'XMLHttpRequest',
                 },
                 credentials: 'same-origin',
-                body: JSON.stringify({
-                    _token: persistence.csrfToken,
-                    answers: serializeAnswers(),
-                }),
+                body: JSON.stringify({ _token: token, answers: serializeAnswers() }),
             });
-
             const payload = await response.json().catch(() => ({}));
-            if (!response.ok || payload.ok !== true) {
-                throw new Error(payload.message || t('js_save_failed'));
+            if (!response.ok || payload.ok !== true || !payload.result) {
+                return { result: null, message: payload.message || t('js_check_failed') };
             }
-
-            setSaveStatus(payload.message || t('js_saved'), 'success');
-            return payload.result || null;
+            return {
+                result: payload.result,
+                message: saving ? (payload.message || t('js_saved')) : t('js_not_saved'),
+            };
         } catch (error) {
-            setSaveStatus(error instanceof Error ? error.message : t('js_save_failed'), 'error');
-            return null;
-        } finally {
-            state.saving = false;
+            return { result: null, message: t('js_check_failed') };
         }
     };
 
@@ -356,11 +365,31 @@
             return;
         }
 
+        // ⚠️ Pendant l'attente, le bouton ne relance rien : un double clic
+        // enverrait deux tentatives, donc deux enregistrements.
+        state.saving = true;
+        elements.next.disabled = true;
+        setMessage(t('js_checking'));
+
+        const { result, message } = await submitAttempt();
+
+        state.saving = false;
+        elements.next.disabled = false;
+
+        if (!result) {
+            // On RESTE sur les questions : sans correction serveur, il n'y a rien
+            // d'honnête à afficher — et les réponses sont conservées pour réessayer.
+            setMessage(message);
+            return;
+        }
+
+        clearMessage();
         state.finished = true;
-        const correct = quiz.questions.filter(questionIsCorrect).length;
-        const wrong = quiz.questions.length - correct;
-        const score = Math.round((correct / quiz.questions.length) * 100);
-        const passed = score >= Number(quiz.passingScore || 0);
+
+        const score = Number(result.attemptScore ?? 0);
+        const passed = Boolean(result.passed);
+        const total = Number(result.questionCount ?? quiz.questions.length);
+        const correct = Number(result.correctCount ?? 0);
 
         elements.questionView.hidden = true;
         elements.navigation.hidden = true;
@@ -371,38 +400,49 @@
         elements.resultRing.style.setProperty('--score-angle', `${score * 3.6}deg`);
         elements.resultEyebrow.textContent = t(passed ? 'js_passed' : 'js_failed');
         elements.resultTitle.textContent = t(passed ? 'js_passed_title' : 'js_failed_title');
-        elements.resultMessage.textContent = t(passed ? 'js_passed_message' : 'js_failed_message');
+        // Le score ET le seuil dans la même phrase (planche `lms-quiz-result-retry`) :
+        // « 62 % » seul ne dit pas de combien on est passé à côté.
+        elements.resultMessage.textContent = f('js_score_sentence', { score, pass: Number(quiz.passingScore || 0) });
         elements.correctCount.textContent = String(correct);
-        elements.wrongCount.textContent = String(wrong);
+        elements.wrongCount.textContent = String(total - correct);
+        setSaveStatus(message, result.saved === false ? '' : 'success');
 
-        const serverResult = await saveResult();
-        if (serverResult) {
-            const serverScore = Number(serverResult.attemptScore ?? score);
-            const serverPassed = Boolean(serverResult.passed);
-            elements.resultScore.textContent = `${serverScore} %`;
-            elements.resultRing.style.setProperty('--score-angle', `${serverScore * 3.6}deg`);
-            elements.result.classList.toggle('is-success', serverPassed);
-            elements.resultEyebrow.textContent = t(serverPassed ? 'js_passed' : 'js_failed');
-            elements.resultTitle.textContent = t(serverPassed ? 'js_passed_saved_title' : 'js_failed_saved_title');
-            elements.correctCount.textContent = String(serverResult.correctCount ?? correct);
-            elements.wrongCount.textContent = String((serverResult.questionCount ?? quiz.questions.length) - (serverResult.correctCount ?? correct));
-            if (serverResult.badgeAwarded) {
-                showBadgeUnlock(serverResult.badge);
-            }
+        // Réussi : « Continuer », seul. Raté : « Revoir les consignes », puis
+        // « Repasser le quiz ».
+        if (elements.backLink) {
+            elements.backLink.textContent = t(passed ? 'js_continue' : 'js_review_instructions');
+        }
+        elements.restart.hidden = passed;
+
+        if (result.badgeAwarded) {
+            showBadgeUnlock(result.badge);
         }
 
-        renderReview();
+        renderReview(Array.isArray(result.review) ? result.review : []);
         renderSteps();
         updateProgress();
         elements.result.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
 
-    const renderReview = () => {
-        elements.review.textContent = '';
+    /**
+     * La correction, telle que le SERVEUR l'a rendue : juste ou à revoir, par
+     * question. ⚠️ Jamais la réponse attendue — la liste dit QUOI relire.
+     */
+    const renderReview = (review) => {
+        const verdict = new Map(review.map((row) => [String(row.id), Boolean(row.correct)]));
 
+        elements.reviewPoints.textContent = '';
+        const toReview = quiz.questions.filter((question) => verdict.get(String(question.id)) === false);
+        toReview.forEach((question) => {
+            const item = document.createElement('li');
+            item.textContent = question.text;
+            elements.reviewPoints.appendChild(item);
+        });
+        elements.reviewPointsBlock.hidden = toReview.length === 0;
+
+        elements.review.textContent = '';
         quiz.questions.forEach((question, index) => {
-            const correct = questionIsCorrect(question);
-            const expectedIds = question.choices.filter((choice) => choice.correct).map((choice) => choice.id);
+            const correct = verdict.get(String(question.id)) === true;
             const item = document.createElement('article');
             item.className = `quiz-review-item${correct ? ' is-correct' : ''}`;
 
@@ -413,13 +453,6 @@
             answer.textContent = f('js_your_answer', { answer: formatAnswer(question, selectedFor(question)) });
 
             item.append(title, answer);
-
-            if (!correct) {
-                const expected = document.createElement('p');
-                expected.textContent = f('js_expected_answer', { answer: formatAnswer(question, expectedIds) });
-                item.appendChild(expected);
-            }
-
             elements.review.appendChild(item);
         });
     };
@@ -433,6 +466,7 @@
         elements.result.hidden = true;
         elements.resultActions.hidden = true;
         elements.result.classList.remove('is-success');
+        elements.restart.hidden = false;
         setSaveStatus('');
         clearMessage();
         render();

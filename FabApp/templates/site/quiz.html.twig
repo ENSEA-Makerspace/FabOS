@@ -84,6 +84,11 @@
                     data-persistence-enabled="{{ quizPersistence.enabled ? '1' : '0' }}"
                     data-save-url="{{ quizPersistence.enabled and quizPersistence.quizId ? path('app_quiz_result_save', {quizId: quizPersistence.quizId}) : '' }}"
                     data-csrf-token="{{ quizPersistence.enabled and quizPersistence.quizId ? csrf_token('quiz_result_' ~ quizPersistence.quizId) : '' }}"
+                    {# 🔴 S182c — la correction SANS enregistrement. Les bonnes réponses ne
+                       sont plus dans la page ; un visiteur, ou un quiz qui ne s'enregistre
+                       pas, est désormais corrigé par le serveur lui aussi. #}
+                    data-check-url="{{ quizPersistence.quizId ? path('app_quiz_check', {quizId: quizPersistence.quizId}) : '' }}"
+                    data-check-token="{{ quizPersistence.quizId ? csrf_token('quiz_check_' ~ quizPersistence.quizId) : '' }}"
                 >
                     <aside class="quiz-sidebar" aria-label="{{ 'quiz.progress_aria'|trans }}">
                         <div class="quiz-progress-card">
@@ -129,7 +134,20 @@
                                 <div><strong data-wrong-count>0</strong><span>{{ 'quiz.to_review'|trans }}</span></div>
                                 <div><strong>{{ quizData.passingScore }} %</strong><span>{{ 'quiz.threshold'|trans }}</span></div>
                             </div>
-                            <div class="quiz-review" data-review></div>
+                            {# 🔴 **Les points À REVOIR, pas la solution** — d'après la planche
+                               `lms-quiz-result-retry`. Avant, chaque question ratée affichait
+                               « Réponse attendue : … » : on échouait une fois, on lisait, on
+                               repassait à 100 %. La correction dit maintenant QUOI relire. #}
+                            <div class="quiz-review-points" data-review-points-block hidden>
+                                <h3>{{ 'quiz.review_points_heading'|trans }}</h3>
+                                <ul data-review-points></ul>
+                            </div>
+                            {# « Voir toutes mes réponses », replié : ce que J'AI répondu, juste ou
+                               non — jamais ce qu'il fallait répondre. #}
+                            <details class="quiz-review-all">
+                                <summary>{{ 'quiz.review_all'|trans }}</summary>
+                                <div class="quiz-review" data-review></div>
+                            </details>
                         </div>
 
                         <div class="quiz-card__actions" data-navigation>
@@ -144,13 +162,18 @@
                             </button>
                         </div>
 
+                        {# ⚠️ **Deux issues, et leur ordre dépend du verdict** (planche
+                           `lms-quiz-result-retry`) : raté ⇒ « Revoir les consignes » en premier,
+                           « Repasser le quiz » en second — relire AVANT de retenter ; réussi ⇒
+                           « Continuer », seul. Le lien mène au même endroit dans les deux cas ;
+                           seul son libellé change, posé par `quiz.js`. #}
                         <div class="quiz-card__actions quiz-card__actions--result" data-result-actions hidden>
-                            <button class="quiz-button quiz-button--ghost" type="button" data-restart>{{ 'quiz.restart'|trans }}</button>
                             {% if machine %}
-                                <a class="quiz-button quiz-button--primary" href="{{ path('app_machine_detail', {id: machine.id}) }}">{{ 'quiz.back_machine'|trans }}</a>
+                                <a class="quiz-button quiz-button--primary" data-back-link href="{{ path('app_machine_detail', {id: machine.id}) }}">{{ 'quiz.review_instructions'|trans }}</a>
                             {% elseif formation %}
-                                <a class="quiz-button quiz-button--primary" href="{{ path('app_formation_follow', {id: formation.id}) }}">{{ 'quiz.back_tracking'|trans }}</a>
+                                <a class="quiz-button quiz-button--primary" data-back-link href="{{ path('app_formation_follow', {id: formation.id}) }}">{{ 'quiz.review_instructions'|trans }}</a>
                             {% endif %}
+                            <button class="quiz-button quiz-button--ghost" type="button" data-restart>{{ 'quiz.retake'|trans }}</button>
                         </div>
                     </section>
                 </div>
@@ -191,7 +214,13 @@
         js_review_title: 'quiz.js_review_title'|trans,
         js_correct: 'quiz.js_correct'|trans,
         js_your_answer: 'quiz.js_your_answer'|trans,
-        js_expected_answer: 'quiz.js_expected_answer'|trans,
+        js_score_sentence: 'quiz.js_score_sentence'|trans,
+        js_all_correct: 'quiz.js_all_correct'|trans,
+        js_review_instructions: 'quiz.review_instructions'|trans,
+        js_continue: 'quiz.js_continue'|trans,
+        js_check_failed: 'quiz.js_check_failed'|trans,
+        js_checking: 'quiz.js_checking'|trans,
+        js_not_saved: 'quiz.js_not_saved'|trans,
     }|json_encode|raw }}</script>
     <script src="{{ asset('js/main.js') ~ '?v=' ~ js_version }}"></script>
     {% if quizData.questionCount > 0 %}<script src="{{ asset('js/quiz.js') ~ '?v=' ~ js_version }}"></script>{% endif %}

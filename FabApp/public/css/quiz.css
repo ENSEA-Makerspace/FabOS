@@ -674,6 +674,81 @@
     justify-content: center;
 }
 
+
+/* Les points à revoir (planche `lms-quiz-result-retry`) : ce qu'il faut RELIRE,
+   jamais la bonne réponse. */
+.quiz-review-points {
+    margin-top: 24px;
+    text-align: left;
+}
+
+.quiz-review-points h3 {
+    margin: 0 0 10px;
+    font-size: 0.98rem;
+    color: var(--quiz-ink);
+}
+
+.quiz-review-points ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 8px;
+}
+
+.quiz-review-points li {
+    padding: 11px 14px 11px 40px;
+    position: relative;
+    border: 1px solid var(--quiz-border);
+    border-radius: 12px;
+    background: var(--theme-surface, #fff);
+    color: var(--quiz-ink);
+    font-size: 0.9rem;
+    line-height: 1.45;
+}
+
+.quiz-review-points li::before {
+    content: "!";
+    position: absolute;
+    left: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #fff;
+    background: var(--quiz-danger);
+}
+
+/* « Voir toutes mes réponses » : replié, parce que le premier regard doit aller
+   aux points à revoir, pas à la liste complète. */
+.quiz-review-all {
+    margin-top: 18px;
+    text-align: left;
+}
+
+.quiz-review-all > summary {
+    cursor: pointer;
+    padding: 12px 16px;
+    border: 1px solid var(--quiz-border);
+    border-radius: 12px;
+    color: var(--quiz-ink);
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.quiz-review-all[open] > summary {
+    margin-bottom: 4px;
+}
+
+.quiz-review-all .quiz-review {
+    margin-top: 10px;
+}
+
 .quiz-empty-state {
     max-width: 760px;
     margin: 0 auto;
@@ -985,4 +1060,26 @@ html[data-theme="dark"] .quiz-step.is-active,
 html[data-theme="dark"] .quiz-step.is-done {
     background: rgba(207, 78, 135, 0.16);
     border-color: rgba(207, 78, 135, 0.38);
+}
+
+/* =====================================================================
+   🔴 S182c — `hidden` RETROUVE son sens sur toute la page du quiz.
+
+   Mesuré, pas lu : chaque élément que `quiz.js` masque par l'attribut `hidden`
+   portait aussi une règle `display` explicite, qui l'emporte sur l'attribut —
+   le piège documenté de la cascade. Trois cas vus au navigateur :
+   — sous la question 1, « Recommencer » et « Retour au suivi » étaient DÉJÀ
+     affichés (attribut posé, `display: flex`, 69 px) ;
+   — sur l'écran de résultat, « Précédent / Voir mon résultat » restait visible,
+     et un second clic renvoyait une seconde tentative ;
+   — et, en corrigeant les deux premiers par une règle limitée aux rangées de
+     boutons, « Repasser le quiz » restait affiché après une RÉUSSITE : le même
+     piège, sur un bouton. Une règle par élément aurait été une règle de trop à
+     oublier au prochain élément masqué.
+   ⚠️ En FIN de feuille, et à (0,2,0) : elle bat `.quiz-button` et
+   `.quiz-card__actions` (0,1,0) partout, et gagne les égalités de spécificité
+   par l'ordre. Sans `!important`.
+   ===================================================================== */
+.quiz-page [hidden] {
+    display: none;
 }
