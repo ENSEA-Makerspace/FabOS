@@ -2001,7 +2001,7 @@ simulée sans cookie de session repart anonyme (`hasPreviousSession()`), donc la
 première version « prouvait » la coupure sur des sessions jamais connectées.
 Elle exige maintenant `/profil` à 200 AVANT, puis 302 après.
 
-### ⏳ S191a — les sessions : visibles, et fermables (code déployé, migration en attente)
+### ✅ S191a — les sessions : visibles, et fermables (migration passée le 2026-09-24)
 
 **Mesuré avant** : aucune liste des sessions ; une session vit 24 min
 d'inactivité (défaut PHP), cookie de session ; Symfony déconnecte déjà les
@@ -2023,6 +2023,11 @@ les ferme TOUTES. Les rendus console (`app:render`) n'ouvrent aucune session.
 ⚠️ **Migration `Version20260924090000`** (USER_SESSION + USER_MFA, tables
 neuves) : le code se tait tant qu'elle manque — sonde verte dans ce régime
 (connexion, profil sans lien, `/profil/sessions` → profil).
+✅ **Migration passée, parcours complet vert** : deux appareils, fermer l'un
+depuis l'autre, fermer les autres, mot de passe, l'admin ferme tout, rendu
+console sans session. 🔴 **La sonde a attrapé un vrai défaut** : la
+déconnexion laissait la ligne « ouverte » — `SessionLogoutListener` (priorité 0)
+vidait la session avant qu'on y lise la clé. Écouteur passé à 128.
 
 ### ✅ S192 — « pourquoi cette personne a-t-elle ce droit ? », depuis l'écran
 
@@ -2116,9 +2121,9 @@ transaction annulée, journal intact) ; chemins = forfaits du verdict
 | **S190** ✅ | `php bin/console app:s190:deactivation-probe` | Verte |
 | **S196a** ✅ | `/login`, 6 mauvais mots de passe de suite | Au 6ᵉ : « Trop de tentatives… réessayez dans 5 minutes » ; même chose avec une adresse qui n'existe pas |
 | **S196a** ✅ | `/login` et l'accueil | Plus aucune mention de « CAS » |
-| **S191a** ⏳ | après la migration : `/profil` → Sécurité → « Sessions ouvertes » | Tes appareils, « cet appareil » marqué, réseau tronqué ; « Fermer » sur l'autre → il est renvoyé à la connexion à son clic suivant |
-| **S191a** ⏳ | fiche admin d'un compte connecté | « N sessions ouvertes » et « Fermer toutes ses sessions » |
-| **S191a** ⏳ | `php bin/console app:s191:session-probe` (après la migration) | Verte : deux appareils, fermer, fermer les autres, mot de passe, admin, déconnexion |
+| **S191a** ✅ | après la migration : `/profil` → Sécurité → « Sessions ouvertes » | Tes appareils, « cet appareil » marqué, réseau tronqué ; « Fermer » sur l'autre → il est renvoyé à la connexion à son clic suivant |
+| **S191a** ✅ | fiche admin d'un compte connecté | « N sessions ouvertes » et « Fermer toutes ses sessions » |
+| **S191a** ✅ | `php bin/console app:s191:session-probe` (après la migration) | Verte : deux appareils, fermer, fermer les autres, mot de passe, admin, déconnexion |
 | **S192** ✅ | `/admin/utilisateurs/{id}` d'un membre qui a un badge | Sous chaque droit : « Forfait « … » · par le groupe « … » · jusqu'au … » ; puis « Ce que son badge ouvre », badge « ••••XXXX », jamais l'identifiant entier |
 | **S192** ✅ | ton `/profil` | « Ce que votre badge ouvre » ; le champ « Badge d'accès » et ton historique d'accès montrent « ••••XXXX » |
 | **S192** ✅ | `/admin/acces-rfid` (journal) | Colonne « Résultat » : un état, plus aucune phrase sur la « syntaxe Twig » |

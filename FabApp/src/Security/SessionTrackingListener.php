@@ -67,7 +67,12 @@ final class SessionTrackingListener
         };
     }
 
-    #[AsEventListener(event: LogoutEvent::class)]
+    /**
+     * ⚠️ Priorité 128 : `SessionLogoutListener` (0) VIDE la session ; passé après
+     * lui, on ne trouvait plus la clé et la ligne restait « ouverte » — la sonde
+     * S191a l'a attrapé.
+     */
+    #[AsEventListener(event: LogoutEvent::class, priority: 128)]
     public function onLogout(LogoutEvent $event): void
     {
         $request = $event->getRequest();
