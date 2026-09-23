@@ -521,6 +521,126 @@ html[data-theme="dark"] :is(.breadcrumb, .breadcrumb-current, .breadcrumb-separa
 .cell-fix:hover { text-decoration: underline; }
 .cell-fix--flat { color: var(--color-text-light); font-weight: 400; }
 
+/* ===================================================================
+   LES CHAMPS DE FORMULAIRE — UNE définition, pour l'admin ET le public (S183b)
+
+   🔴 **Déménagées d'`admin.css`, pas recopiées.** Ce sont exactement les classes
+   qu'émet `form/admin_theme.html.twig`, le seul thème de formulaire du dépôt :
+   `.form-field`, `.form-help`, `.form-errors`, `.form-actions`, `.btn-submit`. Elles
+   n'étaient chargées qu'avec l'administration, donc une page PUBLIQUE qui passait
+   par `form_row()` sortait nue — « Votre messagerequired » collés, un champ perdu
+   sur la droite, un bouton sans style. Vu au rendu du fil de formation.
+   ⚠️ Une première réponse a été d'écrire un `.public-form` à part : une SECONDE
+   copie des mêmes règles, que l'opérateur a relevée. Le bon geste était de
+   déplacer la première.
+
+   ⚠️ **Le rendu clair de l'admin ne doit pas bouger d'un pixel.** Seules les
+   couleurs dont le jeton vaut EXACTEMENT le littéral sont passées en jeton :
+   `#9E1B56` → `--color-primary`, `#b91c1c` → `--color-danger`. Les trois autres
+   (`#374151`, `#d1d5db`, `#e5e7eb`) restent littérales ici — leur jeton le plus
+   proche n'a pas la même valeur, et les remplacer serait un changement de
+   design, pas un déménagement. Le thème sombre les couvre par ses règles
+   ci-dessous, déménagées avec elles.
+   🅿️ Effet voulu, et nouveau : le bouton d'envoi et l'accent des cases suivent
+   maintenant la couleur du thème, comme le reste du site depuis S166.
+   =================================================================== */
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap: 18px; }
+.form-field.full { grid-column: 1 / -1; }
+/* ⚠️ **S149, règle 5 — le mot « requis », gris et discret, après l'étiquette.**
+   Il est un `<span>` FRÈRE de l'étiquette, jamais dedans : dans le `<label>` il
+   entrerait dans le NOM ACCESSIBLE du champ (« Durée requis »), et un nom n'est pas
+   un état. `<input required>` l'annonce déjà nativement au lecteur d'écran, dans SA
+   langue — d'où l'`aria-hidden` côté gabarit. Ceci ne sert qu'à l'œil.
+   ⚠️ L'étiquette passe en `inline-block` pour que le mot reste sur SA ligne : elle
+   est `display: block` par défaut, ce qui l'aurait renvoyé à la ligne suivante. */
+.form-field.is-required > label { display: inline-block; }
+.form-field.is-required > .form-required {
+    margin-left: .4em;
+    color: var(--color-text-light);
+    font-weight: var(--font-weight-regular, 400);
+    font-size: var(--font-size-xs, 12px);
+}
+/* ⚠️ Une case à cocher n'affiche jamais ce mot : son libellé la suit déjà, et
+   « requis » n'y dit rien de plus que la phrase elle-même. */
+.form-field.form-field-check > .form-required,
+.form-field.checkbox > .form-required { display: none; }
+.form-field label { display: block; margin-bottom: 7px; font-weight: 700; color: #374151; }
+/* ⚠️ S142 added `select`. It was missing here and present in fourteen local
+   `<style>` blocks, which is the whole failure mode this file exists for: the
+   pages that remembered had bordered selects, the pages that forgot had the
+   browser's. The radio/checkbox exclusion is further down, at `.form-field
+   input[type=…]`. */
+/* ⚠️ **S148, J-22 — `font-family: inherit` manquait, et ça se voyait.** Un
+   `<textarea>` sans famille déclarée retombe sur le `monospace` du navigateur :
+   sur chaque écran passé au thème, les `<input>` étaient en Arial et les zones de
+   texte juste en dessous en chasse fixe. Deux endroits l'avaient déjà corrigé pour
+   eux seuls (`.usage-form-field`, `.settings-field`) — c'est le signe que la règle
+   manquait ici, pas qu'elle appartenait là-bas. */
+.form-field input, .form-field textarea, .form-field select { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-family: inherit; font-size: 15px; background: var(--theme-surface, #fff); }
+.form-field textarea { min-height: 130px; resize: vertical; }
+/* ⚠️ **S148, J-22 — une hauteur, pas trois.** Un `<input type="date">` et un
+   `<input type="time">` portent leur propre habillage natif : à padding et
+   police identiques, ils sortaient à 42 et 44 px quand un champ texte faisait
+   40 px. Mesuré sur `/admin/horaires`, qui met les trois sur une seule rangée.
+   `min-height` les aligne tous à 44 px — qui est aussi la cible tactile
+   minimale. ⚠️ Les cases et les radios sont exclues : elles font 16 px, plus bas. */
+.form-field input:not([type="checkbox"]):not([type="radio"]),
+.form-field select { min-height: 44px; }
+/* The quiet line under a control. Six templates carried it verbatim (S142). */
+.form-help { margin-top: 6px; color: var(--color-text-light); font-size: 13px; }
+/* A control whose label sits BESIDE it, not above. `.form-field.check` below is
+   the same idea and predates it; both are kept because both are in the markup. */
+.form-field.checkbox label { display: flex; align-items: center; gap: 8px; margin-bottom: 0; }
+.form-field.checkbox input { width: auto; }
+.form-errors { margin: 7px 0 0; color: var(--color-danger); font-size: 14px; }
+.form-errors ul { margin: 0; padding-left: 18px; }
+.form-actions { display: flex; justify-content: flex-end; gap: 12px; padding-top: 22px; margin-top: 22px; border-top: 1px solid #e5e7eb; }
+.btn-submit button { padding: 10px 16px; border-radius: 6px; border: 0; color: #fff; background: var(--color-primary); font-weight: 700; cursor: pointer; }
+.form-field[hidden] { display: none; }
+.form-field small { color: var(--color-text-light); font-size: var(--font-size-sm); }
+/* `.form-field input` also matched radios and checkboxes, inflating them into
+   full-width boxes. ⚠️ S142 took the size and the accent from the two événements
+   templates, which were the only pages whose radios were the brand colour — the
+   same control was pink there and browser-blue everywhere else.
+
+   ⚠️ **No `margin: 0` here.** The événements copy had one, and hoisting it
+   silently killed the 7 px between a checkbox and its label in `.choice-grid` —
+   `.form-field input[type="checkbox"]` is (0,2,1) and beats a container's
+   `.choice-grid input` at (0,1,1) whatever the source order. Spacing is the
+   container's job; this rule only says how big the control is. */
+.form-field input[type="radio"],
+.form-field input[type="checkbox"] { width: 16px; height: 16px; padding: 0; accent-color: var(--color-primary); }
+
+/* A checkbox and its label belong on one line, not stacked. */
+.form-field.check { display: flex; align-items: center; gap: 8px; }
+.form-field.check label { margin-bottom: 0; }
+
+/* ---- What Symfony's form theme actually renders (S142) ----
+ * An expanded ChoiceType comes out as a `<fieldset>` wrapping bare radio+label
+ * pairs, and `form_help()` as a `<small>`. Neither had a rule outside the two
+ * événements templates, so every other form using an expanded choice got a
+ * stacked column of un-aligned radios with a browser default legend box. */
+.form-field fieldset { border: 0; padding: 0; margin: 0; }
+.form-field fieldset > div { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 4px; }
+.form-field fieldset label { display: inline-flex; align-items: center; gap: 7px; font-weight: 500; margin: 0; }
+.form-field .radio-group, .form-field > div > input[type="radio"] + label { display: inline; }
+.form-field .form-check { display: flex; align-items: center; gap: 9px; }
+.form-field .help-text, .form-field small { display: block; color: var(--color-text-light); font-size: 12.5px; margin-top: 6px; line-height: 1.5; }
+
+/* Le thème sombre des champs — déménagé avec eux, séparé de groupes qui
+   mêlaient champs et tableaux d'administration. */
+html[data-theme="dark"] .form-field label { color: var(--color-text); }
+html[data-theme="dark"] .form-field input,
+html[data-theme="dark"] .form-field textarea,
+html[data-theme="dark"] .form-field select { background: var(--theme-input); color: var(--color-text); border-color: var(--border-color); }
+html[data-theme="dark"] .form-actions { border-color: var(--border-color); }
+
+@media (max-width: 900px) {
+    /* ⚠️ S132 : copiée jadis dans 14 gabarits ; un formulaire qui l'oubliait
+       restait sur deux colonnes sur un téléphone. */
+    .form-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
 /* ---- les deux logos (S166) ----
    🔴 Un logo foncé sur un en-tête sombre est invisible, et personne ne s'en
    aperçoit tant qu'il ne bascule pas. Deux images, une bascule CSS.
