@@ -1641,7 +1641,46 @@ correctif, les trois tiennent. Le fichier a été remis au hash près.
 ⚠️ **Et la sonde choisit exprès une formation au parcours INCOMPLET** — sur une
 formation terminée, l'ancien code passait aussi, et la sonde n'aurait rien
 mesuré.
-| **S183** ⏳ | **La messagerie de cohorte.** ✅ **L'annonce est livrée le 2026-09-06.** 🅿️ **Le fil privé est REPORTÉ, pas oublié** : il demande une table de messages, donc une migration, donc un modèle de conversation qu'on ne pose pas à la va-vite | ✅ Sonde `app:s183:cohort-probe`, qui **n'envoie aucun courrier** |
+| **S183** ✅ | **La messagerie de cohorte.** ✅ L'annonce (2026-09-06) ; ✅ **le fil privé (2026-09-23)** — un fil par (formation, apprenant), lu par le groupe `trainers` | ✅ `app:s183:cohort-probe` et `app:s183:thread-probe` (22 assertions, **aucun courrier**, rien laissé derrière) |
+
+### ✅ S183b — le fil privé, et un modèle tranché par une mesure
+
+🔴 **Mesuré avant d'écrire : toutes les formations portent « Équipe FabLab »
+comme formateur** — un libellé, pas une personne. `Formation::$formateur` est une
+chaîne libre, et rien ne relie une formation à ceux qui l'encadrent. Le seul
+modèle fidèle est une boîte d'ÉQUIPE, et l'équipe qui existe est le groupe
+`trainers` (→ `ROLE_TRAINER`), que l'opérateur gère déjà.
+🅿️ Le jour où une formation nomme ses formateurs, le schéma ne change pas : on
+restreint QUI VOIT les fils, sans déplacer une ligne.
+
+🔴 **Un fil par (formation, apprenant), un seul apprenant par fil.** L'invariant
+« aucun message privé ne bascule implicitement vers la cohorte » devient une
+propriété du SCHÉMA : il n'existe aucun fil à plusieurs apprenants, donc aucune
+requête qui pourrait en élargir un. `UNIQUE(formationId, learnerId)` + `INSERT
+IGNORE` : c'est la base qui tranche quand deux onglets ouvrent le fil.
+
+🔴 **Administrer n'est pas un droit de lecture.** Mesuré : un autre apprenant NE
+lit PAS le fil, un administrateur non formateur NON PLUS — il reçoit
+« Access Denied … ROLE_TRAINER » sur la boîte. D'où une boîte HORS de `/admin`.
+
+✅ **FabOS est la source, l'e-mail une COPIE** — la règle de l'ancienne Phase I.
+Message écrit d'abord, copies ensuite dans un `try` ; une par destinataire, jamais
+de liste ; catégorie `MESSAGE` désabonnable. Le mail dit de répondre DEPUIS
+FabOS : une réponse par retour de courrier n'arriverait nulle part.
+
+✅ **Une seule définition de la cohorte** : `isMember()` est la règle de
+`recipients()`, restreinte à la personne. Et un fil privé est effacé à
+l'anonymisation — pas de clé étrangère, parce qu'un compte n'est jamais
+supprimé : une cascade ne se déclencherait pas.
+
+🔴 **Le contrôle VISUEL a trouvé ce que le balisage ne montrait pas** : le
+formulaire sortait nu sur la page publique, parce que les règles de champ ne
+vivaient que dans `admin.css`. Ma première réponse — un `.public-form` à part —
+était une seconde copie ; **l'opérateur a demandé de DÉPLACER**, et c'était juste.
+Trente règles vont dans `components.css`. Mesuré avant/après : l'admin est
+identique en clair ; en sombre les erreurs deviennent lisibles ; et 🔴 **la page
+profil avait déjà le même défaut** — trois champs en style natif du navigateur,
+corrigés au passage.
 
 ### 🔴 S183 — l'invariant n'était pas à écrire, il était à ne pas casser
 
@@ -1687,7 +1726,12 @@ fois ça s'est bien passé, la signature prouve qu'aucun chemin n'existe pour qu
 | **S182** ✅ | `php bin/console app:s182:retake-probe` | Verte. 🔴 Le défaut n'était pas la reprise d'un quiz — c'était **ajouter un quiz obligatoire**, qui « dé-diplômait » tous ceux qui avaient fini et effaçait leur date de fin. Vérifié dans les deux sens |
 | **S183** ✅ | `/admin/formations/2/annonce` (bouton « Écrire à la cohorte ») | La page dit **combien** de personnes elle touche — et n'affiche **aucune adresse**. Deux champs, objet et message ; pas de destinataires à cocher |
 | **S183** ✅ | `php bin/console app:s183:cohort-probe` | Verte, et **elle n'envoie aucun courrier** : le mailer de la boîte est actif, une sonde qui écrit à de vrais membres pour se prouver quelque chose ne se lance pas toute seule |
-| **S183** 🅿️ | — | Le **fil privé** est reporté : il demande une migration. L'invariant qui compte est écrit dans le plan — aucun message privé ne bascule implicitement vers la cohorte |
+| **S183** ✅ | une formation que tu SUIS, page « Suivi » | Un 3ᵉ onglet **« Messages »**. ⚠️ Absent pour qui n'a pas commencé la formation |
+| **S183** ✅ | y écrire un message | Il apparaît dans le fil ; les formateurs reçoivent une copie par e-mail, **chacun la sienne** |
+| **S183** ✅ | menu *Apprendre*, connecté en **formateur** | « Messages des apprenants » : la boîte de l'équipe, les non-lus sont les tiens. ⚠️ Invisible pour un admin non formateur |
+| **S183** ✅ | répondre depuis la boîte | La réponse part à CET apprenant seul. Son onglet affiche un compteur |
+| **S183** ✅ | `/profil`, les champs « adresse publique » et « bio » | Ils ont le style du site. Avant : style natif du navigateur, 13 px, bordure grise |
+| **S183** ✅ | `php bin/console app:s183:thread-probe` | 22 assertions, **aucun courrier**, comptes et fils rendus à leur compte de départ |
 
 ## La passe de fond de cette phase
 
