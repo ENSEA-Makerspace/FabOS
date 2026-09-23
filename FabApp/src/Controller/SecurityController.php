@@ -115,6 +115,11 @@ final class SecurityController extends AbstractController
                 $this->addFlash('error', 'reset.mismatch');
             } else {
                 $user->setPassword($hasher->hashPassword($user, $password));
+                // S189 — le lien est arrivé dans cette boîte : l'adresse est
+                // prouvée. Sans ça, un compte ouvert sur l'adresse d'autrui et
+                // jamais activé bloquerait sa vraie propriétaire, qui n'aurait
+                // aucun moyen de le reprendre.
+                $user->setIsVerified(true);
                 $entityManager->flush();
 
                 // The token committed to the OLD hash, so it — and every other

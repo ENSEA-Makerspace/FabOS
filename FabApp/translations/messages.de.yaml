@@ -190,6 +190,18 @@ login:
     email_placeholder: "vorname.nachname@beispiel.de"
 
 register:
+    err_expired: "Die Registrierungsanfrage ist abgelaufen. Laden Sie die Seite neu und versuchen Sie es erneut."
+    err_first_name: "Der Vorname ist erforderlich."
+    err_last_name: "Der Nachname ist erforderlich."
+    err_email: "Die E-Mail-Adresse ist ungültig."
+    err_password_short: "Das Passwort muss mindestens 8 Zeichen lang sein."
+    err_password_mismatch: "Die beiden Passwörter stimmen nicht überein."
+    err_terms: "Sie müssen die Nutzungsbedingungen akzeptieren."
+    err_taken: "Mit dieser E-Mail-Adresse existiert bereits ein Konto."
+    next_label: "Schritte der Registrierung"
+    next_1: "Sie füllen dieses Formular aus."
+    next_2: "Sie erhalten eine E-Mail: Ihr Link bestätigt Ihre Adresse."
+    next_3: "Sie melden sich an, und das Lab heißt Sie willkommen."
     accept_terms: "Ich akzeptiere die %terms% und die %privacy%"
     badge: "Registrierung"
     title: "Konto erstellen"
@@ -387,6 +399,8 @@ mail_editor:
     preview_part_note: "Die Vorschau zeigt ihn an einer Beispiel-Mail — nur dort sieht man, ob der Text in eine Zeile passt."
     tpl:
         formation_message: "Schulungsnachrichten"
+        account_verify: "Adresse bestätigen (Registrierung)"
+        account_exists: "Bestehendes Konto (Registrierung)"
         event_announced: "Veranstaltungsankündigung"
         _header: "Kopfzeile aller E-Mails"
         _footer: "Fußzeile aller E-Mails"
@@ -1331,6 +1345,19 @@ booking:
         "6": "Samstag"
         "7": "Sonntag"
 mail:
+    account_verify:
+        subject: "Bestätigen Sie Ihre Adresse"
+        title: "Nur noch ein Schritt"
+        intro: "Um Ihr Konto zu eröffnen, bestätigen Sie, dass diese Adresse Ihnen gehört."
+        button: "Meine Adresse bestätigen"
+        ignore: "Wenn Sie kein Konto angefordert haben, ignorieren Sie diese Nachricht: Es wird nichts in Ihrem Namen eröffnet."
+    account_exists:
+        subject: "Sie haben bereits ein Konto"
+        title: "Sie haben bereits ein Konto"
+        intro: "Jemand – vermutlich Sie – wollte mit dieser Adresse ein Konto anlegen. Sie hat bereits eines: Melden Sie sich damit an."
+        login: "Anmelden"
+        forgot: "Passwort vergessen oder Registrierung nie abgeschlossen? Hier übernehmen Sie wieder:"
+        ignore: "Wenn Sie das nicht waren, ignorieren Sie diese Nachricht: An Ihrem Konto hat sich nichts geändert."
     thread:
         subject: "Neue Nachricht — %formation%"
         intro: "%author% hat zur Schulung „%formation%“ geschrieben:"
@@ -4099,6 +4126,7 @@ groups:
     no_bundles: "Diese Gruppe gewährt kein Nutzungspaket."
 
 security:
+    email_unconfirmed: "Bestätigen Sie zuerst Ihre E-Mail-Adresse: Klicken Sie auf den Link, den wir Ihnen gesendet haben."
     account_unavailable: "Anmeldung mit diesen Zugangsdaten nicht möglich."
 
 # La médiathèque d’identité (S165).
@@ -4133,3 +4161,29 @@ thread:
     not_installed: "Die Nachrichtenfunktion ist auf dieser Website noch nicht installiert."
     team_intro: "Ihre Antwort geht an diese(n) Lernende(n) und nur an sie/ihn."
     team_empty: "Keine Nachrichten."
+
+
+# S189 — « vérifiez votre boîte », renvoi, correction, activation.
+register_check:
+    title: "Prüfen Sie Ihr Postfach"
+    sent_to: "Wir haben geschrieben an"
+    step_open: "Öffnen Sie die E-Mail von FabOS (auch im Spam-Ordner nachsehen)."
+    step_click: "Klicken Sie auf den Link: Er gilt zwei Tage."
+    step_login: "Melden Sie sich mit dem gerade gewählten Passwort an."
+    nothing_heading: "Nichts erhalten?"
+    nothing_help: "Eine E-Mail kann einige Minuten brauchen."
+    resend: "E-Mail erneut senden"
+    resend_after: "Erneutes Senden in %seconds% s möglich."
+    wait: "Bitte warten Sie noch %seconds% s vor einem erneuten Versand."
+    resent: "Erneut gesendet. Sehen Sie auch im Spam-Ordner nach."
+    wrong_heading: "Adresse vertippt?"
+    correct_label: "Die richtige Adresse"
+    correct_submit: "Korrigieren und erneut senden"
+    corrected: "Adresse korrigiert: Die E-Mail geht an die neue Adresse, der alte Link funktioniert nicht mehr."
+    too_many: "Zu viele Korrekturen für diese Registrierung. Beginnen Sie neu oder fragen Sie das Team von %venue%."
+    activated: "Adresse bestätigt. Sie müssen sich nur noch anmelden."
+    get_new_link: "Neuen Link erhalten"
+    failed_title: "Dieser Link ist nicht mehr gültig"
+    failed_intro: "Er ist vielleicht abgelaufen, wurde schon benutzt oder durch eine neuere E-Mail ersetzt."
+    failed_done: "Wenn Sie Ihre Adresse schon bestätigt haben, melden Sie sich einfach an."
+    failed_new: "Andernfalls melden Sie sich trotzdem an: Ihnen wird ein neuer Link angeboten."

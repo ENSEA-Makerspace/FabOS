@@ -1993,3 +1993,38 @@ html[data-theme="dark"] .profile-banner.has-custom-banner .profile-cover-image {
     .auth-subtitle { font-size: var(--font-size-sm); }
     .auth-icon svg { width: 50px; height: 50px; }
 }
+
+/* ===================================================================
+   S189 — l'entrée : étapes annoncées, « vérifiez votre boîte »
+   Des jetons seulement : ces écrans sont vus par des visiteurs, dans
+   les deux thèmes, avant d'avoir un compte pour se plaindre.
+   =================================================================== */
+.auth-steps {
+    margin: var(--spacing-md, 16px) 0;
+    padding-left: 1.4em;
+    color: var(--color-text);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    text-align: left;
+}
+
+.auth-steps li + li { margin-top: 4px; }
+.auth-steps--plain { list-style: disc; }
+
+.auth-address { overflow-wrap: anywhere; color: var(--color-text); }
+
+.auth-subheading {
+    text-align: left;
+    margin: 24px 0 6px;
+    font-size: 1rem;
+    color: var(--color-text);
+}
+
+.auth-help {
+    margin: 0 0 10px;
+    color: var(--color-text-light);
+    font-size: 0.88rem;
+    line-height: 1.5;
+}
+
+.auth-alert a { color: inherit; font-weight: 700; text-decoration: underline; }

@@ -49,6 +49,7 @@ use App\Entity\Formation;
 use App\Entity\Machine;
 use App\Entity\Utilisateur;
 use App\Repository\UtilisateurRepository;
+use App\Security\AccountActivation;
 use App\Service\BookingIdentityPolicy;
 use App\Service\FormationPageContentService;
 use App\Service\GuidedTrainingService;
@@ -2156,6 +2157,7 @@ final class SiteController extends AbstractController
         EntityManagerInterface $entityManager,
         UserPasswordHasherInterface $passwordHasher,
         UtilisateurRepository $users,
+        AccountActivation $activation,
     ): Response
     {
         if ($this->getUser() instanceof Utilisateur) {
@@ -2180,65 +2182,89 @@ final class SiteController extends AbstractController
             $password = (string) $request->request->get('password', '');
             $confirmPassword = (string) $request->request->get('confirmPassword', '');
 
+            // S189 — des clés, plus des phrases françaises en dur dans une
+            // interface en cinq langues.
             if (!$this->isCsrfTokenValid('register', (string) $request->request->get('_token'))) {
-                $errors[] = 'La demande d’inscription a expiré. Rechargez la page puis réessayez.';
+                $errors[] = 'register.err_expired';
             }
-
             if ($formData['firstName'] === '') {
-                $errors[] = 'Le prénom est obligatoire.';
+                $errors[] = 'register.err_first_name';
             }
             if ($formData['lastName'] === '') {
-                $errors[] = 'Le nom est obligatoire.';
+                $errors[] = 'register.err_last_name';
             }
             if ($formData['email'] === '' || filter_var($formData['email'], FILTER_VALIDATE_EMAIL) === false) {
-                $errors[] = 'L’adresse email est invalide.';
-            } elseif ($users->findOneBy(['email' => $formData['email']]) instanceof Utilisateur) {
-                $errors[] = 'Un compte existe déjà avec cette adresse email.';
+                $errors[] = 'register.err_email';
             }
             if (mb_strlen($password) < 8) {
-                $errors[] = 'Le mot de passe doit contenir au moins 8 caractères.';
+                $errors[] = 'register.err_password_short';
             }
             if ($password !== $confirmPassword) {
-                $errors[] = 'Les deux mots de passe ne correspondent pas.';
+                $errors[] = 'register.err_password_mismatch';
             }
             if (!$formData['terms']) {
-                $errors[] = 'Vous devez accepter les conditions d’utilisation.';
+                $errors[] = 'register.err_terms';
             }
 
+            $existing = $errors === [] ? $users->findOneBy(['email' => $formData['email']]) : null;
+
+            // ⚠️ Sans courrier opérationnel, pas d'activation possible : l'ancien
+            // comportement reste, refus compris — c'est le seul cas où l'on dit
+            // encore qu'une adresse est prise, et il n'a pas d'autre issue.
+            if ($errors === [] && !$activation->isRequired()) {
+                if ($existing instanceof Utilisateur) {
+                    $errors[] = 'register.err_taken';
+                } else {
+                    $user = $this->newMember($formData, $users)->setIsVerified(true);
+                    $user->setPassword($passwordHasher->hashPassword($user, $password));
+                    $entityManager->persist($user);
+                    $entityManager->flush();
+                    $this->addFlash('success', 'flash.votre_compte_a_ete_cree_vous');
+
+                    return $this->redirectToRoute('app_login');
+                }
+            }
+
+            // 🔴 **S189 — la même réponse, que l'adresse soit libre ou prise.**
+            // Un courrier part dans les deux cas, un hachage est calculé dans les
+            // deux cas, et la redirection est la même : seule la boîte mail sait.
             if ($errors === []) {
-                $user = (new Utilisateur())
-                    ->setFirstName($formData['firstName'])
-                    ->setLastName($formData['lastName'])
-                    ->setEmail($formData['email'])
-                    ->setUsername($this->generateUniqueUsername($formData['email'], $users))
-                    ->setPassword('')
-                    ->setStatut('actif')
-                    ->setIsVerified(true);
+                $created = null;
+                if ($existing instanceof Utilisateur) {
+                    $passwordHasher->hashPassword(new Utilisateur(), $password);
+                    $activation->sendAlreadyRegistered($existing);
+                } else {
+                    $created = $this->newMember($formData, $users)->setIsVerified(false);
+                    $created->setPassword($passwordHasher->hashPassword($created, $password));
+                    // S159f : pas de ligne de rôle — `getRoles()` commence par
+                    // ROLE_USER, tout compte l'a sans rangée à écrire.
+                    $entityManager->persist($created);
+                    $entityManager->flush();
+                    $activation->sendLink($created);
+                }
+                $activation->remember($request->getSession(), $formData['email'], $created);
 
-                $user->setPassword($passwordHasher->hashPassword($user, $password));
-
-                // 🔴 **S159f — l'inscription n'écrit plus de ligne de rôle, parce
-                // qu'elle était REDONDANTE avant même la fusion.**
-                // `Utilisateur::getRoles()` commence par `['ROLE_USER']` : tout
-                // compte l'a, ligne ou pas. On écrivait donc une rangée dans
-                // `UTILISATEUR_ROLE` pour dire ce que le code disait déjà — et
-                // qu'un compte sans cette ligne aurait eu quand même.
-                // ⚠️ C'est aussi la traduction exacte de l'audience `user` :
-                // « tout compte actif », sans ligne d'appartenance à créer, à
-                // retirer, ou à oublier au provisioning.
-                $entityManager->persist($user);
-                $entityManager->flush();
-
-                $this->addFlash('success', 'flash.votre_compte_a_ete_cree_vous');
-
-                return $this->redirectToRoute('app_login');
+                return $this->redirectToRoute('app_register_check', [], Response::HTTP_SEE_OTHER);
             }
         }
 
         return $this->render('site/register.html.twig', [
             'errors' => $errors,
             'formData' => $formData,
+            'activationRequired' => $activation->isRequired(),
         ]);
+    }
+
+    /** @param array{firstName: string, lastName: string, email: string, terms: bool} $formData */
+    private function newMember(array $formData, UtilisateurRepository $users): Utilisateur
+    {
+        return (new Utilisateur())
+            ->setFirstName($formData['firstName'])
+            ->setLastName($formData['lastName'])
+            ->setEmail($formData['email'])
+            ->setUsername($this->generateUniqueUsername($formData['email'], $users))
+            ->setPassword('')
+            ->setStatut('actif');
     }
 
     #[Route('/forgot-password', name: 'app_forgot_password', methods: ['GET'])]

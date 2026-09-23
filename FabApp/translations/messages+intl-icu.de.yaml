@@ -151,6 +151,8 @@ machine_taxonomy:
     panel_note: "{count, plural, one {# Eintrag} other {# Einträge}}"
 
 mail:
+    account_verify:
+        expiry: "Dieser Link gilt {hours, plural, one {# Stunde} other {# Stunden}}."
     password_reset:
         expiry: "Dieser Link gilt {hours, plural, one {# Stunde} other {# Stunden}} und funktioniert nur einmal."
     reminder:

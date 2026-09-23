@@ -190,6 +190,18 @@ login:
     email_placeholder: "nome.cognome@esempio.it"
 
 register:
+    err_expired: "La richiesta di registrazione è scaduta. Ricarica la pagina e riprova."
+    err_first_name: "Il nome è obbligatorio."
+    err_last_name: "Il cognome è obbligatorio."
+    err_email: "L’indirizzo e-mail non è valido."
+    err_password_short: "La password deve contenere almeno 8 caratteri."
+    err_password_mismatch: "Le due password non coincidono."
+    err_terms: "Devi accettare le condizioni d’uso."
+    err_taken: "Esiste già un account con questo indirizzo e-mail."
+    next_label: "I passaggi della registrazione"
+    next_1: "Compili questo modulo."
+    next_2: "Ricevi un’e-mail: il suo link conferma il tuo indirizzo."
+    next_3: "Accedi, e il laboratorio ti accoglie."
     accept_terms: "Accetto le %terms% e la %privacy%"
     badge: "Registrazione"
     title: "Crea un account"
@@ -387,6 +399,8 @@ mail_editor:
     preview_part_note: "L’anteprima lo mostra su una mail di esempio: è l’unico posto dove si vede se il testo sta su una riga."
     tpl:
         formation_message: "Messaggi di formazione"
+        account_verify: "Conferma di un indirizzo (registrazione)"
+        account_exists: "Account già esistente (registrazione)"
         event_announced: "Annuncio di un evento"
         _header: "Intestazione comune a tutte le e-mail"
         _footer: "Piè di pagina comune a tutte le e-mail"
@@ -1331,6 +1345,19 @@ booking:
         "6": "Sabato"
         "7": "Domenica"
 mail:
+    account_verify:
+        subject: "Conferma il tuo indirizzo"
+        title: "Manca un passaggio"
+        intro: "Per aprire il tuo account, conferma che questo indirizzo è tuo."
+        button: "Conferma il mio indirizzo"
+        ignore: "Se non hai chiesto un account, ignora questo messaggio: non verrà aperto nulla a tuo nome."
+    account_exists:
+        subject: "Hai già un account"
+        title: "Hai già un account"
+        intro: "Qualcuno — probabilmente tu — ha voluto creare un account con questo indirizzo. Ne ha già uno: accedi con quello."
+        login: "Accedi"
+        forgot: "Password dimenticata, o registrazione mai conclusa? Riprendila qui:"
+        ignore: "Se non eri tu, ignora questo messaggio: nulla è cambiato nel tuo account."
     thread:
         subject: "Nuovo messaggio — %formation%"
         intro: "%author% ha scritto sulla formazione «%formation%»:"
@@ -4099,6 +4126,7 @@ groups:
     no_bundles: "Questo gruppo non concede alcun forfait."
 
 security:
+    email_unconfirmed: "Conferma prima il tuo indirizzo e-mail: clicca sul link che ti abbiamo inviato."
     account_unavailable: "Impossibile accedere con queste credenziali."
 
 # La médiathèque d’identité (S165).
@@ -4133,3 +4161,29 @@ thread:
     not_installed: "La messaggistica non è ancora installata su questo sito."
     team_intro: "La tua risposta va a questo allievo, e solo a lui."
     team_empty: "Nessun messaggio."
+
+
+# S189 — « vérifiez votre boîte », renvoi, correction, activation.
+register_check:
+    title: "Controlla la tua casella"
+    sent_to: "Abbiamo scritto a"
+    step_open: "Apri l’e-mail inviata da FabOS (guarda anche nello spam)."
+    step_click: "Clicca sul link: vale due giorni."
+    step_login: "Accedi con la password che hai appena scelto."
+    nothing_heading: "Non hai ricevuto nulla?"
+    nothing_help: "Un’e-mail può impiegare qualche minuto ad arrivare."
+    resend: "Invia di nuovo l’e-mail"
+    resend_after: "Potrai inviarla di nuovo tra %seconds% s."
+    wait: "Attendi ancora %seconds% s prima di un nuovo invio."
+    resent: "Inviata di nuovo. Guarda anche nello spam."
+    wrong_heading: "Indirizzo sbagliato?"
+    correct_label: "L’indirizzo giusto"
+    correct_submit: "Correggi e invia di nuovo"
+    corrected: "Indirizzo corretto: l’e-mail va al nuovo indirizzo, il vecchio link non funziona più."
+    too_many: "Troppe correzioni per questa registrazione. Ricomincia, o chiedi al team di %venue%."
+    activated: "Indirizzo confermato. Non resta che accedere."
+    get_new_link: "Ricevi un nuovo link"
+    failed_title: "Questo link non è più valido"
+    failed_intro: "Potrebbe essere scaduto, già usato o sostituito da un’e-mail più recente."
+    failed_done: "Se hai già confermato il tuo indirizzo, accedi e basta."
+    failed_new: "Altrimenti accedi comunque: ti verrà proposto un nuovo link."

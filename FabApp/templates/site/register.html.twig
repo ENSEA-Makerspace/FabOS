@@ -22,6 +22,15 @@
                         <div class="register-header">
                             <h1 class="register-title">{{ 'register.title'|trans }}</h1>
                             <p class="register-subtitle">{{ 'register.subtitle'|trans }}</p>
+                            {# S189 — l'inscription annonce ce qui vient après, pour qu'un
+                               courrier à ouvrir ne soit pas une surprise. #}
+                            {% if activationRequired|default(false) %}
+                                <ol class="auth-steps" aria-label="{{ 'register.next_label'|trans }}">
+                                    <li>{{ 'register.next_1'|trans }}</li>
+                                    <li>{{ 'register.next_2'|trans }}</li>
+                                    <li>{{ 'register.next_3'|trans }}</li>
+                                </ol>
+                            {% endif %}
                         </div>
 
                         <div class="register-illustration">
@@ -44,7 +53,7 @@
                                     <strong>{{ 'register.error_title'|trans }}</strong>
                                     <ul>
                                         {% for error in errors %}
-                                            <li>{{ error }}</li>
+                                            <li>{{ error|trans }}</li>
                                         {% endfor %}
                                     </ul>
                                 </div>

@@ -3,6 +3,7 @@
 namespace App\Security;
 
 use App\Entity\Utilisateur;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAccountStatusException;
 use Symfony\Component\Security\Core\User\UserCheckerInterface;
@@ -36,6 +37,10 @@ use Symfony\Component\Security\Core\User\UserInterface;
  */
 final class ActiveAccountChecker implements UserCheckerInterface
 {
+    public function __construct(private readonly RequestStack $requests)
+    {
+    }
+
     public function checkPreAuth(UserInterface $user): void
     {
         if (!$user instanceof Utilisateur) {
@@ -63,5 +68,24 @@ final class ActiveAccountChecker implements UserCheckerInterface
      */
     public function checkPostAuth(UserInterface $user, ?TokenInterface $token = null): void
     {
+        if (!$user instanceof Utilisateur || $user->isVerified()) {
+            return;
+        }
+
+        // 🔴 **S189 — une adresse non confirmée ne se connecte pas.** Ici, APRÈS
+        // le mot de passe et pas avant : seule la personne qui le connaît
+        // apprend que son adresse attend une confirmation, donc ce refus ne
+        // renseigne personne d'autre sur l'existence du compte.
+        // ✅ Et ce n'est pas une impasse : la session est armée pour que
+        // « recevoir un nouveau lien » marche tout de suite, depuis n'importe quel
+        // appareil — y compris celui où le premier lien n'est jamais arrivé.
+        $session = $this->requests->getCurrentRequest()?->hasSession() ? $this->requests->getCurrentRequest()->getSession() : null;
+        if ($session !== null) {
+            $session->set(AccountActivation::SESSION_EMAIL, $user->getEmail());
+            $session->set(AccountActivation::SESSION_USER, $user->getId());
+            $session->set(AccountActivation::SESSION_SENT_AT, 0);
+        }
+
+        throw new CustomUserMessageAccountStatusException('security.email_unconfirmed');
     }
 }

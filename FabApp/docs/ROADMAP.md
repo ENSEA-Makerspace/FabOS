@@ -1915,10 +1915,64 @@ parcours d'adhésion.
 
 | Session | Livre | Ce qu'on mesure |
 |---|---|---|
-| **S189** | **L'entrée** : inscription courte qui annonce ses prochaines étapes, activation par e-mail avec renvoi et correction d'adresse — **sans impasse**. 🔴 **Et c'est là que `/register` cesse d'être un oracle d'appartenance** : la réponse devient la même que l'adresse existe ou non, ce qui n'est possible QUE parce que l'activation par e-mail arrive dans la même session | Une adresse mal tapée se corrige sans recréer un compte. 🔴 Et une sonde : deux adresses, l'une connue l'autre non, **réponses identiques** — la même mesure que S191 |
+| **S189** ✅ 2026-09-23 | **L'entrée** : inscription courte qui annonce ses prochaines étapes, activation par e-mail avec renvoi et correction d'adresse — **sans impasse**. 🔴 **Et c'est là que `/register` cesse d'être un oracle d'appartenance** : la réponse devient la même que l'adresse existe ou non, ce qui n'est possible QUE parce que l'activation par e-mail arrive dans la même session | Une adresse mal tapée se corrige sans recréer un compte. 🔴 Et une sonde : deux adresses, l'une connue l'autre non, **réponses identiques** — la même mesure que S191 |
 | **S190** | **L'adhésion** : ne demander que ce qui est nécessaire, au moment où ça l'est. Et la **validation par l'équipe**, progressive et justifiable | Un compte en attente sait ce qui lui manque, et qui l'a validé |
 | **S191** | **Sécurité du profil** : sessions visibles et révocables, MFA. ⚠️ Et une **récupération de compte NON DIVULGUANTE** — la réponse est la même que l'adresse existe ou non | 🔴 Prouvé par une sonde : deux adresses, l'une connue l'autre non, réponses identiques |
 | **S192** | **Les droits EXPLIQUÉS** côté admin — par rôle, lieu, formation et durée — et « mon badge » sans identifiant sensible | Un admin répond à « pourquoi cette personne a-t-elle ce droit ? » **depuis l'écran** |
+
+### ✅ S189 — l'entrée : une adresse prouvée, et plus d'oracle d'appartenance
+
+✅ **À l'inscription, le compte naît NON confirmé** et un lien part par e-mail
+(jeton signé sans table, `AccountVerificationTokenizer`, 48 h). La connexion
+est refusée tant que l'adresse n'est pas confirmée — **après** le mot de passe,
+donc seule la personne qui le connaît l'apprend — avec « Recevoir un nouveau
+lien » dans le message. Les 9 comptes existants étaient tous vérifiés : personne
+n'est mis dehors.
+
+🔴 **`/register` n'est plus un oracle.** Adresse libre ou déjà membre : même
+redirection, même page « Vérifiez votre boîte », un courrier dans les deux cas
+— le lien d'activation, ou « vous avez déjà un compte » envoyé à la
+propriétaire, et à elle seule. Un hachage est calculé dans les deux branches.
+La page ne reçoit que l'adresse tapée : son gabarit ne PEUT pas trahir le cas.
+
+✅ **Sans impasse** : renvoyer (une fois par minute), **corriger une adresse mal
+tapée sans recréer de compte** (le lien parti vers la faute meurt à l'instant),
+lien périmé → une page qui donne la sortie de chaque cas. Et **réinitialiser son
+mot de passe confirme l'adresse** : sinon un compte ouvert sur l'adresse
+d'autrui, jamais activé, bloquerait sa vraie propriétaire.
+⚠️ **Sans courrier opérationnel, l'ancien comportement reste** (compte ouvert
+tout de suite, refus « adresse prise ») : un lien qui ne part pas fermerait
+l'inscription. C'est le seul cas où l'oracle subsiste, et il n'a pas d'autre
+issue.
+🔴 **Un lien de réinitialisation ne vaut pas activation** : la clé de signature
+est dérivée par usage — vérifié par la sonde.
+
+🔴 **Trouvé en passant, et corrigé** : la page de connexion cherchait nos
+propres refus (`security.*`) dans le domaine `security` de Symfony, où ils
+n'existent pas (`debug:translation` le confirme). **Un compte désactivé voyait
+la clé brute `security.account_unavailable`.** Les erreurs de l'inscription
+étaient aussi des phrases françaises en dur ; ce sont des clés, en cinq langues.
+
+✅ **Sonde `app:s189:register-probe`**, comme un navigateur, dans une transaction
+annulée : membre contre adresse libre → **même statut, même redirection, page
+identique octet pour octet** ; le membre reçoit `account_exists` et son mot de
+passe n'est pas touché ; connexion refusée avec le bon message TRADUIT, mauvais
+mot de passe muet sur la confirmation ; liens forgé / expiré / de
+réinitialisation / rejoué → 410 ; correction sans compte de plus ; connexion
+après activation. `UTILISATEUR`, `EMAIL_LOG`, `messenger_messages` comptés avant
+et après : identiques, **aucun courrier parti**.
+
+## Ce que l'opérateur vérifie — Phase S
+
+| Session | Où | Ce qui doit être vrai |
+|---|---|---|
+| **S189** ✅ | `/register` | Trois étapes annoncées sous le titre : formulaire, e-mail, connexion |
+| **S189** ✅ | s'inscrire avec une adresse à TOI, pas encore membre | « Vérifiez votre boîte », ton adresse affichée ; l'e-mail « Confirmez votre adresse » arrive ; son lien ramène à la connexion, adresse pré-remplie |
+| **S189** ✅ | avant de cliquer le lien, se connecter | Refus : « Confirmez d'abord votre adresse… » + « Recevoir un nouveau lien » |
+| **S189** ✅ | s'inscrire avec l'adresse d'un compte EXISTANT (le tien) | **Exactement le même écran** ; dans la boîte, « Vous avez déjà un compte » ; ton mot de passe n'a pas changé |
+| **S189** ✅ | sur « Vérifiez votre boîte », corriger l'adresse | Le lien arrive à la nouvelle ; celui de l'ancienne ne marche plus |
+| **S189** ✅ | ouvrir un lien d'activation une 2ᵉ fois | « Ce lien n'est plus valable », avec quoi faire |
+| **S189** ✅ | `php bin/console app:s189:register-probe` | Verte, aucun courrier envoyé |
 
 ## La passe de fond
 

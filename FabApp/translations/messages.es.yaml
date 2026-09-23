@@ -190,6 +190,18 @@ login:
     email_placeholder: "nombre.apellido@ejemplo.es"
 
 register:
+    err_expired: "La solicitud de registro ha caducado. Recargue la página e inténtelo de nuevo."
+    err_first_name: "El nombre es obligatorio."
+    err_last_name: "El apellido es obligatorio."
+    err_email: "La dirección de correo no es válida."
+    err_password_short: "La contraseña debe tener al menos 8 caracteres."
+    err_password_mismatch: "Las dos contraseñas no coinciden."
+    err_terms: "Debe aceptar las condiciones de uso."
+    err_taken: "Ya existe una cuenta con esta dirección de correo."
+    next_label: "Pasos del registro"
+    next_1: "Rellena este formulario."
+    next_2: "Recibe un correo: su enlace confirma su dirección."
+    next_3: "Inicia sesión y el laboratorio le da la bienvenida."
     accept_terms: "Acepto las %terms% y la %privacy%"
     badge: "Registro"
     title: "Crear una cuenta"
@@ -387,6 +399,8 @@ mail_editor:
     preview_part_note: "La vista previa lo muestra en un correo de ejemplo: es el único sitio donde se ve si el texto cabe en una línea."
     tpl:
         formation_message: "Mensajes de formación"
+        account_verify: "Confirmar una dirección (registro)"
+        account_exists: "Cuenta existente (registro)"
         event_announced: "Anuncio de un evento"
         _header: "Encabezado común a todos los correos"
         _footer: "Pie común a todos los correos"
@@ -1331,6 +1345,19 @@ booking:
         "6": "Sábado"
         "7": "Domingo"
 mail:
+    account_verify:
+        subject: "Confirme su dirección"
+        title: "Solo un paso más"
+        intro: "Para abrir su cuenta, confirme que esta dirección es suya."
+        button: "Confirmar mi dirección"
+        ignore: "Si no ha solicitado una cuenta, ignore este mensaje: no se abrirá nada a su nombre."
+    account_exists:
+        subject: "Ya tiene una cuenta"
+        title: "Ya tiene una cuenta"
+        intro: "Alguien —probablemente usted— quiso crear una cuenta con esta dirección. Ya tiene una: inicie sesión con ella."
+        login: "Iniciar sesión"
+        forgot: "¿Olvidó su contraseña o nunca terminó el registro? Recupérela aquí:"
+        ignore: "Si no fue usted, ignore este mensaje: nada ha cambiado en su cuenta."
     thread:
         subject: "Nuevo mensaje — %formation%"
         intro: "%author% escribió sobre la formación «%formation%»:"
@@ -4099,6 +4126,7 @@ groups:
     no_bundles: "Este grupo no concede ningún plan."
 
 security:
+    email_unconfirmed: "Confirme primero su dirección de correo: haga clic en el enlace que le enviamos."
     account_unavailable: "No se puede iniciar sesión con estas credenciales."
 
 # La médiathèque d’identité (S165).
@@ -4133,3 +4161,29 @@ thread:
     not_installed: "La mensajería aún no está instalada en este sitio."
     team_intro: "Su respuesta va a este alumno, y solo a él."
     team_empty: "No hay mensajes."
+
+
+# S189 — « vérifiez votre boîte », renvoi, correction, activation.
+register_check:
+    title: "Revise su correo"
+    sent_to: "Hemos escrito a"
+    step_open: "Abra el correo enviado por FabOS (mire también en el spam)."
+    step_click: "Haga clic en su enlace: es válido dos días."
+    step_login: "Inicie sesión con la contraseña que acaba de elegir."
+    nothing_heading: "¿No ha recibido nada?"
+    nothing_help: "Un correo puede tardar unos minutos en llegar."
+    resend: "Reenviar el correo"
+    resend_after: "Podrá reenviarlo dentro de %seconds% s."
+    wait: "Espere %seconds% s antes de un nuevo envío."
+    resent: "Reenviado. Mire también en el spam."
+    wrong_heading: "¿Dirección mal escrita?"
+    correct_label: "La dirección correcta"
+    correct_submit: "Corregir y reenviar"
+    corrected: "Dirección corregida: el correo va a la nueva dirección, el enlace anterior ya no funciona."
+    too_many: "Demasiadas correcciones para este registro. Vuelva a empezar o pregunte al equipo de %venue%."
+    activated: "Dirección confirmada. Solo falta iniciar sesión."
+    get_new_link: "Recibir un enlace nuevo"
+    failed_title: "Este enlace ya no es válido"
+    failed_intro: "Puede haber caducado, haberse usado ya o haber sido sustituido por un correo más reciente."
+    failed_done: "Si ya confirmó su dirección, simplemente inicie sesión."
+    failed_new: "Si no, inicie sesión igualmente: se le ofrecerá un enlace nuevo."

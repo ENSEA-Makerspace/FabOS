@@ -1,0 +1,33 @@
+{% extends 'site/base_public.html.twig' %}
+
+{% block title %}{{ 'register_check.failed_title'|trans }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+    {# S189 — faux, expiré, déjà utilisé, ou envoyé avant une correction d'adresse :
+       une seule page, qui donne la sortie de CHAQUE cas. Se connecter marche si
+       l'adresse est confirmée ; sinon la connexion propose un nouveau lien. #}
+    <main id="main-content" tabindex="-1" class="main-content">
+        <section class="auth-section">
+            <div class="auth-container">
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <h1 class="auth-title">{{ 'register_check.failed_title'|trans }}</h1>
+                        <p class="auth-subtitle">{{ 'register_check.failed_intro'|trans }}</p>
+                    </div>
+                    <ul class="auth-steps auth-steps--plain">
+                        <li>{{ 'register_check.failed_done'|trans }}</li>
+                        <li>{{ 'register_check.failed_new'|trans }}</li>
+                    </ul>
+                    <a class="btn btn-primary" href="{{ path('app_login') }}">{{ 'login.submit'|trans }}</a>
+                    <div class="auth-links">
+                        <p>{{ 'login.no_account'|trans }} <a href="{{ path('app_register') }}">{{ 'register.title'|trans }}</a></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}

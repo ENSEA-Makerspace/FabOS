@@ -26,6 +26,12 @@ services:
         arguments:
             $secret: '%kernel.secret%'
 
+    # S189 — même clé racine ; le jeton en DÉRIVE une propre à l'activation, donc
+    # un lien de réinitialisation ne vaut jamais activation.
+    App\Security\AccountVerificationTokenizer:
+        arguments:
+            $secret: '%kernel.secret%'
+
     # Every translated string gets the installation's own words for %org% and
     # %venue%, so no call site has to remember to pass them. Decoration rather
     # than an event listener because the translator is used well outside the

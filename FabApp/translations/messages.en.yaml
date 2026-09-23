@@ -190,6 +190,18 @@ login:
     email_placeholder: "first.last@example.com"
 
 register:
+    err_expired: "The sign-up request expired. Reload the page and try again."
+    err_first_name: "First name is required."
+    err_last_name: "Last name is required."
+    err_email: "The e-mail address is not valid."
+    err_password_short: "The password must be at least 8 characters long."
+    err_password_mismatch: "The two passwords do not match."
+    err_terms: "You must accept the terms of use."
+    err_taken: "An account already exists with this e-mail address."
+    next_label: "Sign-up steps"
+    next_1: "You fill in this form."
+    next_2: "You receive an e-mail: its link confirms your address."
+    next_3: "You sign in, and the lab welcomes you."
     accept_terms: "I accept the %terms% and the %privacy%"
     badge: "Sign up"
     title: "Create an account"
@@ -387,6 +399,8 @@ mail_editor:
     preview_part_note: "The preview shows it on a sample mail — the only place you can see whether the text fits on one line."
     tpl:
         formation_message: "Training messages"
+        account_verify: "Confirm an address (sign-up)"
+        account_exists: "Existing account (sign-up)"
         event_announced: "Event announcement"
         _header: "Header shared by every mail"
         _footer: "Footer shared by every mail"
@@ -1331,6 +1345,19 @@ booking:
         "6": "Saturday"
         "7": "Sunday"
 mail:
+    account_verify:
+        subject: "Confirm your address"
+        title: "One step left"
+        intro: "To open your account, confirm that this address is yours."
+        button: "Confirm my address"
+        ignore: "If you did not ask for an account, ignore this message: nothing will be opened in your name."
+    account_exists:
+        subject: "You already have an account"
+        title: "You already have an account"
+        intro: "Someone — probably you — tried to create an account with this address. It already has one: sign in with it."
+        login: "Sign in"
+        forgot: "Forgot your password, or never finished signing up? Take it back here:"
+        ignore: "If this was not you, ignore this message: nothing changed on your account."
     thread:
         subject: "New message — %formation%"
         intro: "%author% wrote about the training “%formation%”:"
@@ -4100,6 +4127,7 @@ groups:
     no_bundles: "This group grants no bundle."
 
 security:
+    email_unconfirmed: "Confirm your e-mail address first: click the link we sent you."
     account_unavailable: "Cannot sign in with these credentials."
 
 # La médiathèque d’identité (S165).
@@ -4134,3 +4162,29 @@ thread:
     not_installed: "Messaging is not installed on this site yet."
     team_intro: "Your reply goes to this learner, and to them only."
     team_empty: "No messages."
+
+
+# S189 — « vérifiez votre boîte », renvoi, correction, activation.
+register_check:
+    title: "Check your inbox"
+    sent_to: "We wrote to"
+    step_open: "Open the e-mail sent by FabOS (check your spam folder too)."
+    step_click: "Click its link: it is valid for two days."
+    step_login: "Sign in with the password you just chose."
+    nothing_heading: "Nothing received?"
+    nothing_help: "An e-mail can take a few minutes to arrive."
+    resend: "Send the e-mail again"
+    resend_after: "You can send it again in %seconds% s."
+    wait: "Please wait %seconds% s before sending again."
+    resent: "Sent again. Check your spam folder too."
+    wrong_heading: "Mistyped address?"
+    correct_label: "The right address"
+    correct_submit: "Correct and resend"
+    corrected: "Address corrected: the e-mail goes to the new address, the old link no longer works."
+    too_many: "Too many corrections for this sign-up. Start the sign-up again, or ask the %venue% team."
+    activated: "Address confirmed. All that is left is to sign in."
+    get_new_link: "Get a new link"
+    failed_title: "This link is no longer valid"
+    failed_intro: "It may have expired, already been used, or been replaced by a newer e-mail."
+    failed_done: "If you have already confirmed your address, just sign in."
+    failed_new: "Otherwise, sign in anyway: you will be offered a new link."

@@ -1,0 +1,69 @@
+{% extends 'site/base_public.html.twig' %}
+
+{% block title %}{{ 'register_check.title'|trans }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+    {# 🔴 S189 — cette page ne reçoit QUE l'adresse tapée et le délai de renvoi.
+       Elle ne sait pas si un compte vient d'être créé ou si l'adresse était déjà
+       membre : c'est ce qui la rend identique dans les deux cas. N'y ajoutez
+       jamais une variable qui le saurait. #}
+    <main id="main-content" tabindex="-1" class="main-content">
+        <section class="auth-section">
+            <div class="auth-container">
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <div class="auth-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                <polyline points="22,6 12,13 2,6"/>
+                            </svg>
+                        </div>
+                        <h1 class="auth-title">{{ 'register_check.title'|trans }}</h1>
+                        <p class="auth-subtitle">{{ 'register_check.sent_to'|trans }} <strong class="auth-address">{{ email }}</strong></p>
+                    </div>
+
+                    {% for message in app.flashes('success') %}<div class="auth-flash success" role="status">{{ message|trans }}</div>{% endfor %}
+                    {% for message in app.flashes('error') %}<div class="auth-flash error" role="alert">{{ message|trans }}</div>{% endfor %}
+
+                    <ol class="auth-steps">
+                        <li>{{ 'register_check.step_open'|trans }}</li>
+                        <li>{{ 'register_check.step_click'|trans }}</li>
+                        <li>{{ 'register_check.step_login'|trans }}</li>
+                    </ol>
+
+                    <h2 class="auth-subheading">{{ 'register_check.nothing_heading'|trans }}</h2>
+                    <p class="auth-help">{{ 'register_check.nothing_help'|trans }}</p>
+                    <form class="auth-form" method="post" action="{{ path('app_register_resend') }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('register_resend') }}">
+                        <button class="btn btn-secondary" type="submit">{{ 'register_check.resend'|trans }}</button>
+                        {% if cooldown > 0 %}
+                            <p class="auth-help">{{ 'register_check.resend_after'|trans({'%seconds%': cooldown}) }}</p>
+                        {% endif %}
+                    </form>
+
+                    <h2 class="auth-subheading">{{ 'register_check.wrong_heading'|trans }}</h2>
+                    <form class="auth-form" method="post" action="{{ path('app_register_correct') }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('register_correct') }}">
+                        <div class="form-group">
+                            <label class="form-label" for="correct-email">{{ 'register_check.correct_label'|trans }}</label>
+                            <input class="form-input" id="correct-email" type="email" name="email" required autocomplete="email" value="{{ email }}">
+                        </div>
+                        <button class="btn btn-secondary" type="submit">{{ 'register_check.correct_submit'|trans }}</button>
+                    </form>
+
+                    <div class="auth-links">
+                        <p>{{ 'forgot.have_account'|trans }} <a href="{{ path('app_login') }}">{{ 'login.submit'|trans }}</a></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('js/main.js') ~ '?v=' ~ js_version }}"></script>
+{% endblock %}

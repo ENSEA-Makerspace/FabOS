@@ -1,0 +1,20 @@
+{% extends 'emails/_layout.html.twig' %}
+
+{% block subject %}{{ 'mail.account_verify.subject'|trans }}{% endblock %}
+
+{% block body %}
+    <h2 style="margin:0 0 12px; font-size:19px;">{{ 'mail.account_verify.title'|trans }}</h2>
+    <p style="margin:0 0 16px;">{{ 'mail.account_verify.intro'|trans }}</p>
+
+    {# Comme le mot de passe oublié : un vrai <a>, et l'adresse en clair dessous
+       pour les clients qui abîment les boutons. #}
+    <p style="margin:0 0 20px;">
+        <a href="{{ activationUrl }}"
+           style="display:inline-block; padding:12px 20px; border-radius:8px; background:#15803d; color:#ffffff; font-weight:700; text-decoration:none;">{{ 'mail.account_verify.button'|trans }}</a>
+    </p>
+
+    <p style="margin:0 0 16px; color:#6b7280; font-size:13px; word-break:break-all;">{{ activationUrl }}</p>
+
+    <p style="margin:0 0 8px; color:#6b7280; font-size:13px;">{{ 'mail.account_verify.expiry'|trans({'hours': validHours}) }}</p>
+    <p style="margin:0; color:#6b7280; font-size:13px;">{{ 'mail.account_verify.ignore'|trans }}</p>
+{% endblock %}

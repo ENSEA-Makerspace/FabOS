@@ -151,6 +151,8 @@ machine_taxonomy:
     panel_note: "{count, plural, one {# entry} other {# entries}}"
 
 mail:
+    account_verify:
+        expiry: "This link is valid for {hours, plural, one {# hour} other {# hours}}."
     password_reset:
         expiry: "This link is valid for {hours, plural, one {# hour} other {# hours}} and works only once."
     reminder:

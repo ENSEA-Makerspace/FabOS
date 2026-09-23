@@ -38,7 +38,17 @@
                                 <div class="auth-alert auth-alert-success">{{ message|flash_text }}</div>
                             {% endfor %}
                             {% if error %}
-                                <div class="auth-alert auth-alert-error">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+                                {# 🔴 S189 — nos propres refus (`security.*`) vivent dans le domaine
+                                   `messages` ; cherchés dans `security`, ils s'affichaient en CLÉ
+                                   BRUTE. Les messages de Symfony, eux, sont dans `security`. #}
+                                {% set loginError = error.messageKey|trans(error.messageData, 'security') %}
+                                {% if loginError == error.messageKey %}{% set loginError = error.messageKey|trans(error.messageData) %}{% endif %}
+                                <div class="auth-alert auth-alert-error">
+                                    {{ loginError }}
+                                    {% if error.messageKey == 'security.email_unconfirmed' %}
+                                        <a href="{{ path('app_register_check') }}">{{ 'register_check.get_new_link'|trans }}</a>
+                                    {% endif %}
+                                </div>
                             {% endif %}
                             <div class="form-group">
                                 <label for="email" class="form-label">{{ 'login.email_label'|trans }}</label>
