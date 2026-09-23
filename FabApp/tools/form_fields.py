@@ -55,6 +55,30 @@ IGNORED = {'save', 'submit', '_token'}
 RENDER_CALL = re.compile(r'\bform_(?:row|widget|label|help|errors)\(\s*([A-Za-z0-9_.\[\]\'"]+)')
 
 
+INCLUDE = re.compile(r"""{%\s*(?:include|embed)\s+['"]([^'"]+\.html\.twig)['"]""")
+
+
+def with_includes(tpl: str, depth: int = 2) -> str:
+    """La source du gabarit ET celle des partiels qu'il inclut.
+
+    🔴 **Sans ça, l'outil criait au loup sur un formulaire rendu dans un
+    partiel** (S183b) : `formation-messages` et `trainer-thread` incluent tous
+    deux `_thread.html.twig`, qui rend le champ. Deux faux « champ perdu » sur un
+    formulaire correct — et un outil qui crie au loup apprend à ne plus le lire.
+    ⚠️ Deux niveaux, pas une récursion : les partiels de formulaire de ce dépôt
+    n'en incluent pas d'autres qui rendraient des champs, et une récursion sans
+    garde de cycle serait du code sans cas d'usage.
+    """
+    full = os.path.join(ROOT, 'templates', tpl)
+    if not os.path.exists(full):
+        return ''
+    html = open(full, encoding='utf-8').read()
+    if depth > 0:
+        for child in INCLUDE.findall(html):
+            html += '\n' + with_includes(child, depth - 1)
+    return html
+
+
 def rendered_fields(html: str) -> set:
     """Les noms de champs qu'un gabarit rend, quel que soit le nom de la variable."""
     out = set()
@@ -129,7 +153,7 @@ def main() -> int:
             full = os.path.join(ROOT, 'templates', tpl)
             if not os.path.exists(full):
                 continue
-            html = open(full, encoding='utf-8').read()
+            html = with_includes(tpl)
             if 'SECTIONS' in html:
                 continue
             rendered = rendered_fields(html)

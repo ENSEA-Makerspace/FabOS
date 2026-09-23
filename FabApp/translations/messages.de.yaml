@@ -386,6 +386,7 @@ mail_editor:
     part_note: "⚠️ Dieser Text gilt für ALLE E-Mails in dieser Sprache, auch für Passwort-Zurücksetzungen. Der Abmeldelink bleibt unter der Fußzeile: er lässt sich nicht verschieben."
     preview_part_note: "Die Vorschau zeigt ihn an einer Beispiel-Mail — nur dort sieht man, ob der Text in eine Zeile passt."
     tpl:
+        formation_message: "Schulungsnachrichten"
         event_announced: "Veranstaltungsankündigung"
         _header: "Kopfzeile aller E-Mails"
         _footer: "Fußzeile aller E-Mails"
@@ -1314,6 +1315,11 @@ booking:
         "6": "Samstag"
         "7": "Sonntag"
 mail:
+    thread:
+        subject: "Neue Nachricht — %formation%"
+        intro: "%author% hat zur Schulung „%formation%“ geschrieben:"
+        open: "Unterhaltung öffnen"
+        note: "Antworten Sie in FabOS: eine Antwort auf diese E-Mail käme nicht in der Unterhaltung an."
     announcement:
         from: "Ankündigung · %formation%"
         signature: "Gesendet von %author%."
@@ -1532,6 +1538,9 @@ event:
 
 notification:
     category:
+        message:
+            label: "Schulungsnachrichten"
+            description: "E-Mail-Kopien der Nachrichten mit dem Schulungsteam. Der Verlauf bleibt in FabOS lesbar, auch wenn Sie diese E-Mails abbestellen."
         reminder:
             label: "Erinnerungen"
             description: "Hinweis vor Ihren Buchungen und wenn eine Ausleihe fällig ist"
@@ -4071,3 +4080,26 @@ media:
     error_storage: "Bild konnte nicht gespeichert werden. Die Mediathek ist möglicherweise noch nicht installiert."
     error_in_use: "Nicht möglich: dieses Bild wird vom veröffentlichten Theme oder vom Entwurf verwendet."
     error_unknown: "Dieses Bild existiert nicht."
+
+# Le fil privé apprenant ↔ équipe de formation (S183b).
+thread:
+    tab: "Nachrichten"
+    title: "Nachrichten"
+    unread_aria: "%n% ungelesene Nachricht(en)"
+    field_body: "Ihre Nachricht"
+    help_body: "Einfacher Text. Das Schulungsteam liest ihn — andere Lernende sehen ihn nicht."
+    send: "Senden"
+    sent: "Nachricht gesendet."
+    not_sent: "Die Nachricht konnte nicht gesendet werden. Nichts ging verloren: bitte erneut versuchen."
+    someone: "Jemand"
+    side_learner: "Lernende(r)"
+    side_team: "Team"
+    learner_intro: "Eine Frage zu dieser Schulung? Schreiben Sie dem Schulungsteam. Nur die Trainer lesen diesen Verlauf; andere Lernende haben keinen Zugriff. Antworten erscheinen hier, mit einer Kopie per E-Mail."
+    learner_empty: "Noch keine Nachrichten."
+    inbox_title: "Nachrichten der Lernenden"
+    inbox_nav: "Nachrichten der Lernenden"
+    inbox_intro: "Ein Verlauf pro Lernendem und Schulung. Das Postfach teilt sich das ganze Schulungsteam; ungelesene Nachrichten zählen nur für Sie."
+    inbox_empty: "Noch hat niemand geschrieben."
+    not_installed: "Die Nachrichtenfunktion ist auf dieser Website noch nicht installiert."
+    team_intro: "Ihre Antwort geht an diese(n) Lernende(n) und nur an sie/ihn."
+    team_empty: "Keine Nachrichten."

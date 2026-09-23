@@ -41,6 +41,18 @@ final class NotificationCategory
     /** Digests and announcements. Nothing emits this yet; the switch exists first. */
     public const NEWS = 'news';
 
+    /**
+     * Un message privé d'un fil de formation (S183b) — l'équipe qui répond à un
+     * apprenant, ou l'apprenant qui écrit à l'équipe.
+     *
+     * ⚠️ **Désabonnable, et c'est un choix assumé.** Le message lui-même vit dans
+     * FabOS : l'e-mail n'en est qu'une COPIE, et une copie qu'on coupe ne fait rien
+     * perdre — le fil reste lisible, avec son compteur de non-lus. Un formateur
+     * qui reçoit chaque message de chaque apprenant doit pouvoir dire non sans
+     * couper aussi ses confirmations de réservation.
+     */
+    public const MESSAGE = 'message';
+
     /** Fallback for callers that don't say. */
     public const GENERAL = 'general';
 
@@ -51,7 +63,7 @@ final class NotificationCategory
      * Categories a recipient may switch off, in the order the profile screen
      * shows them. Anything not listed here is transactional.
      */
-    public const OPTOUTABLE = [self::REMINDER, self::MAINTENANCE, self::NEWS, self::GENERAL];
+    public const OPTOUTABLE = [self::REMINDER, self::MAINTENANCE, self::NEWS, self::MESSAGE, self::GENERAL];
 
     public static function isOptOutable(string $category): bool
     {

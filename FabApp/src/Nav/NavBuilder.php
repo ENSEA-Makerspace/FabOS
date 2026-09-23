@@ -95,6 +95,13 @@ final class NavBuilder
         $nav[] = $this->group('nav.learn', null, [
             $this->item('nav.trainings', 'app_formations', feature: 'formations'),
             $this->item('nav.badges', 'app_badges', feature: 'badges'),
+            // 🔴 **S183b — la boîte de l'équipe de formation, pour les FORMATEURS
+            // seulement.** Gardée par `ROLE_TRAINER`, pas par `ROLE_ADMIN` : un
+            // formateur qui n'est pas administrateur doit la trouver, et un
+            // administrateur qui n'est pas formateur n'a rien à y lire. Sous
+            // « Apprendre » et pas dans la barre d'administration, parce que c'est
+            // là que vit le reste du travail de formation d'un formateur.
+            $this->item('thread.inbox_nav', 'app_trainer_inbox', feature: 'formations', role: 'ROLE_TRAINER'),
         ]);
 
         $nav[] = $this->group('nav.activity', null, [

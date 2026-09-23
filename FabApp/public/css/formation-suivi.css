@@ -827,3 +827,37 @@
                 gap: var(--spacing-xs);
             }
         }
+
+/* =====================================================================
+   LE FIL PRIVÉ APPRENANT ↔ ÉQUIPE (S183b)
+   ⚠️ Jetons uniquement : ces pages vivent aussi en thème sombre, et un littéral
+   y serait du bordeaux sur du bordeaux (S166a).
+   ⚠️ « De qui » se lit au CÔTÉ : l'apprenant à gauche, l'équipe à droite, parce
+   que l'équipe répond à plusieurs voix et qu'il faut voir d'un coup d'œil qui
+   attend une réponse.
+   ===================================================================== */
+.thread-intro { color: var(--color-text-light); font-size: 14px; margin: 0 0 var(--spacing-lg); line-height: 1.55; }
+.thread { display: flex; flex-direction: column; gap: var(--spacing-md); margin: 0 0 var(--spacing-xl); }
+.thread-msg { max-width: 78%; padding: 12px 16px; border-radius: var(--border-radius); border: 1px solid var(--border-color); background: var(--theme-surface-elevated, var(--theme-surface)); }
+.thread-msg--learner { align-self: flex-start; }
+.thread-msg--team { align-self: flex-end; border-color: color-mix(in srgb, var(--color-primary) 35%, var(--border-color)); background: color-mix(in srgb, var(--color-primary) 7%, var(--theme-surface)); }
+.thread-msg__head { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; font-size: 12.5px; color: var(--color-text-light); margin-bottom: 6px; }
+.thread-msg__head strong { color: var(--color-text); font-size: 13.5px; }
+.thread-msg__head time { margin-left: auto; }
+.thread-msg__body { margin: 0; line-height: 1.6; overflow-wrap: anywhere; }
+.thread-empty { color: var(--color-text-light); font-style: italic; }
+.thread-reply { max-width: 720px; }
+/* Le compteur de non-lus — sur l'onglet et dans la boîte. */
+.thread-unread { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--color-primary); color: #fff; font-size: 12px; font-weight: 700; margin-left: 4px; }
+/* La boîte de l'équipe. */
+.thread-inbox { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.thread-inbox__row a { display: grid; grid-template-columns: minmax(140px, 1fr) minmax(140px, 1fr) 3fr auto auto; gap: 12px; align-items: center; padding: 12px 14px; border: 1px solid var(--border-color); border-radius: var(--border-radius); text-decoration: none; color: var(--color-text); background: var(--theme-surface); }
+.thread-inbox__row.is-unread a { border-color: color-mix(in srgb, var(--color-primary) 45%, var(--border-color)); }
+.thread-inbox__row.is-unread .thread-inbox__who { font-weight: 700; }
+.thread-inbox__what, .thread-inbox__row time { color: var(--color-text-light); font-size: 13px; }
+.thread-inbox__last { color: var(--color-text-light); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 768px) {
+    .thread-msg { max-width: 100%; }
+    .thread-inbox__row a { grid-template-columns: 1fr auto; }
+    .thread-inbox__what, .thread-inbox__last { grid-column: 1 / -1; }
+}

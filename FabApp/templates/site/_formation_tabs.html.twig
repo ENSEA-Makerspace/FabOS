@@ -1,0 +1,27 @@
+{#
+    LES ONGLETS D'UNE FORMATION — Aperçu, Suivi, et Messages (S183b).
+
+    ⚠️ **Extrait parce qu'un troisième onglet arrivait sur une barre écrite à la
+    main.** La barre vivait dans `formation-suivi.html.twig` ; la recopier dans la
+    page des messages aurait fait deux barres, dont une oublierait un jour
+    l'onglet que l'autre vient de gagner.
+
+    🔴 **« Messages » n'apparaît qu'à qui peut écrire** — un membre de la cohorte.
+    Un onglet qui mène à un refus est une affordance morte ; un visiteur ou un
+    membre qui n'a pas commencé la formation ne le voit pas.
+
+    ⚠️ **Le compteur est celui de CETTE personne**, et il ne compte jamais ses
+    propres messages.
+
+    Paramètres : formation, active ('overview' | 'follow' | 'messages')
+#}
+{% set _thread = formation_thread_state(formation) %}
+<div class="formation-tabs">
+    <a href="{{ path('app_formation_detail', {id: formation.id}) }}" class="formation-tab{{ active == 'overview' ? ' active' : '' }}">{{ 'machine.tab_overview'|trans }}</a>
+    <a href="{{ path('app_formation_follow', {id: formation.id}) }}" class="formation-tab{{ active == 'follow' ? ' active' : '' }}">{{ 'fsui.tracking'|trans }}</a>
+    {% if _thread.canWrite %}
+        <a href="{{ path('app_formation_thread', {id: formation.id}) }}" class="formation-tab{{ active == 'messages' ? ' active' : '' }}">
+            {{ 'thread.tab'|trans }}{% if _thread.unread > 0 %} <span class="thread-unread" aria-label="{{ 'thread.unread_aria'|trans({'%n%': _thread.unread}) }}">{{ _thread.unread }}</span>{% endif %}
+        </a>
+    {% endif %}
+</div>

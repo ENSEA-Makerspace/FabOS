@@ -386,6 +386,7 @@ mail_editor:
     part_note: "⚠️ Este texto se aplica a TODOS los correos enviados en este idioma, incluidas las contraseñas olvidadas. El enlace de baja permanece bajo el pie: no se puede mover."
     preview_part_note: "La vista previa lo muestra en un correo de ejemplo: es el único sitio donde se ve si el texto cabe en una línea."
     tpl:
+        formation_message: "Mensajes de formación"
         event_announced: "Anuncio de un evento"
         _header: "Encabezado común a todos los correos"
         _footer: "Pie común a todos los correos"
@@ -1314,6 +1315,11 @@ booking:
         "6": "Sábado"
         "7": "Domingo"
 mail:
+    thread:
+        subject: "Nuevo mensaje — %formation%"
+        intro: "%author% escribió sobre la formación «%formation%»:"
+        open: "Abrir la conversación"
+        note: "Responda desde FabOS: una respuesta a este correo no llegaría a la conversación."
     announcement:
         from: "Anuncio · %formation%"
         signature: "Enviado por %author%."
@@ -1532,6 +1538,9 @@ event:
 
 notification:
     category:
+        message:
+            label: "Mensajes de formación"
+            description: "Copia por correo de los mensajes intercambiados con el equipo de formación. El hilo sigue legible en FabOS aunque desactive estos correos."
         reminder:
             label: "Recordatorios"
             description: "Aviso antes de sus reservas y cuando un préstamo vence"
@@ -4071,3 +4080,26 @@ media:
     error_storage: "No se pudo guardar la imagen. Puede que la biblioteca aún no esté instalada."
     error_in_use: "Imposible: esta imagen la usa el tema publicado o el borrador."
     error_unknown: "Esa imagen no existe."
+
+# Le fil privé apprenant ↔ équipe de formation (S183b).
+thread:
+    tab: "Mensajes"
+    title: "Mensajes"
+    unread_aria: "%n% mensaje(s) sin leer"
+    field_body: "Su mensaje"
+    help_body: "Texto simple. Lo lee el equipo de formación; los demás alumnos no lo ven."
+    send: "Enviar"
+    sent: "Mensaje enviado."
+    not_sent: "No se pudo enviar el mensaje. No se ha perdido nada: inténtelo de nuevo."
+    someone: "Alguien"
+    side_learner: "alumno"
+    side_team: "equipo"
+    learner_intro: "¿Una pregunta sobre esta formación? Escriba al equipo de formación. Solo los formadores leen este hilo; los demás alumnos no tienen acceso. Las respuestas llegan aquí, con una copia por correo."
+    learner_empty: "Aún no hay mensajes."
+    inbox_title: "Mensajes de los alumnos"
+    inbox_nav: "Mensajes de los alumnos"
+    inbox_intro: "Un hilo por alumno y por formación. Todo el equipo de formación comparte la bandeja; los no leídos son solo suyos."
+    inbox_empty: "Ningún alumno ha escrito todavía."
+    not_installed: "La mensajería aún no está instalada en este sitio."
+    team_intro: "Su respuesta va a este alumno, y solo a él."
+    team_empty: "No hay mensajes."

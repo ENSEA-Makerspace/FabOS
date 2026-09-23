@@ -1,0 +1,61 @@
+{% extends 'site/base_public.html.twig' %}
+
+{# LA BOÎTE DE L'ÉQUIPE DE FORMATION (S183b).
+
+   🔴 **Une boîte d'ÉQUIPE, pas une boîte par personne.** Toutes les formations
+   portent « Équipe FabLab » comme formateur : le groupe `trainers` partage la
+   boîte. Les non-lus, eux, sont PAR PERSONNE — que l'un ait lu ne dit rien de
+   l'autre.
+
+   ⚠️ **Hors de `/admin`, délibérément.** Un formateur qui n'est pas
+   administrateur ne passerait pas le pare-feu ; un administrateur qui n'est pas
+   formateur n'a rien à lire ici.
+
+   ⚠️ **`|slice` et pas `|u.truncate`** : `twig/string-extra` n'est PAS installé
+   ici (il n'apparaît qu'en suggestion dans le verrou), et `lint:twig` ne le
+   verrait que sur la boîte.
+
+   ⚠️ **Seuls les fils qui ont un message.** Un apprenant qui ouvre l'onglet sans
+   écrire ne crée rien : une boîte pleine de fils vides ferait chercher des
+   questions qui n'existent pas. #}
+
+{% block title %}{{ 'thread.inbox_title'|trans }} - FabOS{% endblock %}
+
+{% block page_styles %}
+    <link rel="stylesheet" href="{{ asset('css/formation-suivi.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+    <main id="main-content" tabindex="-1" class="main-content">
+        <section class="formation-suivi-section">
+            <div class="container">
+                {% include 'site/_breadcrumb.html.twig' with {trail: [
+                    {label: 'nav.home'|trans, url: path('app_home')},
+                    {label: 'thread.inbox_title'|trans},
+                ]} only %}
+                <h1 class="formation-suivi-title">{{ 'thread.inbox_title'|trans }}</h1>
+                <p class="thread-intro">{{ 'thread.inbox_intro'|trans }}</p>
+
+                {% if not available %}
+                    <p class="thread-empty">{{ 'thread.not_installed'|trans }}</p>
+                {% endif %}
+
+                <ul class="thread-inbox">
+                    {% for t in threads %}
+                        <li class="thread-inbox__row{{ t.unread > 0 ? ' is-unread' : '' }}">
+                            <a href="{{ path('app_trainer_thread', {thread: t.id}) }}">
+                                <span class="thread-inbox__who">{{ (t.firstName ~ ' ' ~ t.lastName)|trim ?: 'thread.someone'|trans }}</span>
+                                <span class="thread-inbox__what">{{ t.formationTitle }}</span>
+                                <span class="thread-inbox__last">{{ t.lastBody|length > 110 ? t.lastBody|slice(0, 110) ~ '…' : t.lastBody }}</span>
+                                <time>{{ t.lastMessageAt|lab_date('d/m/Y H:i') }}</time>
+                                {% if t.unread > 0 %}<span class="thread-unread">{{ t.unread }}</span>{% endif %}
+                            </a>
+                        </li>
+                    {% else %}
+                        {% if available %}<li class="thread-empty">{{ 'thread.inbox_empty'|trans }}</li>{% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+        </section>
+    </main>
+{% endblock %}

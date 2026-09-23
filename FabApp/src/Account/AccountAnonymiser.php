@@ -8,6 +8,7 @@ use App\Entity\AccessRfidLog;
 use App\Entity\Creation;
 use App\Entity\EventRegistration;
 use App\Entity\Utilisateur;
+use App\Training\FormationThreads;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -65,6 +66,7 @@ final class AccountAnonymiser
         private readonly Connection $db,
         private readonly UserPasswordHasherInterface $hasher,
         private readonly string $projectDir,
+        private readonly FormationThreads $threads,
     ) {
     }
 
@@ -116,6 +118,8 @@ final class AccountAnonymiser
         $this->forgetRegistrations($user);
         $this->forgetCardScans($user);
         $this->forgetCreationBylines($user);
+        // 🔴 S183b — un fil privé EST une donnée personnelle de son apprenant.
+        $this->threads->forgetLearner($id);
 
         $user->setEmail(sprintf('anonymised-%d@%s', $id, self::SENTINEL_DOMAIN));
         $user->setUsername(sprintf('anonymised-%d', $id));

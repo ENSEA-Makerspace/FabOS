@@ -64,10 +64,7 @@
                     </div>
                 </div>
 
-                <div class="formation-tabs">
-                    <a href="{{ path('app_formation_detail', {id: formation.id}) }}" class="formation-tab">{{ 'machine.tab_overview'|trans }}</a>
-                    <a href="{{ path('app_formation_follow', {id: formation.id}) }}" class="formation-tab active">{{ 'fsui.tracking'|trans }}</a>
-                </div>
+                {% include 'site/_formation_tabs.html.twig' with {formation: formation, active: 'follow'} only %}
 
                 <div class="formation-suivi-content">
                     <div class="suivi-section">

@@ -386,6 +386,7 @@ mail_editor:
     part_note: "⚠️ This text applies to EVERY mail sent in this language, password resets included. The unsubscribe link stays below the footer: it cannot be moved."
     preview_part_note: "The preview shows it on a sample mail — the only place you can see whether the text fits on one line."
     tpl:
+        formation_message: "Training messages"
         event_announced: "Event announcement"
         _header: "Header shared by every mail"
         _footer: "Footer shared by every mail"
@@ -1314,6 +1315,11 @@ booking:
         "6": "Saturday"
         "7": "Sunday"
 mail:
+    thread:
+        subject: "New message — %formation%"
+        intro: "%author% wrote about the training “%formation%”:"
+        open: "Open the conversation"
+        note: "Reply from FabOS: a reply to this e-mail would not reach the conversation."
     announcement:
         from: "Announcement · %formation%"
         signature: "Sent by %author%."
@@ -1532,6 +1538,9 @@ event:
 
 notification:
     category:
+        message:
+            label: "Training messages"
+            description: "E-mail copies of messages exchanged with the training team. The thread stays readable in FabOS even if you turn these off."
         reminder:
             label: "Reminders"
             description: "A nudge before your bookings, and when a loan is due back"
@@ -4072,3 +4081,26 @@ media:
     error_storage: "Could not store the image. The media library may not be installed yet."
     error_in_use: "Cannot delete: this image is used by the published theme or by the draft."
     error_unknown: "That image does not exist."
+
+# Le fil privé apprenant ↔ équipe de formation (S183b).
+thread:
+    tab: "Messages"
+    title: "Messages"
+    unread_aria: "%n% unread message(s)"
+    field_body: "Your message"
+    help_body: "Plain text. It is read by the training team — other learners cannot see it."
+    send: "Send"
+    sent: "Message sent."
+    not_sent: "The message could not be sent. Nothing was lost: try again."
+    someone: "Someone"
+    side_learner: "learner"
+    side_team: "team"
+    learner_intro: "A question about this training? Write to the training team. Only trainers read this thread; other learners have no access. Replies arrive here, with a copy by e-mail."
+    learner_empty: "No messages yet."
+    inbox_title: "Learner messages"
+    inbox_nav: "Learner messages"
+    inbox_intro: "One thread per learner and per training. The inbox is shared by the whole training team; unread counts are yours alone."
+    inbox_empty: "No learner has written yet."
+    not_installed: "Messaging is not installed on this site yet."
+    team_intro: "Your reply goes to this learner, and to them only."
+    team_empty: "No messages."

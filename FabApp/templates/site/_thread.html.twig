@@ -1,0 +1,42 @@
+{#
+    UN FIL : les messages, puis la réponse (S183b).
+
+    ⚠️ **Partagé par les deux côtés** — l'apprenant et l'équipe voient le même
+    fil, dessiné par le même gabarit. Deux dessins d'une même conversation
+    finissent par ne plus dire la même chose.
+
+    ⚠️ **« De qui » se lit au côté, pas seulement au nom.** Les messages de
+    l'apprenant sont d'un côté, ceux de l'équipe de l'autre : dans un fil où
+    l'équipe répond à plusieurs voix, c'est la seule façon de voir d'un coup
+    d'œil qui attend une réponse.
+
+    ⚠️ **`|nl2br` sur le texte brut, sans `|raw`.** Le filtre échappe AVANT de
+    poser les `<br>` : le texte d'un membre reste du texte.
+
+    Paramètres : messages, learnerId, form, empty (clé de traduction)
+#}
+<div class="thread">
+    {% for m in messages %}
+        {# `m.authorId` arrive de DBAL en CHAÎNE, `learnerId` en entier : `==` en
+           Twig compare en souplesse, « 5 » == 5 est vrai. Un `is same as`
+           rangerait tout du côté de l'équipe. #}
+        {% set _mine_side = m.authorId == learnerId %}
+        <article class="thread-msg{{ _mine_side ? ' thread-msg--learner' : ' thread-msg--team' }}">
+            <header class="thread-msg__head">
+                <strong>{{ (m.firstName ~ ' ' ~ m.lastName)|trim ?: 'thread.someone'|trans }}</strong>
+                <span>{{ _mine_side ? 'thread.side_learner'|trans : 'thread.side_team'|trans }}</span>
+                <time>{{ m.createdAt|lab_date('d/m/Y H:i') }}</time>
+            </header>
+            <p class="thread-msg__body">{{ m.body|nl2br }}</p>
+        </article>
+    {% else %}
+        <p class="thread-empty">{{ empty|trans }}</p>
+    {% endfor %}
+</div>
+
+{% form_theme form 'form/admin_theme.html.twig' %}
+{{ form_start(form, {attr: {class: 'thread-reply', novalidate: 'novalidate'}}) }}
+    {{ form_errors(form) }}
+    {{ form_row(form.body) }}
+    <div class="form-actions"><span class="btn-submit">{{ form_widget(form.send) }}</span></div>
+{{ form_end(form) }}

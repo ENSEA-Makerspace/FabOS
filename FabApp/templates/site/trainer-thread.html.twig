@@ -1,0 +1,30 @@
+{% extends 'site/base_public.html.twig' %}
+
+{# UN FIL, CÔTÉ ÉQUIPE (S183b). La réponse part à l'apprenant de ce fil, et à lui
+   seul : il n'y a pas d'autre destinataire possible. #}
+
+{% block title %}{{ 'thread.title'|trans }} · {{ formation.titre }} - FabOS{% endblock %}
+
+{% block page_styles %}
+    <link rel="stylesheet" href="{{ asset('css/formation-suivi.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+    <main id="main-content" tabindex="-1" class="main-content">
+        <section class="formation-suivi-section">
+            <div class="container">
+                {% include 'site/_breadcrumb.html.twig' with {trail: [
+                    {label: 'nav.home'|trans, url: path('app_home')},
+                    {label: 'thread.inbox_title'|trans, url: path('app_trainer_inbox')},
+                    {label: formation.titre},
+                ]} only %}
+                <h1 class="formation-suivi-title">{{ learner ? (learner.firstName ~ ' ' ~ learner.lastName)|trim : 'thread.someone'|trans }}</h1>
+                <p class="thread-intro">
+                    <a href="{{ path('app_formation_detail', {id: formation.id}) }}">{{ formation.titre }}</a>
+                    · {{ 'thread.team_intro'|trans }}
+                </p>
+                {% include 'site/_thread.html.twig' with {messages: messages, learnerId: learnerId, form: form, empty: 'thread.team_empty'} only %}
+            </div>
+        </section>
+    </main>
+{% endblock %}

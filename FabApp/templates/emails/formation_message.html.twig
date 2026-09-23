@@ -1,0 +1,29 @@
+{% extends 'emails/_layout.html.twig' %}
+
+{# LA COPIE D'UN MESSAGE DE FIL DE FORMATION (S183b).
+
+   🔴 **Une COPIE, pas le canal.** Le message est déjà dans FabOS quand ce
+   courrier part ; s'il se perd, rien n'est perdu. C'est pourquoi le mail dit où
+   répondre, et ne propose PAS de répondre par retour de courrier : une réponse
+   par e-mail n'arriverait nulle part dans le fil, et l'auteur croirait avoir
+   répondu.
+
+   ⚠️ **Le lien n'existe que si l'URL publique est réglée.** Sans elle, le mail
+   nomme la formation : un lien vers `localhost` dans un e-mail est pire
+   qu'aucun lien.
+
+   ⚠️ **Désabonnable (catégorie MESSAGE)** : le layout pose le lien de
+   désinscription. Couper la copie ne coupe pas le fil. #}
+
+{% block subject %}{{ 'mail.thread.subject'|trans({'%formation%': formation}) }}{% endblock %}
+
+{% block body %}
+    <p style="margin:0 0 12px;">{{ 'mail.thread.intro'|trans({'%author%': author, '%formation%': formation}) }}</p>
+    <div style="margin:0 0 18px; padding:14px 16px; background:#f9fafb; border-radius:10px; line-height:1.55;">{{ body|nl2br }}</div>
+    {% if thread_url is defined and thread_url %}
+        <p style="margin:0 0 16px;">
+            <a href="{{ thread_url }}" style="display:inline-block; background:#9E1B56; color:#ffffff; text-decoration:none; padding:11px 20px; border-radius:9px; font-weight:700; font-size:14px;">{{ 'mail.thread.open'|trans }}</a>
+        </p>
+    {% endif %}
+    <p style="margin:0; color:#6b7280; font-size:13px;">{{ 'mail.thread.note'|trans }}</p>
+{% endblock %}

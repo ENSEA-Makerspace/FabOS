@@ -1,0 +1,39 @@
+{% extends 'site/base_public.html.twig' %}
+
+{# LE FIL PRIVÉ, CÔTÉ APPRENANT (S183b).
+
+   🔴 **Il n'y a pas de destinataire à choisir, et c'est le point.** Ce fil relie
+   cet apprenant à l'équipe de formation, et à personne d'autre : aucun autre
+   apprenant ne le voit, aucun champ ne permet d'élargir. L'invariant de la
+   phase — « aucun message privé ne bascule implicitement vers la cohorte » — est
+   une propriété du schéma, et cet écran n'a rien à surveiller.
+
+   ⚠️ **La page DIT qui lit.** « L'équipe de formation » sans plus laisserait
+   croire à un échange avec une seule personne ; la phrase d'en-tête dit que
+   c'est le groupe des formateurs, et que l'e-mail n'est qu'une copie. #}
+
+{% block title %}{{ 'thread.title'|trans }} · {{ formation.titre }} - FabOS{% endblock %}
+
+{% block page_styles %}
+    <link rel="stylesheet" href="{{ asset('css/formation-suivi.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+    <main id="main-content" tabindex="-1" class="main-content">
+        <section class="formation-suivi-section">
+            <div class="container">
+                {% include 'site/_breadcrumb.html.twig' with {trail: [
+                    {label: 'nav.home'|trans, url: path('app_home')},
+                    {label: 'nav.trainings'|trans, url: path('app_formations')},
+                    {label: formation.titre, url: path('app_formation_detail', {id: formation.id})},
+                    {label: 'thread.tab'|trans},
+                ]} only %}
+                <h1 class="formation-suivi-title">{{ formation.titre }}</h1>
+                {% include 'site/_formation_tabs.html.twig' with {formation: formation, active: 'messages'} only %}
+
+                <p class="thread-intro">{{ 'thread.learner_intro'|trans }}</p>
+                {% include 'site/_thread.html.twig' with {messages: messages, learnerId: learnerId, form: form, empty: 'thread.learner_empty'} only %}
+            </div>
+        </section>
+    </main>
+{% endblock %}

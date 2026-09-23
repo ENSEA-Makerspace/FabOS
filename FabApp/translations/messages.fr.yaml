@@ -452,6 +452,7 @@ mail_editor:
     part_note: "⚠️ Ce texte s’applique à TOUS les e-mails envoyés dans cette langue, y compris les mots de passe oubliés. Le lien de désinscription reste posé sous le pied : il n’est pas déplaçable."
     preview_part_note: "L’aperçu le montre sur un mail d’exemple : c’est le seul endroit où l’on voit si le texte tient sur une ligne."
     tpl:
+        formation_message: "Messages de formation"
         event_announced: "Annonce d’un événement"
         _header: "En-tête commun à tous les e-mails"
         _footer: "Pied commun à tous les e-mails"
@@ -1380,6 +1381,11 @@ booking:
         "6": "Samedi"
         "7": "Dimanche"
 mail:
+    thread:
+        subject: "Nouveau message — %formation%"
+        intro: "%author% a écrit à propos de la formation « %formation% » :"
+        open: "Ouvrir la conversation"
+        note: "Répondez depuis FabOS : une réponse à cet e-mail n’arriverait pas dans la conversation."
     announcement:
         from: "Annonce · %formation%"
         signature: "Envoyé par %author%."
@@ -1598,6 +1604,9 @@ event:
 
 notification:
     category:
+        message:
+            label: "Messages de formation"
+            description: "Copie par e-mail des messages échangés avec l’équipe de formation. Le fil reste lisible dans FabOS même si vous coupez ces e-mails."
         reminder:
             label: "Rappels"
             description: "Rappel avant vos réservations, et pour vos emprunts à rendre"
@@ -4073,3 +4082,26 @@ media:
     error_storage: "Impossible d’enregistrer l’image. La médiathèque n’est peut-être pas encore installée."
     error_in_use: "Impossible : cette image est utilisée par le thème publié ou par le brouillon."
     error_unknown: "Cette image n’existe pas."
+
+# Le fil privé apprenant ↔ équipe de formation (S183b).
+thread:
+    tab: "Messages"
+    title: "Messages"
+    unread_aria: "%n% message(s) non lu(s)"
+    field_body: "Votre message"
+    help_body: "Du texte simple. Il est lu par l’équipe de formation — les autres apprenants ne le voient pas."
+    send: "Envoyer"
+    sent: "Message envoyé."
+    not_sent: "Le message n’a pas pu être envoyé. Rien n’a été perdu : réessayez."
+    someone: "Quelqu’un"
+    side_learner: "apprenant"
+    side_team: "équipe"
+    learner_intro: "Une question sur cette formation ? Écrivez à l’équipe de formation. Seuls les formateurs lisent ce fil ; les autres apprenants n’y ont pas accès. Vous recevez leurs réponses ici, et une copie par e-mail."
+    learner_empty: "Aucun message pour l’instant."
+    inbox_title: "Messages des apprenants"
+    inbox_nav: "Messages des apprenants"
+    inbox_intro: "Un fil par apprenant et par formation. La boîte est partagée par toute l’équipe de formation ; les non-lus, eux, sont les vôtres."
+    inbox_empty: "Aucun apprenant n’a encore écrit."
+    not_installed: "La messagerie n’est pas encore installée sur ce site."
+    team_intro: "Votre réponse part à cet apprenant, et à lui seul."
+    team_empty: "Aucun message."

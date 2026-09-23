@@ -92,6 +92,38 @@ final class CohortAnnouncer
     }
 
     /**
+     * Cette personne est-elle dans la cohorte de cette formation ? (S183b)
+     *
+     * 🔴 **La MÊME règle que `recipients()`, pas une seconde.** Le fil privé doit
+     * savoir qui a le droit d'écrire à l'équipe ; si cette question avait sa
+     * propre définition, un apprenant pourrait recevoir les annonces d'une
+     * formation sans pouvoir écrire à son équipe, ou l'inverse. Les formations
+     * internes comptent pour leur parent ici aussi.
+     * ⚠️ Restreinte aux progressions de la personne : `recipients()` parcourt
+     * toutes celles du labo, ce qui est juste pour une annonce et absurde pour
+     * une vérification faite à chaque affichage.
+     */
+    public function isMember(Formation $formation, Utilisateur $user): bool
+    {
+        $target = $this->qualification->resolveParentFormation($formation) ?? $formation;
+        $targetId = $target->getId();
+
+        foreach ($this->em->getRepository(Progression::class)->findBy(['utilisateur' => $user]) as $progression) {
+            $onFormation = $progression->getFormation();
+            if (!$onFormation instanceof Formation) {
+                continue;
+            }
+
+            $parent = $this->qualification->resolveParentFormation($onFormation) ?? $onFormation;
+            if ($parent->getId() === $targetId) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Envoie l'annonce, **un message par personne**.
      *
      * ⚠️ **Le retour distingue les DEUX raisons de ne pas recevoir** : avoir
