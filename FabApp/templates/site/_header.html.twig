@@ -120,8 +120,9 @@
                same page. Deleted with the rest of the legacy routes (operator,
                2026-08-16: "pre V1 dev site, no need to retain legacy anything").
             #}
-            <form class="header-search" action="{{ path('app_recherche') }}" method="get" role="search">
-                <input type="search" name="q" value="{{ app.request.query.get('q')|default('') }}"
+            {# S194 — « / » place le curseur ici, depuis n'importe quelle page. #}
+            <form class="header-search" action="{{ path('app_recherche') }}" method="get" role="search" data-controller="search-shortcut">
+                <input type="search" name="q" value="{{ app.request.query.get('q')|default('') }}" data-search-shortcut-target="input" aria-keyshortcuts="/"
                        placeholder="{{ 'common.search_placeholder'|trans }}" class="search-input-header"
                        aria-label="{{ 'common.search'|trans }}">
                 <button type="submit" class="search-button-header" aria-label="{{ 'common.search'|trans }}">

@@ -25,6 +25,12 @@
         .search-results-container { display: flex; flex-direction: column; gap: var(--spacing-xl); }
         .results-by-category { background: var(--surface-ground); border-radius: var(--border-radius); padding: var(--spacing-lg); }
         .results-by-category h4 { margin-bottom: var(--spacing-md); color: var(--color-text); font-size: var(--font-size-lg); }
+        /* S194 — sauts par type. */
+        .search-jump { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 var(--spacing-md); }
+        .search-jump a { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 4px 12px; border: 1px solid var(--border-color); border-radius: 999px; color: var(--color-text); text-decoration: none; font-size: var(--font-size-sm); }
+        .search-jump a:hover, .search-jump a:focus-visible { border-color: var(--color-primary); }
+        .search-jump span, .search-count { color: var(--color-text-light); font-weight: 600; font-size: .85em; }
+        .results-by-category { scroll-margin-top: 90px; }
         .results-list { display: flex; flex-direction: column; gap: var(--spacing-md); }
         .search-result-item { background: var(--theme-surface); border-radius: var(--border-radius); padding: var(--spacing-md); box-shadow: var(--shadow-sm); transition: box-shadow var(--transition), transform var(--transition); }
         .search-result-item:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
@@ -110,10 +116,20 @@
                            feature is switched off, so every group here has results and a
                            destination that exists. The heading is a `nav.*` key: a result
                            is filed under the menu entry that would reach it. #}
+                        {# S194 — navigation rapide : un saut par type, avec son compte.
+                           Rien à afficher pour un seul groupe : on y est déjà. #}
+                        {% if groups|length > 1 %}
+                            <nav class="search-jump" aria-label="{{ 'search.jump_label'|trans }}">
+                                {% for group in groups %}
+                                    <a href="#results-{{ group.key }}">{{ group.label_key|trans }} <span>{{ group.items|length }}</span></a>
+                                {% endfor %}
+                            </nav>
+                        {% endif %}
+
                         {% for group in groups %}
                             {% set groupLabel = group.label_key|trans %}
-                            <div class="results-by-category">
-                                <h4>{{ groupLabel }}</h4>
+                            <div class="results-by-category" id="results-{{ group.key }}">
+                                <h4>{{ groupLabel }} <span class="search-count">{{ group.items|length }}</span></h4>
                                 <div class="results-list">
                                     {% for item in group.items %}
                                         {#- ⚠️ The whole card is the link, so `_cell_title` is

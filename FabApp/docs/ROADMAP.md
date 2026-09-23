@@ -2181,7 +2181,7 @@ Ce qui n'appartient à aucune autre phase : prêts, créations, recherche, rappo
 | Session | Livre | Ce qu'on mesure |
 |---|---|---|
 | **S193** ✅ 2026-09-24 | **Prêts** : la circulation de l'objet, la fiche cliquable, le retour. ⚠️ `LoanableItem` et l'archivage existent — c'est de la présentation, pas un modèle | Rendre un objet se fait depuis la fiche, pas depuis une liste |
-| **S194** | **Recherche globale** : résultats par type, navigation rapide. ⚠️ `/search` existe déjà | Un résultat ouvre toujours la fiche de son objet |
+| **S194** ✅ 2026-09-24 | **Recherche globale** : résultats par type, navigation rapide. ⚠️ `/search` existe déjà | Un résultat ouvre toujours la fiche de son objet |
 | **S195** | **Rapports qui conduisent à une action**, et **créations** : une communauté sobre | Un rapport propose l'action qu'il suggère, au lieu de la décrire |
 
 ### ✅ S193 — les prêts : la fiche de l'objet porte sa circulation
@@ -2210,6 +2210,21 @@ et un autre, rendre depuis la fiche, historique, rejeu. ⚠️ Piège de sonde
 trouvé : le CSRF « sans état » des formulaires exige l'en-tête `Origin` — sans
 lui, 422 « token invalid » qui aurait pu passer pour le refus de stock.
 
+### ✅ S194 — la recherche : chaque résultat ouvre sa fiche, et on y saute par type
+
+**Mesuré avant, par la sonde** (toutes familles, 53 résultats distincts
+ouverts un par un) : **3 menaient à une LISTE filtrée** — les 2 objets
+prêtables (`/prets?q=…`, avec un commentaire « ils n'ont pas de page à eux »,
+faux depuis S133) et le matériau (`/materiaux?q=…`, alors que
+`/materiaux/{id}` existe). Aucun saut par type, aucun raccourci.
+✅ **Après** : 50/50 ouvrent une fiche qui répond 200 ; ⏳ les 3 créations
+n'ont pas de fiche (S195). La page de résultats s'ouvre sur des **pastilles
+par type avec leur compte**, chaque groupe est ancré et compté. **« / »**
+place le curseur dans la recherche de l'en-tête depuis n'importe quelle page
+(contrôleur Stimulus, jamais pendant une saisie) — vérifié sur le site réel.
+✅ Sonde `app:s194:search-probe`, en lecture seule, **vérifiée dans les deux
+sens** (rouge avant la correction, verte après).
+
 ## Ce que l'opérateur vérifie — Phase T
 
 | Session | Où | Ce qui doit être vrai |
@@ -2219,6 +2234,9 @@ lui, 422 « token invalid » qui aurait pu passer pour le refus de stock.
 | **S193** ✅ | prêter un objet dont tous les exemplaires sont sortis | Refusé : « Plus aucun exemplaire … disponible » |
 | **S193** ✅ | ton `/profil` → Mes prêts → l'objet | Sa page dit « Vous l'avez depuis le … » |
 | **S193** ✅ | `php bin/console app:s193:loan-probe` | Verte |
+| **S194** ✅ | chercher un objet prêtable ou un matériau | Le résultat ouvre SA fiche (`/prets/…`, `/materiaux/…`), plus une liste filtrée |
+| **S194** ✅ | `/recherche?q=a` | Des pastilles par type en tête, chacune mène à son groupe |
+| **S194** ✅ | n'importe quelle page, touche « / » | Le curseur est dans la recherche de l'en-tête |
 
 ## La passe de fond
 

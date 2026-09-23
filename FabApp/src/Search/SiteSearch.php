@@ -330,15 +330,14 @@ final class SiteSearch
                 continue;
             }
 
-            // ⚠️ Loanable items have no page of their own. `/prets` filters on the
-            // name, so passing the exact name always lands on the right card —
-            // whereas passing the member's query would show nothing when the hit
-            // came from the description.
+            // 🔴 S194 — « les objets prêtables n'ont pas de page à eux » était FAUX
+            // depuis S133 (`/prets/{id}`) : un résultat menait au catalogue filtré
+            // au lieu de la fiche. Un résultat ouvre la fiche de son objet.
             $hits[] = [
                 'title' => $item->getName(),
                 'description' => $this->teaser($item->getDescription()),
                 'meta' => $this->join($item->getCategory(), $item->getVenue()?->getName()),
-                'url' => $this->urls->generate('app_loans', ['q' => $item->getName()]),
+                'url' => $this->urls->generate('app_loans_item', ['id' => $item->getId()]),
             ];
         }
 
@@ -359,7 +358,8 @@ final class SiteSearch
                 'title' => $material->getName(),
                 'description' => $this->teaser($material->getDescription()),
                 'meta' => (string) $material->getCategory(),
-                'url' => $this->urls->generate('app_materials', ['q' => $material->getName()]),
+                // S194 — la fiche du matériau (`/materiaux/{id}`), pas la liste filtrée.
+                'url' => $this->urls->generate('app_materials_detail', ['id' => $material->getId()]),
             ];
         }
 
