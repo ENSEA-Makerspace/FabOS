@@ -534,3 +534,7 @@
    grid must not leave a 340 px hole where it would have been. */
 .loan-item:not(:has(> .loan-item__photo)) { grid-template-columns: minmax(0, 1fr); }
 @media (max-width: 720px) { .loan-item { grid-template-columns: minmax(0, 1fr); } }
+
+/* S193 — « vous l'avez » : le prêt de la personne qui regarde. */
+.loan-item__mine { margin: 0 0 var(--spacing-md); padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; color: var(--color-text); }
+.loan-item__mine.is-overdue { border-color: var(--color-stop); }

@@ -137,6 +137,8 @@ kiosk:
     seats_left: "{left, plural, one {# place} other {# places}}"
 
 loans:
+    circulation_counts: "{out, plural, =0 {Aucun sorti} one {# sorti} other {# sortis}} · {free} disponible(s) sur {total}"
+    history: "Historique ({count, plural, one {# prêt rendu} other {# prêts rendus}})"
     panel_note: "{count, plural, one {# objet} other {# objets}}"
 
 machine:

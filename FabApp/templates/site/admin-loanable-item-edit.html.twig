@@ -15,6 +15,23 @@
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
+    <style>
+        /* S193 — la circulation d'un objet. Des jetons seulement : le panneau est sombre chez l'opérateur. */
+        .loan-circulation { display: grid; gap: 10px; margin: 16px 0 24px; }
+        .loan-circulation__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+        .loan-circulation__head h2 { margin: 0 0 4px; font-size: 1.1rem; }
+        .loan-circulation__head p, .loan-circulation__note, .loan-circulation__empty { margin: 0; color: var(--color-text-light); }
+        .loan-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 14px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--theme-surface-elevated, transparent); }
+        .loan-row.is-overdue { border-color: var(--color-stop); }
+        .loan-row__who { display: grid; gap: 3px; }
+        .loan-row__who span { color: var(--color-text-light); font-size: .88rem; }
+        .loan-row__return { display: flex; gap: 6px; align-items: center; margin: 0; }
+        .loan-row__return input[type=text] { padding: 7px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--theme-input, transparent); color: var(--color-text); font-size: 13px; max-width: 190px; }
+        .loan-history summary { cursor: pointer; font-weight: 600; }
+        .loan-history ul { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+        .loan-history li { display: flex; flex-wrap: wrap; gap: 4px 10px; color: var(--color-text-light); font-size: .88rem; }
+        .loan-history li strong { color: var(--color-text); }
+    </style>
 {% endblock %}
 
 {% block body %}
@@ -24,12 +41,79 @@
             {% include 'site/_admin_sidebar.html.twig' %}
             <section class="admin-panel admin-list-card admin-form-card">
                 {% include 'site/_admin_form_head.html.twig' with {
-                    title: 'loans.item_edit_title'|trans,
-                    subtitle: item.name,
+                    title: item.name,
+                    subtitle: 'loans.item_sheet_subtitle'|trans,
                     back_href: path('app_admin_loanable_items'),
                     back_label: 'loans.item_back'|trans,
                 } only %}
-                <div class="admin-edit-panel-header"><h2>{{ item.name }}</h2></div>
+                {# 🔴 S193 — la FICHE de l'objet commence par sa circulation : qui l'a,
+                   depuis quand, pour quand, et le retour se fait ICI (il était un
+                   champ perdu dans une ligne de la liste des prêts). Les dates sont
+                   des dates MURALES saisies : `|date`, pas `|lab_date`. #}
+                <section class="loan-circulation" id="circulation" aria-labelledby="circulation-title">
+                    <header class="loan-circulation__head">
+                        <div>
+                            <h2 id="circulation-title">{{ 'loans.circulation_title'|trans }}</h2>
+                            <p>{{ 'loans.circulation_counts'|trans({'out': circulation.out|length, 'free': free, 'total': item.quantity}) }}</p>
+                        </div>
+                        {% if item.archived %}
+                            <p class="loan-circulation__note">{{ 'loans.archived_no_lend'|trans }}</p>
+                        {% elseif free > 0 %}
+                            <a class="btn-action btn-primary-admin" href="{{ path('app_admin_loan_new', {item: item.id}) }}">{{ 'loans.lend_this'|trans }}</a>
+                        {% else %}
+                            <p class="loan-circulation__note">{{ 'loans.every_unit_out'|trans }}</p>
+                        {% endif %}
+                    </header>
+
+                    {% for loan in circulation.out %}
+                        {% set overdue = loan.effectiveStatus == 'overdue' %}
+                        <article class="loan-row{{ overdue ? ' is-overdue' : '' }}" id="loan-{{ loan.id }}">
+                            <div class="loan-row__who">
+                                <strong>
+                                    {%- if loan.borrower -%}
+                                        <a href="{{ path('app_admin_user_detail', {id: loan.borrower.id}) }}">{{ loan.borrowerDisplay }}</a>
+                                    {%- else -%}
+                                        {{ loan.borrowerDisplay }}
+                                    {%- endif -%}
+                                </strong>
+                                {% if not loan.borrower and (loan.borrowerEmail or loan.borrowerPhone) %}
+                                    <span>{{ [loan.borrowerEmail, loan.borrowerPhone]|filter(v => v)|join(' · ') }}</span>
+                                {% endif %}
+                                <span>
+                                    {{ 'loans.since'|trans({'%date%': loan.dateTaken|date('d/m/Y')}) }}
+                                    · {{ loan.expectedReturnDate ? 'loans.due_back'|trans({'%date%': loan.expectedReturnDate|date('d/m/Y')}) : 'loans.no_due'|trans }}
+                                </span>
+                                {% if overdue %}{% include 'site/_state_chip.html.twig' with {label: 'admin_loans.status_overdue'|trans, signal: 'stop'} only %}{% endif %}
+                                {% if loan.conditionOut %}<span class="loan-row__cond">{{ 'loans.condition_out'|trans({'%text%': loan.conditionOut}) }}</span>{% endif %}
+                            </div>
+                            <form class="loan-row__return" method="post" action="{{ path('app_admin_loan_return', {id: loan.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('return_loan_' ~ loan.id) }}">
+                                <label class="sr-only" for="cond-{{ loan.id }}">{{ 'admin_loans.condition_placeholder'|trans }}</label>
+                                <input id="cond-{{ loan.id }}" type="text" name="conditionReturn" placeholder="{{ 'admin_loans.condition_placeholder'|trans }}">
+                                <button class="btn-action btn-primary-admin" type="submit">{{ 'admin_loans.mark_returned'|trans }}</button>
+                            </form>
+                        </article>
+                    {% else %}
+                        <p class="loan-circulation__empty">{{ 'loans.none_out'|trans }}</p>
+                    {% endfor %}
+
+                    {% if circulation.history is not empty %}
+                        <details class="loan-history">
+                            <summary>{{ 'loans.history'|trans({'count': circulation.history|length}) }}</summary>
+                            <ul>
+                                {% for loan in circulation.history %}
+                                    <li>
+                                        <strong>{{ loan.borrowerDisplay }}</strong>
+                                        <span>{{ loan.dateTaken|date('d/m/Y') }} → {{ loan.actualReturnDate ? loan.actualReturnDate|date('d/m/Y') : '—' }}</span>
+                                        {% if loan.conditionReturn %}<span>{{ 'loans.condition_back'|trans({'%text%': loan.conditionReturn}) }}</span>{% endif %}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </details>
+                    {% endif %}
+                </section>
+
+                <div class="admin-edit-panel-header"><h2>{{ 'loans.item_settings'|trans }}</h2></div>
                 {{ include('site/_loanable_item_form.html.twig', {form: form, submit_label: 'common.save_changes'|trans}) }}
                 {# ⚠️ S133 — the words follow the behaviour. This button archives; the
                    route name and its CSRF token are unchanged so nothing breaks, but

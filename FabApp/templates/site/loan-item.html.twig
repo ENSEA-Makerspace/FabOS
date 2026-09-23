@@ -70,6 +70,13 @@
                     {% endif %}
                 </p>
 
+                {# S193 — SON prêt, pour la personne qui l'a ; personne d'autre ne voit qui. #}
+                {% if myLoan %}
+                    <p class="loan-item__mine{{ myLoan.effectiveStatus == 'overdue' ? ' is-overdue' : '' }}">
+                        {{ 'loans.you_have_it'|trans({'%date%': myLoan.dateTaken|date('d/m/Y')}) }}
+                        {% if myLoan.expectedReturnDate %}· {{ 'loans.due_back'|trans({'%date%': myLoan.expectedReturnDate|date('d/m/Y')}) }}{% endif %}
+                    </p>
+                {% endif %}
                 {% if item.description %}<p class="loan-item__desc">{{ item.description }}</p>{% endif %}
 
                 <dl class="loan-item__facts">
@@ -97,6 +104,9 @@
                    recorded by staff at the desk (`/admin/prets/nouveau`). A control
                    here would be the dead affordance this page exists to remove. #}
                 <p class="loan-item__note">{{ 'loans.item_desk_note'|trans }}</p>
+                {% if is_granted('ROLE_ADMIN') %}
+                    <p class="loan-item__note"><a href="{{ path('app_admin_loanable_item_edit', {id: item.id}) }}">{{ 'loans.manage_item'|trans }}</a></p>
+                {% endif %}
             </div>
         </article>
     </div>

@@ -2180,9 +2180,45 @@ Ce qui n'appartient à aucune autre phase : prêts, créations, recherche, rappo
 
 | Session | Livre | Ce qu'on mesure |
 |---|---|---|
-| **S193** | **Prêts** : la circulation de l'objet, la fiche cliquable, le retour. ⚠️ `LoanableItem` et l'archivage existent — c'est de la présentation, pas un modèle | Rendre un objet se fait depuis la fiche, pas depuis une liste |
+| **S193** ✅ 2026-09-24 | **Prêts** : la circulation de l'objet, la fiche cliquable, le retour. ⚠️ `LoanableItem` et l'archivage existent — c'est de la présentation, pas un modèle | Rendre un objet se fait depuis la fiche, pas depuis une liste |
 | **S194** | **Recherche globale** : résultats par type, navigation rapide. ⚠️ `/search` existe déjà | Un résultat ouvre toujours la fiche de son objet |
 | **S195** | **Rapports qui conduisent à une action**, et **créations** : une communauté sobre | Un rapport propose l'action qu'il suggère, au lieu de la décrire |
+
+### ✅ S193 — les prêts : la fiche de l'objet porte sa circulation
+
+**Mesuré avant** : la page admin d'un objet ne disait RIEN de sa circulation ;
+la liste des prêts menait à la page PUBLIQUE de l'objet ; « Rendu » était un
+champ perdu dans une ligne parmi toutes ; « Mes prêts » (profil) ne liait pas
+l'objet. 🔴 Et **rien n'empêchait de prêter un objet dont tous les exemplaires
+étaient déjà sortis** — le formulaire ne regardait pas le stock.
+
+✅ **La fiche admin de l'objet** (`/admin/loanable-items/{id}/edit`, titrée par
+son nom) s'ouvre sur **« En circulation »** : « 2 sortis · 0 disponible sur 2 »,
+chaque prêt en cours (qui — lien vers sa fiche membre —, depuis quand, pour
+quand, EN RETARD encadré, état au départ) avec **« Rendu »** et l'état au retour ;
+**« Prêter cet objet »** (formulaire pré-rempli) ou « Tous les exemplaires sont
+sortis » ; l'historique replié. Prêter et rendre ramènent à la fiche.
+✅ La liste des prêts mène à la fiche, ancrée sur CE prêt (« Rendre… »). Un
+retour rejoué ne change rien.
+✅ **Le stock refuse** un prêt de trop (erreur sur le champ Objet).
+✅ **Le membre** lit SON prêt sur la page publique de l'objet (« Vous l'avez
+depuis le …, à rendre le … ») — personne d'autre ne voit qui l'a ; « Mes prêts »
+ouvre la page de l'objet ; un admin y trouve « Gérer cet objet ».
+✅ **Sonde `app:s193:loan-probe`**, transaction annulée : prêter depuis la
+fiche, qui l'a, retard, stock plein refusé **pour la bonne raison**, le membre
+et un autre, rendre depuis la fiche, historique, rejeu. ⚠️ Piège de sonde
+trouvé : le CSRF « sans état » des formulaires exige l'en-tête `Origin` — sans
+lui, 422 « token invalid » qui aurait pu passer pour le refus de stock.
+
+## Ce que l'opérateur vérifie — Phase T
+
+| Session | Où | Ce qui doit être vrai |
+|---|---|---|
+| **S193** ✅ | `/admin/loans` → un prêt en cours → « Rendre… » | La fiche de l'objet s'ouvre sur « En circulation », sur CE prêt ; « Rendu » le fait passer dans l'historique |
+| **S193** ✅ | fiche d'un objet → « Prêter cet objet » | Le formulaire arrive avec l'objet choisi ; enregistrer ramène à la fiche |
+| **S193** ✅ | prêter un objet dont tous les exemplaires sont sortis | Refusé : « Plus aucun exemplaire … disponible » |
+| **S193** ✅ | ton `/profil` → Mes prêts → l'objet | Sa page dit « Vous l'avez depuis le … » |
+| **S193** ✅ | `php bin/console app:s193:loan-probe` | Verte |
 
 ## La passe de fond
 

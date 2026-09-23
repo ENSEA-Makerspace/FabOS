@@ -106,11 +106,18 @@ final class LoanController extends AbstractController
         }
 
         $out = (int) ($loans->activeCountsByItem()[$item->getId()] ?? 0);
+        // S193 — la personne qui l'a emprunté lit SON prêt ici : depuis quand,
+        // pour quand. Personne d'autre ne voit qui a l'objet.
+        $viewer = $this->getUser();
+        $mine = $viewer instanceof \App\Entity\Utilisateur
+            ? $loans->findOneBy(['item' => $item, 'borrower' => $viewer, 'status' => \App\Entity\Loan::STATUS_OUT], ['dateTaken' => 'ASC'])
+            : null;
 
         return $this->render('site/loan-item.html.twig', [
             'item' => $item,
             'out' => $out,
             'free' => max(0, $item->getQuantity() - $out),
+            'myLoan' => $mine,
         ]);
     }
 }

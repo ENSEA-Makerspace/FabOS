@@ -94,6 +94,27 @@ class LoanRepository extends ServiceEntityRepository
     }
 
     /** Number of active (not-returned) loans for an item — for availability. */
+    /**
+     * S193 — la circulation d'UN objet : ses prêts en cours d'abord (le plus
+     * ancien en tête, c'est lui qu'on relance), puis l'historique récent.
+     *
+     * @return array{out: list<Loan>, history: list<Loan>}
+     */
+    public function circulationOf(LoanableItem $item, int $historyLimit = 20): array
+    {
+        $out = $this->createQueryBuilder('l')
+            ->andWhere('l.item = :item')->andWhere('l.status <> :returned')
+            ->setParameter('item', $item)->setParameter('returned', Loan::STATUS_RETURNED)
+            ->orderBy('l.dateTaken', 'ASC')->getQuery()->getResult();
+        $history = $this->createQueryBuilder('l')
+            ->andWhere('l.item = :item')->andWhere('l.status = :returned')
+            ->setParameter('item', $item)->setParameter('returned', Loan::STATUS_RETURNED)
+            ->orderBy('l.actualReturnDate', 'DESC')->addOrderBy('l.id', 'DESC')
+            ->setMaxResults($historyLimit)->getQuery()->getResult();
+
+        return ['out' => $out, 'history' => $history];
+    }
+
     public function countActiveForItem(LoanableItem $item): int
     {
         try {

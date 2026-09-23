@@ -4498,7 +4498,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/loanable-items/{id}/edit', name: 'app_admin_loanable_item_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
-    public function editLoanableItem(LoanableItem $item, Request $request, EntityManagerInterface $entityManager): Response
+    public function editLoanableItem(LoanableItem $item, Request $request, EntityManagerInterface $entityManager, LoanRepository $loans): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
@@ -4509,12 +4509,21 @@ final class AdminController extends AbstractController
             $entityManager->flush();
             $this->addFlash('success', ['flash.objet_mis_a_jour', ['%p1%' => $item->getName()]]);
 
-            return $this->redirectToRoute('app_admin_loanable_items');
+            return $this->redirectToRoute('app_admin_loanable_item_edit', ['id' => $item->getId()], Response::HTTP_SEE_OTHER);
         }
+
+        // 🔴 S193 — cette page est la FICHE de l'objet : qui l'a, depuis quand,
+        // pour quand, et le retour se fait ICI. Avant, la page d'édition ne
+        // disait rien de la circulation, la liste des prêts menait à la page
+        // PUBLIQUE de l'objet, et « Rendu » était un champ dans une ligne de
+        // tableau parmi cinquante.
+        $circulation = $loans->circulationOf($item);
 
         return $this->render('site/admin-loanable-item-edit.html.twig', [
             'item' => $item,
             'form' => $form,
+            'circulation' => $circulation,
+            'free' => max(0, $item->getQuantity() - \count($circulation['out'])),
         ]);
     }
 
@@ -4578,13 +4587,25 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/loans/new', name: 'app_admin_loan_new', methods: ['GET', 'POST'])]
-    public function newLoan(Request $request, EntityManagerInterface $entityManager): Response
+    public function newLoan(Request $request, EntityManagerInterface $entityManager, LoanRepository $loans, TranslatorInterface $translator): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         $loan = new Loan();
+        // S193 — « Prêter cet objet » depuis sa fiche arrive avec l'objet choisi.
+        $preset = $request->query->getInt('item');
+        if ($preset > 0 && ($presetItem = $entityManager->find(LoanableItem::class, $preset)) instanceof LoanableItem && !$presetItem->isArchived()) {
+            $loan->setItem($presetItem);
+        }
         $form = $this->createForm(LoanAdminType::class, $loan);
         $form->handleRequest($request);
+
+        // 🔴 S193 — rien n'empêchait de prêter un objet dont tous les exemplaires
+        // sont déjà sortis : le formulaire ne regardait pas le stock.
+        if ($form->isSubmitted() && $loan->getItem() instanceof LoanableItem
+            && $loans->countActiveForItem($loan->getItem()) >= $loan->getItem()->getQuantity()) {
+            $form->get('item')->addError(new FormError($translator->trans('loans.none_left', ['%name%' => $loan->getItem()->getName()])));
+        }
 
         if ($form->isSubmitted() && $form->isValid()) {
             if ($this->getUser() instanceof Utilisateur) {
@@ -4595,7 +4616,7 @@ final class AdminController extends AbstractController
             $entityManager->flush();
             $this->addFlash('success', ['flash.pret_enregistre_pour', ['%p1%' => $loan->getBorrowerDisplay()]]);
 
-            return $this->redirectToRoute('app_admin_loans');
+            return $this->redirectToRoute('app_admin_loanable_item_edit', ['id' => $loan->getItem()?->getId(), '_fragment' => 'circulation'], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('site/admin-loan-new.html.twig', [
@@ -4608,20 +4629,27 @@ final class AdminController extends AbstractController
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
+        // S193 — le retour se fait depuis la fiche de l'objet, et y revient.
+        $back = $loan->getItem() instanceof LoanableItem
+            ? $this->redirectToRoute('app_admin_loanable_item_edit', ['id' => $loan->getItem()->getId(), '_fragment' => 'circulation'], Response::HTTP_SEE_OTHER)
+            : $this->redirectToRoute('app_admin_loans');
+
         if (!$this->isCsrfTokenValid('return_loan_' . $loan->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'flash.action_refusee_token_csrf_invalide');
 
-            return $this->redirectToRoute('app_admin_loans');
+            return $back;
         }
 
-        $loan
-            ->setStatus(Loan::STATUS_RETURNED)
-            ->setActualReturnDate(new \DateTimeImmutable('today'))
-            ->setConditionReturn((string) $request->request->get('conditionReturn') ?: null);
-        $entityManager->flush();
-        $this->addFlash('success', 'flash.pret_marque_comme_rendu');
+        if (!$loan->isReturned()) {
+            $loan
+                ->setStatus(Loan::STATUS_RETURNED)
+                ->setActualReturnDate(new \DateTimeImmutable('today'))
+                ->setConditionReturn((string) $request->request->get('conditionReturn') ?: null);
+            $entityManager->flush();
+            $this->addFlash('success', 'flash.pret_marque_comme_rendu');
+        }
 
-        return $this->redirectToRoute('app_admin_loans');
+        return $back;
     }
 
     #[Route('/maintenance', name: 'app_admin_maintenance', methods: ['GET'])]
