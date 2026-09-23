@@ -8,6 +8,7 @@ use App\Repository\ChoixRepository;
 use App\Repository\QuestionRepository;
 use App\Repository\QuizRepository;
 use App\Service\QuizCatalogService;
+use App\Training\QuizDraft;
 use App\Training\QuizScorer;
 use Doctrine\DBAL\Connection;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -46,6 +47,7 @@ final class S182QuizIntegrityProbeCommand extends Command
         private readonly KernelInterface $kernel,
         private readonly Connection $db,
         private readonly QuizCatalogService $catalog,
+        private readonly QuizDraft $draft,
     ) {
         parent::__construct();
     }
@@ -134,7 +136,47 @@ final class S182QuizIntegrityProbeCommand extends Command
             $this->check($io, $failures, 'et elle dit « non enregistré »', ($body['result']['saved'] ?? null) === false);
         }
 
-        $io->section('7. Rien n\'a été écrit');
+        $io->section('7. Le constructeur (S182d) — lire et valider un brouillon');
+        $order = $this->draft->normalise([['text' => 'Q', 'kind' => 'order', 'choices' => [['text' => 'A'], ['text' => 'B']]]]);
+        $this->check($io, $failures, 'une étape d\'ordre est « juste » sans case cochée', $order[0]['choices'][0]['correct'] && $order[0]['choices'][1]['correct']);
+        $this->check($io, $failures, 'et s\'enregistre en type « order »', $this->draft->storedType($order[0]) === QuizScorer::ORDER);
+        $unknown = $this->draft->normalise([['text' => 'Q', 'kind' => 'script', 'choices' => [['text' => 'A', 'correct' => '1'], ['text' => 'B']]]]);
+        $this->check($io, $failures, 'un type inconnu retombe sur « choix »', $unknown[0]['kind'] === QuizDraft::CHOICE);
+        $this->check($io, $failures, 'deux cases cochées ⇒ « multiple »', $this->draft->storedType(['kind' => 'choice', 'choices' => [['correct' => true], ['correct' => true]]]) === QuizScorer::MULTIPLE);
+        $this->check($io, $failures, 'un ordre à UNE étape est refusé', $this->draft->validate([['text' => 'Q', 'kind' => 'order', 'choices' => [['text' => 'A', 'correct' => true]]]]) !== []);
+        $this->check($io, $failures, 'une réponse courte SANS réponse acceptée est refusée', $this->draft->validate([['text' => 'Q', 'kind' => 'short', 'choices' => []]]) !== []);
+        $this->check($io, $failures, 'une réponse courte à UNE réponse acceptée passe', $this->draft->validate([['text' => 'Q', 'kind' => 'short', 'choices' => [['text' => 'A', 'correct' => true]]]]) === []);
+
+        $io->section('8. 🔴 Rouvrir et réenregistrer un quiz ne change AUCUNE question');
+        // Le chemin d'une édition sans modification : ce que le constructeur
+        // réaffiche, renvoyé tel quel, relu, puis le type qu'on écrirait.
+        $roundTrips = 0;
+        $changed = [];
+        foreach ($this->questions->findAll() as $question) {
+            $choices = $this->choices->findBy(['question' => $question], ['ordre' => 'ASC']);
+            if ($choices === []) {
+                continue;
+            }
+            $shown = $this->draft->fromQuestion($question, $choices);
+            $submitted = ['text' => $shown['text'], 'kind' => $shown['kind'], 'choices' => array_map(
+                static fn (array $c): array => ['text' => $c['text'], 'correct' => $c['correct'] ? '1' : ''],
+                $shown['choices'],
+            )];
+            $reread = $this->draft->normalise([$submitted])[0] ?? null;
+            ++$roundTrips;
+            if ($reread === null
+                || $this->draft->storedType($reread) !== QuizScorer::effectiveType($question, $choices)
+                || array_column($reread['choices'], 'correct') !== array_map(static fn (Choix $c): bool => $c->isEstCorrect(), $choices)) {
+                $changed[] = '#' . $question->getId();
+            }
+        }
+        $io->writeln('   ' . $roundTrips . ' questions réouvertes');
+        $this->check($io, $failures, '🔴 AUCUNE ne change de type ni de bonne réponse', $changed === [] && $roundTrips > 0);
+        if ($changed !== []) {
+            $io->writeln('   modifiées : ' . implode(', ', array_slice($changed, 0, 10)));
+        }
+
+        $io->section('9. Rien n\'a été écrit');
         $this->check($io, $failures, 'PROGRESSION inchangée', (int) $this->db->fetchOne('SELECT COUNT(*) FROM PROGRESSION') === $progressionsBefore);
         $this->check($io, $failures, 'EMAIL_LOG inchangé', (int) $this->db->fetchOne('SELECT COUNT(*) FROM EMAIL_LOG') === $mailsBefore);
 
@@ -144,7 +186,7 @@ final class S182QuizIntegrityProbeCommand extends Command
             return Command::FAILURE;
         }
 
-        $io->success('Sonde S182c verte. Rien écrit.');
+        $io->success('Sonde S182 verte. Rien écrit.');
 
         return Command::SUCCESS;
     }

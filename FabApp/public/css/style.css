@@ -3495,8 +3495,26 @@ html[data-theme="dark"] .formation-suivi-content {
     color: var(--color-text);
 }
 
+/* S182d — le bandeau gardait son dégradé blanc de `formation-content-admin.css`
+   en sombre : titre #f8f2f7 sur #fff, illisible sur les trois écrans d'édition
+   d'une formation. */
 html[data-theme="dark"] .admin-content-hero {
+    background: var(--theme-surface);
+    border-color: var(--border-color);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.24);
+}
+
+html[data-theme="dark"] .admin-content-hero p {
+    color: var(--color-text-light);
+}
+
+/* Les boutons d'icône (↑ ↓, Retirer) et secondaires (« Retour à l'éditeur »)
+   des écrans de formation gardaient leur couleur de jour : 2,03:1 et 2,04:1 sur
+   la carte sombre. */
+html[data-theme="dark"] .admin-icon-button,
+html[data-theme="dark"] .admin-secondary-button {
+    border-color: var(--border-color);
+    color: #f0a6c6;
 }
 
 html[data-theme="dark"] .admin-nav-link:hover,

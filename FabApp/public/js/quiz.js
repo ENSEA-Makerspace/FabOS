@@ -189,8 +189,110 @@
         updateProgress();
     };
 
+    /*
+     * S182d — « remettre dans l'ordre ». Les étapes arrivent MÉLANGÉES par le
+     * serveur (jamais dans la bonne suite) ; l'apprenant les déplace avec ↑/↓ —
+     * des boutons plutôt qu'un glisser-déposer, parce qu'un glisser-déposer ne se
+     * fait pas au clavier.
+     * ⚠️ La question compte comme répondue dès qu'on l'a VUE : l'ordre laissé est
+     * la réponse. Exiger un déplacement empêcherait de répondre à qui pense que
+     * l'ordre proposé est déjà le bon — il ne l'est jamais, mais c'est à lui de
+     * le découvrir.
+     */
+    const renderOrderQuestion = (question) => {
+        if (selectedFor(question).length === 0) {
+            state.answers.set(String(question.id), question.choices.map((choice) => String(choice.id)));
+        }
+        const order = selectedFor(question);
+        const byId = new Map(question.choices.map((choice) => [String(choice.id), choice]));
+        const list = document.createElement('ol');
+        list.className = 'quiz-order';
+
+        order.forEach((id, index) => {
+            const item = document.createElement('li');
+            item.className = 'quiz-order__item';
+
+            const rank = document.createElement('span');
+            rank.className = 'quiz-order__rank';
+            rank.textContent = String(index + 1);
+
+            const text = document.createElement('span');
+            text.className = 'quiz-option__text';
+            text.textContent = byId.get(id)?.text ?? '';
+
+            const move = (delta) => {
+                const next = [...order];
+                const target = index + delta;
+                if (target < 0 || target >= next.length) {
+                    return;
+                }
+                [next[index], next[target]] = [next[target], next[index]];
+                state.answers.set(String(question.id), next);
+                renderQuestionOptions(question);
+                renderSteps();
+                // Le focus SUIT l'élément déplacé : sans ça, un utilisateur au
+                // clavier perd sa place à chaque déplacement. Arrivé en tête (ou
+                // en queue), la flèche du même sens est désactivée et ne prend
+                // pas le focus : on se rabat sur l'autre.
+                const moved = elements.options.querySelectorAll('.quiz-order__item')[target];
+                const same = moved?.querySelector(delta < 0 ? '[data-move="up"]' : '[data-move="down"]');
+                (same && !same.disabled ? same : moved?.querySelector(delta < 0 ? '[data-move="down"]' : '[data-move="up"]'))?.focus();
+            };
+
+            const up = document.createElement('button');
+            up.type = 'button';
+            up.className = 'quiz-order__move';
+            up.dataset.move = 'up';
+            up.textContent = '↑';
+            up.setAttribute('aria-label', f('js_move_up', { step: text.textContent }));
+            up.disabled = index === 0;
+            up.addEventListener('click', () => move(-1));
+
+            const down = document.createElement('button');
+            down.type = 'button';
+            down.className = 'quiz-order__move';
+            down.dataset.move = 'down';
+            down.textContent = '↓';
+            down.setAttribute('aria-label', f('js_move_down', { step: text.textContent }));
+            down.disabled = index === order.length - 1;
+            down.addEventListener('click', () => move(1));
+
+            item.append(rank, text, up, down);
+            list.appendChild(item);
+        });
+
+        elements.options.appendChild(list);
+    };
+
+    /* S182d — « réponse courte » : un champ, et la correction ignore la casse, les
+       accents et la ponctuation finale (voir `QuizScorer::normalise`). */
+    const renderShortQuestion = (question) => {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'quiz-short';
+        input.autocomplete = 'off';
+        input.setAttribute('aria-label', question.text);
+        input.value = selectedFor(question)[0] ?? '';
+        input.addEventListener('input', () => {
+            const value = input.value;
+            state.answers.set(String(question.id), value.trim() === '' ? [] : [value]);
+            clearMessage();
+            renderSteps();
+            updateProgress();
+        });
+        elements.options.appendChild(input);
+    };
+
     const renderQuestionOptions = (question) => {
         elements.options.textContent = '';
+        if (question.type === 'order') {
+            renderOrderQuestion(question);
+            return;
+        }
+        if (question.type === 'short') {
+            renderShortQuestion(question);
+            return;
+        }
         const selected = new Set(selectedFor(question));
         const multiple = question.type === 'multiple';
 
@@ -224,12 +326,17 @@
 
     const renderQuestion = () => {
         const question = quiz.questions[state.currentIndex];
-        const multiple = question.type === 'multiple';
+        const labels = {
+            single: ['single_choice', 'js_single_hint'],
+            multiple: ['multiple_choice', 'js_multiple_hint'],
+            order: ['order_type', 'js_order_hint'],
+            short: ['short_type', 'js_short_hint'],
+        }[question.type] || ['single_choice', 'js_single_hint'];
 
         elements.questionCounter.textContent = f('js_question_counter', { n: state.currentIndex + 1, total: quiz.questions.length });
-        elements.questionType.textContent = t(multiple ? 'multiple_choice' : 'single_choice');
+        elements.questionType.textContent = t(labels[0]);
         elements.questionText.textContent = question.text;
-        elements.questionInstruction.textContent = t(multiple ? 'js_multiple_hint' : 'js_single_hint');
+        elements.questionInstruction.textContent = t(labels[1]);
 
         renderQuestionOptions(question);
 
@@ -257,6 +364,13 @@
      * l'accès à une machine ne se corrige pas hors ligne.
      */
     const formatAnswer = (question, ids) => {
+        if (question.type === 'short') {
+            return ids[0] ? String(ids[0]).trim() : t('js_no_answer');
+        }
+        if (question.type === 'order') {
+            const byId = new Map(question.choices.map((choice) => [String(choice.id), choice.text]));
+            return ids.map((id) => byId.get(String(id)) ?? '').join(' → ');
+        }
         const selected = new Set(normalizeIds(ids));
         const texts = question.choices
             .filter((choice) => selected.has(String(choice.id)))

@@ -1034,6 +1034,18 @@ html[data-theme="dark"] .quiz-review {
     color: #d4c8d2;
 }
 
+/* S182d — la pastille du type gardait son fond rose clair de jour : #d4c8d2 sur
+   #f8eaf1, environ 1,4:1, illisible à chaque question. Et l'astuce restait en
+   #756b33 sur #2b2335, sous 3:1. */
+html[data-theme="dark"] .quiz-question-type {
+    background: rgba(207, 78, 135, 0.18);
+    color: #f1e8ef;
+}
+
+html[data-theme="dark"] .quiz-sidebar__tip p {
+    color: #e3d79b;
+}
+
 html[data-theme="dark"] .quiz-option {
     background: #342b41;
     border-color: #574967;
@@ -1060,6 +1072,105 @@ html[data-theme="dark"] .quiz-step.is-active,
 html[data-theme="dark"] .quiz-step.is-done {
     background: rgba(207, 78, 135, 0.16);
     border-color: rgba(207, 78, 135, 0.38);
+}
+
+/* S182d — « remettre dans l'ordre » : une liste numérotée, et deux flèches par
+   étape. Les flèches sont des boutons, pas un glisser-déposer : un
+   glisser-déposer ne se fait pas au clavier. */
+.quiz-order {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+}
+
+.quiz-order__item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1px solid var(--quiz-border);
+    border-radius: 14px;
+    background: var(--theme-surface, #fff);
+}
+
+.quiz-order__rank {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    font-size: 0.85rem;
+    color: var(--color-primary-text, var(--color-primary));
+    border: 1px solid var(--quiz-border);
+}
+
+.quiz-order__move {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid var(--quiz-border);
+    background: transparent;
+    color: var(--quiz-ink);
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.quiz-order__move:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+.quiz-order__move:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+/* « Réponse courte » : un champ plein largeur, à la hauteur tactile. */
+.quiz-short {
+    display: block;
+    width: 100%;
+    min-height: 48px;
+    padding: 12px 14px;
+    border: 1px solid var(--quiz-border);
+    border-radius: 14px;
+    font: inherit;
+    color: var(--quiz-ink);
+    background: var(--theme-surface, #fff);
+}
+
+.quiz-short:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 1px;
+}
+
+/* S182c/d — le THÈME SOMBRE des éléments nouveaux.
+   ⚠️ Les jetons `--quiz-ink` et `--quiz-border` ne changent PAS en sombre : ce
+   fichier repeint chaque élément un par un, avec les mêmes valeurs que
+   `.quiz-option`. Sans ces règles, les points à revoir, les étapes à ordonner
+   et le champ de réponse courte seraient du texte presque noir sur un fond
+   sombre. Les valeurs sont CELLES de `.quiz-option`, pas des nouvelles : deux
+   gris sombres voisins qui diffèrent d'un cran se voient comme une erreur. */
+html[data-theme="dark"] .quiz-review-points li,
+html[data-theme="dark"] .quiz-review-all > summary,
+html[data-theme="dark"] .quiz-order__item,
+html[data-theme="dark"] .quiz-short {
+    background: #342b41;
+    border-color: #574967;
+    color: #f1e8ef;
+}
+
+html[data-theme="dark"] .quiz-review-points h3 {
+    color: #f8f2f7;
+}
+
+html[data-theme="dark"] .quiz-order__move,
+html[data-theme="dark"] .quiz-order__rank {
+    border-color: #574967;
+    color: #f1e8ef;
 }
 
 /* =====================================================================

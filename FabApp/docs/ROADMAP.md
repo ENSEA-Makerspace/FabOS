@@ -1610,7 +1610,7 @@ elle repasse `is-done`. Base rendue à l'identique.
 s'annonçait « Mise en service » sur une page de formation. Un composant qui
 impose le vocabulaire de son premier appelant n'est pas un composant, c'est une
 copie qui s'ignore. `title` est maintenant obligatoire.
-| **S182** ⏳ | **Le quiz.** ✅ **L'invariant est livré le 2026-09-06** — et ce n'était PAS une reprise de quiz qui le cassait. 🅿️ **Reste** : les types de questions et l'écran de résultat | ✅ Sonde `app:s182:retake-probe`, **vérifiée dans les deux sens** |
+| **S182** ✅ | **Le quiz.** ✅ L'invariant (2026-09-06) ; ✅ **l'écran de résultat et la correction côté serveur** (S182c, 2026-09-23) ; ✅ **les types « remettre dans l'ordre » et « réponse courte »**, et un constructeur qui ne corrompt plus les bonnes réponses (S182d, 2026-09-23) | ✅ `app:s182:retake-probe` ; `app:s182:quiz-integrity-probe` (53 quiz, 2 960 combinaisons, 185 questions rouvertes) |
 
 ### 🔴 S182 — le défaut n'était pas là où la feuille de route le cherchait
 
@@ -1641,6 +1641,60 @@ correctif, les trois tiennent. Le fichier a été remis au hash près.
 ⚠️ **Et la sonde choisit exprès une formation au parcours INCOMPLET** — sur une
 formation terminée, l'ancien code passait aussi, et la sonde n'aurait rien
 mesuré.
+### ✅ S182c — les bonnes réponses ne quittent plus le serveur
+
+🔴 **Mesuré avant : la page d'un quiz envoyait `correct: true` au navigateur**,
+pour chaque bonne réponse — lisible en deux clics dans « Afficher le code
+source », par un visiteur anonyme (3 drapeaux sur `/formations/9/quiz/1`). Et la
+note affichée à la fin était calculée par le navigateur, le serveur recalculant
+la sienne de son côté : deux vérités.
+✅ **Après : 0 drapeau.** `QuizScorer` est le seul à corriger ; la page n'a plus
+que les énoncés et les choix (l'ordre attendu d'une remise en ordre part
+mélangé). `POST /api/quizzes/{id}/check` corrige sans rien enregistrer pour un
+visiteur. La sonde a rejoué **2 960 combinaisons de réponses** sur les 53 quiz :
+ancien correcteur et nouveau, **zéro désaccord**.
+
+✅ **L'écran de résultat dit QUOI relire, sans donner la solution** (planche
+`lms-quiz-result-retry`) : la liste des questions à revoir, « Voir toutes mes
+réponses » (les siennes, jamais les attendues), « Repasser le quiz » seulement
+en cas d'échec. 🅿️ Limite assumée : les reprises étant illimitées, on peut
+encore trouver par élimination. La fermer, c'est limiter les reprises — une
+décision de labo, pas de code.
+
+### ✅ S182d — deux types de questions, et un constructeur qui perdait des bonnes réponses
+
+🔴 **Mesuré avant : SUPPRIMER un choix dans l'éditeur décalait les cases « bonne
+réponse ».** Quiz 1, question 2, deux bonnes réponses ; on retire la 2ᵉ ligne
+(fausse), on enregistre : **une seule bonne réponse sauvée, aucune erreur**. La
+carte d'une question existante et celle d'une question ajoutée étaient deux
+copies écrites à la main, et la première n'avait pas les attributs que la
+renumérotation cherchait. ✅ **Une seule macro** (`_quiz_question_card`) rend
+les deux ; même geste après : **deux bonnes réponses envoyées**, noms alignés.
+Et la case avait pour tout libellé une infobulle : elle porte maintenant
+« Juste », visible.
+
+✅ **Un type par question** : choix (unique ou multiple selon le nombre de cases
+cochées, comme avant), **remettre dans l'ordre** (on saisit les étapes DANS
+l'ordre, rangs et flèches ↑ ↓ ; plus de case « Juste »), **réponse courte** (une
+ligne par réponse acceptée ; casse, accents et ponctuation finale ne comptent
+pas). `QuizDraft` lit, valide et type le brouillon : un ordre à une étape ou une
+réponse courte sans réponse est refusé.
+🔴 **Rouvrir puis réenregistrer un quiz ne change rien** : la sonde refait ce
+trajet pour les **185 questions** de la base — aucune ne change de type ni de
+bonne réponse.
+
+✅ **Côté apprenant** : une liste à flèches, dont chaque bouton dit ce qu'il
+déplace (« Monter « Charger le filament » ») ; le focus clavier suit l'étape
+déplacée, y compris quand elle arrive en tête et que sa flèche ↑ s'éteint.
+Réponse courte : un champ texte.
+
+🔴 **Mesuré en passant, en thème sombre, et corrigé** (défauts antérieurs) :
+le bandeau des trois écrans d'édition d'une formation restait **blanc, titre
+illisible** ; les boutons ↑ ↓ « Retirer » et « Retour à l'éditeur » étaient à
+**2,03:1** (→ 7,87:1) ; sur la page du quiz, la pastille du type était à
+**~1,4:1** (→ 9,2:1) et l'astuce sous 3:1 (→ 10,4:1). En mobile, une étape
+passait de 136 à 92 px : flèches et « Retirer » sur une seule ligne.
+
 | **S183** ✅ | **La messagerie de cohorte.** ✅ L'annonce (2026-09-06) ; ✅ **le fil privé (2026-09-23)** — un fil par (formation, apprenant), lu par le groupe `trainers` | ✅ `app:s183:cohort-probe` et `app:s183:thread-probe` (22 assertions, **aucun courrier**, rien laissé derrière) |
 
 ### ✅ S183b — le fil privé, et un modèle tranché par une mesure
@@ -1724,6 +1778,13 @@ fois ça s'est bien passé, la signature prouve qu'aucun chemin n'existe pour qu
 | **S180b** ✅ | `/admin/formations/2/edit` | Une case **« Exige une validation pratique »**, cochée pour la découpe laser, décochée pour l'imprimante 3D. 🔴 Avant, ça se DEVINAIT à partir du titre : « Découpe au CO2 » ou tout intitulé anglais n'exigeait rien |
 | **S181** ✅ | `/admin/formations/2/content` | Une carte **« Prête à être publiée ? »** en haut, cinq étapes. 🔴 La cible « 35 champs → sous 12 » était PÉRIMÉE : mesuré, **1 seul champ est visible à l'arrivée**, et c'est la recherche de l'en-tête du site |
 | **S182** ✅ | `php bin/console app:s182:retake-probe` | Verte. 🔴 Le défaut n'était pas la reprise d'un quiz — c'était **ajouter un quiz obligatoire**, qui « dé-diplômait » tous ceux qui avaient fini et effaçait leur date de fin. Vérifié dans les deux sens |
+| **S182** ✅ | `/formations/9/quiz/1`, « Afficher le code source » | Aucun `"correct"` dans la page. Avant : les bonnes réponses y étaient, lisibles par un visiteur |
+| **S182** ✅ | finir un quiz en se trompant | Le résultat liste **les questions à relire**, sans donner les bonnes réponses ; « Repasser le quiz » n'apparaît qu'en cas d'échec |
+| **S182** ✅ | `/admin/formations/1/quizzes/1/edit` | Chaque question a un **type**. En « Remettre dans l'ordre », les cases « Juste » disparaissent, des rangs et des flèches apparaissent |
+| **S182** ✅ | même page, retirer une réponse fausse AU-DESSUS d'une bonne, enregistrer | Les bonnes réponses restent cochées. 🔴 Avant : l'une d'elles sautait, sans message |
+| **S182** ✅ | la même page en thème sombre | Le bandeau du haut est sombre et son titre se lit. Avant : bandeau blanc, titre blanc |
+| **S182** ✅ | un quiz avec une question « ordre » (à créer : aucune n'existe encore) | Des flèches ↑ ↓ ; au clavier, on garde sa place en déplaçant |
+| **S182** ✅ | `php bin/console app:s182:quiz-integrity-probe` | Verte, rien écrit |
 | **S183** ✅ | `/admin/formations/2/annonce` (bouton « Écrire à la cohorte ») | La page dit **combien** de personnes elle touche — et n'affiche **aucune adresse**. Deux champs, objet et message ; pas de destinataires à cocher |
 | **S183** ✅ | `php bin/console app:s183:cohort-probe` | Verte, et **elle n'envoie aucun courrier** : le mailer de la boîte est actif, une sonde qui écrit à de vrais membres pour se prouver quelque chose ne se lance pas toute seule |
 | **S183** ✅ | une formation que tu SUIS, page « Suivi » | Un 3ᵉ onglet **« Messages »**. ⚠️ Absent pour qui n'a pas commencé la formation |

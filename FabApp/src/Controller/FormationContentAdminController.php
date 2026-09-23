@@ -23,6 +23,7 @@ use App\Service\QuizCatalogService;
 use App\Service\TrainingQualificationService;
 use App\Training\CohortAnnouncer;
 use App\Training\PublishChecklist;
+use App\Training\QuizDraft;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
@@ -44,8 +45,12 @@ final class FormationContentAdminController extends AbstractController
      * `renderEditor()` et la page rendait « Call to a member function steps() on
      * null ». Attrapé par `app:render` avant le redémarrage.
      */
-    public function __construct(private readonly PublishChecklist $checklist)
-    {
+    public function __construct(
+        private readonly PublishChecklist $checklist,
+        // S182d — la lecture et la validation du constructeur de quiz, sorties
+        // d'ici pour pouvoir être éprouvées sans écrire de quiz.
+        private readonly QuizDraft $draft,
+    ) {
     }
 
     /**
@@ -554,7 +559,7 @@ final class FormationContentAdminController extends AbstractController
                 'type' => trim((string) $request->request->get('type')),
                 'sectionId' => trim((string) $request->request->get('sectionId')),
                 'noteMinimale' => max(0, min(100, (int) $request->request->get('noteMinimale', 80))),
-                'questions' => $this->normalizeSubmittedQuestions($request->request->all('questions')),
+                'questions' => $this->draft->normalise($request->request->all('questions')),
             ];
 
             if ($formData['title'] === '') {
@@ -576,7 +581,7 @@ final class FormationContentAdminController extends AbstractController
                 }
             }
 
-            $errors = [...$errors, ...$this->validateQuestions($formData['questions'])];
+            $errors = [...$errors, ...$this->draft->validate($formData['questions'])];
 
             if ($errors === []) {
                 $this->persistQuiz(
@@ -673,11 +678,12 @@ final class FormationContentAdminController extends AbstractController
             }
 
             foreach ($formData['questions'] as $questionIndex => $questionData) {
-                $correctCount = count(array_filter($questionData['choices'], static fn (array $choice): bool => $choice['correct']));
                 $question = (new Question())
                     ->setQuiz($quiz)
                     ->setTexte($questionData['text'])
-                    ->setType($correctCount > 1 ? 'multiple' : 'single')
+                    // S182d — `single`/`multiple` déduits des cases, `order`/`short`
+                    // tels que choisis : voir `QuizDraft::storedType()`.
+                    ->setType($this->draft->storedType($questionData))
                     ->setOrdre($questionIndex + 1);
                 $entityManager->persist($question);
 
@@ -794,6 +800,7 @@ final class FormationContentAdminController extends AbstractController
                 'noteMinimale' => 80,
                 'questions' => [[
                     'text' => '',
+                    'kind' => QuizDraft::CHOICE,
                     'choices' => [
                         ['text' => '', 'correct' => true],
                         ['text' => '', 'correct' => false],
@@ -808,11 +815,10 @@ final class FormationContentAdminController extends AbstractController
             : ($catalog->isBonusQuizFormation($quizFormation) ? 'bonus' : 'required');
         $questionRows = [];
         foreach ($questions->findBy(['quiz' => $quiz], ['ordre' => 'ASC', 'id' => 'ASC']) as $question) {
-            $choiceRows = [];
-            foreach ($choices->findBy(['question' => $question], ['ordre' => 'ASC', 'id' => 'ASC']) as $choice) {
-                $choiceRows[] = ['text' => $choice->getTexte(), 'correct' => $choice->isEstCorrect()];
-            }
-            $questionRows[] = ['text' => $question->getTexte(), 'choices' => $choiceRows];
+            $questionRows[] = $this->draft->fromQuestion(
+                $question,
+                $choices->findBy(['question' => $question], ['ordre' => 'ASC', 'id' => 'ASC']),
+            );
         }
 
         return [
@@ -822,6 +828,7 @@ final class FormationContentAdminController extends AbstractController
             'noteMinimale' => $quiz->getNoteMinimale(),
             'questions' => $questionRows !== [] ? $questionRows : [[
                 'text' => '',
+                'kind' => QuizDraft::CHOICE,
                 'choices' => [
                     ['text' => '', 'correct' => true],
                     ['text' => '', 'correct' => false],
@@ -830,60 +837,7 @@ final class FormationContentAdminController extends AbstractController
         ];
     }
 
-    /** @param mixed[] $submitted */
-    private function normalizeSubmittedQuestions(array $submitted): array
-    {
-        $result = [];
-        foreach ($submitted as $question) {
-            if (!is_array($question)) {
-                continue;
-            }
-            $questionText = trim((string) ($question['text'] ?? ''));
-            $choices = [];
-            foreach (($question['choices'] ?? []) as $choice) {
-                if (!is_array($choice)) {
-                    continue;
-                }
-                $choiceText = trim((string) ($choice['text'] ?? ''));
-                if ($choiceText === '') {
-                    continue;
-                }
-                $choices[] = [
-                    'text' => $choiceText,
-                    'correct' => in_array((string) ($choice['correct'] ?? ''), ['1', 'true', 'on'], true),
-                ];
-            }
-            if ($questionText !== '' || $choices !== []) {
-                $result[] = ['text' => $questionText, 'choices' => $choices];
-            }
-        }
 
-        return $result;
-    }
-
-    /** @param list<array{text:string,choices:list<array{text:string,correct:bool}>}> $questions */
-    private function validateQuestions(array $questions): array
-    {
-        $errors = [];
-        if ($questions === []) {
-            return ['Ajoutez au moins une question au quiz.'];
-        }
-
-        foreach ($questions as $index => $question) {
-            $number = $index + 1;
-            if ($question['text'] === '') {
-                $errors[] = 'Le texte de la question ' . $number . ' est obligatoire.';
-            }
-            if (count($question['choices']) < 2) {
-                $errors[] = 'La question ' . $number . ' doit contenir au moins deux réponses.';
-            }
-            if (count(array_filter($question['choices'], static fn (array $choice): bool => $choice['correct'])) < 1) {
-                $errors[] = 'Sélectionnez au moins une bonne réponse pour la question ' . $number . '.';
-            }
-        }
-
-        return $errors;
-    }
 
     private function sectionAlreadyHasQuiz(
         Formation $formation,

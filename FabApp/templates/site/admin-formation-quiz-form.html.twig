@@ -83,31 +83,9 @@
                     </div>
 
                     <div class="admin-question-list" id="question-list">
+                        {% import 'site/_quiz_question_card.html.twig' as qcard %}
                         {% for question in formData.questions %}
-                            {% set qIndex = loop.index0 %}
-                            <article class="admin-question-card" data-question-card>
-                                <div class="admin-question-card__header">
-                                    <h3>{{ 'quiz_form.question'|trans }} <span data-question-number>{{ loop.index }}</span></h3>
-                                    <button type="button" class="admin-icon-button" data-remove-question>{{ 'quiz_form.remove_question'|trans }}</button>
-                                </div>
-                                <div class="admin-form-field">
-                                    <label>{{ 'quiz_form.question_text'|trans }}</label>
-                                    <textarea class="admin-form-control" name="questions[{{ qIndex }}][text]" data-question-text required>{{ question.text }}</textarea>
-                                </div>
-                                <div class="admin-choice-list" data-choice-list>
-                                    {% for choice in question.choices %}
-                                        {% set cIndex = loop.index0 %}
-                                        <div class="admin-choice-row" data-choice-row>
-                                            <label class="admin-choice-correct" title="{{ 'quiz_form.correct_answer'|trans }}">
-                                                <input type="checkbox" name="questions[{{ qIndex }}][choices][{{ cIndex }}][correct]" value="1" {{ choice.correct ? 'checked' : '' }}>
-                                            </label>
-                                            <input class="admin-form-control" aria-label="{{ 'quiz_form.answer_placeholder'|trans }}" name="questions[{{ qIndex }}][choices][{{ cIndex }}][text]" value="{{ choice.text }}" placeholder="{{ 'quiz_form.answer_placeholder'|trans }}" required>
-                                            <button type="button" class="admin-icon-button" data-remove-choice>{{ 'quiz_form.remove'|trans }}</button>
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                                <button type="button" class="admin-icon-button" data-add-choice style="margin-top: 12px;">{{ 'quiz_form.add_answer'|trans }}</button>
-                            </article>
+                            {{ qcard.card(question, loop.index0) }}
                         {% endfor %}
                     </div>
 
@@ -120,28 +98,13 @@
         </div>
     </main>
 
-    <template id="question-template">
-        <article class="admin-question-card" data-question-card>
-            <div class="admin-question-card__header">
-                <h3>{{ 'quiz_form.question'|trans }} <span data-question-number></span></h3>
-                <button type="button" class="admin-icon-button" data-remove-question>{{ 'quiz_form.remove_question'|trans }}</button>
-            </div>
-            <div class="admin-form-field">
-                <label>{{ 'quiz_form.question_text'|trans }}</label>
-                <textarea class="admin-form-control" data-question-text required></textarea>
-            </div>
-            <div class="admin-choice-list" data-choice-list></div>
-            <button type="button" class="admin-icon-button" data-add-choice style="margin-top: 12px;">{{ 'quiz_form.add_answer'|trans }}</button>
-        </article>
-    </template>
-
-    <template id="choice-template">
-        <div class="admin-choice-row" data-choice-row>
-            <label class="admin-choice-correct" title="{{ 'quiz_form.correct_answer'|trans }}"><input type="checkbox" value="1" data-choice-correct></label>
-            <input class="admin-form-control" data-choice-text aria-label="{{ 'quiz_form.answer_placeholder'|trans }}" placeholder="{{ 'quiz_form.answer_placeholder'|trans }}" required>
-            <button type="button" class="admin-icon-button" data-remove-choice>{{ 'quiz_form.remove'|trans }}</button>
-        </div>
-    </template>
+    {% import 'site/_quiz_question_card.html.twig' as qcard %}
+    {# ⚠️ Les gabarits de NOUVELLE question et de NOUVELLE réponse sortent de la
+       MÊME macro que les questions enregistrées : c'était la divergence entre
+       deux copies écrites à la main qui laissait les réponses existantes sans
+       leur repère de renumérotation. #}
+    <template id="question-template">{{ qcard.card({text: '', kind: 'choice', choices: []}, null) }}</template>
+    <template id="choice-template">{{ qcard.choice_row({text: '', correct: false}, null, null) }}</template>
 
     <script src="{{ asset('js/main.js') ~ '?v=' ~ js_version }}"></script>
     <script>
@@ -155,21 +118,33 @@
 
             if (!list || !questionTemplate || !choiceTemplate) return;
 
+            /*
+             * 🔴 S182d — la renumérotation retrouve CHAQUE champ par son repère
+             * `data-*`, jamais par son type HTML. L'ancienne cherchait le texte
+             * d'une réponse par `[data-choice-text], input[type="text"]` : les
+             * réponses déjà enregistrées n'avaient ni l'un ni l'autre, et
+             * supprimer une ligne décalait la case « bonne réponse » sur la
+             * mauvaise réponse, sans message.
+             */
             const reindex = () => {
-                [...list.querySelectorAll('[data-question-card]')].forEach((card, questionIndex) => {
+                [...list.querySelectorAll('[data-question-card]')].forEach((card, q) => {
                     const number = card.querySelector('[data-question-number]');
-                    const text = card.querySelector('[data-question-text]');
-                    if (number) number.textContent = String(questionIndex + 1);
-                    if (text) text.name = `questions[${questionIndex}][text]`;
+                    if (number) number.textContent = String(q + 1);
+                    card.querySelector('[data-question-text]').name = `questions[${q}][text]`;
+                    card.querySelector('[data-question-kind]').name = `questions[${q}][kind]`;
 
-                    [...card.querySelectorAll('[data-choice-row]')].forEach((row, choiceIndex) => {
-                        const correct = row.querySelector('input[type="checkbox"]');
-                        const choiceText = row.querySelector('[data-choice-text], input[type="text"]');
-                        if (correct) correct.name = `questions[${questionIndex}][choices][${choiceIndex}][correct]`;
-                        if (choiceText) choiceText.name = `questions[${questionIndex}][choices][${choiceIndex}][text]`;
+                    [...card.querySelectorAll('[data-choice-row]')].forEach((row, c) => {
+                        row.querySelector('[data-choice-correct]').name = `questions[${q}][choices][${c}][correct]`;
+                        row.querySelector('[data-choice-text]').name = `questions[${q}][choices][${c}][text]`;
+                        const rank = row.querySelector('[data-choice-rank]');
+                        if (rank) rank.textContent = String(c + 1);
                     });
                 });
             };
+
+            // Le minimum de lignes dépend du type : deux réponses pour un choix,
+            // deux étapes pour un ordre, UNE réponse acceptée pour une réponse courte.
+            const minimumChoices = (card) => (card.dataset.kind === 'short' ? 1 : 2);
 
             const addChoice = (card, checked = false) => {
                 const fragment = choiceTemplate.content.cloneNode(true);
@@ -190,21 +165,47 @@
                 reindex();
             };
 
+            list.addEventListener('change', (event) => {
+                const target = event.target;
+                if (target instanceof HTMLSelectElement && target.matches('[data-question-kind]')) {
+                    const card = target.closest('[data-question-card]');
+                    card.dataset.kind = target.value;
+                    while (card.querySelectorAll('[data-choice-row]').length < minimumChoices(card)) {
+                        addChoice(card);
+                    }
+                }
+            });
+
             list.addEventListener('click', (event) => {
                 const target = event.target;
                 if (!(target instanceof HTMLElement)) return;
-                if (target.matches('[data-add-choice]')) {
-                    addChoice(target.closest('[data-question-card]'));
+                const button = target.closest('button');
+                if (!button) return;
+                const card = button.closest('[data-question-card]');
+
+                if (button.matches('[data-add-choice]')) {
+                    addChoice(card);
                 }
-                if (target.matches('[data-remove-choice]')) {
-                    const card = target.closest('[data-question-card]');
-                    const choices = card.querySelectorAll('[data-choice-row]');
-                    if (choices.length > 2) target.closest('[data-choice-row]').remove();
+                if (button.matches('[data-remove-choice]')) {
+                    if (card.querySelectorAll('[data-choice-row]').length > minimumChoices(card)) {
+                        button.closest('[data-choice-row]').remove();
+                    }
                     reindex();
                 }
-                if (target.matches('[data-remove-question]')) {
+                if (button.matches('[data-move-choice]')) {
+                    // Pour « remettre dans l'ordre » : l'auteur corrige l'ordre
+                    // sans retaper les étapes.
+                    const row = button.closest('[data-choice-row]');
+                    const sibling = button.dataset.moveChoice === 'up' ? row.previousElementSibling : row.nextElementSibling;
+                    if (sibling) {
+                        if (button.dataset.moveChoice === 'up') sibling.before(row); else sibling.after(row);
+                        reindex();
+                        button.focus();
+                    }
+                }
+                if (button.matches('[data-remove-question]')) {
                     if (list.querySelectorAll('[data-question-card]').length > 1) {
-                        target.closest('[data-question-card]').remove();
+                        card.remove();
                     }
                     reindex();
                 }

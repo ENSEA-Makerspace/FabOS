@@ -221,6 +221,12 @@
         js_check_failed: 'quiz.js_check_failed'|trans,
         js_checking: 'quiz.js_checking'|trans,
         js_not_saved: 'quiz.js_not_saved'|trans,
+        order_type: 'quiz.order_type'|trans,
+        short_type: 'quiz.short_type'|trans,
+        js_order_hint: 'quiz.js_order_hint'|trans,
+        js_short_hint: 'quiz.js_short_hint'|trans,
+        js_move_up: 'quiz.js_move_up'|trans,
+        js_move_down: 'quiz.js_move_down'|trans,
     }|json_encode|raw }}</script>
     <script src="{{ asset('js/main.js') ~ '?v=' ~ js_version }}"></script>
     {% if quizData.questionCount > 0 %}<script src="{{ asset('js/quiz.js') ~ '?v=' ~ js_version }}"></script>{% endif %}

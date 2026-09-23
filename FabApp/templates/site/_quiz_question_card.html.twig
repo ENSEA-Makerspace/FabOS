@@ -1,0 +1,73 @@
+{#
+    UNE CARTE DE QUESTION DU CONSTRUCTEUR DE QUIZ — écrite UNE fois (S182d).
+
+    🔴 **Le défaut qui l'a fait extraire : la carte existait en DEUX copies
+    écrites à la main**, une pour les questions déjà enregistrées, une dans le
+    `<template>` des nouvelles. Seule la seconde portait `data-choice-text`, le
+    repère que le script cherche pour renuméroter le texte d'une réponse. Sur une
+    question ENREGISTRÉE, supprimer une réponse renumérotait donc les cases
+    « bonne réponse » mais pas les textes — mesuré au navigateur sur la
+    question 2 du quiz 1 : deux bonnes réponses avant, UNE après, sans le moindre
+    message. Une seule source pour les deux usages, et ce défaut ne peut plus
+    revenir par l'une des deux copies.
+
+    ⚠️ **La case « bonne réponse » a un LIBELLÉ VISIBLE.** Elle n'avait qu'une
+    infobulle : l'auteur devait deviner ce que signifiait une petite case sans
+    texte à côté de chaque réponse.
+
+    Paramètres (macro `card`) :
+      question  {text, kind, choices: [{text, correct}]}
+      qIndex    l'indice, ou `null` pour le gabarit vide (le script numérote)
+#}
+{% macro choice_row(choice, qIndex, cIndex) %}
+    {%- set base = qIndex is not null ? 'questions[' ~ qIndex ~ '][choices][' ~ cIndex ~ ']' : '' -%}
+    <div class="admin-choice-row" data-choice-row>
+        <label class="admin-choice-correct">
+            <input type="checkbox" value="1" data-choice-correct{% if base %} name="{{ base }}[correct]"{% endif %}{{ choice.correct|default(false) ? ' checked' : '' }}>
+            <span>{{ 'quiz_form.correct_short'|trans }}</span>
+        </label>
+        <span class="admin-choice-rank" data-choice-rank aria-hidden="true">{{ cIndex is not null ? cIndex + 1 : '' }}</span>
+        <input type="text" class="admin-form-control" data-choice-text{% if base %} name="{{ base }}[text]"{% endif %} value="{{ choice.text|default('') }}" aria-label="{{ 'quiz_form.answer_placeholder'|trans }}" placeholder="{{ 'quiz_form.answer_placeholder'|trans }}" required>
+        <span class="admin-choice-move">
+            <button type="button" class="admin-icon-button" data-move-choice="up" aria-label="{{ 'quiz_form.move_up'|trans }}">↑</button>
+            <button type="button" class="admin-icon-button" data-move-choice="down" aria-label="{{ 'quiz_form.move_down'|trans }}">↓</button>
+        </span>
+        <button type="button" class="admin-icon-button" data-remove-choice>{{ 'quiz_form.remove'|trans }}</button>
+    </div>
+{% endmacro %}
+
+{% macro card(question, qIndex) %}
+    {%- set kind = question.kind|default('choice') -%}
+    <article class="admin-question-card" data-question-card data-kind="{{ kind }}">
+        <div class="admin-question-card__header">
+            <h3>{{ 'quiz_form.question'|trans }} <span data-question-number>{{ qIndex is not null ? qIndex + 1 : '' }}</span></h3>
+            <button type="button" class="admin-icon-button" data-remove-question>{{ 'quiz_form.remove_question'|trans }}</button>
+        </div>
+        <div class="admin-form-field">
+            <label>{{ 'quiz_form.kind'|trans }}</label>
+            <select class="admin-form-control" data-question-kind{% if qIndex is not null %} name="questions[{{ qIndex }}][kind]"{% endif %}>
+                {% for k in ['choice', 'order', 'short'] %}
+                    <option value="{{ k }}"{{ k == kind ? ' selected' : '' }}>{{ ('quiz_form.kind_' ~ k)|trans }}</option>
+                {% endfor %}
+            </select>
+            {# ⚠️ Les trois aides sont là, et le CSS montre celle du type choisi : un
+               texte réécrit en JavaScript à chaque changement serait un texte de
+               plus que les catalogues de traduction ne voient pas. #}
+            {% for k in ['choice', 'order', 'short'] %}
+                <p class="admin-question-kind-help" data-kind-help="{{ k }}">{{ ('quiz_form.kind_' ~ k ~ '_help')|trans }}</p>
+            {% endfor %}
+        </div>
+        <div class="admin-form-field">
+            <label>{{ 'quiz_form.question_text'|trans }}</label>
+            <textarea class="admin-form-control" data-question-text{% if qIndex is not null %} name="questions[{{ qIndex }}][text]"{% endif %} required>{{ question.text|default('') }}</textarea>
+        </div>
+        <div class="admin-choice-list" data-choice-list>
+            {% for choice in question.choices|default([]) %}
+                {{ _self.choice_row(choice, qIndex, loop.index0) }}
+            {% endfor %}
+        </div>
+        <button type="button" class="admin-icon-button" data-add-choice style="margin-top: 12px;">
+            {% for k in ['choice', 'order', 'short'] %}<span data-kind-label="{{ k }}">{{ ('quiz_form.add_' ~ k)|trans }}</span>{% endfor %}
+        </button>
+    </article>
+{% endmacro %}
