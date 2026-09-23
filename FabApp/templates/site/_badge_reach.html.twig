@@ -1,0 +1,68 @@
+{#
+   S192 — ce que le badge de cette personne ouvre, et pourquoi.
+   Données : `RightsExplainer::explain()` (la même règle que le scan, jamais une
+   seconde copie). Paramètres : explained, audience ('self' | 'admin'), id_prefix.
+
+   🔴 Aucun identifiant de badge ici : « enregistré ••••A1F2 », jamais l'UID.
+#}
+{% set self = audience|default('self') == 'self' %}
+{% set reach_id = id_prefix|default('badge-reach') %}
+<section class="badge-reach" aria-labelledby="{{ reach_id }}-title">
+    <header class="badge-reach__header">
+        <h2 id="{{ reach_id }}-title">{{ (self ? 'badge_reach.title_self' : 'badge_reach.title_admin')|trans }}</h2>
+        <p class="badge-reach__card">
+            {% if explained.badge.registered %}
+                {{ 'badge_reach.registered'|trans }} <span class="badge-reach__hint">{{ explained.badge.hint }}</span>
+            {% else %}
+                {{ (self ? 'badge_reach.none_self' : 'badge_reach.none_admin')|trans }}
+            {% endif %}
+        </p>
+    </header>
+
+    {% if not explained.active %}
+        <p class="badge-reach__stop" role="note">{{ 'badge_reach.inactive'|trans }}</p>
+    {% elseif not explained.badge.registered %}
+        <p class="badge-reach__note">{{ 'badge_reach.nothing_opens'|trans }}</p>
+    {% else %}
+        {% if explained.badges is not empty %}
+            <ul class="badge-reach__badges">
+                {% for held in explained.badges %}
+                    {% set opens = explained.open|filter(o => held.badge.id in o.via|map(b => b.id)) %}
+                    <li>
+                        <strong>{{ held.badge.nom }}</strong>
+                        <span>
+                            {{ 'badge_reach.obtained'|trans({'%date%': held.obtainedAt|lab_date('d/m/Y')}) }}
+                            {%- if held.direct %} · <em class="badge-reach__direct">{{ 'badge_reach.direct'|trans }}</em>{% endif %}
+                            {%- for formation in held.formations %}{{ loop.first ? ' · ' : ', ' }}<a href="{{ path('app_formation_detail', {id: formation.id}) }}">{{ formation.titre }}</a>{% endfor %}
+                        </span>
+                        {% if opens is not empty %}
+                            <span class="badge-reach__opens">{{ 'badge_reach.opens'|trans }}
+                                {% for o in opens %}<a href="{{ path('app_machine_detail', {id: o.machine.id}) }}">{{ o.machine.nom }}</a>{{ not loop.last ? ', ' }}{% endfor %}
+                            </span>
+                        {% else %}
+                            <span class="badge-reach__opens">{{ 'badge_reach.opens_nothing'|trans }}</span>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        {% if explained.free is not empty %}
+            <details class="badge-reach__more">
+                <summary>{{ 'badge_reach.free'|trans({'count': explained.free|length}) }}</summary>
+                <p>{% for m in explained.free %}<a href="{{ path('app_machine_detail', {id: m.id}) }}">{{ m.nom }}</a>{{ not loop.last ? ', ' }}{% endfor %}</p>
+            </details>
+        {% endif %}
+
+        {% if explained.closed is not empty %}
+            <details class="badge-reach__more">
+                <summary>{{ (self ? 'badge_reach.closed_self' : 'badge_reach.closed_admin')|trans({'count': explained.closed|length}) }}</summary>
+                <ul>
+                    {% for c in explained.closed %}
+                        <li><a href="{{ path('app_machine_detail', {id: c.machine.id}) }}">{{ c.machine.nom }}</a> — {{ 'badge_reach.requires'|trans({'%badges%': c.required|map(b => b.nom)|join(' / ')}) }}</li>
+                    {% endfor %}
+                </ul>
+            </details>
+        {% endif %}
+    {% endif %}
+</section>

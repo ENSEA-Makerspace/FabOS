@@ -99,6 +99,24 @@ final class UsageRightsService
         );
     }
 
+    /**
+     * S192 — les CHEMINS d'un droit, posés exactement comme `verdict()` les pose
+     * (même lecteur, même instant à l'heure du labo, aucun lieu imposé) : c'est
+     * ce qui permet d'EXPLIQUER un « accordé » sans le recalculer autrement.
+     * Vide pour un admin (il passe sans forfait) et hors droits v2.
+     *
+     * @return list<array{package: string, source: string, sourceLabel: string, action: string, section: ?string, venue: ?string, until: ?string, groupKey: ?string}>
+     */
+    public function pathsFor(Utilisateur $user, string $capability): array
+    {
+        $definition = $this->capabilities->get($capability);
+        if ($definition === null || !$this->settings->isUsageRightsV2Active($capability)) {
+            return [];
+        }
+
+        return $this->grants->paths($user, $definition->featureKey, UsageGrantAction::Use, UsageScope::any($this->now()));
+    }
+
     /** @return list<array{capability:UsageCapability,verdict:UsageRightVerdict}> */
     public function overview(?Utilisateur $user): array
     {

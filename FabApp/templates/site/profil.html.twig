@@ -250,7 +250,8 @@
                             </div>
                             <div class="info-item">
                                 <div class="info-label">{{ 'profile.rfid_uid'|trans }}</div>
-                                <div class="info-value">{{ user.identifiantRfid ?? 'fallback.not_set_m'|trans }}</div>
+                                {# S192 — jamais l'identifiant en clair : « ••••A1F2 » suffit à reconnaître SA carte. #}
+                                <div class="info-value">{{ explained.badge.hint ?? 'fallback.not_set_m'|trans }}</div>
                             </div>
                             <div class="info-item">
                                 <div class="info-label">{{ 'profile.last_login'|trans }}</div>
@@ -268,6 +269,12 @@
                         description: 'usage_rights.profile_section_description'|trans,
                         id_prefix: 'profile-usage-rights',
                         allowances: usageBudgets,
+                    } only %}
+
+                    {% include 'site/_badge_reach.html.twig' with {
+                        explained: explained,
+                        audience: 'self',
+                        id_prefix: 'profile-badge-reach',
                     } only %}
                 </section>
 
@@ -539,7 +546,7 @@
                                     {% for log in rfidLogs|slice(0, 10) %}
                                         <div class="reservation-row">
                                             <div class="res-col machine">{{ log.createdAt|lab_date('d/m/Y H:i') }}</div>
-                                            <div class="res-col date">{{ log.badgeUid }}</div>
+                                            <div class="res-col date">{{ log.badgeUid|rfid_mask }}</div>
                                             <div class="res-col time">{{ log.machine ? log.machine.nom : 'fallback.machine'|trans }}</div>
                                             <div class="res-col duration">{{ log.authorized ? 'common.yes'|trans : 'common.no'|trans }}</div>
                                             <div class="res-col status"><span class="status-tag {{ log.authorized ? 'completed' : 'cancelled' }}">{{ log.status }}</span></div>

@@ -133,6 +133,7 @@ use App\UsageRights\UsageCapabilityRegistry;
 use App\UsageRights\UsagePackageRepository;
 use App\UsageRights\UserGroupRepository;
 use App\UsageRights\AudienceResolver;
+use App\UsageRights\RightsExplainer;
 use App\Reservation\LabClock;
 use App\Venue\VenueContext;
 use Doctrine\ORM\EntityManagerInterface;
@@ -1849,6 +1850,7 @@ final class AdminController extends AbstractController
         AccountGuard $accountGuard,
         UserGroupRepository $userGroups,
         AudienceResolver $audiences,
+        RightsExplainer $explainer,
     ): Response {
         $user = $users->find($id);
         if (!$user) {
@@ -1910,7 +1912,11 @@ final class AdminController extends AbstractController
             'reservations' => $reservations->findBy(['utilisateur' => $user], ['dateDebut' => 'DESC']),
             'usageLogs' => $usageLogs->findBy(['utilisateur' => $user], ['dateDebut' => 'DESC']),
             'physicalTrainingRows' => $physicalTrainingRows,
-            'usageRightsSummary' => $usageRights->overview($user),
+            // S192 — les droits AVEC leur chemin (forfait, groupe, lieu,
+            // échéance) et ce que le badge ouvre : l'écran répond à « pourquoi
+            // cette personne a-t-elle ce droit ? ». Mêmes verdicts qu'avant.
+            'explained' => $explained = $explainer->explain($user),
+            'usageRightsSummary' => $explained['capabilities'],
             // Staff answering "why was I refused?" need the same figures the
             // member sees, on the same screen they are already looking at.
             'usageBudgets' => $usageBudgets->summaryFor($user),

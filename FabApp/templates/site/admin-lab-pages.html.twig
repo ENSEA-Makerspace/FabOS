@@ -58,8 +58,10 @@
                                    lesquelles sont retirées est la seule information qui
                                    manque.
                                    ⚠️ Et ce commentaire est ICI, pas dans le littéral de
-                                   l'`include` : un `{# #}` dans un hash Twig casse le
-                                   gabarit, et `lint:twig` ne le voit que sur la boîte. #}
+                                   l'`include` : un commentaire Twig dans un hash casse le
+                                   gabarit, et `lint:twig` ne le voit que sur la boîte.
+                                   (S192 : il citait ses propres délimiteurs, se fermait
+                                   trop tôt et s'IMPRIMAIT dans le tableau.) #}
                                 <td>{% include 'site/_cell_title.html.twig' with {
                                     title: child.titre,
                                     href: path('app_admin_lab_page_edit', {id: child.id}),

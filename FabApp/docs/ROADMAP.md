@@ -1919,7 +1919,7 @@ parcours d'adhésion.
 | **S189** ✅ 2026-09-23 | **L'entrée** : inscription courte qui annonce ses prochaines étapes, activation par e-mail avec renvoi et correction d'adresse — **sans impasse**. 🔴 **Et c'est là que `/register` cesse d'être un oracle d'appartenance** : la réponse devient la même que l'adresse existe ou non, ce qui n'est possible QUE parce que l'activation par e-mail arrive dans la même session | Une adresse mal tapée se corrige sans recréer un compte. 🔴 Et une sonde : deux adresses, l'une connue l'autre non, **réponses identiques** — la même mesure que S191 |
 | **S190** ✅ 2026-09-23 | **L'adhésion.** 🔴 **Tranché par l'opérateur : PAS de validation par l'équipe** — l'équipe doit seulement pouvoir DÉSACTIVER un compte, et que ça coupe vraiment. Livré : la désactivation coupe la connexion, les sessions ouvertes et le badge | ✅ `app:s190:deactivation-probe` : avant/après sur le même compte, machine, porte, page, API |
 | **S191** | **Sécurité du profil** : sessions visibles et révocables, MFA. ⚠️ Et une **récupération de compte NON DIVULGUANTE** — la réponse est la même que l'adresse existe ou non | 🔴 Prouvé par une sonde : deux adresses, l'une connue l'autre non, réponses identiques |
-| **S192** | **Les droits EXPLIQUÉS** côté admin — par rôle, lieu, formation et durée — et « mon badge » sans identifiant sensible | Un admin répond à « pourquoi cette personne a-t-elle ce droit ? » **depuis l'écran** |
+| **S192** ✅ 2026-09-23 | **Les droits EXPLIQUÉS** côté admin — par rôle, lieu, formation et durée — et « mon badge » sans identifiant sensible | Un admin répond à « pourquoi cette personne a-t-elle ce droit ? » **depuis l'écran** |
 
 ### ✅ S189 — l'entrée : une adresse prouvée, et plus d'oracle d'appartenance
 
@@ -2001,6 +2001,55 @@ simulée sans cookie de session repart anonyme (`hasPreviousSession()`), donc la
 première version « prouvait » la coupure sur des sessions jamais connectées.
 Elle exige maintenant `/profil` à 200 AVANT, puis 302 après.
 
+### ✅ S192 — « pourquoi cette personne a-t-elle ce droit ? », depuis l'écran
+
+**Mesuré avant** : l'encart des droits (profil et fiche admin) disait
+« accordé par » suivi de noms de forfaits. Il ne disait ni QUEL GROUPE porte le
+forfait, ni jusqu'à QUAND, ni à QUEL LIEU — et rien du badge : quelles machines
+il ouvre, grâce à quel badge, obtenu par quelle formation. 🔴 Et
+**l'identifiant RFID s'affichait en clair** au membre (profil + son historique
+d'accès) et sur sa fiche admin ; pour beaucoup de cartes, le lire suffit à les
+cloner.
+
+✅ **Chaque droit accordé dit son chemin** : « Forfait « X » · par le groupe
+« Y » · à « lieu » · jusqu'au JJ/MM/AAAA » (l'échéance est la plus proche de
+deux : fin de l'attribution au groupe, fin de l'appartenance au groupe).
+`paths()` renvoie ces deux colonnes de plus, LUES, aucune condition changée ;
+`UsageRightsService::pathsFor()` pose la question exactement comme le verdict.
+✅ **« Ce que son badge ouvre »** (fiche admin) / **« Ce que votre badge
+ouvre »** (profil) : badge enregistré « ••••C387 », chaque badge détenu avec sa
+date et sa formation (les formations internes de quiz exclues), les machines
+qu'il ouvre ; repliés : celles qui s'ouvrent sans badge, celles qui restent
+fermées et le badge qu'elles exigent. Un compte désactivé : « le badge n'ouvre
+rien ».
+🔴 **La règle du badge n'existe plus qu'une fois** : `MachineAccessService::badgeRule()`,
+extraite de `authorize()`, suivie par le scan ET par l'écran.
+✅ **Identifiant masqué partout côté membre** (`|rfid_mask`, « ••••A1F2 ») ;
+les libellés « UID RFID » deviennent « Badge d'accès ». ⚠️ Le journal RFID de
+l'administration et l'historique d'une machine (admins) gardent l'identifiant
+entier : c'est là qu'on repère une carte inconnue pour l'attribuer.
+
+🔴 **Trouvé en mesurant, et corrigé** : deux commentaires de gabarit citaient
+leurs propres délimiteurs — Twig n'imbrique pas les commentaires, le premier
+`#}` les fermait, et **la fin s'imprimait à l'écran** : dans la colonne
+« Résultat » de CHAQUE ligne du journal RFID (partout où `_rfid_result` est
+inclus), et dans le tableau de `/admin/lab-pages` (celui-là, je l'avais écrit en
+S168b). `lint:twig` ne voit rien : c'est du texte valide.
+`tools/twig_balance.py` le détecte désormais, vérifié dans les deux sens.
+
+🅿️ **À TRANCHER — deux vérités sur un badge.** Le lecteur ouvre à quiconque
+POSSÈDE un badge ; « Mes badges » ne montre que ceux dont la formation est
+validée. **Mesuré : 4 badges détenus, dont 2 attribués hors formation validée**
+— ils ouvrent la machine et sont invisibles au profil. L'explication le dit
+désormais (« attribué directement : la formation n'est pas validée »), mais
+la règle n'a pas bougé. Soit le lecteur exige la formation validée (sécurité),
+soit « Mes badges » montre les badges attribués à la main (vérité du profil).
+
+✅ **Sonde `app:s192:rights-probe`** : la règle extraite = l'algorithme d'avant
+recopié (107 paires, aucun désaccord) ; l'écran = le scan (99 scans,
+transaction annulée, journal intact) ; chemins = forfaits du verdict
+(12 droits) ; aucun UID entier sur 8 pages rendues.
+
 ## Ce que l'opérateur vérifie — Phase S
 
 | Session | Où | Ce qui doit être vrai |
@@ -2019,6 +2068,10 @@ Elle exige maintenant `/profil` à 200 AVANT, puis 302 après.
 | **S190** ✅ | `php bin/console app:s190:deactivation-probe` | Verte |
 | **S196a** ✅ | `/login`, 6 mauvais mots de passe de suite | Au 6ᵉ : « Trop de tentatives… réessayez dans 5 minutes » ; même chose avec une adresse qui n'existe pas |
 | **S196a** ✅ | `/login` et l'accueil | Plus aucune mention de « CAS » |
+| **S192** ✅ | `/admin/utilisateurs/{id}` d'un membre qui a un badge | Sous chaque droit : « Forfait « … » · par le groupe « … » · jusqu'au … » ; puis « Ce que son badge ouvre », badge « ••••XXXX », jamais l'identifiant entier |
+| **S192** ✅ | ton `/profil` | « Ce que votre badge ouvre » ; le champ « Badge d'accès » et ton historique d'accès montrent « ••••XXXX » |
+| **S192** ✅ | `/admin/acces-rfid` (journal) | Colonne « Résultat » : un état, plus aucune phrase sur la « syntaxe Twig » |
+| **S192** ✅ | `php bin/console app:s192:rights-probe` | Verte ; elle affiche aussi le nombre de badges attribués hors formation |
 
 ## La passe de fond
 

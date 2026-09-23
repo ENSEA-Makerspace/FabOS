@@ -909,3 +909,61 @@ a.cell-chip:hover, a.cell-chip:focus-visible {
     font-size: 14px; font-weight: var(--font-weight-semibold);
 }
 .formation-unlocks__chip:hover { border-color: var(--color-primary); }
+/* ===================================================================
+   S192 — d'où vient un droit, et ce que le badge ouvre.
+   Même composant au profil et sur la fiche admin : des jetons seulement.
+   =================================================================== */
+.rights-state__paths {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 4px;
+    font-size: var(--font-size-sm);
+    line-height: 1.45;
+}
+
+.rights-state__paths li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 .45em;
+    color: var(--color-text-light);
+}
+
+.rights-state__paths strong { color: var(--color-text); }
+.rights-state__paths li > span::before { content: "· "; }
+
+.badge-reach {
+    display: grid;
+    gap: var(--spacing-sm, 8px);
+    margin-top: var(--spacing-md, 16px);
+    padding: var(--spacing-md, 16px);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--theme-surface, transparent);
+    color: var(--color-text);
+}
+
+.badge-reach__header { display: grid; gap: 4px; }
+.badge-reach__header h2 { margin: 0; font-size: 1.05rem; }
+.badge-reach__card { margin: 0; color: var(--color-text-light); }
+.badge-reach__hint { font-family: var(--font-mono, ui-monospace, monospace); color: var(--color-text); letter-spacing: .04em; }
+.badge-reach__note { margin: 0; color: var(--color-text-light); }
+.badge-reach__stop { margin: 0; padding: 10px 12px; border-radius: 8px; background: var(--tone-stop-soft); color: var(--color-stop); }
+
+.badge-reach__badges { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.badge-reach__badges > li {
+    display: grid;
+    gap: 2px;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 9px;
+}
+.badge-reach__badges span { color: var(--color-text-light); font-size: var(--font-size-sm); }
+.badge-reach__opens { color: var(--color-text) !important; }
+
+.badge-reach a { color: var(--color-primary-text); }
+.badge-reach__more summary { cursor: pointer; color: var(--color-text); font-weight: 600; }
+.badge-reach__more p,
+.badge-reach__more ul { margin: 6px 0 0; color: var(--color-text-light); font-size: var(--font-size-sm); }
+.badge-reach__direct { font-style: normal; color: var(--color-text); font-weight: 600; }

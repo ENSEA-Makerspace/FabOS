@@ -63,7 +63,12 @@ final class UsageGrantRepository
      * would have covered it is scoped to the other location" are different
      * answers, and only one of them tells an operator what to do.
      *
-     * @return list<array{package: string, source: string, sourceLabel: string, action: string, section: ?string, venue: ?string}>
+     * S192 — `until` (fin de l'attribution, ou null) et `groupKey` (le groupe par
+     * lequel elle passe, ou null si elle est directe) sont LUS, pas décidés :
+     * les mêmes lignes, deux colonnes de plus au SELECT, aucune condition changée.
+     * Ils servent à EXPLIQUER un droit à l'écran, jamais à l'accorder.
+     *
+     * @return list<array{package: string, source: string, sourceLabel: string, action: string, section: ?string, venue: ?string, until: ?string, groupKey: ?string}>
      */
     public function paths(
         ?Utilisateur $user,
@@ -98,6 +103,8 @@ final class UsageGrantRepository
             'action' => (string) $row['action'],
             'section' => $row['section'] !== null ? (string) $row['section'] : null,
             'venue' => $row['venue'] !== null ? (string) $row['venue'] : null,
+            'until' => ($row['assignedUntil'] ?? null) !== null ? (string) $row['assignedUntil'] : null,
+            'groupKey' => ($row['groupKey'] ?? null) !== null ? (string) $row['groupKey'] : null,
         ], $rows);
 
         // 🔴 **S153 — un package `fullAccess` couvre tout, ici aussi.**
@@ -122,6 +129,8 @@ final class UsageGrantRepository
                 'action' => $action->value,
                 'section' => null,
                 'venue' => null,
+                'until' => $row['until'],
+                'groupKey' => $row['groupKey'],
             ];
         }
 
@@ -135,7 +144,7 @@ final class UsageGrantRepository
      * ⚠️ Même forme d'attribution que `grantRows()` — la personne ET ses groupes
      * — parce que c'est la même question posée d'un autre côté de la jointure.
      *
-     * @return list<array{package:string,source:string,sourceLabel:string}>
+     * @return list<array{package:string,source:string,sourceLabel:string,until:?string,groupKey:?string}>
      */
     private function fullAccessPackages(?Utilisateur $user, UsageScope $scope): array
     {
@@ -146,7 +155,8 @@ final class UsageGrantRepository
                 <<<'SQL'
                 SELECT DISTINCT p.name AS package,
                        CASE WHEN a.userId IS NOT NULL THEN 'direct' ELSE 'group' END AS source,
-                       COALESCE(ug.label, '') AS sourceLabel
+                       COALESCE(ug.label, '') AS sourceLabel,
+                       a.validUntil AS assignedUntil, ug.groupKey AS groupKey
                 FROM USAGE_RIGHT_ASSIGNMENT a
                 INNER JOIN USAGE_PACKAGE p ON p.id = a.packageId AND p.active = 1 AND p.fullAccess = 1
                 LEFT JOIN USER_GROUP ug ON ug.id = a.groupId
@@ -174,6 +184,8 @@ final class UsageGrantRepository
             'package' => (string) $row['package'],
             'source' => (string) $row['source'],
             'sourceLabel' => (string) $row['sourceLabel'],
+            'until' => $row['assignedUntil'] !== null ? (string) $row['assignedUntil'] : null,
+            'groupKey' => $row['groupKey'] !== null ? (string) $row['groupKey'] : null,
         ], $rows);
     }
 
@@ -240,7 +252,8 @@ final class UsageGrantRepository
                        g.action, g.sectionKey AS section,
                        v.name AS venue,
                        CASE WHEN a.userId IS NOT NULL THEN 'direct' ELSE 'group' END AS source,
-                       COALESCE(ug.label, '') AS sourceLabel
+                       COALESCE(ug.label, '') AS sourceLabel,
+                       a.validUntil AS assignedUntil, ug.groupKey AS groupKey
                 FROM USAGE_RIGHT_ASSIGNMENT a
                 INNER JOIN USAGE_PACKAGE p ON p.id = a.packageId AND p.active = 1
                 INNER JOIN USAGE_PACKAGE_GRANT g ON g.packageId = p.id

@@ -33,6 +33,7 @@
                         compact: compact|default(true),
                         id: summary_id ~ '-' ~ row.capability.key,
                         signal: row.signal is defined ? row.signal : row.verdict.tone(),
+                        paths: row.paths|default([]),
                     } only %}
                 </li>
             {% endfor %}

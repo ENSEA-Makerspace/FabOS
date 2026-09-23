@@ -4,7 +4,8 @@
    this partial only translates and presents its UsageRightVerdict.
 
    Required: capability (UsageCapability), verdict (UsageRightVerdict)
-   Optional: compact, id, action_url, action_label, signal (design previews)
+   Optional: compact, id, action_url, action_label, signal (design previews),
+             paths (S192 — RightsExplainer : d'où vient un droit accordé)
 #}
 {% set compact = compact|default(false) %}
 {% set state_id = id|default('right-' ~ capability.key ~ '-' ~ verdict.reason) %}
@@ -28,7 +29,27 @@
         } only %}
     </div>
 
-    {% if verdict.packages is not empty %}
+    {# S192 — quand on connaît les CHEMINS (profil, fiche admin), on dit d'où vient
+       le droit : le forfait, le groupe qui le porte, le lieu, jusqu'à quand.
+       Sinon (catalogues, fiches machine), les seuls noms de forfaits, comme avant.
+       ⚠️ `until` est une heure MURALE du labo (convention B) : `|date`, pas
+       `|lab_date`, sinon on la décale une seconde fois. #}
+    {% if paths|default([]) is not empty %}
+        <ul class="rights-state__paths" aria-label="{{ 'usage_rights.why_label'|trans }}">
+            {% for path in paths %}
+                <li>
+                    <strong>{{ 'usage_rights.path_package'|trans({'%package%': path.package}) }}</strong>
+                    <span>{{ path.via == 'group'
+                        ? 'usage_rights.path_group'|trans({'%group%': path.group})
+                        : 'usage_rights.path_direct'|trans }}</span>
+                    {% if path.venue %}<span>{{ 'usage_rights.path_venue'|trans({'%venue%': path.venue}) }}</span>{% endif %}
+                    <span>{{ path.until
+                        ? 'usage_rights.path_until'|trans({'%date%': path.until|date('d/m/Y')})
+                        : 'usage_rights.path_no_end'|trans }}</span>
+                </li>
+            {% endfor %}
+        </ul>
+    {% elseif verdict.packages is not empty %}
         <p class="rights-state__packages">
             <span>{{ 'usage_rights.granted_by'|trans }}</span>
             <strong>{{ verdict.packages|join(', ') }}</strong>

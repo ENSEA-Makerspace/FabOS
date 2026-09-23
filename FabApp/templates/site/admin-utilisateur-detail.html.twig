@@ -56,7 +56,7 @@
                         <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_last_name'|trans }}</span><span class="admin-user-value">{{ user.lastName ?? '-' }}</span></div>
                         <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_id_number'|trans }}</span><span class="admin-user-value">{{ user.numeroId ?? '-' }}</span></div>
                         <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_status'|trans }}</span><span class="admin-user-value">{{ user.statusKey|trans }}</span></div>
-                        <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_rfid_uid'|trans }}</span><span class="admin-user-value">{{ user.identifiantRfid ?? '-' }}</span></div>
+                        <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_rfid_uid'|trans }}</span><span class="admin-user-value">{# S192 — masqué : l'identifiant d'une carte suffit souvent à la cloner. Il reste lisible dans « Modifier », là où on le saisit. #}{{ explained.badge.hint ?? '-' }}</span></div>
                         <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_total_time'|trans }}</span><span class="admin-user-value">{{ user.tempsPresenceTotal }}</span></div>
                         <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_verified'|trans }}</span><span class="admin-user-value">{{ (user.verified ? 'common.yes' : 'common.no')|trans }}</span></div>
                         <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_created'|trans }}</span><span class="admin-user-value">{{ user.createdAt|lab_date('d/m/Y H:i:s') }}</span></div>
@@ -75,6 +75,12 @@
                     description: 'usage_rights.summary_hint'|trans,
                     id_prefix: 'admin-member-usage-rights',
                     allowances: usageBudgets,
+                } only %}
+
+                {% include 'site/_badge_reach.html.twig' with {
+                    explained: explained,
+                    audience: 'admin',
+                    id_prefix: 'admin-member-badge-reach',
                 } only %}
 
 {# LES GROUPES DE CETTE PERSONNE (S158b) — la même appartenance que
@@ -217,7 +223,7 @@
                                 <tr>
                                     <td>{% include 'site/_cell_date.html.twig' with {value: log.createdAt, convention: 'machine', format: 'd/m/Y H:i:s'} only %}</td>
                                     <td>{% include 'site/_cell_title.html.twig' with {
-                                        title: log.badgeUid,
+                                        title: log.badgeUid|rfid_mask,
                                         subtitle: machine ? machine.nom : '',
                                     } only %}</td>
                                     {# 🔴 **Five headers over four cells, the third instance of

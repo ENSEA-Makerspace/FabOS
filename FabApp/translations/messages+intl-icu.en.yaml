@@ -199,3 +199,8 @@ usage_rights:
 venues:
     panel:
         count: "{count, plural, one {# location} other {# locations}}"
+
+badge_reach:
+    free: "{count, plural, one {# machine opens without a specific badge} other {# machines open without a specific badge}}"
+    closed_self: "{count, plural, one {# machine needs a badge you do not have yet} other {# machines need a badge you do not have yet}}"
+    closed_admin: "{count, plural, one {# machine stays closed to them} other {# machines stay closed to them}}"

@@ -31,10 +31,15 @@
    « authorized » et « no training », lisibles mais jamais traduites, et
    « authorized » à côté de « Autorisé » sur la ligne voisine. Le repli humanise,
    il ne remplace pas le vocabulaire.
-   ⚠️ **Et ce commentaire est ICI, pas dans le hash.** Un `{# … #}` entre deux clés
-   d'un littéral de hash est une erreur de syntaxe Twig — piège déjà documenté deux
-   fois dans ce dépôt, et dans lequel je viens de retomber. `lint:twig` l'a
-   attrapé avant le redémarrage ; c'est exactement ce à quoi il sert. #}
+   ⚠️ **Et ce commentaire est ICI, pas dans le hash.** Un commentaire Twig entre
+   deux clés d'un littéral de hash est une erreur de syntaxe — piège déjà
+   documenté deux fois dans ce dépôt. `lint:twig` l'a attrapé avant le
+   redémarrage.
+   🔴 **S192 — et ce commentaire-ci S'IMPRIMAIT.** Il citait les délimiteurs de
+   commentaire eux-mêmes ; le premier « dièse-accolade fermante » le fermait trop
+   tôt, et la fin de la phrase s'affichait dans la colonne « Résultat » de CHAQUE
+   ligne du journal RFID. `lint:twig` ne le voit pas : c'est du texte valide. Ne
+   jamais écrire les délimiteurs dans un commentaire. #}
 {% set _labels = {
     'authorized': 'rfid_logs.status_authorized',
     'no_badge_required': 'rfid_logs.status_no_badge_required',

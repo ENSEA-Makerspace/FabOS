@@ -50,6 +50,7 @@ use App\Entity\Machine;
 use App\Entity\Utilisateur;
 use App\Repository\UtilisateurRepository;
 use App\Security\AccountActivation;
+use App\UsageRights\RightsExplainer;
 use App\Service\BookingIdentityPolicy;
 use App\Service\FormationPageContentService;
 use App\Service\GuidedTrainingService;
@@ -2293,6 +2294,7 @@ final class SiteController extends AbstractController
         EventRegistrationRepository $eventRegistrations,
         UsageRightsService $usageRights,
         UsageAllowanceService $usageBudgets,
+        RightsExplainer $explainer,
         VenueRepository $venues,
         LocaleCatalog $locales,
     ): Response
@@ -2653,7 +2655,11 @@ final class SiteController extends AbstractController
             'myLoans' => $loans->findForBorrower($user),
             'eventsEnabled' => $modules->isEnabled('events'),
             'myEventRegistrations' => $eventRegistrations->findForUser($user),
-            'usageRightsSummary' => $usageRights->overview($user),
+            // S192 — « mon badge » et d'où viennent mes droits, par le même
+            // explicateur que la fiche admin : les deux écrans ne peuvent pas
+            // raconter deux histoires.
+            'explained' => $explained = $explainer->explain($user),
+            'usageRightsSummary' => $explained['capabilities'],
             // ⚠️ What a package METERS, beside what it allows (S144c). A member
             // who only learns their limit at the moment of refusal reads a
             // budget they were sold as an arbitrary rule.

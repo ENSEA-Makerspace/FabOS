@@ -59,36 +59,13 @@ final class MachineAccessService
             return $result;
         }
 
-        $requiredBadgeEntities = [];
-        foreach ($this->machineBadges->findRequiredForMachine($machine) as $machineBadge) {
-            $badge = $machineBadge->getBadge();
-            if ($badge instanceof Badge) {
-                $requiredBadgeEntities[] = $badge;
-            }
-        }
-
-        $userBadgeEntities = [];
-        foreach ($this->userBadges->findBy(['utilisateur' => $user]) as $userBadge) {
-            $badge = $userBadge->getBadge();
-            if ($badge instanceof Badge) {
-                $userBadgeEntities[] = $badge;
-            }
-        }
-
+        $requiredBadgeEntities = $this->requiredBadges($machine);
+        $userBadgeEntities = $this->heldBadges($user);
         $requiredBadges = $this->badgeNames($requiredBadgeEntities);
         $userBadges = $this->badgeNames($userBadgeEntities);
-        $matchedBadges = [];
+        $rule = self::badgeRule($requiredBadgeEntities, $userBadgeEntities);
 
-        foreach ($requiredBadgeEntities as $requiredBadge) {
-            foreach ($userBadgeEntities as $userBadge) {
-                if ($requiredBadge->getId() !== null && $requiredBadge->getId() === $userBadge->getId()) {
-                    $matchedBadges[] = $requiredBadge->getNom();
-                    break;
-                }
-            }
-        }
-
-        if ($requiredBadges === []) {
+        if ($rule['status'] === 'no_badge_required') {
             $result = $this->buildResult(true, 'no_badge_required', 'Accès autorisé sans badge requis', 200, $machine, $user, $requiredBadges, $userBadges, []);
             $this->markAuthorization($machine);
             $this->logAttempt($rfid, $machine, $user, $result);
@@ -96,8 +73,8 @@ final class MachineAccessService
             return $result;
         }
 
-        if ($matchedBadges !== []) {
-            $result = $this->buildResult(true, 'authorized', 'Accès autorisé', 200, $machine, $user, $requiredBadges, $userBadges, array_values(array_unique($matchedBadges)));
+        if ($rule['status'] === 'authorized') {
+            $result = $this->buildResult(true, 'authorized', 'Accès autorisé', 200, $machine, $user, $requiredBadges, $userBadges, $this->badgeNames($rule['matched']));
             $this->markAuthorization($machine);
             $this->logAttempt($rfid, $machine, $user, $result);
 
@@ -173,6 +150,87 @@ final class MachineAccessService
     }
 
     /** @param Badge[] $badges */
+    /**
+     * 🔴 S192 — LA règle du badge, une seule fois. `authorize()` la suit au scan,
+     * `reachFor()` la suit pour l'EXPLIQUER à l'écran : une seconde copie aurait
+     * dérivé, et l'écran aurait dit « ouvre » là où le boîtier refuse.
+     * Aucun badge exigé → ouvert ; sinon il suffit d'UN des badges exigés.
+     *
+     * @param list<Badge> $required
+     * @param list<Badge> $held
+     *
+     * @return array{status: 'no_badge_required'|'authorized'|'missing_badge', matched: list<Badge>}
+     */
+    public static function badgeRule(array $required, array $held): array
+    {
+        if ($required === []) {
+            return ['status' => 'no_badge_required', 'matched' => []];
+        }
+        $heldIds = [];
+        foreach ($held as $badge) {
+            if ($badge->getId() !== null) {
+                $heldIds[$badge->getId()] = true;
+            }
+        }
+        $matched = array_values(array_filter($required, static fn (Badge $badge): bool => $badge->getId() !== null && isset($heldIds[$badge->getId()])));
+
+        return ['status' => $matched !== [] ? 'authorized' : 'missing_badge', 'matched' => $matched];
+    }
+
+    /**
+     * Ce que le badge de cette personne ouvre, machine par machine — pour
+     * l'expliquer, jamais pour décider (le scan passe par `authorize()`).
+     * ⚠️ Un compte désactivé n'ouvre rien : même garde qu'au scan. Les machines
+     * archivées sortent, comme sur la fiche d'une formation (S179).
+     *
+     * @return list<array{machine: Machine, status: string, matched: list<Badge>, required: list<Badge>}>
+     */
+    public function reachFor(Utilisateur $user): array
+    {
+        $held = $this->heldBadges($user);
+        $rows = [];
+        foreach ($this->machines->findBy([], ['nom' => 'ASC']) as $machine) {
+            if (!$machine instanceof Machine || $machine->getArchivedAt() !== null) {
+                continue;
+            }
+            $required = $this->requiredBadges($machine);
+            $rule = $user->getStatut() !== 'actif'
+                ? ['status' => 'account_inactive', 'matched' => []]
+                : self::badgeRule($required, $held);
+            $rows[] = ['machine' => $machine, 'status' => $rule['status'], 'matched' => $rule['matched'], 'required' => $required];
+        }
+
+        return $rows;
+    }
+
+    /** @return list<Badge> */
+    private function requiredBadges(Machine $machine): array
+    {
+        $badges = [];
+        foreach ($this->machineBadges->findRequiredForMachine($machine) as $machineBadge) {
+            $badge = $machineBadge->getBadge();
+            if ($badge instanceof Badge) {
+                $badges[] = $badge;
+            }
+        }
+
+        return $badges;
+    }
+
+    /** @return list<Badge> */
+    private function heldBadges(Utilisateur $user): array
+    {
+        $badges = [];
+        foreach ($this->userBadges->findBy(['utilisateur' => $user]) as $userBadge) {
+            $badge = $userBadge->getBadge();
+            if ($badge instanceof Badge) {
+                $badges[] = $badge;
+            }
+        }
+
+        return $badges;
+    }
+
     private function badgeNames(array $badges): array
     {
         return array_values(array_unique(array_map(static fn (Badge $badge): string => $badge->getNom(), $badges)));
