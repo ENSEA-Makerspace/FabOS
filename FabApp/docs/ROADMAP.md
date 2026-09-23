@@ -2049,13 +2049,18 @@ badges « sans formation » viennent de données initiales ou de règles changé
 après coup ; « attribué directement » affirmait une origine que rien
 n'enregistre, c'est devenu « sans formation validée ».
 
-🅿️ **Reste une troisième vérité — À TRANCHER.** La RÉSERVATION
-(`MachineQualificationService`) suit encore « formation validée » :
-**mesuré, 4 paires membre × machine où le badge ouvre au lecteur et la
-réservation refuse** (3 « formation requise », 1 « validation pratique
-requise » — Sofia × découpe laser). Avec l'option 2, la réservation devrait
-suivre le badge détenu ; mais c'est élargir le droit de RÉSERVER une machine
-dangereuse, donc une décision distincte. La sonde S192 affiche ce compte.
+✅ **S192c — tranché (2026-09-23) : la réservation suit le badge.**
+`MachineQualificationService` : un badge DÉTENU qualifie, validation pratique
+comprise (le badge en est la preuve) ; sans badge, la formation dit toujours
+ce qui manque. Mesuré sur les données de dev : 4 paires « le badge ouvre, la
+réservation refuse » → **0**, et la sonde S192 l'exige désormais.
+🅿️ **Mesuré dans l'autre sens, laissé tel quel** : 14 paires où l'on peut
+RÉSERVER sans que le badge ouvre au lecteur (Oscilloscope, Imprimante 3D
+test…) — vraisemblablement des machines que la politique de formation dit
+« libres » alors qu'un badge y est exigé au lecteur. Deux réglages pour une
+question ; à regarder avec de vraies données. Aucune machine n'exige plusieurs
+badges aujourd'hui, donc l'écart « le lecteur : UN suffit / la réservation :
+TOUS » ne se voit pas encore.
 
 ### 🅿️ Délivrer un badge autrement — ce que l'option 2 demande (S202–S203)
 
@@ -2093,6 +2098,7 @@ transaction annulée, journal intact) ; chemins = forfaits du verdict
 | **S192** ✅ | `/admin/acces-rfid` (journal) | Colonne « Résultat » : un état, plus aucune phrase sur la « syntaxe Twig » |
 | **S192** ✅ | `php bin/console app:s192:rights-probe` | Verte ; elle affiche aussi le nombre de badges attribués hors formation |
 | **S192b** ✅ | ton `/profil`, « Mes badges » | Tous tes badges, chacun avec son origine ; le compteur les compte tous |
+| **S192c** ✅ | une machine à badge, avec un compte qui a le badge sans avoir fait la formation | Il peut réserver, comme le lecteur lui ouvre |
 
 ## La passe de fond
 

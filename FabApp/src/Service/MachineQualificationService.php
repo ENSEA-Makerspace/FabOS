@@ -68,7 +68,18 @@ final class MachineQualificationService
 
             $qualified = $owned;
             $physicalCompletedForBadge = null;
-            if ($user instanceof Utilisateur) {
+            if ($owned) {
+                // 🔴 S192c — la réservation suit le BADGE DÉTENU (décision de
+                // l'opérateur, 2026-09-23), comme le lecteur. Un badge peut venir
+                // d'ailleurs qu'une formation — à la main, ou d'un autre FabOS —
+                // et il vaut preuve, pratique comprise : c'est ce qu'on atteste en
+                // le délivrant. Avant, la réservation exigeait EN PLUS la
+                // formation validée ici, et refusait ce que le lecteur ouvrait.
+                $physicalStatusKnown = true;
+                $physicalCompletedForBadge = true;
+                $physicalTrainingCompleted = true;
+            } elseif ($user instanceof Utilisateur) {
+                // Sans badge : la formation dit CE QUI MANQUE (théorie, pratique).
                 $formation = $this->formations->findVisibleByBadge($badge);
                 if ($formation !== null) {
                     $qualificationStatus = $this->qualification->getStatus($formation, $user);

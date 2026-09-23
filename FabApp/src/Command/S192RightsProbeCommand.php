@@ -199,26 +199,40 @@ final class S192RightsProbeCommand extends Command
             $io->writeln('   ' . $line);
         }
 
-        $io->section('5. MESURE — le lecteur ouvre, la réservation refuse');
-        // Pas une assertion : c'est la décision laissée à l'opérateur. Le lecteur
-        // suit « badge détenu » ; la réservation suit « formation validée ».
-        $gaps = [];
+        $io->section('5. 🔴 S192c — la réservation suit le badge, comme le lecteur');
+        // Décision de l'opérateur (2026-09-23) : un badge détenu vaut pour
+        // réserver. Vérifié dans les DEUX sens, sur chaque paire.
+        $opensNotBook = $booksNotOpens = [];
+        $multi = 0;
+        foreach ($machines as $machine) {
+            $multi += \count($this->required($machine)) > 1 ? 1 : 0;
+        }
         foreach ($this->users->findAll() as $user) {
             if ($user->getStatut() !== 'actif') {
                 continue;
             }
             foreach ($this->access->reachFor($user) as $row) {
-                if ($row['status'] !== 'authorized') {
+                if ($row['status'] === 'no_badge_required') {
                     continue;
                 }
-                $status = $this->booking->getStatus($row['machine'], $user);
-                if (!$status['authorized']) {
-                    $gaps[] = sprintf('#%d × %s (%s)', $user->getId(), $row['machine']->getNom(), (string) $status['trainingBlockReason']);
+                $books = (bool) $this->booking->getStatus($row['machine'], $user)['authorized'];
+                $opens = $row['status'] === 'authorized';
+                if ($opens && !$books) {
+                    $opensNotBook[] = sprintf('#%d × %s', $user->getId(), $row['machine']->getNom());
+                }
+                if ($books && !$opens) {
+                    $booksNotOpens[] = sprintf('#%d × %s', $user->getId(), $row['machine']->getNom());
                 }
             }
         }
-        $io->writeln(sprintf('   %d paire(s) membre × machine : le badge ouvre, la réservation refuse', count($gaps)));
-        foreach (array_slice($gaps, 0, 10) as $line) {
+        $this->check($io, $failures, 'le badge ouvre ⇒ la réservation accepte (' . \count($opensNotBook) . ' écart)', $opensNotBook === []);
+        foreach (array_slice($opensNotBook, 0, 5) as $line) {
+            $io->writeln('   ' . $line);
+        }
+        // Mesure : la réservation accepte encore une formation validée dont le
+        // badge n'est pas (encore) écrit ; le lecteur, lui, exige la ligne.
+        $io->writeln(sprintf('   mesure : %d paire(s) où l\'on peut réserver sans que le badge ouvre ; %d machine(s) exigent plusieurs badges (le lecteur : UN suffit ; la réservation : TOUS)', \count($booksNotOpens), $multi));
+        foreach (array_slice($booksNotOpens, 0, 5) as $line) {
             $io->writeln('   ' . $line);
         }
 
