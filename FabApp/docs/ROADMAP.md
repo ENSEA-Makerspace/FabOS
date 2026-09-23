@@ -2037,13 +2037,33 @@ inclus), et dans le tableau de `/admin/lab-pages` (celui-là, je l'avais écrit 
 S168b). `lint:twig` ne voit rien : c'est du texte valide.
 `tools/twig_balance.py` le détecte désormais, vérifié dans les deux sens.
 
-🅿️ **À TRANCHER — deux vérités sur un badge.** Le lecteur ouvre à quiconque
-POSSÈDE un badge ; « Mes badges » ne montre que ceux dont la formation est
-validée. **Mesuré : 4 badges détenus, dont 2 attribués hors formation validée**
-— ils ouvrent la machine et sont invisibles au profil. L'explication le dit
-désormais (« attribué directement : la formation n'est pas validée »), mais
-la règle n'a pas bougé. Soit le lecteur exige la formation validée (sécurité),
-soit « Mes badges » montre les badges attribués à la main (vérité du profil).
+✅ **S192b — tranché par l'opérateur (2026-09-23) : option 2.** « On veut pouvoir
+donner des badges d'autres manières. Surtout avec le principe de FabOS
+connectés entre eux qui délivrent des droits. » **Un badge DÉTENU est un badge**,
+quelle que soit sa voie. « Mes badges » montre désormais tous les badges
+détenus, chacun avec son ORIGINE (« Par la formation « … » » / « Détenu sans
+formation validée ») au lieu d'en cacher ; le compteur suit (Sofia : 0 → 1).
+⚠️ Mesuré en le faisant : **aucun écran ne permet d'attribuer un badge à la
+main** — le seul code qui en écrit est `ProgressionBadgeSubscriber`. Les 2
+badges « sans formation » viennent de données initiales ou de règles changées
+après coup ; « attribué directement » affirmait une origine que rien
+n'enregistre, c'est devenu « sans formation validée ».
+
+🅿️ **Reste une troisième vérité — À TRANCHER.** La RÉSERVATION
+(`MachineQualificationService`) suit encore « formation validée » :
+**mesuré, 4 paires membre × machine où le badge ouvre au lecteur et la
+réservation refuse** (3 « formation requise », 1 « validation pratique
+requise » — Sofia × découpe laser). Avec l'option 2, la réservation devrait
+suivre le badge détenu ; mais c'est élargir le droit de RÉSERVER une machine
+dangereuse, donc une décision distincte. La sonde S192 affiche ce compte.
+
+### 🅿️ Délivrer un badge autrement — ce que l'option 2 demande (S202–S203)
+
+| Session | Livre | Ce qu'on mesure |
+|---|---|---|
+| **S202** | **Attribuer (et retirer) un badge à la main**, depuis la fiche d'une personne : QUI, QUAND, POURQUOI, enregistrés. `UTILISATEUR_BADGE` gagne son origine (`formation` / `manuel` / `fédéré`), l'auteur et le motif — migration d'expansion. Le retrait est un geste explicite, journalisé | Un badge posé à la main s'ouvre au lecteur, se voit dans « Mes badges » avec « attribué par X le … : motif », et se retire |
+| **S203** | **Les badges d'un autre FabOS deviennent des badges** : `FEDERATED_CREDENTIAL` (kind `badge`) existe déjà et stocke provenance, expiration, révocation — mais rien ne le relie au lecteur. Une correspondance badge distant → badge local, décidée par l'exploitant (jamais automatique) ; l'expiration et la révocation distantes RETIRENT le badge local ; « Mes badges » dit « délivré par <instance> ». ⚠️ S'appuie sur la Phase U pour l'identité (qui est cette personne là-bas ?) | Un badge fédéré révoqué à la source cesse d'ouvrir ici, sans geste local |
+
 
 ✅ **Sonde `app:s192:rights-probe`** : la règle extraite = l'algorithme d'avant
 recopié (107 paires, aucun désaccord) ; l'écran = le scan (99 scans,
@@ -2072,6 +2092,7 @@ transaction annulée, journal intact) ; chemins = forfaits du verdict
 | **S192** ✅ | ton `/profil` | « Ce que votre badge ouvre » ; le champ « Badge d'accès » et ton historique d'accès montrent « ••••XXXX » |
 | **S192** ✅ | `/admin/acces-rfid` (journal) | Colonne « Résultat » : un état, plus aucune phrase sur la « syntaxe Twig » |
 | **S192** ✅ | `php bin/console app:s192:rights-probe` | Verte ; elle affiche aussi le nombre de badges attribués hors formation |
+| **S192b** ✅ | ton `/profil`, « Mes badges » | Tous tes badges, chacun avec son origine ; le compteur les compte tous |
 
 ## La passe de fond
 

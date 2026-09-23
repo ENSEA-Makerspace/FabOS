@@ -2609,17 +2609,25 @@ final class SiteController extends AbstractController
         $userProgressions = $progressions->findVisibleByUser($user);
         $completedProgressions = array_values(array_filter($userProgressions, static fn ($progression): bool => $progression->isCompleted()));
 
-        $qualifiedUserBadges = [];
+        // 🔴 S192b — « Mes badges » montre TOUS les badges détenus (décision de
+        // l'opérateur, 2026-09-23). Il ne gardait que ceux dont la formation est
+        // validée, alors que le lecteur ouvre à quiconque POSSÈDE le badge : un
+        // badge qui ouvrait la découpeuse restait invisible ici. Un badge peut
+        // s'obtenir autrement que par une formation — et, demain, venir d'un
+        // autre FabOS. Chaque carte dit donc son ORIGINE au lieu d'être cachée.
+        $heldUserBadges = [];
+        $badgeOrigins = [];
         foreach ($userBadges->findBy(['utilisateur' => $user], ['dateObtention' => 'DESC']) as $userBadge) {
             $badge = $userBadge->getBadge();
             if ($badge === null) {
                 continue;
             }
-
+            $heldUserBadges[] = $userBadge;
             $badgeFormation = $formations->findVisibleByBadge($badge);
-            if ($badgeFormation === null || $qualification->getStatus($badgeFormation, $user)['badgeUnlocked']) {
-                $qualifiedUserBadges[] = $userBadge;
-            }
+            $badgeOrigins[(int) $badge->getId()] = [
+                'formation' => $badgeFormation,
+                'validated' => $badgeFormation !== null && $qualification->getStatus($badgeFormation, $user)['badgeUnlocked'],
+            ];
         }
 
         $userUsageLogs = $usageLogs->findBy(['utilisateur' => $user], ['dateDebut' => 'DESC']);
@@ -2647,7 +2655,8 @@ final class SiteController extends AbstractController
             'availableLocales' => $locales->choices(),
             'progressions' => $userProgressions,
             'completedProgressions' => $completedProgressions,
-            'userBadges' => $qualifiedUserBadges,
+            'userBadges' => $heldUserBadges,
+            'badgeOrigins' => $badgeOrigins,
             'reservations' => $reservations->findBy(['utilisateur' => $user], ['dateDebut' => 'DESC']),
             'rfidLogs' => $userRfidLogs,
             'usageLogs' => $userUsageLogs,
@@ -2670,7 +2679,7 @@ final class SiteController extends AbstractController
             'activeVenues' => $venues->findBy(['active' => true], ['name' => 'ASC']),
             'profileStats' => [
                 'completedFormations' => count($completedProgressions),
-                'badges' => count($qualifiedUserBadges),
+                'badges' => count($heldUserBadges),
                 'reservations' => $reservations->count(['utilisateur' => $user]),
                 'rfidLogs' => count($userRfidLogs),
                 'usageLogs' => count($userUsageLogs),

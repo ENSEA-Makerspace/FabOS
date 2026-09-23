@@ -589,6 +589,8 @@ projects:
     not_rated_lower: "non notée"
 
 profile:
+    badge_via_formation: "Par la formation « %formation% »"
+    badge_without_formation: "Détenu sans formation validée"
     col_authorized: "Autorisé"
     title: "Mon Profil"
     theme_toggle_desc: "Basculer entre le thème clair et le thème sombre"
@@ -4202,7 +4204,7 @@ register_check:
 
 # S192 — ce que le badge ouvre, et pourquoi.
 badge_reach:
-    direct: "attribué directement : la formation n’est pas validée"
+    direct: "sans formation validée"
     title_self: "Ce que votre badge ouvre"
     title_admin: "Ce que son badge ouvre"
     registered: "Badge enregistré"

@@ -11,6 +11,7 @@ use App\Repository\UtilisateurBadgeRepository;
 use App\Repository\UtilisateurRepository;
 use App\Security\ConsoleRenderAuthenticator;
 use App\Service\MachineAccessService;
+use App\Service\MachineQualificationService;
 use App\UsageRights\RightsExplainer;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
@@ -53,6 +54,7 @@ final class S192RightsProbeCommand extends Command
         private readonly KernelInterface $kernel,
         private readonly ConsoleRenderAuthenticator $renderAs,
         private readonly TokenStorageInterface $tokens,
+        private readonly MachineQualificationService $booking,
     ) {
         parent::__construct();
     }
@@ -166,7 +168,7 @@ final class S192RightsProbeCommand extends Command
         $io->writeln(sprintf('   %d droits accordés expliqués', $granted));
         // Une MESURE, pas une assertion : le lecteur ouvre à tout badge détenu,
         // « Mes badges » ne montre que ceux dont la formation est validée.
-        $io->writeln(sprintf('   %d badge(s) détenu(s), dont %d attribué(s) hors formation validée — ouvrent au lecteur, invisibles dans « Mes badges »', $heldCount, $directCount));
+        $io->writeln(sprintf('   %d badge(s) détenu(s), dont %d détenu(s) sans formation validée — ils ouvrent au lecteur, et « Mes badges » les montre (S192b)', $heldCount, $directCount));
         $this->check($io, $failures, 'chemins = forfaits du verdict, partout', $bad === [] && $granted > 0);
         foreach (array_slice($bad, 0, 5) as $line) {
             $io->writeln('   ' . $line);
@@ -194,6 +196,29 @@ final class S192RightsProbeCommand extends Command
         $io->writeln(sprintf('   %d pages rendues', $pages));
         $this->check($io, $failures, 'aucun UID entier, et le badge masqué est bien là', $leaks === [] && $pages > 0);
         foreach (array_slice($leaks, 0, 5) as $line) {
+            $io->writeln('   ' . $line);
+        }
+
+        $io->section('5. MESURE — le lecteur ouvre, la réservation refuse');
+        // Pas une assertion : c'est la décision laissée à l'opérateur. Le lecteur
+        // suit « badge détenu » ; la réservation suit « formation validée ».
+        $gaps = [];
+        foreach ($this->users->findAll() as $user) {
+            if ($user->getStatut() !== 'actif') {
+                continue;
+            }
+            foreach ($this->access->reachFor($user) as $row) {
+                if ($row['status'] !== 'authorized') {
+                    continue;
+                }
+                $status = $this->booking->getStatus($row['machine'], $user);
+                if (!$status['authorized']) {
+                    $gaps[] = sprintf('#%d × %s (%s)', $user->getId(), $row['machine']->getNom(), (string) $status['trainingBlockReason']);
+                }
+            }
+        }
+        $io->writeln(sprintf('   %d paire(s) membre × machine : le badge ouvre, la réservation refuse', count($gaps)));
+        foreach (array_slice($gaps, 0, 10) as $line) {
             $io->writeln('   ' . $line);
         }
 

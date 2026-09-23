@@ -320,6 +320,15 @@
                                                 <span class="badge-level">#{{ badge.id }}</span>
                                                 <span class="badge-date">{{ 'profile.obtained_on'|trans({'%date%': userBadge.dateObtention|lab_date('d/m/Y H:i')}) }}</span>
                                             </div>
+                                            {# S192b — l'origine, jamais un filtre : un badge détenu ouvre au lecteur, il se voit ici. #}
+                                            {% set origin = badgeOrigins[badge.id]|default(null) %}
+                                            <p class="badge-origin">
+                                                {% if origin and origin.validated %}
+                                                    {{ 'profile.badge_via_formation'|trans({'%formation%': origin.formation.titre}) }}
+                                                {% else %}
+                                                    {{ 'profile.badge_without_formation'|trans }}
+                                                {% endif %}
+                                            </p>
                                         </div>
                                         <div class="badge-checkmark">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="3">
