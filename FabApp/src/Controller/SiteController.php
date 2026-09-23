@@ -1456,28 +1456,7 @@ final class SiteController extends AbstractController
             $sort = 'recent';
         }
 
-        $creationItems = $creations->findPublishedForGallery($sort);
-        $ratingStats = $votes->getStatsByCreation($creationItems);
-        $votersByCreation = $votes->getVotersByCreation($creationItems);
-        $currentUser = $this->getUser();
-        $userRatings = $currentUser instanceof Utilisateur ? $votes->getUserRatingsByCreation($creationItems, $currentUser) : [];
-        $creationRows = [];
-
-        foreach ($creationItems as $creation) {
-            $creationId = $creation->getId();
-            $stats = $ratingStats[$creationId] ?? ['average' => null, 'count' => 0];
-            $userRating = $creationId !== null ? ($userRatings[$creationId] ?? null) : null;
-
-            $creationRows[] = [
-                'creation' => $creation,
-                'averageRating' => $stats['average'],
-                'ratingCount' => $stats['count'],
-                'voteCount' => $stats['count'],
-                'userRating' => $userRating,
-                'userHasVoted' => $userRating !== null,
-                'voters' => $creationId !== null ? ($votersByCreation[$creationId] ?? []) : [],
-            ];
-        }
+        $creationRows = $this->creationRows($creations->findPublishedForGallery($sort), $votes);
 
         $topCreations = $creations->findTopRatedPublished(3);
         $topStats = $votes->getStatsByCreation($topCreations);
@@ -1498,6 +1477,59 @@ final class SiteController extends AbstractController
             'topRows' => $topRows,
             'activeSort' => $sort,
         ]);
+    }
+
+    /**
+     * S195 — la fiche d'UNE création : l'adresse qu'une recherche, le podium ou
+     * un lien partagé peuvent ouvrir. Avant, une création n'existait qu'en ancre
+     * dans la galerie (`/creations#creation-12`).
+     * ⚠️ Même règle que la galerie : publiée et non archivée, sinon 404 — une
+     * création retirée ne se rouvre pas par son adresse.
+     */
+    #[Route('/creations/{id}', name: 'app_creation_detail', requirements: ['id' => '\\d+'], methods: ['GET'])]
+    public function creationDetail(int $id, CreationRepository $creations, CreationVoteRepository $votes): Response
+    {
+        $creation = $creations->find($id);
+        if (!$creation instanceof Creation || !$creation->isPublished() || $creation->isArchived()) {
+            throw $this->createNotFoundException();
+        }
+
+        return $this->render('site/creation-detail.html.twig', [
+            'row' => $this->creationRows([$creation], $votes)[0],
+        ]);
+    }
+
+    /**
+     * Notes, votants et note de la personne connectée, pour une liste de créations —
+     * partagé par la galerie et la fiche (S195), qui affichent la même carte.
+     *
+     * @param list<Creation> $creationItems
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function creationRows(array $creationItems, CreationVoteRepository $votes): array
+    {
+        $ratingStats = $votes->getStatsByCreation($creationItems);
+        $votersByCreation = $votes->getVotersByCreation($creationItems);
+        $currentUser = $this->getUser();
+        $userRatings = $currentUser instanceof Utilisateur ? $votes->getUserRatingsByCreation($creationItems, $currentUser) : [];
+        $rows = [];
+        foreach ($creationItems as $creation) {
+            $creationId = $creation->getId();
+            $stats = $ratingStats[$creationId] ?? ['average' => null, 'count' => 0];
+            $userRating = $creationId !== null ? ($userRatings[$creationId] ?? null) : null;
+            $rows[] = [
+                'creation' => $creation,
+                'averageRating' => $stats['average'],
+                'ratingCount' => $stats['count'],
+                'voteCount' => $stats['count'],
+                'userRating' => $userRating,
+                'userHasVoted' => $userRating !== null,
+                'voters' => $creationId !== null ? ($votersByCreation[$creationId] ?? []) : [],
+            ];
+        }
+
+        return $rows;
     }
 
     #[Route('/creations/ranking', name: 'app_creations_ranking', methods: ['GET'])]
@@ -1579,6 +1611,11 @@ final class SiteController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function voteCreation(Creation $creation, Request $request, EntityManagerInterface $entityManager, CreationVoteRepository $votes): Response
     {
+        // S195 — voter depuis la fiche y revient, depuis la galerie y revient.
+        $back = $request->request->get('back') === 'detail'
+            ? $this->redirectToRoute('app_creation_detail', ['id' => $creation->getId()])
+            : $this->redirectToRoute('app_creations');
+
         $user = $this->getUser();
         if (!$user instanceof Utilisateur) {
             throw $this->createAccessDeniedException('Authentification requise');
@@ -1590,19 +1627,19 @@ final class SiteController extends AbstractController
 
         if (!$this->isCsrfTokenValid('vote_creation_' . $creation->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'flash.notation_refusee_token_csrf_invalide');
-            return $this->redirectToRoute('app_creations');
+            return $back;
         }
 
         $rawRating = $request->request->get('rating');
         if (!is_numeric($rawRating)) {
             $this->addFlash('error', 'flash.choisir_une_note');
-            return $this->redirectToRoute('app_creations');
+            return $back;
         }
 
         $rating = (float) $rawRating;
         if ($rating < 0.5 || $rating > 5.0 || abs(($rating * 2) - round($rating * 2)) > 0.0001) {
             $this->addFlash('error', 'flash.la_note_doit_etre_comprise_entre');
-            return $this->redirectToRoute('app_creations');
+            return $back;
         }
 
         $vote = $votes->findUserRating($creation, $user);
@@ -1619,7 +1656,7 @@ final class SiteController extends AbstractController
         $entityManager->flush();
         $this->addFlash('success', ['flash.note_enregistree', ['%p1%' => number_format($rating, 1)]]);
 
-        return $this->redirectToRoute('app_creations');
+        return $back;
     }
 
     #[Route('/creations/{id}/delete', name: 'app_creation_delete', requirements: ['id' => '\\d+'], methods: ['POST'])]

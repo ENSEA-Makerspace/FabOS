@@ -25,7 +25,7 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
  * leurs tables. Puis elle OUVRE chaque résultat distinct, en admin, et exige :
  *   - une réponse 200 ;
  *   - une FICHE, pas une liste filtrée (`?q=`) ni une ancre dans une liste.
- * Les créations n'ont pas encore de fiche (S195) : comptées à part, pas en échec.
+ * Les créations ont leur fiche depuis S195 : plus d'exception.
  * Lecture seule.
  */
 #[AsCommand(name: 'app:s194:search-probe', description: 'S194 : chaque résultat de recherche (toutes familles) ouvre une fiche qui répond 200 ; la page de résultats saute par type. Lecture seule.')]
@@ -64,10 +64,6 @@ final class S194SearchProbeCommand extends Command
             $ok = 0;
             foreach ($urls as $url => $title) {
                 ++$total;
-                if ($key === 'creations') {
-                    $pending[] = $title;
-                    continue;
-                }
                 if (str_contains($url, '?q=') || preg_match('~^/[a-z-]+/?#~', $url)) {
                     $lists[] = "$key : $title → $url";
                     continue;

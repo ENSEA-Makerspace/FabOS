@@ -2233,6 +2233,11 @@ booking_policy:
         cancellationNoticeMinutes: "Preavviso di annullamento (minuti)"
     help: *policy_fields
 reporting:
+    todo_title: "Da fare"
+    idle_hint: "Verifica che i membri le conoscano e che siano in servizio, altrimenti archiviale."
+    cancel_hint: "Molte cancellazioni: un termine di cancellazione o un limite di prenotazioni spesso aiuta."
+    cancel_action: "Rivedi le regole di prenotazione"
+    nothing_to_do: "Niente da segnalare per questo periodo."
     title: "Report"
     overview: "Panoramica"
     from: "Dal"

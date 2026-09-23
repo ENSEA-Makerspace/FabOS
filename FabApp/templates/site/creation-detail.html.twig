@@ -1,0 +1,35 @@
+{% extends 'site/base_public.html.twig' %}
+
+{% set body_class = 'leaderboard-sky-page' %}
+
+{% block title %}{{ row.creation.title }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+    {# S195 — la fiche d'une création : la MÊME carte que la galerie
+       (`_creation_card`), seule, avec une adresse qu'on peut partager. #}
+    <main id="main-content" tabindex="-1" class="leaderboard-game creations-game">
+        <section class="creation-gallery-section">
+            <div class="container">
+                {% include 'site/_breadcrumb.html.twig' with {trail: [
+                    {label: 'projects.creations'|trans, url: path('app_creations')},
+                    {label: row.creation.title},
+                ]} only %}
+                {% for message in app.flashes('success') %}<div class="creation-flash success">{{ message|flash_text }}</div>{% endfor %}
+                {% for message in app.flashes('warning') %}<div class="creation-flash warning">{{ message|flash_text }}</div>{% endfor %}
+                {% for message in app.flashes('error') %}<div class="creation-flash error">{{ message|flash_text }}</div>{% endfor %}
+                <div class="creation-gallery creation-gallery--single">
+                    {% include 'site/_creation_card.html.twig' with {row: row, back: 'detail', title_tag: 'h1'} only %}
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+{% include 'site/_creation_card_script.html.twig' %}
+{% endblock %}

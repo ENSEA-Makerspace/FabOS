@@ -1,6 +1,17 @@
 {% extends 'base.html.twig' %}
 {% block title %}{{ 'reporting.title'|trans }} - FabOS{% endblock %}
-{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">
+<style>
+    /* S195 — les constats qui mènent à une action. Jetons seulement. */
+    .report-actions { display: grid; gap: 10px; margin: 16px 0 24px; }
+    .report-actions h3 { margin: 0; }
+    .report-finding { display: grid; gap: 6px; padding: 12px 14px; border: 1px solid var(--border-color); border-left: 4px solid var(--color-primary); border-radius: 10px; background: var(--theme-surface-elevated, transparent); }
+    .report-finding p { margin: 0; color: var(--color-text); }
+    .report-finding__hint { color: var(--color-text-light) !important; font-size: .9rem; }
+    .report-finding__links { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 14px; }
+    .report-finding a:not(.btn-action) { color: var(--color-primary-text); }
+    .report-finding .btn-action { justify-self: start; }
+</style>{% endblock %}
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
     panel_title: 'reporting.overview'|trans,
@@ -35,13 +46,47 @@
             <article><strong>{{ (report.summary.minutes / 60)|number_format(1, ',', ' ') }} h</strong><span>{{ 'reporting.duration'|trans }}</span></article>
             <article><strong>{{ report.summary.cancelled }}</strong><span>{{ 'reporting.cancelled'|trans }}</span></article>
         </div>
+        {# 🔴 S195 — un rapport PROPOSE l'action qu'il suggère au lieu de la décrire.
+           Chaque constat est calculé sur la même période et le même lieu que les
+           chiffres au-dessus, et mène là où l'on agit. #}
+        {% set editRoute = workspaceKey == 'equipment' ? 'app_admin_machine_edit' : 'app_admin_place_edit' %}
+        {% set cancelRate = report.summary.requested|default(0) > 0 ? (report.summary.cancelled / report.summary.requested) : 0 %}
+        <section class="report-actions" aria-labelledby="report-actions-title">
+            <h3 id="report-actions-title">{{ 'reporting.todo_title'|trans }}</h3>
+            {% set anything = false %}
+            {% if report.idle is not empty %}
+                {% set anything = true %}
+                <article class="report-finding">
+                    <p><strong>{{ ('reporting.idle_' ~ workspaceKey)|trans({'count': report.idle|length}) }}</strong></p>
+                    <p class="report-finding__hint">{{ 'reporting.idle_hint'|trans }}</p>
+                    <ul class="report-finding__links">
+                        {% for resource in report.idle|slice(0, 12) %}
+                            <li><a href="{{ path(editRoute, {id: resource.id}) }}">{{ resource.label }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </article>
+            {% endif %}
+            {% if report.summary.requested|default(0) >= 10 and cancelRate >= 0.2 %}
+                {% set anything = true %}
+                <article class="report-finding">
+                    <p><strong>{{ 'reporting.cancel_rate'|trans({'rate': (cancelRate * 100)|round, 'count': report.summary.cancelled}) }}</strong></p>
+                    <p class="report-finding__hint">{{ 'reporting.cancel_hint'|trans }}</p>
+                    <a class="btn-action btn-primary-admin" href="{{ path('app_admin_booking_policies') }}">{{ 'reporting.cancel_action'|trans }}</a>
+                </article>
+            {% endif %}
+            {% if not anything %}
+                <p class="report-finding__hint">{{ 'reporting.nothing_to_do'|trans }}</p>
+            {% endif %}
+        </section>
+
         <h3>{{ 'reporting.daily'|trans }}</h3>
         {% embed 'site/_data_table.html.twig' with {columns: [{label: 'reporting.date'|trans}, {label: 'reporting.reservations'|trans, numeric: true}, {label: 'reporting.minutes'|trans, numeric: true}], rows: report.daily, empty: 'reporting.empty'|trans} %}
             {% block rows %}{% for row in report.daily %}<tr><td>{{ row.day }}</td><td class="is-numeric">{{ row.total }}</td><td class="is-numeric">{{ row.minutes }}</td></tr>{% endfor %}{% endblock %}
         {% endembed %}
         <h3>{{ 'reporting.top_resources'|trans }}</h3>
         {% embed 'site/_data_table.html.twig' with {columns: [{label: 'reporting.resource'|trans}, {label: 'reporting.reservations'|trans, numeric: true}, {label: 'reporting.minutes'|trans, numeric: true}], rows: report.top, empty: 'reporting.empty'|trans} %}
-            {% block rows %}{% for row in report.top %}<tr><td>{{ row.label }}</td><td class="is-numeric">{{ row.total }}</td><td class="is-numeric">{{ row.minutes }}</td></tr>{% endfor %}{% endblock %}
+            {# S195 — chaque ressource ouvre sa fiche. #}
+            {% block rows %}{% for row in report.top %}<tr><td>{% if row.id|default(null) %}<a href="{{ path(workspaceKey == 'equipment' ? 'app_admin_machine_edit' : 'app_admin_place_edit', {id: row.id}) }}">{{ row.label }}</a>{% else %}{{ row.label }}{% endif %}</td><td class="is-numeric">{{ row.total }}</td><td class="is-numeric">{{ row.minutes }}</td></tr>{% endfor %}{% endblock %}
         {% endembed %}
     {% endblock %}
 {% endembed %}

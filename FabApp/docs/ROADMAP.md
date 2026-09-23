@@ -2182,7 +2182,7 @@ Ce qui n'appartient à aucune autre phase : prêts, créations, recherche, rappo
 |---|---|---|
 | **S193** ✅ 2026-09-24 | **Prêts** : la circulation de l'objet, la fiche cliquable, le retour. ⚠️ `LoanableItem` et l'archivage existent — c'est de la présentation, pas un modèle | Rendre un objet se fait depuis la fiche, pas depuis une liste |
 | **S194** ✅ 2026-09-24 | **Recherche globale** : résultats par type, navigation rapide. ⚠️ `/search` existe déjà | Un résultat ouvre toujours la fiche de son objet |
-| **S195** | **Rapports qui conduisent à une action**, et **créations** : une communauté sobre | Un rapport propose l'action qu'il suggère, au lieu de la décrire |
+| **S195** ✅ 2026-09-24 | **Rapports qui conduisent à une action**, et **créations** : une communauté sobre | Un rapport propose l'action qu'il suggère, au lieu de la décrire |
 
 ### ✅ S193 — les prêts : la fiche de l'objet porte sa circulation
 
@@ -2225,6 +2225,37 @@ place le curseur dans la recherche de l'en-tête depuis n'importe quelle page
 ✅ Sonde `app:s194:search-probe`, en lecture seule, **vérifiée dans les deux
 sens** (rouge avant la correction, verte après).
 
+### ✅ S195 — un rapport propose d'agir ; chaque création a sa fiche
+
+**Mesuré avant** (`/admin/reporting/equipment`, juillet–décembre 2026, données
+de dev) : « 38 réservations, 68,8 h » — dont **15 annulées** : le total, les
+heures et le classement comptaient les ANNULATIONS (+65 %). Aucun constat,
+aucune action ; les ressources du classement n'étaient pas des liens. Et une
+création n'existait qu'en ancre dans la galerie (`/creations#creation-12`).
+
+✅ **L'usage ne compte que les réservations actives** (23 sur la même période) ;
+les annulées restent affichées à part.
+✅ **« À faire »** : les machines **en service jamais réservées** sur la période,
+chacune vers sa fiche (« vérifiez qu'elles sont connues, en service, sinon
+archivez-les ») ; un **taux d'annulation** ≥ 20 % (sur ≥ 10 demandes) →
+« Revoir les règles de réservation ». Rien → « Rien à signaler ». Les
+ressources du classement ouvrent leur fiche.
+🔴 **Trouvé par la sonde, et c'est la leçon de la session** : ma première
+version filtrait « en service » par `statut = 'active'` — un mot qu'AUCUNE
+machine ne porte (`disponible`, `idle`…) — et la sonde recopiait le même
+filtre : elles concordaient à 0, fausses ensemble. Corrigé à la source
+(`Machine::outOfServiceStatuses()`), et la sonde juge désormais par une règle
+écrite autrement, sur un mois SANS réservation où la réponse est connue (10
+machines en service, 10 signalées).
+✅ **`/creations/{id}`** : la fiche d'une création publiée (404 si retirée) —
+la MÊME carte que la galerie, extraite dans `_creation_card` (déplacée, pas
+recopiée, script compris), titre en `h1`, fil d'Ariane ; voter depuis la fiche
+y ramène. La galerie, le podium et la recherche mènent aux fiches (S194 : 53/53
+résultats ouvrent une fiche, plus d'exception).
+✅ Sonde `app:s195:report-probe` (`--from/--to`), vérifiée sur trois périodes.
+🅿️ « Une communauté sobre » : je n'ai rien ajouté (ni commentaires ni
+réactions) — la sobriété ici, c'est une fiche partageable et rien de plus.
+
 ## Ce que l'opérateur vérifie — Phase T
 
 | Session | Où | Ce qui doit être vrai |
@@ -2237,6 +2268,9 @@ sens** (rouge avant la correction, verte après).
 | **S194** ✅ | chercher un objet prêtable ou un matériau | Le résultat ouvre SA fiche (`/prets/…`, `/materiaux/…`), plus une liste filtrée |
 | **S194** ✅ | `/recherche?q=a` | Des pastilles par type en tête, chacune mène à son groupe |
 | **S194** ✅ | n'importe quelle page, touche « / » | Le curseur est dans la recherche de l'en-tête |
+| **S195** ✅ | `/admin/reporting/equipment`, sur un mois calme | Le total ne compte plus les annulées ; « À faire » liste les machines jamais réservées (liens) et, s'il y en a beaucoup, les annulations → « Revoir les règles de réservation » |
+| **S195** ✅ | `/creations` → cliquer un titre | La fiche de la création, partageable ; voter y ramène |
+| **S195** ✅ | `php bin/console app:s195:report-probe` | Verte |
 
 ## La passe de fond
 

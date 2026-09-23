@@ -3634,3 +3634,9 @@ html[data-theme="dark"] .lb-night-star--24 { top: 77%; left: 84%; --lb-star-size
         animation: none !important;
     }
 }
+
+/* S195 — la fiche d'une création : la même carte, seule, plus large. */
+.creation-gallery--single { grid-template-columns: minmax(0, 720px); justify-content: center; }
+.creation-title-link { color: inherit; text-decoration: none; }
+.creation-title-link:hover, .creation-title-link:focus-visible { text-decoration: underline; }
+.creation-card__title { margin: 0; }

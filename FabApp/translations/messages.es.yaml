@@ -2233,6 +2233,11 @@ booking_policy:
         cancellationNoticeMinutes: "Plazo de cancelación (minutos)"
     help: *policy_fields
 reporting: &reporting_es
+    todo_title: "Por hacer"
+    idle_hint: "Compruebe que los miembros las conocen y que están en servicio; si no, archívelas."
+    cancel_hint: "Muchas cancelaciones: un plazo de cancelación o un límite de reservas suele ayudar."
+    cancel_action: "Revisar las reglas de reserva"
+    nothing_to_do: "Nada que señalar en este periodo."
     title: "Informes"
     overview: "Resumen"
     from: "Desde"

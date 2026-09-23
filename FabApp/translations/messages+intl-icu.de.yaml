@@ -181,6 +181,9 @@ quiz:
     question_count: "{count, plural, one {# Frage} other {# Fragen}}"
 
 reporting:
+    idle_equipment: "{count, plural, one {# Maschine in Betrieb wurde von niemandem gebucht} other {# Maschinen in Betrieb wurden von niemandem gebucht}} im Zeitraum."
+    idle_spaces: "{count, plural, one {# Raum wurde von niemandem gebucht} other {# Räume wurden von niemandem gebucht}} im Zeitraum."
+    cancel_rate: "{rate} % der Anfragen wurden storniert ({count, plural, one {# Stornierung} other {# Stornierungen}})."
     panel_note: "{count, plural, one {# Buchung} other {# Buchungen}}"
 
 rfid_readers:

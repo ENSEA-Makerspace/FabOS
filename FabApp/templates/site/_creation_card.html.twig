@@ -1,0 +1,85 @@
+{#
+   S195 — UNE création, telle qu'on la montre : dans la galerie ET sur sa fiche.
+   Extraite de `creations.html.twig` (déplacée, pas recopiée), pour que la fiche
+   ne soit pas une seconde carte qui dérive.
+   Paramètres : row (creation, averageRating, ratingCount, userRating, voters),
+   link_title (galerie : le titre ouvre la fiche), back ('detail' : le vote
+   revient à la fiche), title_tag ('h1' sur la fiche : c'est le titre de la page).
+#}
+{% set creation = row.creation %}
+{% set safeFileFilename = creation.fileFilename and creation.fileFilename matches '/^[A-Za-z0-9._-]+$/' ? creation.fileFilename : null %}
+{% set selectedRating = row.userRating is not null ? row.userRating : 0 %}
+<article class="creation-card" id="creation-{{ creation.id }}">
+    <div class="creation-image-wrap">
+        {% if creation.pinned %}<span class="creation-pin-badge">{{ 'projects.pinned'|trans }}</span>{% endif %}
+        {% include 'site/_creation_image.html.twig' with {creation: creation, class: 'creation-image', alt: creation.title} only %}
+    </div>
+    <div class="creation-body">
+        <div class="creation-meta"><span>{{ creation.displayAuthor }}</span><span>{{ creation.createdAt|date('d/m/Y') }}</span></div>
+        {% set title_tag = title_tag|default('h2') %}
+        <{{ title_tag }} class="creation-card__title">{% if link_title|default(false) %}<a class="creation-title-link" href="{{ path('app_creation_detail', {id: creation.id}) }}">{{ creation.title }}</a>{% else %}{{ creation.title }}{% endif %}</{{ title_tag }}>
+        <div class="creation-stats">
+            {% if creation.formattedPrintDuration %}<span>{{ creation.formattedPrintDuration }} {{ 'projects.printing_suffix'|trans }}</span>{% endif %}
+            <span>{{ 'projects.average'|trans }} : {{ row.averageRating is not null ? row.averageRating|number_format(1, '.', ' ') ~ '/5' : 'projects.rating_none'|trans }}</span>
+            {% if row.ratingCount > 0 %}
+                <button type="button" class="creation-voters-toggle" aria-expanded="false" aria-controls="voters-{{ creation.id }}" data-target="voters-{{ creation.id }}">{{ 'projects.rating_count'|trans({'count': row.ratingCount}) }}</button>
+            {% else %}
+                <span>{{ 'projects.rating_count'|trans({'count': 0}) }}</span>
+            {% endif %}
+        </div>
+        {% if row.voters is not empty %}
+            <div class="creation-voters" id="voters-{{ creation.id }}" hidden>
+                <strong class="creation-voters__title">{{ 'projects.who_rated'|trans }}</strong>
+                <ul class="creation-voters__list">
+                    {% for voter in row.voters %}
+                        <li class="creation-voters__item"><span class="creation-voters__name">{{ voter.name }}</span><span class="creation-voters__rating">{{ voter.rating|number_format(1, '.', ' ') }}/5</span></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+        {% if creation.tagList is not empty %}
+            <div class="creation-tags">
+                {% for tag in creation.tagList %}<span class="creation-tag">{{ tag }}</span>{% endfor %}
+            </div>
+        {% endif %}
+        <p>{{ creation.description ?: 'admin_creations.shared_alt'|trans }}</p>
+
+        <div class="creation-rating-panel">
+            {% if app.user %}
+                <form method="post" action="{{ path('app_creation_vote', {id: creation.id}) }}" class="creation-rating-form">
+                    <input type="hidden" name="_token" value="{{ csrf_token('vote_creation_' ~ creation.id) }}">
+                {% if back|default(null) %}<input type="hidden" name="back" value="{{ back }}">{% endif %}
+                    <input type="hidden" name="rating" value="{{ selectedRating > 0 ? selectedRating|number_format(1, '.', '') : '' }}" class="star-rating__input">
+                    <div class="star-rating" data-initial-rating="{{ selectedRating > 0 ? selectedRating|number_format(1, '.', '') : '0' }}" aria-label="{{ 'projects.rate_this'|trans }}">
+                        {% for star in 1..5 %}
+                            <button type="button" class="star-rating__star" data-star="{{ star }}" aria-label="{{ 'projects.rate_star_aria'|trans({'n': star}) }}">
+                                <span class="star-rating__base">★</span><span class="star-rating__fill">★</span>
+                            </button>
+                        {% endfor %}
+                    </div>
+                    <div class="star-rating__status" aria-live="polite">{% if row.userRating is not null %}{{ 'projects.your_rating'|trans({'%score%': row.userRating|number_format(1, '.', ' ')}) }}{% else %}{{ 'projects.pick_rating'|trans }}{% endif %}</div>
+                    <button class="creation-btn star-rating__button" type="submit">{{ 'projects.confirm_rating'|trans }}</button>
+                </form>
+            {% else %}
+                <div class="star-rating star-rating--readonly" data-initial-rating="{{ row.averageRating is not null ? row.averageRating|number_format(1, '.', '') : '0' }}" aria-label="{{ 'projects.average_of'|trans }}">
+                    {% for star in 1..5 %}<span class="star-rating__star" data-star="{{ star }}"><span class="star-rating__base">★</span><span class="star-rating__fill">★</span></span>{% endfor %}
+                </div>
+                <a class="creation-btn star-rating__button" href="{{ path('app_login') }}">{{ 'projects.login_to_rate'|trans }}</a>
+            {% endif %}
+        </div>
+
+        <div class="creation-actions">
+            {% if safeFileFilename %}<a href="{{ asset('uploads/creations/files/' ~ safeFileFilename) }}" class="creation-btn" download>{{ 'projects.download'|trans }}</a>{% endif %}
+            {% if creation.externalUrl %}<a href="{{ creation.externalUrl }}" class="creation-btn secondary" target="_blank" rel="noopener noreferrer">{{ 'projects.external_link'|trans }}</a>{% endif %}
+            {% if app.user and creation.author and app.user.id == creation.author.id %}
+                <form method="post" action="{{ path('app_creation_delete', {id: creation.id}) }}" class="creation-delete-form"
+                      data-controller="confirm"
+                      data-action="submit->confirm#ask"
+                      data-confirm-message-value="{{ 'adm.confirm_delete_creation'|trans|e('html_attr') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete_creation_' ~ creation.id) }}">
+                    <button type="submit" class="creation-btn danger">{{ 'common.delete'|trans }}</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</article>

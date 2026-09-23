@@ -20,6 +20,18 @@ class Machine
     private const STATUS_MAINTENANCE = ['maintenance', 'en maintenance'];
     private const STATUS_BROKEN = ['panne', 'en panne', 'hors service', 'broken', 'down'];
 
+    /**
+     * S195 — les statuts d'une machine HORS SERVICE (maintenance ou panne), pour
+     * qu'une requête SQL dise « en service » sans deviner un mot. Une machine en
+     * service porte `disponible`, `idle`… : il n'existe pas de statut « active ».
+     *
+     * @return list<string>
+     */
+    public static function outOfServiceStatuses(): array
+    {
+        return [...self::STATUS_MAINTENANCE, ...self::STATUS_BROKEN];
+    }
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

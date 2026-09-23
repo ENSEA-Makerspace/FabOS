@@ -382,7 +382,8 @@ final class SiteSearch
                 'title' => $creation->getTitle(),
                 'description' => $this->teaser($creation->getDescription()),
                 'meta' => $creation->getDisplayAuthor(),
-                'url' => $this->urls->generate('app_creations') . '#creation-' . $creation->getId(),
+                // S195 — la fiche de la création, plus une ancre dans la galerie.
+                'url' => $this->urls->generate('app_creation_detail', ['id' => $creation->getId()]),
             ];
         }
 
