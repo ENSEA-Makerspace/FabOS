@@ -72,7 +72,7 @@
                 <ul class="static-code-list">
                     <li><code>curl -X POST http://127.0.0.1:8010/api/rfid/machines/printer-01/authorization -H 'Content-Type: application/json' -d '{"rfid":"A1B2C3D4"}'</code></li>
                 </ul>
-                <p>Réponses possibles : <code>200 authorized</code>, <code>200 no_badge_required</code>, <code>403 missing_badge</code>, <code>404 unknown_machine</code>, <code>404 unknown_rfid</code>, <code>400 invalid_payload</code>.</p>
+                <p>Réponses possibles : <code>200 authorized</code>, <code>200 no_badge_required</code>, <code>403 missing_badge</code>, <code>403 account_inactive</code>, <code>404 unknown_machine</code>, <code>404 unknown_rfid</code>, <code>400 invalid_payload</code>.</p>
             </article>
 
             <article class="static-card">
@@ -89,7 +89,7 @@
                 <ul class="static-code-list">
                     <li><code>curl -X POST http://127.0.0.1:8010/api/rfid/machines/printer-01/work-sessions -H 'Content-Type: application/json' -d '{"rfid":"A1B2C3D4"}'</code></li>
                 </ul>
-                <p>Réponses possibles : <code>201 work_session_started</code>, <code>403 missing_badge</code>, <code>404 unknown_machine</code>, <code>404 unknown_rfid</code>, <code>409 machine_already_in_use</code>, <code>409 user_already_working</code>, <code>400 invalid_payload</code>.</p>
+                <p>Réponses possibles : <code>201 work_session_started</code>, <code>403 missing_badge</code>, <code>403 account_inactive</code>, <code>404 unknown_machine</code>, <code>404 unknown_rfid</code>, <code>409 machine_already_in_use</code>, <code>409 user_already_working</code>, <code>400 invalid_payload</code>.</p>
             </article>
 
             <article class="static-card">

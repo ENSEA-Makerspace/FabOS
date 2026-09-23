@@ -64,6 +64,11 @@ final class DoorAccessDecision
         if ($user === null) {
             return ['allowed' => false, 'status' => 'unknown_rfid', 'reservationId' => null];
         }
+        if ($user->getStatut() !== 'actif') {
+            // S190 — même règle qu'aux machines : une réservation encore au
+            // calendrier ne rouvre pas la porte d'un compte désactivé.
+            return ['allowed' => false, 'status' => 'account_inactive', 'reservationId' => null];
+        }
         if ($point->isArchived()) {
             // ⚠️ Une porte archivée n'ouvre plus, même pour qui a une
             // réservation : l'exploitant l'a retirée du service, et c'est une

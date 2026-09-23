@@ -126,7 +126,7 @@
                         {% set statusKey = user.statusKey %}
                         <td>{% include 'site/_cell_state.html.twig' with {
                             label: statusKey|trans,
-                            signal: (user.statut ?? '') == 'actif' ? 'go' : ((user.statut ?? '') == 'pending' ? 'caution' : ((user.statut ?? '') == 'banned' ? 'stop' : 'muted')),
+                            signal: statusKey == 'user_status.unconfirmed' ? 'caution' : ((user.statut ?? '') == 'actif' ? 'go' : ((user.statut ?? '') == 'pending' ? 'caution' : ((user.statut ?? '') == 'banned' ? 'stop' : 'muted'))),
                         } only %}</td>
                         <td class="is-numeric">{{ progressionCounts[user.id]|default(0) }}</td>
                         <td class="is-numeric"><a class="rfid-log-link" href="{{ path('app_admin_access_rfid_logs') }}">{{ logCount }}</a></td>

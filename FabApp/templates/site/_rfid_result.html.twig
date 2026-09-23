@@ -49,6 +49,7 @@
     'unauthorized_device': 'rfid_logs.status_unauthorized_device',
     'server_error': 'rfid_logs.status_server_error',
     'reader_inactive': 'rfid_logs.status_reader_inactive',
+    'account_inactive': 'rfid_logs.status_account_inactive',
 } %}
 {% set _key = _labels[status|default('')]|default('') %}
 {% include 'site/_cell_state.html.twig' with {

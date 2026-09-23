@@ -47,6 +47,18 @@ final class MachineAccessService
             return $result;
         }
 
+        // 🔴 **S190 — un compte désactivé n'ouvre plus rien avec son badge.**
+        // Avant, rien ici ne lisait le statut : « inactif » coupait l'écran de
+        // connexion, et le badge continuait d'ouvrir les machines. Désactiver
+        // quelqu'un qui part en mauvais termes, c'est d'abord ça qu'on attend.
+        // ⚠️ Avant les badges : aucun badge détenu ne rachète un compte coupé.
+        if ($user->getStatut() !== 'actif') {
+            $result = $this->buildResult(false, 'account_inactive', 'Compte désactivé', 403, $machine, $user);
+            $this->logAttempt($rfid, $machine, $user, $result);
+
+            return $result;
+        }
+
         $requiredBadgeEntities = [];
         foreach ($this->machineBadges->findRequiredForMachine($machine) as $machineBadge) {
             $badge = $machineBadge->getBadge();

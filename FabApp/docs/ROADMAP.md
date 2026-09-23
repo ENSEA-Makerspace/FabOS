@@ -1916,7 +1916,7 @@ parcours d'adhésion.
 | Session | Livre | Ce qu'on mesure |
 |---|---|---|
 | **S189** ✅ 2026-09-23 | **L'entrée** : inscription courte qui annonce ses prochaines étapes, activation par e-mail avec renvoi et correction d'adresse — **sans impasse**. 🔴 **Et c'est là que `/register` cesse d'être un oracle d'appartenance** : la réponse devient la même que l'adresse existe ou non, ce qui n'est possible QUE parce que l'activation par e-mail arrive dans la même session | Une adresse mal tapée se corrige sans recréer un compte. 🔴 Et une sonde : deux adresses, l'une connue l'autre non, **réponses identiques** — la même mesure que S191 |
-| **S190** | **L'adhésion** : ne demander que ce qui est nécessaire, au moment où ça l'est. Et la **validation par l'équipe**, progressive et justifiable | Un compte en attente sait ce qui lui manque, et qui l'a validé |
+| **S190** ✅ 2026-09-23 | **L'adhésion.** 🔴 **Tranché par l'opérateur : PAS de validation par l'équipe** — l'équipe doit seulement pouvoir DÉSACTIVER un compte, et que ça coupe vraiment. Livré : la désactivation coupe la connexion, les sessions ouvertes et le badge | ✅ `app:s190:deactivation-probe` : avant/après sur le même compte, machine, porte, page, API |
 | **S191** | **Sécurité du profil** : sessions visibles et révocables, MFA. ⚠️ Et une **récupération de compte NON DIVULGUANTE** — la réponse est la même que l'adresse existe ou non | 🔴 Prouvé par une sonde : deux adresses, l'une connue l'autre non, réponses identiques |
 | **S192** | **Les droits EXPLIQUÉS** côté admin — par rôle, lieu, formation et durée — et « mon badge » sans identifiant sensible | Un admin répond à « pourquoi cette personne a-t-elle ce droit ? » **depuis l'écran** |
 
@@ -1962,6 +1962,44 @@ réinitialisation / rejoué → 410 ; correction sans compte de plus ; connexion
 après activation. `UTILISATEUR`, `EMAIL_LOG`, `messenger_messages` comptés avant
 et après : identiques, **aucun courrier parti**.
 
+### ✅ S190 — désactiver coupe tout, tout de suite
+
+**Décision de l'opérateur (2026-09-23)** : pas de validation par l'équipe ; une
+fois l'adresse confirmée (S189), le compte est membre. L'équipe doit pouvoir
+**désactiver** un compte — et ça doit être vrai.
+
+🔴 **Mesuré : « inactif » ne coupait que l'écran de connexion.**
+- **Le badge ouvrait encore les machines** : `MachineAccessService::authorize()`
+  ne lisait pas le statut (et le démarrage d'une session machine passe par lui).
+- **La porte aussi**, avec une réservation au calendrier (`DoorAccessDecision`).
+- **Une session déjà ouverte survivait** : Symfony relit le compte à chaque
+  requête mais ne le compare qu'au mot de passe, à l'identifiant et aux rôles.
+  Quelqu'un désactivé pendant qu'il était connecté gardait l'accès des jours.
+
+✅ **Après** : badge refusé `403 account_inactive` (machines et démarrage de
+session), porte refusée `account_inactive`, et un écouteur de requête
+(`DeactivatedSessionListener`, après le pare-feu) ferme la session à la requête
+suivante — la page renvoie à la connexion avec le message habituel, l'API
+répond `401 account_inactive`. On n'a pas touché la comparaison de Symfony, qui
+porte les rôles datés de S159 : une règle ajoutée, aucune remplacée.
+✅ L'aide du champ « Statut » dit maintenant ce qu'il coupe. Le journal RFID a
+un libellé « Compte désactivé ». L'annuaire affiche **« Adresse non confirmée »**
+(pastille orange) pour un compte actif qui n'a pas encore cliqué son lien.
+
+**« Ne demander que ce qui est nécessaire, au moment où ça l'est » — mesuré,
+rien à ajouter** : l'inscription demande prénom, nom, adresse, mot de passe, et
+AUCUN écran n'exige plus tard une information manquante. Le seul état « en
+attente » est l'adresse non confirmée, et S189 dit déjà ce qui manque.
+🅿️ Les réservations FUTURES d'un compte désactivé restent au calendrier (elles
+n'ouvrent plus rien, mais occupent le créneau). Les annuler à la désactivation
+est une décision de l'opérateur.
+
+✅ **Sonde `app:s190:deactivation-probe`** : même compte, avant/après la bascule,
+dans une transaction annulée. ⚠️ **Piège trouvé en l'écrivant** : une requête
+simulée sans cookie de session repart anonyme (`hasPreviousSession()`), donc la
+première version « prouvait » la coupure sur des sessions jamais connectées.
+Elle exige maintenant `/profil` à 200 AVANT, puis 302 après.
+
 ## Ce que l'opérateur vérifie — Phase S
 
 | Session | Où | Ce qui doit être vrai |
@@ -1973,6 +2011,11 @@ et après : identiques, **aucun courrier parti**.
 | **S189** ✅ | sur « Vérifiez votre boîte », corriger l'adresse | Le lien arrive à la nouvelle ; celui de l'ancienne ne marche plus |
 | **S189** ✅ | ouvrir un lien d'activation une 2ᵉ fois | « Ce lien n'est plus valable », avec quoi faire |
 | **S189** ✅ | `php bin/console app:s189:register-probe` | Verte, aucun courrier envoyé |
+| **S190** ✅ | fiche d'un compte, champ « Statut » | L'aide dit ce que « Inactif » coupe : connexion, sessions ouvertes, badge |
+| **S190** ✅ | désactiver un compte de test connecté dans un autre navigateur | À son clic suivant, il est renvoyé à la connexion |
+| **S190** ✅ | badger ce compte sur une machine | Refusé ; le journal RFID dit « Compte désactivé » |
+| **S190** ✅ | `/admin/utilisateurs` après une inscription non confirmée | Pastille orange « Adresse non confirmée » |
+| **S190** ✅ | `php bin/console app:s190:deactivation-probe` | Verte |
 
 ## La passe de fond
 

@@ -293,6 +293,14 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getStatusKey(): string
     {
+        // S190 — un compte actif dont l'adresse n'est pas confirmée ne peut pas
+        // se connecter (S189) : l'annuaire le dit, au lieu d'afficher « Actif ».
+        // ⚠️ Le filtre « Actif » de la liste le compte toujours : il filtre la
+        // valeur stockée, et c'est bien `actif`.
+        if (mb_strtolower(trim($this->statut)) === 'actif' && !$this->isVerified) {
+            return 'user_status.unconfirmed';
+        }
+
         return match (mb_strtolower(trim($this->statut))) {
             'inactif', 'inactive' => 'user_status.inactive',
             'pending', 'en attente' => 'user_status.pending',
