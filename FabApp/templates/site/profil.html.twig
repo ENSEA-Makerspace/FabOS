@@ -690,6 +690,20 @@
                                     </div>
                                 </div>
 
+                                {# S191a — un LIEN vers sa page : fermer une session est un bouton,
+                                   et cette section vit dans le formulaire des réglages. #}
+                                {% if openSessions is not null %}
+                                    <div class="setting-item">
+                                        <div class="setting-info">
+                                            <h4>{{ 'sessions.title'|trans }}</h4>
+                                            <p>{{ 'sessions.profile_hint'|trans({'count': openSessions}) }}</p>
+                                        </div>
+                                        <div class="setting-action">
+                                            <a href="{{ path('app_profile_sessions') }}" class="btn btn-sm">{{ 'sessions.manage'|trans }}</a>
+                                        </div>
+                                    </div>
+                                {% endif %}
+
                                 {# ⚠️ A LINK, not a form. Erasure is the one irreversible
                                    control a member has, so it opens a page that can say
                                    what leaves and what stays before anything happens —

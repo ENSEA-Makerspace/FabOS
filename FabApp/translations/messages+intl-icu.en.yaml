@@ -204,3 +204,7 @@ badge_reach:
     free: "{count, plural, one {# machine opens without a specific badge} other {# machines open without a specific badge}}"
     closed_self: "{count, plural, one {# machine needs a badge you do not have yet} other {# machines need a badge you do not have yet}}"
     closed_admin: "{count, plural, one {# machine stays closed to them} other {# machines stay closed to them}}"
+
+sessions:
+    profile_hint: "{count, plural, =0 {No other open session.} one {# session open right now.} other {# sessions open right now.}}"
+    admin_count: "{count, plural, =0 {No open session.} one {# session open right now.} other {# sessions open right now.}}"

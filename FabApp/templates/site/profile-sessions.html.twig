@@ -1,0 +1,67 @@
+{% extends 'site/base_public.html.twig' %}
+
+{% block title %}{{ 'sessions.title'|trans }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+    {# S191a — où ce compte est connecté. ⚠️ Les heures viennent de la base
+       (NOW() de MariaDB, heure du serveur) : `|lab_date`, pas `|date`. #}
+    <main id="main-content" tabindex="-1" class="main-content">
+        <section class="auth-section">
+            <div class="auth-container">
+                <div class="auth-card sessions-card">
+                    <div class="auth-header">
+                        <h1 class="auth-title">{{ 'sessions.title'|trans }}</h1>
+                        <p class="auth-subtitle">{{ 'sessions.intro'|trans }}</p>
+                    </div>
+
+                    {% for message in app.flashes('success') %}<div class="auth-flash success" role="status">{{ message|trans }}</div>{% endfor %}
+
+                    <ul class="sessions-list">
+                        {% for s in sessions %}
+                            <li class="sessions-item{{ s.current ? ' is-current' : '' }}">
+                                <div>
+                                    <strong>
+                                        {{- s.device.browser ?? 'sessions.unknown_browser'|trans -}}
+                                        {%- if s.device.os %} · {{ s.device.os }}{% endif -%}
+                                    </strong>
+                                    {% if s.current %}<span class="sessions-badge">{{ 'sessions.this_device'|trans }}</span>{% endif %}
+                                    <span class="sessions-meta">
+                                        {{ 'sessions.last_seen'|trans({'%date%': s.lastSeenAt|lab_date('d/m/Y H:i')}) }}
+                                        · {{ 'sessions.signed_in'|trans({'%date%': s.createdAt|lab_date('d/m/Y H:i')}) }}
+                                        {%- if s.ipPrefix %} · {{ 'sessions.network'|trans({'%net%': s.ipPrefix}) }}{% endif %}
+                                    </span>
+                                </div>
+                                <form method="post" action="{{ path('app_profile_session_revoke', {id: s.id}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('session_revoke_' ~ s.id) }}">
+                                    <button class="btn btn-secondary btn-sm" type="submit">{{ (s.current ? 'sessions.sign_out_here' : 'sessions.close')|trans }}</button>
+                                </form>
+                            </li>
+                        {% else %}
+                            <li class="sessions-item">{{ 'sessions.none'|trans }}</li>
+                        {% endfor %}
+                    </ul>
+
+                    {% if sessions|filter(s => not s.current)|length > 0 %}
+                        <form method="post" action="{{ path('app_profile_sessions_revoke_others') }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('sessions_revoke_others') }}">
+                            <button class="btn btn-primary" type="submit">{{ 'sessions.close_others'|trans }}</button>
+                        </form>
+                    {% endif %}
+
+                    <p class="auth-help">{{ 'sessions.note'|trans }}</p>
+                    <div class="auth-links">
+                        <p><a href="{{ path('app_profile') }}#settings">{{ 'sessions.back'|trans }}</a></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('js/main.js') ~ '?v=' ~ js_version }}"></script>
+{% endblock %}

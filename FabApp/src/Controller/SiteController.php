@@ -50,6 +50,7 @@ use App\Entity\Machine;
 use App\Entity\Utilisateur;
 use App\Repository\UtilisateurRepository;
 use App\Security\AccountActivation;
+use App\Security\SessionRegistry;
 use App\UsageRights\RightsExplainer;
 use App\Service\BookingIdentityPolicy;
 use App\Service\FormationPageContentService;
@@ -2295,6 +2296,7 @@ final class SiteController extends AbstractController
         UsageRightsService $usageRights,
         UsageAllowanceService $usageBudgets,
         RightsExplainer $explainer,
+        SessionRegistry $sessionRegistry,
         VenueRepository $venues,
         LocaleCatalog $locales,
     ): Response
@@ -2669,6 +2671,8 @@ final class SiteController extends AbstractController
             // raconter deux histoires.
             'explained' => $explained = $explainer->explain($user),
             'usageRightsSummary' => $explained['capabilities'],
+            // S191a — null tant que la migration n'est pas passée : pas de lien.
+            'openSessions' => $sessionRegistry->isReady() ? \count($sessionRegistry->aliveFor($user)) : null,
             // ⚠️ What a package METERS, beside what it allows (S144c). A member
             // who only learns their limit at the moment of refusal reads a
             // budget they were sold as an arbitrary rule.
@@ -2789,6 +2793,7 @@ final class SiteController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         UserPasswordHasherInterface $passwordHasher,
+        SessionRegistry $sessions,
     ): Response
     {
         $user = $this->getUser();
@@ -2832,6 +2837,9 @@ final class SiteController extends AbstractController
             if ($errors === []) {
                 $user->setPassword($passwordHasher->hashPassword($user, $newPassword));
                 $entityManager->flush();
+                // S191a — Symfony déconnecte déjà les autres sessions (il compare
+                // le mot de passe) ; la liste « Sessions ouvertes » doit le dire.
+                $sessions->revokeOthers($user, $request->getSession());
 
                 $this->addFlash('success', 'flash.mot_de_passe_mis_a_jour');
 

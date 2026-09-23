@@ -7,6 +7,7 @@ use App\Mail\Mailer;
 use App\Mail\NotificationCategory;
 use App\Repository\UtilisateurRepository;
 use App\Security\PasswordResetTokenizer;
+use App\Security\SessionRegistry;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -90,6 +91,7 @@ final class SecurityController extends AbstractController
         PasswordResetTokenizer $tokenizer,
         UserPasswordHasherInterface $hasher,
         EntityManagerInterface $entityManager,
+        SessionRegistry $sessions,
     ): Response {
         $now = new \DateTimeImmutable();
         $userId = $tokenizer->userIdIfValid($token, $now);
@@ -121,6 +123,9 @@ final class SecurityController extends AbstractController
                 // aucun moyen de le reprendre.
                 $user->setIsVerified(true);
                 $entityManager->flush();
+                // S191a — un mot de passe réinitialisé ferme TOUTES les sessions :
+                // si quelqu'un d'autre était connecté, c'est le moment de le couper.
+                $sessions->revokeAll($user);
 
                 // The token committed to the OLD hash, so it — and every other
                 // outstanding link for this account — is now dead. Nothing to

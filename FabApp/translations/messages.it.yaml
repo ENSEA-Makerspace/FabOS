@@ -4137,6 +4137,7 @@ groups:
     no_bundles: "Questo gruppo non concede alcun forfait."
 
 security:
+    session_closed: "Questa sessione è stata chiusa da un altro dispositivo. Accedi di nuovo."
     email_unconfirmed: "Conferma prima il tuo indirizzo e-mail: clicca sul link che ti abbiamo inviato."
     account_unavailable: "Impossibile accedere con queste credenziali."
 
@@ -4214,3 +4215,26 @@ badge_reach:
     opens: "Apre:"
     opens_nothing: "Non apre ancora nessuna macchina."
     requires: "badge richiesto: %badges%"
+
+# S191a — sessions ouvertes.
+sessions:
+    title: "Sessioni aperte"
+    intro: "Dove il tuo account è connesso in questo momento. Una sessione inattiva da 24 minuti si chiude da sola."
+    this_device: "questo dispositivo"
+    unknown_browser: "Browser sconosciuto"
+    last_seen: "attiva il %date%"
+    signed_in: "connessa il %date%"
+    network: "rete %net%"
+    close: "Chiudi"
+    sign_out_here: "Disconnettimi"
+    close_others: "Chiudi tutte le altre sessioni"
+    none: "Nessuna sessione aperta."
+    note: "Chiudere una sessione la disconnette alla sua prossima azione. Cambiare password chiude tutte le altre."
+    back: "Torna al profilo"
+    closed_one: "Sessione chiusa."
+    already_closed: "Quella sessione era già chiusa."
+    closed_others: "Le altre sessioni sono chiuse."
+    manage: "Vedi"
+    admin_closed: "Tutte le sue sessioni sono chiuse."
+    admin_none: "Nessuna sessione aperta."
+    admin_close_all: "Chiudi tutte le sue sessioni"

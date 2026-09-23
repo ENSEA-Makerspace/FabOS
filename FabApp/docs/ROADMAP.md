@@ -1918,7 +1918,7 @@ parcours d'adhésion.
 |---|---|---|
 | **S189** ✅ 2026-09-23 | **L'entrée** : inscription courte qui annonce ses prochaines étapes, activation par e-mail avec renvoi et correction d'adresse — **sans impasse**. 🔴 **Et c'est là que `/register` cesse d'être un oracle d'appartenance** : la réponse devient la même que l'adresse existe ou non, ce qui n'est possible QUE parce que l'activation par e-mail arrive dans la même session | Une adresse mal tapée se corrige sans recréer un compte. 🔴 Et une sonde : deux adresses, l'une connue l'autre non, **réponses identiques** — la même mesure que S191 |
 | **S190** ✅ 2026-09-23 | **L'adhésion.** 🔴 **Tranché par l'opérateur : PAS de validation par l'équipe** — l'équipe doit seulement pouvoir DÉSACTIVER un compte, et que ça coupe vraiment. Livré : la désactivation coupe la connexion, les sessions ouvertes et le badge | ✅ `app:s190:deactivation-probe` : avant/après sur le même compte, machine, porte, page, API |
-| **S191** | **Sécurité du profil** : sessions visibles et révocables, MFA. ⚠️ Et une **récupération de compte NON DIVULGUANTE** — la réponse est la même que l'adresse existe ou non | 🔴 Prouvé par une sonde : deux adresses, l'une connue l'autre non, réponses identiques |
+| **S191** ⏳ S191a livrée (migration en attente), S191b à faire | **Sécurité du profil** : sessions visibles et révocables, MFA. ⚠️ Et une **récupération de compte NON DIVULGUANTE** — la réponse est la même que l'adresse existe ou non | 🔴 Prouvé par une sonde : deux adresses, l'une connue l'autre non, réponses identiques |
 | **S192** ✅ 2026-09-23 | **Les droits EXPLIQUÉS** côté admin — par rôle, lieu, formation et durée — et « mon badge » sans identifiant sensible | Un admin répond à « pourquoi cette personne a-t-elle ce droit ? » **depuis l'écran** |
 
 ### ✅ S189 — l'entrée : une adresse prouvée, et plus d'oracle d'appartenance
@@ -2000,6 +2000,29 @@ dans une transaction annulée. ⚠️ **Piège trouvé en l'écrivant** : une re
 simulée sans cookie de session repart anonyme (`hasPreviousSession()`), donc la
 première version « prouvait » la coupure sur des sessions jamais connectées.
 Elle exige maintenant `/profil` à 200 AVANT, puis 302 après.
+
+### ⏳ S191a — les sessions : visibles, et fermables (code déployé, migration en attente)
+
+**Mesuré avant** : aucune liste des sessions ; une session vit 24 min
+d'inactivité (défaut PHP), cookie de session ; Symfony déconnecte déjà les
+AUTRES sessions quand le mot de passe change (il compare le hash) — mais rien
+ne le montrait, et rien ne permettait de fermer un appareil précis.
+
+✅ **`/profil/sessions`** : « Firefox · macOS », actif le…, connecté le…, réseau
+`192.168.1.0/24` ; « cet appareil » marqué ; **Fermer** une session, **Fermer
+toutes les autres**. Lien depuis la section Sécurité du profil (une page à
+part : cette section vit dans le formulaire des réglages). **Fiche admin** :
+« N sessions ouvertes » + « Fermer toutes ses sessions ».
+🔴 **La clé est à FabOS** : une clé aléatoire par connexion, rangée dans la
+session, dont seule l'EMPREINTE va en base — la table ne permet de reprendre la
+session de personne. **IP tronquée** (/24, /48). Lignes effacées après 30 jours
+et à l'anonymisation. Une session fermée est coupée à SA requête suivante
+(page → connexion avec « fermée depuis un autre appareil », API → 401).
+✅ Changer son mot de passe ferme les autres sessions ; une **réinitialisation**
+les ferme TOUTES. Les rendus console (`app:render`) n'ouvrent aucune session.
+⚠️ **Migration `Version20260924090000`** (USER_SESSION + USER_MFA, tables
+neuves) : le code se tait tant qu'elle manque — sonde verte dans ce régime
+(connexion, profil sans lien, `/profil/sessions` → profil).
 
 ### ✅ S192 — « pourquoi cette personne a-t-elle ce droit ? », depuis l'écran
 
@@ -2093,6 +2116,9 @@ transaction annulée, journal intact) ; chemins = forfaits du verdict
 | **S190** ✅ | `php bin/console app:s190:deactivation-probe` | Verte |
 | **S196a** ✅ | `/login`, 6 mauvais mots de passe de suite | Au 6ᵉ : « Trop de tentatives… réessayez dans 5 minutes » ; même chose avec une adresse qui n'existe pas |
 | **S196a** ✅ | `/login` et l'accueil | Plus aucune mention de « CAS » |
+| **S191a** ⏳ | après la migration : `/profil` → Sécurité → « Sessions ouvertes » | Tes appareils, « cet appareil » marqué, réseau tronqué ; « Fermer » sur l'autre → il est renvoyé à la connexion à son clic suivant |
+| **S191a** ⏳ | fiche admin d'un compte connecté | « N sessions ouvertes » et « Fermer toutes ses sessions » |
+| **S191a** ⏳ | `php bin/console app:s191:session-probe` (après la migration) | Verte : deux appareils, fermer, fermer les autres, mot de passe, admin, déconnexion |
 | **S192** ✅ | `/admin/utilisateurs/{id}` d'un membre qui a un badge | Sous chaque droit : « Forfait « … » · par le groupe « … » · jusqu'au … » ; puis « Ce que son badge ouvre », badge « ••••XXXX », jamais l'identifiant entier |
 | **S192** ✅ | ton `/profil` | « Ce que votre badge ouvre » ; le champ « Badge d'accès » et ton historique d'accès montrent « ••••XXXX » |
 | **S192** ✅ | `/admin/acces-rfid` (journal) | Colonne « Résultat » : un état, plus aucune phrase sur la « syntaxe Twig » |

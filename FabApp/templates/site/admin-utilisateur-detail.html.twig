@@ -83,6 +83,20 @@
                     id_prefix: 'admin-member-badge-reach',
                 } only %}
 
+                {# S191a — compte volé, poste du labo resté connecté : fermer partout.
+                   Absent tant que la migration S191 n'est pas passée. #}
+                {% if openSessions is not null %}
+                    <div class="admin-sessions">
+                        <p>{{ 'sessions.admin_count'|trans({'count': openSessions}) }}</p>
+                        {% if openSessions > 0 %}
+                            <form method="post" action="{{ path('app_admin_user_sessions_revoke', {id: user.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('admin_sessions_revoke_' ~ user.id) }}">
+                                <button type="submit" class="admin-secondary-button">{{ 'sessions.admin_close_all'|trans }}</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
 {# LES GROUPES DE CETTE PERSONNE (S158b) — la même appartenance que
    `/admin/groupes`, vue par l'autre bout, et écrite par le même dépôt.
 

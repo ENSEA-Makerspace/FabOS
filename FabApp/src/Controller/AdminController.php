@@ -134,6 +134,7 @@ use App\UsageRights\UsagePackageRepository;
 use App\UsageRights\UserGroupRepository;
 use App\UsageRights\AudienceResolver;
 use App\UsageRights\RightsExplainer;
+use App\Security\SessionRegistry;
 use App\Reservation\LabClock;
 use App\Venue\VenueContext;
 use Doctrine\ORM\EntityManagerInterface;
@@ -1851,6 +1852,7 @@ final class AdminController extends AbstractController
         UserGroupRepository $userGroups,
         AudienceResolver $audiences,
         RightsExplainer $explainer,
+        SessionRegistry $sessionRegistry,
     ): Response {
         $user = $users->find($id);
         if (!$user) {
@@ -1917,6 +1919,8 @@ final class AdminController extends AbstractController
             // cette personne a-t-elle ce droit ? ». Mêmes verdicts qu'avant.
             'explained' => $explained = $explainer->explain($user),
             'usageRightsSummary' => $explained['capabilities'],
+            // S191a — null sans la migration : le bouton n'apparaît pas.
+            'openSessions' => $sessionRegistry->isReady() ? \count($sessionRegistry->aliveFor($user)) : null,
             // Staff answering "why was I refused?" need the same figures the
             // member sees, on the same screen they are already looking at.
             'usageBudgets' => $usageBudgets->summaryFor($user),

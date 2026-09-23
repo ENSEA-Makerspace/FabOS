@@ -4138,6 +4138,7 @@ groups:
     no_bundles: "This group grants no bundle."
 
 security:
+    session_closed: "This session was closed from another device. Please sign in again."
     email_unconfirmed: "Confirm your e-mail address first: click the link we sent you."
     account_unavailable: "Cannot sign in with these credentials."
 
@@ -4215,3 +4216,26 @@ badge_reach:
     opens: "Opens:"
     opens_nothing: "Opens no machine yet."
     requires: "badge required: %badges%"
+
+# S191a — sessions ouvertes.
+sessions:
+    title: "Open sessions"
+    intro: "Where your account is signed in right now. A session idle for 24 minutes closes by itself."
+    this_device: "this device"
+    unknown_browser: "Unknown browser"
+    last_seen: "active %date%"
+    signed_in: "signed in %date%"
+    network: "network %net%"
+    close: "Close"
+    sign_out_here: "Sign me out"
+    close_others: "Close all other sessions"
+    none: "No open session."
+    note: "Closing a session signs it out at its next action. Changing your password closes all the others."
+    back: "Back to profile"
+    closed_one: "Session closed."
+    already_closed: "That session was already closed."
+    closed_others: "The other sessions are closed."
+    manage: "View"
+    admin_closed: "All their sessions are closed."
+    admin_none: "No open session."
+    admin_close_all: "Close all their sessions"

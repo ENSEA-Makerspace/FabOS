@@ -204,3 +204,7 @@ badge_reach:
     free: "{count, plural, one {# Maschine öffnet sich ohne besonderen Badge} other {# Maschinen öffnen sich ohne besonderen Badge}}"
     closed_self: "{count, plural, one {# Maschine erfordert einen Badge, den du noch nicht hast} other {# Maschinen erfordern einen Badge, den du noch nicht hast}}"
     closed_admin: "{count, plural, one {# Maschine bleibt geschlossen} other {# Maschinen bleiben geschlossen}}"
+
+sessions:
+    profile_hint: "{count, plural, =0 {Keine andere offene Sitzung.} one {# Sitzung gerade offen.} other {# Sitzungen gerade offen.}}"
+    admin_count: "{count, plural, =0 {Keine offene Sitzung.} one {# Sitzung gerade offen.} other {# Sitzungen gerade offen.}}"

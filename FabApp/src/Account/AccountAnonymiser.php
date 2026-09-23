@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Account;
 
+use App\Security\SessionRegistry;
 use App\Entity\AccessRfidLog;
 use App\Entity\Creation;
 use App\Entity\EventRegistration;
@@ -67,6 +68,7 @@ final class AccountAnonymiser
         private readonly UserPasswordHasherInterface $hasher,
         private readonly string $projectDir,
         private readonly FormationThreads $threads,
+        private readonly SessionRegistry $sessions,
     ) {
     }
 
@@ -120,6 +122,8 @@ final class AccountAnonymiser
         $this->forgetCreationBylines($user);
         // 🔴 S183b — un fil privé EST une donnée personnelle de son apprenant.
         $this->threads->forgetLearner($id);
+            // S191a — l'historique des connexions (IP tronquées comprises) part aussi.
+            $this->sessions->forget($id);
 
         $user->setEmail(sprintf('anonymised-%d@%s', $id, self::SENTINEL_DOMAIN));
         $user->setUsername(sprintf('anonymised-%d', $id));

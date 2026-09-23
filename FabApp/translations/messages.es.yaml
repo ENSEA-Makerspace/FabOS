@@ -4137,6 +4137,7 @@ groups:
     no_bundles: "Este grupo no concede ningún plan."
 
 security:
+    session_closed: "Esta sesión se cerró desde otro dispositivo. Vuelva a iniciar sesión."
     email_unconfirmed: "Confirme primero su dirección de correo: haga clic en el enlace que le enviamos."
     account_unavailable: "No se puede iniciar sesión con estas credenciales."
 
@@ -4214,3 +4215,26 @@ badge_reach:
     opens: "Abre:"
     opens_nothing: "Aún no abre ninguna máquina."
     requires: "badge requerido: %badges%"
+
+# S191a — sessions ouvertes.
+sessions:
+    title: "Sesiones abiertas"
+    intro: "Dónde está conectada su cuenta ahora mismo. Una sesión inactiva durante 24 minutos se cierra sola."
+    this_device: "este dispositivo"
+    unknown_browser: "Navegador desconocido"
+    last_seen: "activa el %date%"
+    signed_in: "conectada el %date%"
+    network: "red %net%"
+    close: "Cerrar"
+    sign_out_here: "Cerrar mi sesión"
+    close_others: "Cerrar todas las demás sesiones"
+    none: "Ninguna sesión abierta."
+    note: "Cerrar una sesión la desconecta en su próxima acción. Cambiar la contraseña cierra todas las demás."
+    back: "Volver al perfil"
+    closed_one: "Sesión cerrada."
+    already_closed: "Esa sesión ya estaba cerrada."
+    closed_others: "Las demás sesiones están cerradas."
+    manage: "Ver"
+    admin_closed: "Todas sus sesiones están cerradas."
+    admin_none: "Ninguna sesión abierta."
+    admin_close_all: "Cerrar todas sus sesiones"

@@ -68,6 +68,12 @@ final class ConsoleRenderAuthenticator extends AbstractAuthenticator
         return $this->identifier = $email;
     }
 
+    /** S191a — un rendu console n'est pas une vraie connexion : pas de session suivie. */
+    public function isArmed(): bool
+    {
+        return $this->identifier !== null && \PHP_SAPI === 'cli';
+    }
+
     public function supports(Request $request): ?bool
     {
         return $this->identifier !== null && \PHP_SAPI === 'cli';

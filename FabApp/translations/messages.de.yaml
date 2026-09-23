@@ -4137,6 +4137,7 @@ groups:
     no_bundles: "Diese Gruppe gewährt kein Nutzungspaket."
 
 security:
+    session_closed: "Diese Sitzung wurde von einem anderen Gerät beendet. Bitte melde dich erneut an."
     email_unconfirmed: "Bestätigen Sie zuerst Ihre E-Mail-Adresse: Klicken Sie auf den Link, den wir Ihnen gesendet haben."
     account_unavailable: "Anmeldung mit diesen Zugangsdaten nicht möglich."
 
@@ -4214,3 +4215,26 @@ badge_reach:
     opens: "Öffnet:"
     opens_nothing: "Öffnet noch keine Maschine."
     requires: "benötigter Badge: %badges%"
+
+# S191a — sessions ouvertes.
+sessions:
+    title: "Offene Sitzungen"
+    intro: "Wo dein Konto gerade angemeldet ist. Eine 24 Minuten inaktive Sitzung endet von selbst."
+    this_device: "dieses Gerät"
+    unknown_browser: "Unbekannter Browser"
+    last_seen: "aktiv am %date%"
+    signed_in: "angemeldet am %date%"
+    network: "Netz %net%"
+    close: "Beenden"
+    sign_out_here: "Mich abmelden"
+    close_others: "Alle anderen Sitzungen beenden"
+    none: "Keine offene Sitzung."
+    note: "Eine beendete Sitzung wird bei ihrer nächsten Aktion abgemeldet. Ein neues Passwort beendet alle anderen."
+    back: "Zurück zum Profil"
+    closed_one: "Sitzung beendet."
+    already_closed: "Diese Sitzung war schon beendet."
+    closed_others: "Die anderen Sitzungen sind beendet."
+    manage: "Ansehen"
+    admin_closed: "Alle Sitzungen sind beendet."
+    admin_none: "Keine offene Sitzung."
+    admin_close_all: "Alle Sitzungen beenden"

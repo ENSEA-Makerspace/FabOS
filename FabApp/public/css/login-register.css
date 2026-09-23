@@ -2035,3 +2035,32 @@ html[data-theme="dark"] .profile-banner.has-custom-banner .profile-cover-image {
     color: var(--color-text-light);
     font-size: 0.82rem;
 }
+
+/* S191a — sessions ouvertes. */
+.sessions-card { max-width: 640px; }
+.sessions-list { list-style: none; margin: 0 0 16px; padding: 0; display: grid; gap: 8px; text-align: left; }
+.sessions-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    color: var(--color-text);
+}
+.sessions-item.is-current { border-color: var(--color-primary); }
+.sessions-item form { margin: 0; flex: 0 0 auto; }
+.sessions-meta { display: block; margin-top: 2px; color: var(--color-text-light); font-size: 0.85rem; }
+.sessions-badge {
+    margin-left: 6px;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: var(--tone-ok-soft);
+    color: var(--tone-ok-ink);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+@media (max-width: 560px) {
+    .sessions-item { flex-direction: column; align-items: flex-start; }
+}
