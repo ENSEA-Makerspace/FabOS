@@ -33,6 +33,7 @@ de références et cinq phases neuves ont rendu la lecture linéaire impossible.
 | **M** ✅ | Thèmes, en profondeur | S165–S168 — **close le 2026-09-19** |
 | **S** | Comptes, adhésion et confiance (MFA, récupération) | S189–S192 |
 | **T** | Surfaces restantes : prêts, recherche, rapports, créations | S193–S195 |
+| **U** | **Identité : des modules de connexion** (LDAP, AD, CAS, SAML/Shibboleth, OIDC) — pour TOUTES les installations | S196–S201 — ⏳ ordre à fixer quand l'opérateur saura ce qu'utilise l'ENSEA |
 | **R** | Commerce — **la dernière**, et bloquée par J | S184–S188 |
 
 ⚠️ **R garde ses numéros bas en passant après S et T** : un numéro de session est
@@ -2041,6 +2042,113 @@ Ce qui n'appartient à aucune autre phase : prêts, créations, recherche, rappo
 - 🔴 **C'est la phase où l'on vérifie que TOUT objet ouvre sa fiche** — le critère
   de sortie que le plan maître pose pour chaque lot, et qui se mesure d'un seul
   balayage.
+
+---
+
+# Phase U — identité : des modules de connexion (S196–S201)
+
+**Demande de l'opérateur (2026-09-23)** : « ce système sera offert à tous, donc
+il peut y avoir une myriade de solutions. Prépare un système d'authentification
+qui s'adapte aux différents cas, avec des modules LDAP, AD, CAS, etc. » Il dira
+ce qu'utilise l'ENSEA ; **la phase ne doit pas en dépendre** — l'ENSEA sera une
+configuration, pas un cas particulier du code.
+
+## Ce qui existe déjà, mesuré le 2026-09-23
+
+- ✅ **Le socle d'OIDC** : `AUTH_PROVIDER` (un fournisseur = une ligne, le
+  secret n'est jamais en base — on y stocke le NOM d'une variable
+  d'environnement), `EXTERNAL_IDENTITY` (lien `(issuer, subject)` → compte
+  local, unique, révocable), `ExternalIdentityService::resolveOrProvision()`,
+  `OidcController` (code + PKCE). Configuré dans `/admin/network`, l'écran de la
+  FÉDÉRATION — pas là qu'un exploitant le cherche.
+- ✅ **Les bons invariants sont déjà posés** (`USAGE_RIGHTS_VISION.md` §16 et
+  « Identité externe ») : l'annuaire partage l'AUTHENTIFICATION, jamais
+  l'autorité ; identité = `(fournisseur, identifiant immuable)`, jamais l'e-mail ;
+  aucun rapprochement silencieux par e-mail ; aucun attribut externe ne confère
+  un rôle d'admin ni un forfait ; la récupération admin reste LOCALE.
+- 🔴 **Sur la boîte : `AUTH_PROVIDER` est vide, `EXTERNAL_IDENTITY` aussi.** Le
+  socle n'a jamais servi en vrai.
+- 🔴 **Aucun module LDAP, AD, CAS ni SAML.** Aucune bibliothèque dans
+  `composer.lock`, et **l'extension PHP `ldap` n'est pas installée** sur CT 210
+  (`php -m` : `openssl`, `dom`, `xml`, `SimpleXML` oui ; `ldap` non).
+- 🔴 **La page de connexion MENT** : « Adresse email ou identifiant CAS »
+  (`login.email_label`), alors qu'il n'existe aucun CAS. Un membre qui tape son
+  identifiant d'école échoue sans comprendre pourquoi.
+- 🔴 **Aucune limite aux essais de mot de passe** (ni `login_throttling` dans
+  `security.yaml`, ni limiteur). C'est un défaut AUJOURD'HUI pour les comptes
+  locaux ; avec un module LDAP, ça ferait de FabOS **un relais pour deviner les
+  mots de passe de l'établissement** — et verrouiller des comptes de l'école par
+  la politique de verrouillage de l'annuaire.
+- ⚠️ **Les trous d'OIDC, lus dans le code** : le `nonce` est généré puis jamais
+  vérifié ; l'`id_token` n'est pas validé (seul `userinfo` est lu) ;
+  `email_verified` est ignoré — le compte est créé `isVerified = true` quelle
+  que soit la garantie de l'adresse ; la découverte est refaite à chaque
+  connexion ; sans e-mail fourni, le compte reçoit `oidc-…@invalid.local` et
+  aucun nom de famille.
+
+## Le modèle : deux familles, un seul contrat
+
+| Famille | Modules | Qui voit le mot de passe ? | Ce que FabOS reçoit |
+|---|---|---|---|
+| **Par redirection** | OIDC ✅, **CAS**, **SAML 2** (Shibboleth, fédération Éducation-Recherche de Renater, ADFS) | ✅ **Personne d'autre que l'établissement** | un jeton / ticket / assertion signés, et des attributs |
+| **Par mot de passe transmis** | **LDAP** (OpenLDAP, SUPANN…), **Active Directory** | ⚠️ **FabOS**, le temps de le présenter à l'annuaire | le résultat du bind, et la fiche lue dans l'annuaire |
+
+⚠️ **À dire à chaque exploitant, dans l'écran lui-même** : si l'établissement
+offre CAS, SAML ou OIDC, c'est à préférer à LDAP/AD — le mot de passe de l'école
+ne transite jamais par FabOS. LDAP/AD restent indispensables pour les labos
+sans fédération (associations, entreprises, AD interne).
+
+**Le contrat, pour que le reste du produit ne connaisse aucun protocole** :
+
+- chaque module transforme SA réponse en un **`ExternalProfile`** : fournisseur,
+  identifiant immuable, e-mail (+ « garanti par le fournisseur » oui/non),
+  prénom, nom, nom affiché, affiliations, « désactivé à la source » oui/non ;
+- **un seul** service décide ensuite — lier, créer, compléter, refuser —
+  `ExternalIdentityService`. Aucune règle d'identité ne vit dans un module ;
+- **le mappage des attributs est une CONFIGURATION**, avec des préréglages :
+  `inetOrgPerson`, **SUPANN** (universités françaises), **Active Directory**,
+  **eduPerson / Renater**, attributs CAS usuels. L'identifiant immuable fait
+  partie du mappage (`entryUUID`, `objectGUID`, `eduPersonPrincipalName`,
+  `sub`…) : c'est lui qui rend un changement d'e-mail ou de nom sans effet.
+
+## Les sessions
+
+| Session | Livre | Ce qu'on mesure |
+|---|---|---|
+| **S196** | **Le socle.** Le contrat `ExternalProfile` + un seul service qui décide ; `AUTH_PROVIDER` gagne `kind` et des réglages par module (migration d'EXPANSION, OIDC reste lisible) ; un écran **« Connexion & annuaires »** hors de `/admin/network`, avec un bouton **Tester** qui montre, pour un compte de test, **les attributs reçus et ce que FabOS en fait** — c'est ce qui rend une « myriade de solutions » configurable sans lire de code. OIDC réécrit sur le contrat, avec ses trous bouchés (nonce, `id_token`, `email_verified`, découverte en cache). 🔴 **Et avant tout module à mot de passe : la limite d'essais** (`login_throttling`) pour TOUS les comptes. Le libellé « identifiant CAS » dit la vérité : il nomme les fournisseurs RÉELLEMENT activés, ou aucun | Une sonde : 20 mauvais mots de passe → le 6ᵉ est freiné, pour un compte local ET un compte d'annuaire. OIDC : un `nonce` rejoué, un `id_token` falsifié → refus. **Aucun fournisseur activé = l'écran de connexion d'aujourd'hui, au pixel** |
+| **S197** | **La première connexion, sans impasse.** « **Complétez votre compte** » : ne demande QUE ce qui manque (souvent l'e-mail, parfois le nom) ; une adresse que le fournisseur ne garantit pas passe par la confirmation de S189. **Lier un compte local existant** : jamais par e-mail en silence — preuve des deux côtés (mot de passe local) ou geste admin audité. **Mot de passe oublié** pour un compte d'annuaire : « votre mot de passe est géré par X », avec le lien que l'exploitant a configuré — jamais un mot de passe local posé en douce | Une sonde : fournisseur sans e-mail → la page demande l'e-mail et rien d'autre ; même adresse qu'un compte local → deux comptes distincts tant qu'on n'a pas prouvé, puis un seul |
+| **S198** | **LDAP et Active Directory.** `symfony/ldap` (⚠️ demande `php8.4-ldap` sur l'hôte — geste de l'opérateur) ; compte de service en variable d'environnement ; **TLS obligatoire** (`ldaps://` ou StartTLS, certificat vérifié) ; filtre de recherche échappé ; délais courts et refus fermé si l'annuaire ne répond pas. AD : `userPrincipalName` / `sAMAccountName`, `objectGUID`, et « désactivé » lu dans `userAccountControl`. Un SEUL formulaire de connexion : l'exploitant choisit l'ordre (local d'abord, ou annuaire d'abord) | Contre un OpenLDAP ET un Samba-AD **de test sur le homelab, jamais la prod** : bon mot de passe, mauvais, compte désactivé à la source, annuaire éteint → refus fermé, en moins de 5 s. Un identifiant contenant `*)(uid=*` ne trouve personne |
+| **S199** | **CAS** (protocole v2/v3 : `serviceValidate` + attributs), écrit en interne avec `HttpClient` — le protocole est petit, et `phpCAS` impose un état global. Déconnexion unique en option | Contre un Apereo CAS de test : ticket valide, ticket rejoué, ticket pour un autre service → refus. Le mot de passe ne touche jamais FabOS |
+| **S200** | **SAML 2 — Shibboleth, fédération Renater, ADFS.** Métadonnées du fournisseur de service publiées par FabOS, métadonnées de l'IdP importées (URL ou fichier), assertions signées exigées, horloge tolérée ±3 min. En fédération : la page de choix de l'établissement (WAYF). Bibliothèque éprouvée (`onelogin/php-saml`) — ⚠️ **nouvelle dépendance : accord de l'opérateur** | Contre un Keycloak de test en SAML : assertion non signée, expirée, pour une autre audience, rejouée → refus |
+| **S201** | **Le cycle de vie : les départs.** Une commande de nuit, par module : LDAP/AD interrogent l'annuaire (fiche absente, ou désactivée → **désactivation S190** avec le motif « annuaire », réversible) ; pour les modules par redirection, qui ne permettent pas d'interroger, une règle optionnelle « jamais revu depuis N jours ». Un rapport à l'exploitant, pas une surprise. 🔴 **La porte de secours** : FabOS refuse de désactiver la connexion locale tant qu'il n'existe pas au moins un admin avec un mot de passe local — une panne de l'annuaire ne doit pas enfermer le labo dehors | Une sonde : trois comptes liés, un retiré de l'annuaire, un désactivé → deux désactivations motivées, badge compris (S190), et la troisième intacte. Annuaire injoignable → la synchro NE DÉSACTIVE PERSONNE |
+
+## Les invariants de la phase
+
+- 🔴 **Aucun fournisseur activé = rien ne change à l'écran.** C'est le cas de
+  la plupart des installations ; elles ne doivent pas payer la phase.
+- 🔴 **Le statut local gagne toujours** : un compte désactivé dans FabOS est
+  refusé même si l'annuaire l'accepte (déjà vrai pour OIDC, à garder pour
+  chaque module).
+- **Refus fermé** : annuaire lent, certificat douteux, signature absente → on
+  refuse la connexion, jamais on ne « laisse passer faute de mieux ».
+- **Les secrets restent hors base** : mot de passe du compte de service, secret
+  client, clé privée SAML → des NOMS de variables d'environnement, comme
+  aujourd'hui pour OIDC.
+- **L'e-mail n'identifie personne** ; l'identifiant immuable, si.
+- 🅿️ **Les attributs ne donnent pas de droits.** « Étudiant » / « personnel »
+  sont LUS et affichables, mais les transformer en appartenance à un groupe
+  donnerait des forfaits — ce que la vision interdit. Si un labo le veut,
+  c'est une décision explicite, plus tard, et jamais vers un rôle d'admin.
+- **Tester sans la prod** : chaque module a son annuaire / IdP de test sur le
+  homelab (OpenLDAP, Samba-AD, Apereo CAS, Keycloak pour OIDC et SAML), et sa
+  sonde. Aucun essai contre l'annuaire réel d'un établissement sans son accord.
+
+## Ce que l'opérateur doit trancher avant S198–S200
+
+- **Ce qu'utilise l'ENSEA** (CAS ? Shibboleth / Renater ? AD ?) — ça fixe
+  l'ORDRE des sessions S198–S200, pas leur contenu.
+- **Deux dépendances** : `php8.4-ldap` sur l'hôte (S198), `onelogin/php-saml`
+  dans le projet (S200).
 
 ---
 
