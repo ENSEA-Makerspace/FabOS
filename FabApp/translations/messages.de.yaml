@@ -4296,3 +4296,15 @@ mfa:
     admin_on: "Zwei-Faktor-Authentifizierung: aktiviert."
     admin_off: "Zwei-Faktor-Authentifizierung: nicht aktiviert."
     admin_reset: "Zwei-Faktor-Authentifizierung entfernen (Telefon verloren)"
+
+account_status:
+    heading: "Kontostatus"
+    inactive_state: "Konto deaktiviert: keine Anmeldung, kein Badge (Maschinen, Türen)."
+    deactivate: "Dieses Konto deaktivieren"
+    reactivate: "Dieses Konto reaktivieren"
+    reactivate_help: "Gibt Anmeldung und Badge zurück. Bei der Deaktivierung stornierte Reservierungen kommen nicht zurück."
+    reactivated: "Konto reaktiviert."
+    already_inactive: "Dieses Konto war bereits deaktiviert."
+    refused_self: "Sie können Ihr eigenes Konto nicht deaktivieren."
+    refused_last_admin: "Dies ist der letzte aktive Administrator: Ernennen Sie zuerst einen anderen."
+    refused_already_anonymised: "Dieses Konto ist anonymisiert: Es gibt nichts mehr zu deaktivieren oder zu reaktivieren."

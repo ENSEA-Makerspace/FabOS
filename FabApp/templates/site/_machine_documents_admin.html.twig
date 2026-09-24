@@ -32,7 +32,8 @@
                     <form method="post" action="{{ path('app_admin_machine_document_delete', {id: machine.id, documentId: doc.id}) }}">
                         <input type="hidden" name="_token" value="{{ csrf_token('machine_documents_' ~ machine.id) }}">
                         <button class="btn-link btn-danger-admin" type="submit"
-                                data-controller="confirm" data-confirm-message-value="{{ 'machine_documents.delete'|trans }} — {{ doc.label }} ?">
+                                data-controller="confirm" data-action="click->confirm#ask"
+                                data-confirm-message-value="{{ 'machine_documents.delete'|trans }} — {{ doc.label }} ?">
                             {{ 'machine_documents.delete'|trans }}
                         </button>
                     </form>

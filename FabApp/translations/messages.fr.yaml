@@ -4298,3 +4298,15 @@ mfa:
     admin_on: "Double authentification : activée."
     admin_off: "Double authentification : pas activée."
     admin_reset: "Retirer sa double authentification (téléphone perdu)"
+
+account_status:
+    heading: "Statut du compte"
+    inactive_state: "Compte désactivé : ni connexion, ni badge (machines, portes)."
+    deactivate: "Désactiver ce compte"
+    reactivate: "Réactiver ce compte"
+    reactivate_help: "Rend la connexion et le badge. Les réservations annulées à la désactivation ne reviennent pas."
+    reactivated: "Compte réactivé."
+    already_inactive: "Ce compte était déjà désactivé."
+    refused_self: "Vous ne pouvez pas désactiver votre propre compte."
+    refused_last_admin: "C’est le dernier administrateur actif : nommez-en un autre avant de le désactiver."
+    refused_already_anonymised: "Ce compte est anonymisé : il n’y a plus rien à désactiver ni à réactiver."

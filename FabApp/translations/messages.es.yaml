@@ -4296,3 +4296,15 @@ mfa:
     admin_on: "Autenticación en dos pasos: activada."
     admin_off: "Autenticación en dos pasos: no activada."
     admin_reset: "Quitar su autenticación en dos pasos (teléfono perdido)"
+
+account_status:
+    heading: "Estado de la cuenta"
+    inactive_state: "Cuenta desactivada: sin inicio de sesión ni credencial (máquinas, puertas)."
+    deactivate: "Desactivar esta cuenta"
+    reactivate: "Reactivar esta cuenta"
+    reactivate_help: "Devuelve el inicio de sesión y la credencial. Las reservas canceladas al desactivar no vuelven."
+    reactivated: "Cuenta reactivada."
+    already_inactive: "Esta cuenta ya estaba desactivada."
+    refused_self: "No puede desactivar su propia cuenta."
+    refused_last_admin: "Es el último administrador activo: nombre otro antes de desactivarlo."
+    refused_already_anonymised: "Esta cuenta está anonimizada: ya no hay nada que desactivar ni reactivar."

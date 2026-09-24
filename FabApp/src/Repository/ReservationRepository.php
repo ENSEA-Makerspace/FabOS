@@ -273,6 +273,43 @@ class ReservationRepository extends ServiceEntityRepository
             ->execute();
     }
 
+    /**
+     * S190d — ce que la désactivation d'un compte annulerait : ses réservations
+     * encore vivantes qui ne sont pas finies. Même règle que l'annulation
+     * ci-dessous, pour que le nombre écrit à côté du bouton soit celui annulé.
+     */
+    public function countUpcomingForUser(Utilisateur $user): int
+    {
+        return (int) $this->createQueryBuilder('reservation')
+            ->select('COUNT(reservation.id)')
+            ->andWhere('reservation.utilisateur = :user')
+            ->andWhere('reservation.statut NOT IN (:inactive)')
+            ->andWhere('reservation.dateFin >= :now')
+            ->setParameter('user', $user)
+            ->setParameter('inactive', Reservation::INACTIVE_STATUSES)
+            ->setParameter('now', new \DateTimeImmutable())
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /** S190d — les passées restent : elles sont l'histoire du lab. */
+    public function cancelUpcomingForUser(Utilisateur $user): int
+    {
+        return (int) $this->getEntityManager()
+            ->createQuery(
+                'UPDATE ' . Reservation::class . ' reservation'
+                . ' SET reservation.statut = :cancelled'
+                . ' WHERE reservation.utilisateur = :user'
+                . ' AND reservation.statut NOT IN (:inactive)'
+                . ' AND reservation.dateFin >= :now'
+            )
+            ->setParameter('cancelled', Reservation::STATUS_CANCELLED)
+            ->setParameter('inactive', Reservation::INACTIVE_STATUSES)
+            ->setParameter('user', $user)
+            ->setParameter('now', new \DateTimeImmutable())
+            ->execute();
+    }
+
     /** @return Reservation[] */
     public function findForAdminFilters(array $filters): array
     {

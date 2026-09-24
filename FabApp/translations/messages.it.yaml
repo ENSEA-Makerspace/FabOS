@@ -4296,3 +4296,15 @@ mfa:
     admin_on: "Autenticazione a due fattori: attiva."
     admin_off: "Autenticazione a due fattori: non attiva."
     admin_reset: "Rimuovi la sua autenticazione a due fattori (telefono perso)"
+
+account_status:
+    heading: "Stato dell’account"
+    inactive_state: "Account disattivato: né accesso né badge (macchine, porte)."
+    deactivate: "Disattiva questo account"
+    reactivate: "Riattiva questo account"
+    reactivate_help: "Restituisce l’accesso e il badge. Le prenotazioni annullate alla disattivazione non tornano."
+    reactivated: "Account riattivato."
+    already_inactive: "Questo account era già disattivato."
+    refused_self: "Non puoi disattivare il tuo account."
+    refused_last_admin: "È l’ultimo amministratore attivo: nominane un altro prima di disattivarlo."
+    refused_already_anonymised: "Questo account è anonimizzato: non c’è più nulla da disattivare o riattivare."

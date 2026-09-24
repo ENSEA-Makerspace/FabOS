@@ -2001,39 +2001,40 @@ simulée sans cookie de session repart anonyme (`hasPreviousSession()`), donc la
 première version « prouvait » la coupure sur des sessions jamais connectées.
 Elle exige maintenant `/profil` à 200 AVANT, puis 302 après.
 
-### ⏳ S190d — EN COURS (2026-09-24) : un bouton pour désactiver un compte, qui annule ses réservations à venir
+### ✅ S190d — un bouton pour désactiver un compte, qui annule ses réservations à venir
 
 **Décision de l'opérateur (2026-09-24)** : « pour l'annulation des comptes
 désactivés, oui annule » puis « précise-le près du bouton de désactivation ».
 
-🔴 **Mesuré en commençant : AUCUN écran ne désactive un compte existant.**
-Routes admin d'un compte : `new`, fiche, `anonymiser`, `person-type`,
-`mfa_reset`, `sessions/fermer` — pas d'édition. Le champ « Statut »
-(`UserAdminType`) n'existe que dans le formulaire de CRÉATION ; seule
-l'anonymisation passe un compte en `inactif`. Tout le travail de S190 (coupure
-du badge, des sessions, de l'API) est donc juste mais **inatteignable** depuis
-l'écran. La ligne opérateur S190 qui citait « le champ Statut » était fausse.
+🔴 **Mesuré en commençant : AUCUN écran ne désactivait un compte existant.** Le
+champ « Statut » n'existait que dans le formulaire de CRÉATION : tout S190 (badge,
+sessions, API) était juste mais inatteignable.
 
-**À faire (rien n'est encore écrit) :**
-- `src/Account/AccountDeactivation.php` : `deactivate(user, actor)` → `statut = inactif`,
-  annule les réservations À VENIR (`ReservationRepository::cancelUpcomingForUser()`,
-  à écrire sur le modèle de `cancelUpcomingForReservable()` l. ~257 :
-  `statut NOT IN INACTIVE_STATUSES AND dateFin >= now`), `SessionRegistry::revokeAll()` ;
-  `reactivate()` → `actif` (les réservations annulées NE reviennent pas).
-  **Sans courrier** au membre (un courrier par réservation annulée serait du bruit) — le dire à côté du bouton.
-- Routes POST `/admin/utilisateurs/{id}/desactiver` et `/reactiver`, CSRF ; refuser
-  de se désactiver soi-même (et vérifier le dernier admin, comme l'anonymisation :
-  `AccountGuard::refusalFor`).
-- Fiche admin (`admin-utilisateur-detail.html.twig`, bloc « Anonymiser » l. ~180 comme modèle) :
-  section « Statut du compte », bouton + **texte juste à côté** : « Coupe tout de
-  suite la connexion, les sessions ouvertes et le badge (machines, portes), et
-  annule ses N réservations à venir — sans courrier. Réversible ; les
-  réservations annulées ne reviennent pas. » N calculé. Confirmation par le
-  contrôleur Stimulus `confirm` (`data-controller="confirm" data-confirm-message-value`).
-- Étendre `app:s190:deactivation-probe` : désactiver par la ROUTE annule les
-  réservations futures, garde les passées, refuse soi-même ; réactiver.
-- Pièges de sonde : voir la mémoire `feedback_fabos_kernel_probe_traps` (cookie de
-  session, services remis à zéro, en-tête `Origin` sur les POST, ne pas recopier la règle vérifiée).
+✅ **Fiche admin d'un compte → « Statut du compte »** : « Désactiver ce compte »,
+et JUSTE À CÔTÉ ce qu'il fait, nombre calculé : « Coupe tout de suite la
+connexion, les sessions ouvertes et le badge (machines, portes), et annule ses
+N réservations à venir, sans courrier. Réversible ; les réservations annulées ne
+reviennent pas. » (Trois phrases entières selon 0, 1 ou N — pas une phrase
+rafistolée.) Confirmation avant envoi. Un compte désactivé montre l'état et
+« Réactiver ce compte ».
+✅ **Refus montrés, pas cachés** : sa propre fiche dit « Vous ne pouvez pas
+désactiver votre propre compte » ; le dernier administrateur actif est refusé
+(même garde que l'anonymisation) ; un compte anonymisé n'a rien à réactiver.
+✅ **Une seule classe** `AccountDeactivation` : statut `inactif`, réservations
+à venir (`dateFin >= maintenant`) annulées, toutes les sessions fermées.
+Réactiver = `actif`, rien d'autre.
+✅ **Sonde `app:s190:deactivation-probe`, étendue** : un administrateur connecté
+ouvre la fiche, le formulaire demande confirmation, le POST passe le compte en
+`inactif`, annule la réservation d'après-demain et garde celle d'avant-hier ; le
+nombre écrit à côté du bouton = celui annulé ; la session du membre est coupée ;
+sa propre fiche n'a pas de bouton ; « Réactiver » rend la connexion, pas la
+réservation. Transaction annulée, tables identiques avant/après.
+🔴 **Trouvé en passant** : « Anonymiser le compte » — irréversible — **partait sans
+confirmation** (`data-controller="confirm"` sans `data-action`), comme la
+suppression d'un document machine. Les deux corrigés.
+⚠️ **Limite connue** : si la personne désactivée est elle-même réservable (un
+formateur), les rendez-vous que D'AUTRES ont pris avec elle ne sont pas annulés.
+Les annuler en silence frapperait des tiers ; à trancher si le cas se présente.
 
 ### ✅ S191b — la double authentification (TOTP)
 
@@ -2177,7 +2178,11 @@ transaction annulée, journal intact) ; chemins = forfaits du verdict
 | **S189** ✅ | sur « Vérifiez votre boîte », corriger l'adresse | Le lien arrive à la nouvelle ; celui de l'ancienne ne marche plus |
 | **S189** ✅ | ouvrir un lien d'activation une 2ᵉ fois | « Ce lien n'est plus valable », avec quoi faire |
 | **S189** ✅ | `php bin/console app:s189:register-probe` | Verte, aucun courrier envoyé |
-| **S190** ⏳ | ~~fiche d'un compte, champ « Statut »~~ — 🔴 **cet écran N'EXISTE PAS** (le champ n'est que dans le formulaire de CRÉATION) ; voir S190d | — |
+| **S190d** ✅ | fiche admin d'un compte avec des réservations à venir | Section « Statut du compte » : « Désactiver ce compte », et à côté « … annule ses N réservations à venir, sans courrier » |
+| **S190d** ✅ | cliquer « Désactiver ce compte » | Une confirmation d'abord ; puis « Compte désactivé, et N réservations à venir annulées » ; ses réservations passées sont toujours là |
+| **S190d** ✅ | ta propre fiche | Pas de bouton : « Vous ne pouvez pas désactiver votre propre compte » |
+| **S190d** ✅ | « Réactiver ce compte » | Il se reconnecte ; les réservations annulées ne sont pas revenues |
+| **S190d** ✅ | « Anonymiser le compte » sur un compte de test | Une confirmation s'affiche AVANT (elle n'existait pas) — répondre Annuler |
 | **S190** ✅ | désactiver un compte de test connecté dans un autre navigateur | À son clic suivant, il est renvoyé à la connexion |
 | **S190** ✅ | badger ce compte sur une machine | Refusé ; le journal RFID dit « Compte désactivé » |
 | **S190** ✅ | `/admin/utilisateurs` après une inscription non confirmée | Pastille orange « Adresse non confirmée » |

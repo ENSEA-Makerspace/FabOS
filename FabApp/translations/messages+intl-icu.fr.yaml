@@ -217,3 +217,8 @@ sessions:
 mfa:
     recovery_left: "{count, plural, =0 {Plus aucun code de secours : générez-en de nouveaux.} one {# code de secours restant.} other {# codes de secours restants.}}"
     used_recovery: "{count, plural, =0 {Code de secours utilisé. C’était le dernier : générez-en de nouveaux.} one {Code de secours utilisé. Il en reste #.} other {Code de secours utilisé. Il en reste #.}}"
+
+account_status:
+    deactivated: "{count, plural, =0 {Compte désactivé. Il n’avait aucune réservation à venir.} one {Compte désactivé, et # réservation à venir annulée.} other {Compte désactivé, et # réservations à venir annulées.}}"
+    deactivate_help: "{count, plural, =0 {Coupe tout de suite la connexion, les sessions ouvertes et le badge (machines, portes). Aucune réservation à venir à annuler. Réversible.} one {Coupe tout de suite la connexion, les sessions ouvertes et le badge (machines, portes), et annule sa réservation à venir, sans courrier. Réversible ; la réservation annulée ne revient pas.} other {Coupe tout de suite la connexion, les sessions ouvertes et le badge (machines, portes), et annule ses # réservations à venir, sans courrier. Réversible ; les réservations annulées ne reviennent pas.}}"
+    deactivate_confirm: "{count, plural, =0 {Désactiver ce compte ? Connexion, sessions et badge sont coupés tout de suite.} one {Désactiver ce compte ? Connexion, sessions et badge sont coupés tout de suite, et sa réservation à venir est annulée sans courrier.} other {Désactiver ce compte ? Connexion, sessions et badge sont coupés tout de suite, et ses # réservations à venir sont annulées sans courrier.}}"

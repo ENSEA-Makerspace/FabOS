@@ -32,6 +32,7 @@ use App\Entity\OpeningHour;
 use App\Entity\Progression;
 use App\Entity\RfidReader;
 use App\Account\AccountAnonymiser;
+use App\Account\AccountDeactivation;
 use App\Account\AccountGuard;
 use App\Entity\Utilisateur;
 use App\Event\EventAnnouncer;
@@ -1855,6 +1856,7 @@ final class AdminController extends AbstractController
         RightsExplainer $explainer,
         SessionRegistry $sessionRegistry,
         MfaService $mfa,
+        AccountDeactivation $deactivation,
     ): Response {
         $user = $users->find($id);
         if (!$user) {
@@ -1930,6 +1932,10 @@ final class AdminController extends AbstractController
             // ⚠️ The verdict is read here so the panel can EXPLAIN a refusal
             // instead of hiding a button — the same guard the POST re-runs.
             'anonymiseRefusal' => $accountGuard->refusalFor($user),
+            // S190d — le nombre écrit à côté du bouton est celui que le POST annulera.
+            'accountInactive' => AccountDeactivation::isInactive($user),
+            'deactivateRefusal' => $deactivation->refusalFor($user, ($actor = $this->getUser()) instanceof Utilisateur ? $actor : null),
+            'upcomingReservations' => $reservations->countUpcomingForUser($user),
             'groupRows' => $groupRows,
             'joinableGroups' => $joinable,
         ]);

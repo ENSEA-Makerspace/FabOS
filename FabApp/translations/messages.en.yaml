@@ -4297,3 +4297,15 @@ mfa:
     admin_on: "Two-factor authentication: enabled."
     admin_off: "Two-factor authentication: not enabled."
     admin_reset: "Remove their two-factor authentication (lost phone)"
+
+account_status:
+    heading: "Account status"
+    inactive_state: "Account deactivated: no sign-in, no badge (machines, doors)."
+    deactivate: "Deactivate this account"
+    reactivate: "Reactivate this account"
+    reactivate_help: "Restores sign-in and the badge. Bookings cancelled at deactivation do not come back."
+    reactivated: "Account reactivated."
+    already_inactive: "This account was already deactivated."
+    refused_self: "You cannot deactivate your own account."
+    refused_last_admin: "This is the last active administrator: appoint another one before deactivating it."
+    refused_already_anonymised: "This account is anonymised: there is nothing left to deactivate or reactivate."

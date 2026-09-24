@@ -372,6 +372,11 @@ Classer par **entité**, jamais par nom de champ. Se tromper est silencieux.
 - ⚠️ `.admin-panel` est un cadre : ses enfants portent la gouttière de 24 px.
 - ⚠️ `getComputedStyle` ment dans le panneau navigateur ; une feuille cross-origin
   ne se parcourt pas.
+- 🔴 **`data-controller="confirm"` SANS `data-action` ne demande rien** : le
+  formulaire part au premier clic. Formulaire → `data-action="submit->confirm#ask"`,
+  bouton → `click->confirm#ask`. Trouvé le 2026-09-24 sur « Anonymiser le compte »
+  (irréversible) et la suppression d'un document machine. Grep :
+  `grep -rn 'data-controller="confirm"' templates | grep -v data-action`.
 
 ## 15. Déployer
 
@@ -504,7 +509,11 @@ Réutiliser `ImageNormalizer`.
   location, DE Standort, ES ubicación, IT sede. `Venue`/`VENUE`, `venue_context`,
   `?location=` n'ont pas bougé. ⚠️ La collision de mots sur `/admin/lieux` est
   **assumée** — ne pas la « corriger » sans redemander.
-- **RFID physique et 2FA restent hors scope.**
+- **Désactiver un compte annule ses réservations À VENIR, sans courrier**, et
+  l'écran le dit à côté du bouton, nombre compris (2026-09-24, S190d). Les passées
+  restent ; réactiver ne ressuscite rien. Une seule classe : `AccountDeactivation`.
+- **RFID physique reste hors scope.** (La 2FA TOTP, longtemps hors scope, est
+  livrée depuis S191b.)
 
 ## 19. Répartition
 

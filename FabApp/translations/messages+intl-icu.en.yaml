@@ -217,3 +217,8 @@ sessions:
 mfa:
     recovery_left: "{count, plural, =0 {No recovery codes left: generate new ones.} one {# recovery code left.} other {# recovery codes left.}}"
     used_recovery: "{count, plural, =0 {Recovery code used. That was the last one: generate new ones.} one {Recovery code used. # left.} other {Recovery code used. # left.}}"
+
+account_status:
+    deactivated: "{count, plural, =0 {Account deactivated. It had no upcoming booking.} one {Account deactivated, and # upcoming booking cancelled.} other {Account deactivated, and # upcoming bookings cancelled.}}"
+    deactivate_help: "{count, plural, =0 {Immediately cuts sign-in, open sessions and the badge (machines, doors). No upcoming booking to cancel. Reversible.} one {Immediately cuts sign-in, open sessions and the badge (machines, doors), and cancels their upcoming booking, without e-mail. Reversible; the cancelled booking does not come back.} other {Immediately cuts sign-in, open sessions and the badge (machines, doors), and cancels their # upcoming bookings, without e-mail. Reversible; cancelled bookings do not come back.}}"
+    deactivate_confirm: "{count, plural, =0 {Deactivate this account? Sign-in, sessions and badge are cut immediately.} one {Deactivate this account? Sign-in, sessions and badge are cut immediately, and their upcoming booking is cancelled without e-mail.} other {Deactivate this account? Sign-in, sessions and badge are cut immediately, and their # upcoming bookings are cancelled without e-mail.}}"

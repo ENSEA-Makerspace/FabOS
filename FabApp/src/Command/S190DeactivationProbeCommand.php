@@ -2,6 +2,7 @@
 
 namespace App\Command;
 
+use App\Account\AccountDeactivation;
 use App\Entity\AccessPoint;
 use App\Entity\Machine;
 use App\Entity\Utilisateur;
@@ -24,6 +25,7 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * S190 — « désactiver » coupe tout, tout de suite, et la sonde le prouve.
@@ -33,6 +35,10 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
  *   1. le badge à une machine (et donc le démarrage d'une session machine) ;
  *   2. le badge à une porte ;
  *   3. une session web DÉJÀ OUVERTE — la page, puis l'API.
+ * S190d — puis PAR L'ÉCRAN : un administrateur connecté désactive depuis la
+ * fiche (le nombre écrit à côté du bouton = celui annulé), les réservations à
+ * venir sont annulées et les passées gardées, soi-même est refusé, et
+ * « Réactiver » rend l'accès sans ressusciter les réservations.
  *
  * ✅ Transaction annulée : le mot de passe de sonde, le badge posé s'il en
  * manquait un, la bascule et les lignes du journal d'accès disparaissent. La
@@ -55,6 +61,8 @@ final class S190DeactivationProbeCommand extends Command
         private readonly DoorAccessDecision $doors,
         private readonly UserPasswordHasherInterface $hasher,
         private readonly TokenStorageInterface $tokens,
+        private readonly AccountDeactivation $deactivation,
+        private readonly TranslatorInterface $translator,
     ) {
         parent::__construct();
     }
@@ -64,7 +72,7 @@ final class S190DeactivationProbeCommand extends Command
         $io = new SymfonyStyle($input, $output);
         $failures = [];
 
-        $tables = ['UTILISATEUR', 'ACCESS_RFID_LOG', 'MACHINE', 'EMAIL_LOG'];
+        $tables = ['UTILISATEUR', 'ACCESS_RFID_LOG', 'MACHINE', 'EMAIL_LOG', 'RESERVATION', 'USER_SESSION'];
         $counts = function () use ($tables): array {
             $out = [];
             foreach ($tables as $table) {
@@ -79,8 +87,20 @@ final class S190DeactivationProbeCommand extends Command
         };
         $before = $counts();
         $statutBefore = $this->db->fetchAllKeyValue('SELECT id, statut FROM UTILISATEUR');
+        $reservationsBefore = $this->db->fetchAllKeyValue('SELECT id, statut FROM RESERVATION');
 
-        $member = $this->users->findOneBy(['statut' => 'actif', 'isVerified' => true]);
+        // Le membre n'est PAS administrateur (sinon « dernier administrateur »
+        // pourrait refuser la désactivation par l'écran) ; l'administrateur est un autre compte.
+        $member = null;
+        $admin = null;
+        foreach ($this->users->findBy(['statut' => 'actif', 'isVerified' => true]) as $candidate) {
+            $isAdmin = \in_array('ROLE_ADMIN', $candidate->getRoles(), true);
+            if ($isAdmin && $admin === null) {
+                $admin = $candidate;
+            } elseif (!$isAdmin && $member === null) {
+                $member = $candidate;
+            }
+        }
         $machine = null;
         foreach ($this->machines->findAll() as $candidate) {
             if ($candidate instanceof Machine && (string) $candidate->getMachineToken() !== '') {
@@ -88,8 +108,8 @@ final class S190DeactivationProbeCommand extends Command
                 break;
             }
         }
-        if (!$member instanceof Utilisateur || !$machine instanceof Machine) {
-            $io->error('Il faut un compte actif et une machine à jeton.');
+        if (!$member instanceof Utilisateur || !$admin instanceof Utilisateur || !$machine instanceof Machine) {
+            $io->error('Il faut un compte actif, un administrateur actif et une machine à jeton.');
 
             return Command::FAILURE;
         }
@@ -102,7 +122,16 @@ final class S190DeactivationProbeCommand extends Command
                 $member->setIdentifiantRfid('SONDE-S190-' . bin2hex(random_bytes(3)));
             }
             $member->setPassword($this->hasher->hashPassword($member, self::PASSWORD));
+            $admin->setPassword($this->hasher->hashPassword($admin, self::PASSWORD));
             $this->entityManager->flush();
+            // Un second facteur arrêterait la connexion de sonde à la page du code.
+            try {
+                $this->db->executeStatement('DELETE FROM USER_MFA WHERE userId IN (?, ?)', [$member->getId(), $admin->getId()]);
+            } catch (\Throwable) {
+            }
+            $memberId = (int) $member->getId();
+            $adminId = (int) $admin->getId();
+            $adminEmail = $admin->getEmail();
             $rfid = (string) $member->getIdentifiantRfid();
             $email = $member->getEmail();
 
@@ -144,18 +173,21 @@ final class S190DeactivationProbeCommand extends Command
             $io->section('4. Et une nouvelle connexion reste refusée');
             $again = $this->login($email);
             $this->check($io, $failures, '/profil redemande la connexion', $this->status('/profil', $again) === 302);
+
+            $this->probeScreen($io, $failures, $memberId, $email, $adminId, $adminEmail, (int) $machine->getId());
         } finally {
             $this->db->rollBack();
             $this->entityManager->clear();
             $this->tokens->setToken(null);
         }
 
-        $io->section('5. Rien n\'est resté');
+        $io->section('9. Rien n\'est resté');
         $after = $counts();
         foreach ($before as $table => $count) {
             $this->check($io, $failures, sprintf('%s : %d avant, %d après', $table, $count, $after[$table]), $after[$table] === $count);
         }
         $this->check($io, $failures, 'aucun statut de compte n\'a changé', $this->db->fetchAllKeyValue('SELECT id, statut FROM UTILISATEUR') === $statutBefore);
+        $this->check($io, $failures, 'aucune réservation n\'a changé de statut', $this->db->fetchAllKeyValue('SELECT id, statut FROM RESERVATION') === $reservationsBefore);
 
         if ($failures !== []) {
             $io->error(count($failures) . ' assertion(s) en échec.');
@@ -165,6 +197,89 @@ final class S190DeactivationProbeCommand extends Command
         $io->success('Sonde S190 verte. Transaction annulée.');
 
         return Command::SUCCESS;
+    }
+
+    /**
+     * S190d — la désactivation par l'écran, comme un administrateur la fait.
+     *
+     * @param list<string> $failures
+     */
+    private function probeScreen(SymfonyStyle $io, array &$failures, int $memberId, string $email, int $adminId, string $adminEmail, int $machineId): void
+    {
+        $io->section('6. S190d — désactiver depuis la fiche admin');
+        $this->db->executeStatement("UPDATE UTILISATEUR SET statut = 'actif' WHERE id = ?", [$memberId]);
+        $insert = "INSERT INTO RESERVATION (userId, reservableType, reservableId, reservableLabel, dateDebut, dateFin, statut, created)"
+            . " VALUES (?, 'machine', ?, 'sonde S190d', ?, ?, 'confirmed', NOW())";
+        $this->db->executeStatement($insert, [$memberId, $machineId, date('Y-m-d H:i:s', strtotime('+2 days')), date('Y-m-d H:i:s', strtotime('+2 days +1 hour'))]);
+        $future = (int) $this->db->lastInsertId();
+        $this->db->executeStatement($insert, [$memberId, $machineId, date('Y-m-d H:i:s', strtotime('-2 days')), date('Y-m-d H:i:s', strtotime('-2 days +1 hour'))]);
+        $past = (int) $this->db->lastInsertId();
+        $statuses = fn (): array => $this->db->fetchAllKeyValue('SELECT id, statut FROM RESERVATION WHERE userId = ?', [$memberId]);
+        $before = $statuses();
+
+        $memberSession = $this->login($email);
+        $this->check($io, $failures, 'le membre est connecté : /profil 200', $this->status('/profil', $memberSession) === 200);
+        $adminSession = $this->login($adminEmail);
+        $page = $this->handle(Request::create('/admin/utilisateurs/' . $memberId), $adminSession);
+        $html = (string) $page->getContent();
+        $this->check($io, $failures, 'la fiche s\'ouvre pour l\'administrateur (' . $page->getStatusCode() . ')', $page->getStatusCode() === 200);
+        $token = $this->formToken($html, '/admin/utilisateurs/' . $memberId . '/desactiver');
+        $this->check($io, $failures, 'la fiche porte « Désactiver ce compte »', $token !== '');
+        $this->check($io, $failures, 'et le formulaire demande confirmation', (bool) preg_match('#action="/admin/utilisateurs/' . $memberId . '/desactiver"[^>]*data-action="submit->confirm\#ask"#s', $html));
+
+        $response = $this->post('/admin/utilisateurs/' . $memberId . '/desactiver', $token, $adminSession);
+        $this->check($io, $failures, 'le POST revient à la fiche (' . $response->getStatusCode() . ')', $response->isRedirect());
+        $after = $statuses();
+        $changed = array_keys(array_filter($after, fn ($statut, $id) => ($before[$id] ?? null) !== $statut, ARRAY_FILTER_USE_BOTH));
+        $this->check($io, $failures, '🔴 le compte est « inactif » en base', $this->db->fetchOne('SELECT statut FROM UTILISATEUR WHERE id = ?', [$memberId]) === 'inactif');
+        $this->check($io, $failures, '🔴 la réservation dans deux jours est annulée', ($after[$future] ?? '') === 'cancelled');
+        $this->check($io, $failures, 'celle d\'avant-hier est gardée (' . ($after[$past] ?? '?') . ')', ($after[$past] ?? '') === 'confirmed');
+        $this->check($io, $failures, 'seules des réservations passées à « cancelled » ont changé', array_filter($changed, fn ($id) => $after[$id] !== 'cancelled') === []);
+        $this->check($io, $failures, 'le nombre écrit À CÔTÉ du bouton était celui annulé (' . \count($changed) . ')', $this->inAnyLocale($html, 'account_status.deactivate_help', ['count' => \count($changed)]));
+        $back = (string) $this->handle(Request::create('/admin/utilisateurs/' . $memberId), $adminSession)->getContent();
+        $this->check($io, $failures, 'le message le redit après coup', $this->inAnyLocale($back, 'account_status.deactivated', ['count' => \count($changed)]));
+        $this->check($io, $failures, '🔴 la session du membre est coupée : /profil 302', $this->status('/profil', $memberSession) === 302);
+
+        $io->section('7. Soi-même : refusé');
+        $self = (string) $this->handle(Request::create('/admin/utilisateurs/' . $adminId), $adminSession)->getContent();
+        $this->check($io, $failures, 'sa propre fiche n\'a pas de bouton', $this->formToken($self, '/admin/utilisateurs/' . $adminId . '/desactiver') === '');
+        $this->check($io, $failures, 'elle dit pourquoi', $this->inAnyLocale($self, 'account_status.refused_self', []));
+        $adminEntity = $this->users->find($adminId);
+        $this->check($io, $failures, 'et la règle du POST refuse (self)', $adminEntity instanceof Utilisateur && $this->deactivation->refusalFor($adminEntity, $adminEntity) === AccountDeactivation::REFUSED_SELF);
+
+        $io->section('8. Réactiver');
+        $token = $this->formToken($back, '/admin/utilisateurs/' . $memberId . '/reactiver');
+        $this->check($io, $failures, 'la fiche porte « Réactiver ce compte »', $token !== '');
+        $this->post('/admin/utilisateurs/' . $memberId . '/reactiver', $token, $adminSession);
+        $this->check($io, $failures, 'le compte est « actif »', $this->db->fetchOne('SELECT statut FROM UTILISATEUR WHERE id = ?', [$memberId]) === 'actif');
+        $this->check($io, $failures, 'la réservation annulée NE revient PAS', $statuses()[$future] === 'cancelled');
+        $this->check($io, $failures, 'le membre peut se reconnecter : /profil 200', $this->status('/profil', $this->login($email)) === 200);
+    }
+
+    private function formToken(string $html, string $action): string
+    {
+        return preg_match('#action="' . preg_quote($action, '#') . '".*?name="_token" value="([^"]+)"#s', $html, $m) ? $m[1] : '';
+    }
+
+    private function post(string $path, string $token, Session $session): Response
+    {
+        $request = Request::create($path, 'POST', ['_token' => $token]);
+        $request->headers->set('Origin', $request->getSchemeAndHttpHost());
+
+        return $this->handle($request, $session);
+    }
+
+    /** La langue de la page suit le compte connecté : on accepte les cinq. */
+    private function inAnyLocale(string $html, string $key, array $params): bool
+    {
+        foreach (['fr', 'en', 'de', 'es', 'it'] as $locale) {
+            $text = $this->translator->trans($key, $params, null, $locale);
+            if ($text !== $key && str_contains($html, htmlspecialchars($text, ENT_QUOTES))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function login(string $email): Session

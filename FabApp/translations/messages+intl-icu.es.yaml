@@ -217,3 +217,8 @@ sessions:
 mfa:
     recovery_left: "{count, plural, =0 {Ya no quedan códigos de recuperación: genere otros.} one {Queda # código de recuperación.} other {Quedan # códigos de recuperación.}}"
     used_recovery: "{count, plural, =0 {Código de recuperación usado. Era el último: genere otros.} one {Código de recuperación usado. Queda #.} other {Código de recuperación usado. Quedan #.}}"
+
+account_status:
+    deactivated: "{count, plural, =0 {Cuenta desactivada. No tenía reservas próximas.} one {Cuenta desactivada y # reserva próxima cancelada.} other {Cuenta desactivada y # reservas próximas canceladas.}}"
+    deactivate_help: "{count, plural, =0 {Corta de inmediato el inicio de sesión, las sesiones abiertas y la credencial (máquinas, puertas). Ninguna reserva próxima que cancelar. Reversible.} one {Corta de inmediato el inicio de sesión, las sesiones abiertas y la credencial (máquinas, puertas), y cancela su reserva próxima, sin correo. Reversible; la reserva cancelada no vuelve.} other {Corta de inmediato el inicio de sesión, las sesiones abiertas y la credencial (máquinas, puertas), y cancela sus # reservas próximas, sin correo. Reversible; las reservas canceladas no vuelven.}}"
+    deactivate_confirm: "{count, plural, =0 {¿Desactivar esta cuenta? Inicio de sesión, sesiones y credencial se cortan de inmediato.} one {¿Desactivar esta cuenta? Inicio de sesión, sesiones y credencial se cortan de inmediato, y su reserva próxima se cancela sin correo.} other {¿Desactivar esta cuenta? Inicio de sesión, sesiones y credencial se cortan de inmediato, y sus # reservas próximas se cancelan sin correo.}}"
