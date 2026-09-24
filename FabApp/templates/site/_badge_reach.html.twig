@@ -32,7 +32,8 @@
                         <strong>{{ held.badge.nom }}</strong>
                         <span>
                             {{ 'badge_reach.obtained'|trans({'%date%': held.obtainedAt|lab_date('d/m/Y')}) }}
-                            {%- if held.direct %} · <em class="badge-reach__direct">{{ 'badge_reach.direct'|trans }}</em>{% endif %}
+                            {%- if held.grant|default(null) %} · <em class="badge-reach__direct">{{ (held.grant.reason ? 'badge_grants.granted_by_reason' : 'badge_grants.granted_by')|trans({'%by%': held.grant.by ?? '—', '%date%': held.grant.at|lab_date('d/m/Y'), '%reason%': held.grant.reason}) }}</em>
+                            {%- elseif held.direct %} · <em class="badge-reach__direct">{{ 'badge_reach.direct'|trans }}</em>{% endif %}
                             {%- for formation in held.formations %}{{ loop.first ? ' · ' : ', ' }}<a href="{{ path('app_formation_detail', {id: formation.id}) }}">{{ formation.titre }}</a>{% endfor %}
                         </span>
                         {% if opens is not empty %}

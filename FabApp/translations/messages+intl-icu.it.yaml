@@ -222,3 +222,6 @@ account_status:
     deactivated: "{count, plural, =0 {Account disattivato. Non aveva prenotazioni future.} one {Account disattivato e # prenotazione futura annullata.} other {Account disattivato e # prenotazioni future annullate.}}"
     deactivate_help: "{count, plural, =0 {Interrompe subito l’accesso, le sessioni aperte e il badge (macchine, porte). Nessuna prenotazione futura da annullare. Reversibile.} one {Interrompe subito l’accesso, le sessioni aperte e il badge (macchine, porte), e annulla la sua prenotazione futura, senza e-mail. Reversibile; la prenotazione annullata non torna.} other {Interrompe subito l’accesso, le sessioni aperte e il badge (macchine, porte), e annulla le sue # prenotazioni future, senza e-mail. Reversibile; le prenotazioni annullate non tornano.}}"
     deactivate_confirm: "{count, plural, =0 {Disattivare questo account? Accesso, sessioni e badge vengono interrotti subito.} one {Disattivare questo account? Accesso, sessioni e badge vengono interrotti subito, e la sua prenotazione futura viene annullata senza e-mail.} other {Disattivare questo account? Accesso, sessioni e badge vengono interrotti subito, e le sue # prenotazioni future vengono annullate senza e-mail.}}"
+
+badge_grants:
+    revocations: "{count, plural, one {# badge ritirato} other {# badge ritirati}}"

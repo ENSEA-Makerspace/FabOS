@@ -10,6 +10,7 @@ use App\Entity\AccessRfidLog;
 use App\Entity\Creation;
 use App\Entity\EventRegistration;
 use App\Entity\Utilisateur;
+use App\Training\BadgeGrants;
 use App\Training\FormationThreads;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
@@ -71,6 +72,7 @@ final class AccountAnonymiser
         private readonly FormationThreads $threads,
         private readonly SessionRegistry $sessions,
         private readonly MfaService $mfa,
+        private readonly BadgeGrants $badgeGrants,
     ) {
     }
 
@@ -128,6 +130,8 @@ final class AccountAnonymiser
             $this->sessions->forget($id);
             // S191b — et le second facteur (secret chiffré, codes de secours).
             $this->mfa->forget($id);
+            // S202 — les lignes de badges restent (statistiques), pas les motifs écrits à la main.
+            $this->badgeGrants->forget($id);
 
         $user->setEmail(sprintf('anonymised-%d@%s', $id, self::SENTINEL_DOMAIN));
         $user->setUsername(sprintf('anonymised-%d', $id));

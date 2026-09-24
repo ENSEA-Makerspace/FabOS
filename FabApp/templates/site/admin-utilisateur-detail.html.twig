@@ -83,6 +83,56 @@
                     id_prefix: 'admin-member-badge-reach',
                 } only %}
 
+                {# S202 — donner ou retirer un badge à la main. Le motif est exigé dans
+                   les deux sens et se relit : « Mes badges » dit « attribué par X le … :
+                   motif », et un retrait reste listé ici. Absent sans la migration. #}
+                {% if badgeGrants is not null %}
+                    <section class="badge-grants" id="badge-grants" aria-labelledby="badge-grants-title">
+                        <h2 id="badge-grants-title">{{ 'badge_grants.heading'|trans }}</h2>
+                        <p class="admin-panel-help">{{ 'badge_grants.help'|trans }}</p>
+
+                        {% if badgeGrants.grantable is not empty %}
+                            <form method="post" action="{{ path('app_admin_user_badge_grant', {id: user.id}) }}" class="usage-assignment-form">
+                                <input type="hidden" name="_token" value="{{ csrf_token('admin_badge_grant_' ~ user.id) }}">
+                                <label class="sr-only" for="grant-badge">{{ 'badge_grants.badge_label'|trans }}</label>
+                                <select id="grant-badge" name="badge" required>
+                                    {% for badge in badgeGrants.grantable %}<option value="{{ badge.id }}">{{ badge.nom }}</option>{% endfor %}
+                                </select>
+                                <label class="sr-only" for="grant-reason">{{ 'badge_grants.reason_label'|trans }}</label>
+                                <input id="grant-reason" name="reason" required maxlength="500" placeholder="{{ 'badge_grants.grant_reason_placeholder'|trans }}">
+                                <button class="btn-link btn-primary-admin" type="submit">{{ 'badge_grants.grant'|trans }}</button>
+                            </form>
+                        {% endif %}
+
+                        {% if badgeGrants.held is not empty %}
+                            <form method="post" action="{{ path('app_admin_user_badge_revoke', {id: user.id}) }}" class="usage-assignment-form"
+                                  data-controller="confirm" data-action="submit->confirm#ask"
+                                  data-confirm-message-value="{{ 'badge_grants.revoke_confirm'|trans|e('html_attr') }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('admin_badge_revoke_' ~ user.id) }}">
+                                <label class="sr-only" for="revoke-badge">{{ 'badge_grants.badge_label'|trans }}</label>
+                                <select id="revoke-badge" name="badge" required>
+                                    {% for badge in badgeGrants.held %}<option value="{{ badge.id }}">{{ badge.nom }}</option>{% endfor %}
+                                </select>
+                                <label class="sr-only" for="revoke-reason">{{ 'badge_grants.reason_label'|trans }}</label>
+                                <input id="revoke-reason" name="reason" required maxlength="500" placeholder="{{ 'badge_grants.revoke_reason_placeholder'|trans }}">
+                                <button class="btn-link btn-danger-admin" type="submit">{{ 'badge_grants.revoke'|trans }}</button>
+                            </form>
+                            <p class="admin-panel-help">{{ 'badge_grants.revoke_help'|trans }}</p>
+                        {% endif %}
+
+                        {% if badgeGrants.revocations is not empty %}
+                            <details class="badge-reach__more">
+                                <summary>{{ 'badge_grants.revocations'|trans({'count': badgeGrants.revocations|length}) }}</summary>
+                                <ul>
+                                    {% for r in badgeGrants.revocations %}
+                                        <li>{{ 'badge_grants.revoked_line'|trans({'%badge%': r.badge, '%by%': r.by ?? '—', '%date%': r.at|lab_date('d/m/Y'), '%reason%': r.reason ?? '—'}) }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </details>
+                        {% endif %}
+                    </section>
+                {% endif %}
+
                 {# S191a — compte volé, poste du labo resté connecté : fermer partout.
                    Absent tant que la migration S191 n'est pas passée. #}
                 {% if mfaStatus is not null %}

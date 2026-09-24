@@ -20,8 +20,6 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
-use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
-use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -47,9 +45,9 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 #[AsCommand(name: 'app:s190:deactivation-probe', description: 'S190 : un compte passé « inactif » perd son badge (machines, portes) et ses sessions ouvertes (page et API), immédiatement. Transaction annulée.')]
 final class S190DeactivationProbeCommand extends Command
 {
-    private const PASSWORD = 'sonde-S190-motdepasse';
+    use ProbeBrowser;
 
-    private string $lastLogin = '';
+    private const PASSWORD = 'sonde-S190-motdepasse';
 
     public function __construct(
         private readonly KernelInterface $kernel,
@@ -143,8 +141,8 @@ final class S190DeactivationProbeCommand extends Command
             $doorBefore = $this->doors->decide($door, $member);
             $this->check($io, $failures, 'la porte non plus (' . $doorBefore['status'] . ')', $doorBefore['status'] !== 'account_inactive');
 
-            $page = $this->login($email);
-            $api = $this->login($email);
+            $page = $this->login($email, self::PASSWORD);
+            $api = $this->login($email, self::PASSWORD);
             $io->writeln('   connexion : ' . $this->lastLogin);
             $this->check($io, $failures, 'deux sessions ouvertes : /profil répond 200', $this->status('/profil', $page) === 200 && $this->status('/profil', $api) === 200);
 
@@ -171,7 +169,7 @@ final class S190DeactivationProbeCommand extends Command
             $this->check($io, $failures, '🔴 l\'API répond 401 account_inactive (' . $apiResponse->getStatusCode() . ')', $apiResponse->getStatusCode() === 401 && str_contains((string) $apiResponse->getContent(), 'account_inactive'));
 
             $io->section('4. Et une nouvelle connexion reste refusée');
-            $again = $this->login($email);
+            $again = $this->login($email, self::PASSWORD);
             $this->check($io, $failures, '/profil redemande la connexion', $this->status('/profil', $again) === 302);
 
             $this->probeScreen($io, $failures, $memberId, $email, $adminId, $adminEmail, (int) $machine->getId());
@@ -217,9 +215,9 @@ final class S190DeactivationProbeCommand extends Command
         $statuses = fn (): array => $this->db->fetchAllKeyValue('SELECT id, statut FROM RESERVATION WHERE userId = ?', [$memberId]);
         $before = $statuses();
 
-        $memberSession = $this->login($email);
+        $memberSession = $this->login($email, self::PASSWORD);
         $this->check($io, $failures, 'le membre est connecté : /profil 200', $this->status('/profil', $memberSession) === 200);
-        $adminSession = $this->login($adminEmail);
+        $adminSession = $this->login($adminEmail, self::PASSWORD);
         $page = $this->handle(Request::create('/admin/utilisateurs/' . $memberId), $adminSession);
         $html = (string) $page->getContent();
         $this->check($io, $failures, 'la fiche s\'ouvre pour l\'administrateur (' . $page->getStatusCode() . ')', $page->getStatusCode() === 200);
@@ -227,7 +225,7 @@ final class S190DeactivationProbeCommand extends Command
         $this->check($io, $failures, 'la fiche porte « Désactiver ce compte »', $token !== '');
         $this->check($io, $failures, 'et le formulaire demande confirmation', (bool) preg_match('#action="/admin/utilisateurs/' . $memberId . '/desactiver"[^>]*data-action="submit->confirm\#ask"#s', $html));
 
-        $response = $this->post('/admin/utilisateurs/' . $memberId . '/desactiver', $token, $adminSession);
+        $response = $this->post('/admin/utilisateurs/' . $memberId . '/desactiver', ['_token' => $token], $adminSession);
         $this->check($io, $failures, 'le POST revient à la fiche (' . $response->getStatusCode() . ')', $response->isRedirect());
         $after = $statuses();
         $changed = array_keys(array_filter($after, fn ($statut, $id) => ($before[$id] ?? null) !== $statut, ARRAY_FILTER_USE_BOTH));
@@ -250,79 +248,9 @@ final class S190DeactivationProbeCommand extends Command
         $io->section('8. Réactiver');
         $token = $this->formToken($back, '/admin/utilisateurs/' . $memberId . '/reactiver');
         $this->check($io, $failures, 'la fiche porte « Réactiver ce compte »', $token !== '');
-        $this->post('/admin/utilisateurs/' . $memberId . '/reactiver', $token, $adminSession);
+        $this->post('/admin/utilisateurs/' . $memberId . '/reactiver', ['_token' => $token], $adminSession);
         $this->check($io, $failures, 'le compte est « actif »', $this->db->fetchOne('SELECT statut FROM UTILISATEUR WHERE id = ?', [$memberId]) === 'actif');
         $this->check($io, $failures, 'la réservation annulée NE revient PAS', $statuses()[$future] === 'cancelled');
-        $this->check($io, $failures, 'le membre peut se reconnecter : /profil 200', $this->status('/profil', $this->login($email)) === 200);
-    }
-
-    private function formToken(string $html, string $action): string
-    {
-        return preg_match('#action="' . preg_quote($action, '#') . '".*?name="_token" value="([^"]+)"#s', $html, $m) ? $m[1] : '';
-    }
-
-    private function post(string $path, string $token, Session $session): Response
-    {
-        $request = Request::create($path, 'POST', ['_token' => $token]);
-        $request->headers->set('Origin', $request->getSchemeAndHttpHost());
-
-        return $this->handle($request, $session);
-    }
-
-    /** La langue de la page suit le compte connecté : on accepte les cinq. */
-    private function inAnyLocale(string $html, string $key, array $params): bool
-    {
-        foreach (['fr', 'en', 'de', 'es', 'it'] as $locale) {
-            $text = $this->translator->trans($key, $params, null, $locale);
-            if ($text !== $key && str_contains($html, htmlspecialchars($text, ENT_QUOTES))) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private function login(string $email): Session
-    {
-        $session = new Session(new MockArraySessionStorage());
-        $form = (string) $this->handle(Request::create('/login'), $session)->getContent();
-        $token = preg_match('#name="_csrf_token"\s+value="([^"]+)"#', $form, $m) ? $m[1] : '';
-        $response = $this->handle(Request::create('/login', 'POST', ['_username' => $email, '_password' => self::PASSWORD, '_csrf_token' => $token]), $session);
-        $this->lastLogin = $response->getStatusCode() . ' → ' . $response->headers->get('Location') . ($token === '' ? ' (sans jeton CSRF)' : '');
-
-        return $session;
-    }
-
-    private function status(string $path, Session $session): int
-    {
-        return $this->handle(Request::create($path), $session)->getStatusCode();
-    }
-
-    /**
-     * ⚠️ Le conteneur survit d'une requête à l'autre dans une commande : sans
-     * remise à zéro, le jeton de la session PRÉCÉDENTE resterait dans le
-     * stockage et la requête suivante serait authentifiée par erreur.
-     */
-    private function handle(Request $request, Session $session): Response
-    {
-        $this->tokens->setToken(null);
-        $request->setSession($session);
-        // ⚠️ Le pare-feu ne relit le jeton en session QUE si la requête porte le
-        // cookie de session (`hasPreviousSession()`) : sans lui, chaque requête
-        // repart anonyme et une « session ouverte » n'est jamais mesurée.
-        if ($session->getId() !== '') {
-            $request->cookies->set($session->getName(), $session->getId());
-        }
-
-        return $this->kernel->handle($request, HttpKernelInterface::MAIN_REQUEST, true);
-    }
-
-    /** @param list<string> $failures */
-    private function check(SymfonyStyle $io, array &$failures, string $what, bool $ok): void
-    {
-        $io->writeln(($ok ? '   <info>✓</info> ' : '   <error>✗</error> ') . $what);
-        if (!$ok) {
-            $failures[] = $what;
-        }
+        $this->check($io, $failures, 'le membre peut se reconnecter : /profil 200', $this->status('/profil', $this->login($email, self::PASSWORD)) === 200);
     }
 }

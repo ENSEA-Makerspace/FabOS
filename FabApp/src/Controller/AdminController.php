@@ -33,6 +33,7 @@ use App\Entity\Progression;
 use App\Entity\RfidReader;
 use App\Account\AccountAnonymiser;
 use App\Account\AccountDeactivation;
+use App\Training\BadgeGrants;
 use App\Account\AccountGuard;
 use App\Entity\Utilisateur;
 use App\Event\EventAnnouncer;
@@ -1857,6 +1858,8 @@ final class AdminController extends AbstractController
         SessionRegistry $sessionRegistry,
         MfaService $mfa,
         AccountDeactivation $deactivation,
+        BadgeGrants $badgeGrants,
+        BadgeRepository $allBadges,
     ): Response {
         $user = $users->find($id);
         if (!$user) {
@@ -1936,6 +1939,15 @@ final class AdminController extends AbstractController
             'accountInactive' => AccountDeactivation::isInactive($user),
             'deactivateRefusal' => $deactivation->refusalFor($user, ($actor = $this->getUser()) instanceof Utilisateur ? $actor : null),
             'upcomingReservations' => $reservations->countUpcomingForUser($user),
+            // S202 — null sans la migration : le panneau n'apparaît pas.
+            'badgeGrants' => $badgeGrants->isReady() ? [
+                'held' => array_map(static fn (array $row) => $row['badge'], $explained['badges']),
+                'grantable' => array_values(array_filter(
+                    $allBadges->findBy([], ['nom' => 'ASC']),
+                    static fn (Badge $badge): bool => !\in_array($badge->getId(), array_map(static fn (array $row) => $row['badge']->getId(), $explained['badges']), true),
+                )),
+                'revocations' => $badgeGrants->revocationsFor($user),
+            ] : null,
             'groupRows' => $groupRows,
             'joinableGroups' => $joinable,
         ]);

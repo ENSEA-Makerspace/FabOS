@@ -163,6 +163,14 @@ si c'est une ressource.
 - 🔴 **Un compte « identique » sur l'écran d'ombre ne prouve pas une égalité** : les
   lignes « recovery admin » contournent le modèle et sont d'accord avec elles-mêmes.
 
+**Les badges (S192c, S202).** 🔴 **Un badge DÉTENU est un badge**, d'où qu'il
+vienne : la ligne `UTILISATEUR_BADGE` est ce que lisent le lecteur, la
+réservation et « Mes badges ». `BADGE_GRANT` (S202) en est le journal : dons à la
+main (qui, quand, motif) et retraits. 🔴 Un badge retiré par l'équipe **ne
+revient pas** par la formation (`BadgeGrants::isRevoked()`, lu par
+`ProgressionBadgeSubscriber`) ; seul « Attribuer » le rend. ⚠️ Effacer une ligne
+`UTILISATEUR_BADGE` en SQL n'est PAS un retrait : la formation la réécrit.
+
 ⚠️ `readiness()` et la liste des packages comptent les attributions **directes** :
 un package tenu seulement par un groupe affiche 0 (todo S144e).
 

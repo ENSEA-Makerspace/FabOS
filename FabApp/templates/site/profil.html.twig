@@ -323,7 +323,9 @@
                                             {# S192b — l'origine, jamais un filtre : un badge détenu ouvre au lecteur, il se voit ici. #}
                                             {% set origin = badgeOrigins[badge.id]|default(null) %}
                                             <p class="badge-origin">
-                                                {% if origin and origin.validated %}
+                                                {% if origin and origin.grant %}
+                                                    {{ (origin.grant.reason ? 'badge_grants.profile_granted_by_reason' : 'badge_grants.profile_granted_by')|trans({'%by%': origin.grant.by ?? '—', '%date%': origin.grant.at|lab_date('d/m/Y'), '%reason%': origin.grant.reason}) }}
+                                                {% elseif origin and origin.validated %}
                                                     {{ 'profile.badge_via_formation'|trans({'%formation%': origin.formation.titre}) }}
                                                 {% else %}
                                                     {{ 'profile.badge_without_formation'|trans }}

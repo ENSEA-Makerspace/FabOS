@@ -13,6 +13,7 @@ use App\Repository\UtilisateurBadgeRepository;
 use App\Service\MachineAccessService;
 use App\Service\QuizCatalogService;
 use App\Service\TrainingQualificationService;
+use App\Training\BadgeGrants;
 use Doctrine\DBAL\Connection;
 
 /**
@@ -46,6 +47,7 @@ final class RightsExplainer
         private readonly Connection $db,
         private readonly QuizCatalogService $catalog,
         private readonly TrainingQualificationService $qualification,
+        private readonly BadgeGrants $grants,
     ) {
     }
 
@@ -55,7 +57,7 @@ final class RightsExplainer
      *     admin: bool,
      *     capabilities: list<array{capability: UsageCapability, verdict: UsageRightVerdict, paths: list<array{package: string, via: string, group: ?string, venue: ?string, until: ?string}>}>,
      *     badge: array{registered: bool, hint: ?string},
-     *     badges: list<array{badge: Badge, obtainedAt: ?\DateTimeInterface, direct: bool, formations: list<Formation>}>,
+     *     badges: list<array{badge: Badge, obtainedAt: ?\DateTimeInterface, direct: bool, grant: ?array{by: ?string, at: \DateTimeImmutable, reason: ?string}, formations: list<Formation>}>,
      *     open: list<array{machine: Machine, via: list<Badge>}>,
      *     free: list<Machine>,
      *     closed: list<array{machine: Machine, required: list<Badge>}>,
@@ -83,6 +85,7 @@ final class RightsExplainer
         }
 
         $badges = [];
+        $grants = $this->grants->manualGrantsFor($user);
         foreach ($this->userBadges->findBy(['utilisateur' => $user]) as $held) {
             $badge = $held->getBadge();
             if ($badge instanceof Badge) {
@@ -96,7 +99,9 @@ final class RightsExplainer
                 $badges[] = [
                     'badge' => $badge,
                     'obtainedAt' => $held->getDateObtention(),
-                    'direct' => $formation !== null && !$this->qualification->getStatus($formation, $user)['badgeUnlocked'],
+                    // S202 — donné à la main : QUI, QUAND, POURQUOI remplacent « sans formation ».
+                    'grant' => $grant = $grants[(int) $badge->getId()] ?? null,
+                    'direct' => $grant === null && $formation !== null && !$this->qualification->getStatus($formation, $user)['badgeUnlocked'],
                     // ⚠️ Les formations INTERNES (supports de quiz, « [FABOS
                     // SECTION] … ») portent aussi le badge : on ne nomme que la
                     // formation qu'un membre peut ouvrir.

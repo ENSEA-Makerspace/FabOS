@@ -222,3 +222,6 @@ account_status:
     deactivated: "{count, plural, =0 {Konto deaktiviert. Es hatte keine anstehende Reservierung.} one {Konto deaktiviert, # anstehende Reservierung storniert.} other {Konto deaktiviert, # anstehende Reservierungen storniert.}}"
     deactivate_help: "{count, plural, =0 {Sperrt sofort Anmeldung, offene Sitzungen und Badge (Maschinen, Türen). Keine anstehende Reservierung zu stornieren. Umkehrbar.} one {Sperrt sofort Anmeldung, offene Sitzungen und Badge (Maschinen, Türen) und storniert die anstehende Reservierung, ohne E-Mail. Umkehrbar; die stornierte Reservierung kommt nicht zurück.} other {Sperrt sofort Anmeldung, offene Sitzungen und Badge (Maschinen, Türen) und storniert die # anstehenden Reservierungen, ohne E-Mail. Umkehrbar; stornierte Reservierungen kommen nicht zurück.}}"
     deactivate_confirm: "{count, plural, =0 {Dieses Konto deaktivieren? Anmeldung, Sitzungen und Badge werden sofort gesperrt.} one {Dieses Konto deaktivieren? Anmeldung, Sitzungen und Badge werden sofort gesperrt, und die anstehende Reservierung wird ohne E-Mail storniert.} other {Dieses Konto deaktivieren? Anmeldung, Sitzungen und Badge werden sofort gesperrt, und die # anstehenden Reservierungen werden ohne E-Mail storniert.}}"
+
+badge_grants:
+    revocations: "{count, plural, one {# entzogener Badge} other {# entzogene Badges}}"

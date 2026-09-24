@@ -8,6 +8,7 @@ use App\Entity\Progression;
 use App\Entity\Utilisateur;
 use App\Entity\UtilisateurBadge;
 use App\Service\TrainingQualificationService;
+use App\Training\BadgeGrants;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\PostFlushEventArgs;
@@ -26,6 +27,7 @@ class ProgressionBadgeSubscriber
 
     public function __construct(
         private readonly TrainingQualificationService $qualification,
+        private readonly BadgeGrants $grants,
     ) {
     }
 
@@ -66,6 +68,12 @@ class ProgressionBadgeSubscriber
             ]);
 
             if ($exists !== null) {
+                continue;
+            }
+
+            // S202 — un badge RETIRÉ par l'équipe ne revient pas parce que la
+            // formation reste validée : seul « Attribuer » le rend.
+            if ($this->grants->isRevoked((int) $check['user']->getId(), (int) $badge->getId())) {
                 continue;
             }
 

@@ -2161,6 +2161,35 @@ TOUS » ne se voit pas encore.
 | **S202** | **Attribuer (et retirer) un badge à la main**, depuis la fiche d'une personne : QUI, QUAND, POURQUOI, enregistrés. `UTILISATEUR_BADGE` gagne son origine (`formation` / `manuel` / `fédéré`), l'auteur et le motif — migration d'expansion. Le retrait est un geste explicite, journalisé | Un badge posé à la main s'ouvre au lecteur, se voit dans « Mes badges » avec « attribué par X le … : motif », et se retire |
 | **S203** | **Les badges d'un autre FabOS deviennent des badges** : `FEDERATED_CREDENTIAL` (kind `badge`) existe déjà et stocke provenance, expiration, révocation — mais rien ne le relie au lecteur. Une correspondance badge distant → badge local, décidée par l'exploitant (jamais automatique) ; l'expiration et la révocation distantes RETIRENT le badge local ; « Mes badges » dit « délivré par <instance> ». ⚠️ S'appuie sur la Phase U pour l'identité (qui est cette personne là-bas ?) | Un badge fédéré révoqué à la source cesse d'ouvrir ici, sans geste local |
 
+### ⏳ S202 — donner et retirer un badge à la main (2026-09-24) — code en ligne, migration à passer
+
+✅ **Fiche admin d'une personne → « Attribuer ou retirer un badge »** : un badge
+(choisi parmi ceux qu'elle n'a pas) + un **motif obligatoire** → « Attribuer ».
+Même geste pour « Retirer », avec confirmation. Le motif se relit : « Mes badges »
+du membre dit « Attribué par X le … : motif », comme « Ce que son badge ouvre ».
+Les retraits restent listés sur la fiche (« N badges retirés »).
+✅ **Un badge donné ici vaut celui d'une formation** : il ouvre au lecteur et
+compte pour réserver (S192c), sans rien toucher à ces règles — elles lisent le
+badge DÉTENU.
+🔴 **Un badge retiré ne revient pas tout seul.** Sans verrou, la formation
+validée le redonnait à la sauvegarde suivante d'une progression
+(`ProgressionBadgeSubscriber`). Seul « Attribuer » le rend ; l'écran le dit.
+⚠️ **Écart au plan, voulu** : pas de colonnes sur `UTILISATEUR_BADGE` (entité
+hydratée partout : ajoutée avant la migration, elle cassait des pages). Une
+table NEUVE, `BADGE_GRANT`, journal des dons et des retraits ; le badge détenu
+reste la ligne que lit le lecteur. Décision opérateur respectée : un retrait
+n'efface rien et n'est jamais « réactivé » — redonner écrit une ligne neuve.
+À l'anonymisation, les lignes restent et les MOTIFS partent.
+✅ Sans la migration, le panneau n'apparaît pas et rien d'autre ne change
+(fiche, profil, `/badges` rendus 200, sonde S190 verte).
+⏳ **Migration `Version20260924150000`** (table neuve) — à passer par l'opérateur,
+puis `php bin/console app:s202:badge-grant-probe` : par l'écran, sans motif →
+refusé ; avec → le lecteur ouvre la machine qui était fermée ; « Mes badges » le
+dit ; retirer → refermée, retrait listé ; **le verrou avec son témoin** (effacé
+sans retrait, le badge revient ; retiré, il ne revient pas).
+✅ Les sondes « comme un navigateur » partagent maintenant `ProbeBrowser`
+(S190 et S202 ; les quatre autres suivront).
+
 
 ✅ **Sonde `app:s192:rights-probe`** : la règle extraite = l'algorithme d'avant
 recopié (107 paires, aucun désaccord) ; l'écran = le scan (99 scans,
@@ -2183,6 +2212,11 @@ transaction annulée, journal intact) ; chemins = forfaits du verdict
 | **S190d** ✅ | ta propre fiche | Pas de bouton : « Vous ne pouvez pas désactiver votre propre compte » |
 | **S190d** ✅ | « Réactiver ce compte » | Il se reconnecte ; les réservations annulées ne sont pas revenues |
 | **S190d** ✅ | « Anonymiser le compte » sur un compte de test | Une confirmation s'affiche AVANT (elle n'existait pas) — répondre Annuler |
+| **S202** ⏳ | fiche admin d'un membre → « Attribuer ou retirer un badge » | Choisir un badge, écrire un motif, « Attribuer » ; sans motif, le navigateur refuse |
+| **S202** ⏳ | badger ce membre sur une machine qui exige ce badge | Ça ouvre (ça refusait avant) |
+| **S202** ⏳ | `/profil` → « Mes badges » de ce membre | « Attribué par <toi> le … : <motif> » |
+| **S202** ⏳ | « Retirer » ce badge, avec un motif | Confirmation d'abord ; le lecteur refuse de nouveau ; « 1 badge retiré » listé sur la fiche |
+| **S202** ⏳ | `php bin/console app:s202:badge-grant-probe` (après la migration) | Verte |
 | **S190** ✅ | désactiver un compte de test connecté dans un autre navigateur | À son clic suivant, il est renvoyé à la connexion |
 | **S190** ✅ | badger ce compte sur une machine | Refusé ; le journal RFID dit « Compte désactivé » |
 | **S190** ✅ | `/admin/utilisateurs` après une inscription non confirmée | Pastille orange « Adresse non confirmée » |

@@ -61,6 +61,7 @@ use App\Service\MachineQualificationService;
 use App\Schedule\ScheduleResolver;
 use App\Service\QuizCatalogService;
 use App\Service\TrainingQualificationService;
+use App\Training\BadgeGrants;
 use App\Training\LearnerJourney;
 use App\Service\TrainingPolicyService;
 use App\Entity\HomepageUserPreference;
@@ -2338,6 +2339,7 @@ final class SiteController extends AbstractController
         MfaService $mfa,
         VenueRepository $venues,
         LocaleCatalog $locales,
+        BadgeGrants $badgeGrants,
     ): Response
     {
         $user = $this->getUser();
@@ -2658,6 +2660,7 @@ final class SiteController extends AbstractController
         // autre FabOS. Chaque carte dit donc son ORIGINE au lieu d'être cachée.
         $heldUserBadges = [];
         $badgeOrigins = [];
+        $manualGrants = $badgeGrants->manualGrantsFor($user);
         foreach ($userBadges->findBy(['utilisateur' => $user], ['dateObtention' => 'DESC']) as $userBadge) {
             $badge = $userBadge->getBadge();
             if ($badge === null) {
@@ -2668,6 +2671,8 @@ final class SiteController extends AbstractController
             $badgeOrigins[(int) $badge->getId()] = [
                 'formation' => $badgeFormation,
                 'validated' => $badgeFormation !== null && $qualification->getStatus($badgeFormation, $user)['badgeUnlocked'],
+                // S202 — donné à la main : c'est CE chemin-là qu'on raconte.
+                'grant' => $manualGrants[(int) $badge->getId()] ?? null,
             ];
         }
 
