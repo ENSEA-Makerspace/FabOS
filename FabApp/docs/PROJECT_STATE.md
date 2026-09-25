@@ -439,6 +439,12 @@ Recette complète : `ARTEMIS_DEPLOYMENT.md`. L'essentiel :
 L'agent n'a pas de compte. Ce qui marche :
 
 - Les **branches de refus** se testent anonymement (404/403/409/400).
+- **Une sonde « comme un navigateur » utilise le trait `ProbeBrowser`**
+  (`src/Command/ProbeBrowser.php`, S202) : connexion, cookie de session, jeton
+  remis à zéro, `Origin` sur les POST, `formToken()`, `inAnyLocale()`. ⚠️ Les
+  sondes S189, S191 et S196 gardent leurs aides à elles, **exprès** : S189
+  mesure en anonyme, S191-sessions pose un User-Agent par appareil, S189/S196
+  rendent un tableau de `login()`. Les fondre changerait ce qu'elles mesurent.
 - **`php bin/console app:render <path>`** rend n'importe quelle page depuis un
   shell, **connecté** — vraie requête, vrai noyau, vrai pare-feu. `--as=`,
   `--grep=`, `--anonymous`, `--save=`.
