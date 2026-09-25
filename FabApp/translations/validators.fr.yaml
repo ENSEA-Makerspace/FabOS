@@ -119,3 +119,9 @@ venues:
         slug_required: "L’identifiant d’URL est obligatoire."
         timezone_invalid: "Fuseau horaire inconnu."
         timezone_required: "Le fuseau horaire est obligatoire."
+
+identity:
+    invalid:
+        key: "Clé invalide : lettres minuscules, chiffres et « _ », 2 à 80 caractères."
+        issuer: "L’émetteur doit être une adresse https."
+        secret_env: "Un nom de variable : majuscules, chiffres et « _ » (ex. OIDC_ECOLE_SECRET)."

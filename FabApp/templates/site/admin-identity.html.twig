@@ -1,0 +1,74 @@
+{% extends 'base.html.twig' %}
+
+{# CONNEXION & ANNUAIRES (S196) — les fournisseurs de connexion.
+
+   ⚠️ **Ce que l'écran dit d'entrée**, parce que c'est le choix qui compte le plus
+   pour un exploitant : un fournisseur PAR REDIRECTION (OIDC, puis CAS et SAML)
+   ne montre jamais le mot de passe de l'établissement à FabOS ; LDAP/AD (S198)
+   le verront passer. On préfère donc la redirection quand l'école l'offre.
+
+   🔴 **Aucun fournisseur activé = la page de connexion d'aujourd'hui**, au
+   pixel près : la plupart des installations ne doivent rien payer de cette phase. #}
+
+{% block title %}{{ 'admin_nav.entry.app_admin_identity'|trans }} · FabOS{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">{% endblock %}
+
+{% block body %}
+{% embed 'site/_admin_list.html.twig' with {
+    panel_title: 'identity.list_panel'|trans,
+    panel_note: 'identity.list_note'|trans({'count': providers|length}),
+    list_count: providers|length,
+    action_label: 'identity.add'|trans,
+    action_route: 'app_admin_identity_new',
+} %}
+    {% block content %}
+        <div class="admin-panel-pad">
+            <p class="admin-panel-help">{{ 'identity.intro'|trans }}</p>
+            <p class="admin-panel-help">{{ 'identity.intro_redirect'|trans }}</p>
+            {% if not ready %}
+                {% include 'site/_cell_state.html.twig' with {label: 'identity.migration_pending'|trans, signal: 'wait'} only %}
+            {% endif %}
+        </div>
+        {% embed 'site/_data_table.html.twig' with {
+            columns: [
+                {label: 'identity.col_provider'|trans, class: 'is-grow'},
+                {label: 'identity.col_protocol'|trans},
+                {label: 'identity.col_linked'|trans, class: 'is-tight'},
+                {label: 'identity.col_state'|trans},
+                {label: 'identity.col_actions'|trans, class: 'is-actions'},
+            ],
+            rows: providers,
+            empty: 'identity.empty'|trans,
+            pin_actions: true,
+        } %}
+            {% block rows %}
+                {% for p in providers %}
+                    <tr>
+                        <td>{% include 'site/_cell_title.html.twig' with {
+                            title: p.label,
+                            href: path('app_admin_identity_edit', {key: p.key}),
+                            subtitle: p.issuer,
+                        } only %}</td>
+                        <td>{{ ('identity.kind.' ~ p.kind)|trans }}</td>
+                        <td>{{ linked[p.key]|default(0) }}</td>
+                        <td>
+                            <form method="post" action="{{ path('app_admin_identity_toggle', {key: p.key}) }}" class="identity-toggle">
+                                <input type="hidden" name="_token" value="{{ csrf_token('identity_toggle_' ~ p.key) }}">
+                                {% include 'site/_state_chip.html.twig' with {
+                                    label: (p.enabled ? 'identity.state_on' : 'identity.state_off')|trans,
+                                    signal: p.enabled ? 'go' : 'muted',
+                                } only %}
+                                <button type="submit" class="admin-action">{{ (p.enabled ? 'identity.disable' : 'identity.enable')|trans }}</button>
+                            </form>
+                        </td>
+                        <td>{% include 'site/_cell_actions.html.twig' with {actions: [
+                            {label: 'identity.test'|trans, href: path('app_admin_identity_test', {key: p.key}), tone: 'primary'},
+                            {label: 'common.edit'|trans, href: path('app_admin_identity_edit', {key: p.key})},
+                        ]} only %}</td>
+                    </tr>
+                {% endfor %}
+            {% endblock %}
+        {% endembed %}
+    {% endblock %}
+{% endembed %}
+{% endblock %}

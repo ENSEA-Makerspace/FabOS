@@ -2,8 +2,6 @@
 namespace App\Controller;
 use App\Form\Admin\NetworkIdentityType;
 use App\Form\Admin\NetworkPeerType;
-use App\Form\Admin\NetworkProviderType;
-use App\Identity\ProviderRegistry;
 use App\Network\InstanceIdentity;
 use App\Network\OriginPolicy;
 use Doctrine\DBAL\Connection;
@@ -38,11 +36,10 @@ final class NetworkController extends AbstractController
      */
     #[Route('/admin/network', name:'app_admin_network', methods:['GET','POST'])]
     #[IsGranted('ROLE_ADMIN')]
-    public function admin(Request $request,ProviderRegistry $providers,InstanceIdentity $identity,Connection $db,OriginPolicy $origins): Response
+    public function admin(Request $request,InstanceIdentity $identity,Connection $db,OriginPolicy $origins): Response
     {
         $forms = [
             'identity' => $this->createForm(NetworkIdentityType::class),
-            'provider' => $this->createForm(NetworkProviderType::class, ['enabled' => true]),
             'peer' => $this->createForm(NetworkPeerType::class),
         ];
         foreach ($forms as $form) {
@@ -62,7 +59,6 @@ final class NetworkController extends AbstractController
             try {
                 match ($submitted) {
                     'identity' => $identity->initialize((string) $data['name'], $origins->normalize((string) $data['origin'])),
-                    'provider' => $providers->save((string) $data['key'], (string) $data['label'], (string) $data['issuer'], (string) $data['clientId'], (string) $data['secretEnv'], (bool) $data['enabled']),
                     'peer' => $this->trustPeer($db, $origins, $data),
                 };
                 $this->addFlash('success', 'flash.configuration_reseau_enregistree');
@@ -77,7 +73,6 @@ final class NetworkController extends AbstractController
 
         return $this->render('site/admin-network.html.twig',[
             'instance'=>$instance,
-            'providers'=>$db->fetchAllAssociative('SELECT providerKey,label,issuer,enabled FROM AUTH_PROVIDER ORDER BY label'),
             'peers'=>$db->fetchAllAssociative('SELECT p.*,i.nom institution FROM FABOS_PEER p LEFT JOIN INSTITUTION i ON i.id=p.institutionId ORDER BY p.createdAt DESC'),
             'workspaceKey'=>'network',
             'forms'=>array_map(static fn (FormInterface $form) => $form->createView(), $forms),

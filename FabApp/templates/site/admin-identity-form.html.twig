@@ -1,0 +1,76 @@
+{% extends 'base.html.twig' %}
+
+{# UN FOURNISSEUR DE CONNEXION (S196) — même gabarit que la fiche d'un lieu.
+
+   ⚠️ **L'adresse de retour est AFFICHÉE**, avec de quoi la copier : c'est la
+   première chose que demande n'importe quel fournisseur (Keycloak, Entra,
+   Google…) et elle ne se devine pas depuis l'écran.
+   ⚠️ **La correspondance des attributs est repliée** : le préréglage suffit
+   presque toujours. Chaque champ vide prend la valeur du préréglage, montrée
+   en indication. #}
+
+{% block title %}{{ (provider ? provider.label : 'identity.new_title'|trans) }} · FabOS{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">{% endblock %}
+
+{% block body %}
+    {% include 'site/_header.html.twig' %}
+    <main id="main-content" tabindex="-1" class="admin-page">
+        <div class="admin-edit-layout">
+            {% include 'site/_admin_sidebar.html.twig' %}
+
+            <section class="admin-panel admin-list-card admin-form-card">
+                {% include 'site/_admin_form_head.html.twig' with {
+                    title: provider ? provider.label : 'identity.new_title'|trans,
+                    subtitle: 'identity.kind.oidc'|trans,
+                    back_href: path('app_admin_identity'),
+                    back_label: 'identity.back'|trans,
+                } only %}
+
+                {% for message in app.flashes('error') %}<div class="admin-flash error">{{ message|flash_text }}</div>{% endfor %}
+
+                <div class="admin-panel-pad">
+                    <p class="admin-panel-help">{{ 'identity.callback_help'|trans }}</p>
+                    <p><code class="identity-callback">{{ callbackUrl }}</code></p>
+                    {% if not ready %}
+                        {% include 'site/_cell_state.html.twig' with {label: 'identity.migration_pending'|trans, signal: 'wait'} only %}
+                    {% endif %}
+                </div>
+
+                {% form_theme form 'form/admin_theme.html.twig' %}
+                {{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
+                    {{ form_errors(form) }}
+                    <div class="form-grid">
+                        {{ form_row(form.label) }}
+                        {{ form_row(form.key) }}
+                        {{ form_row(form.issuer, {row_attr: {class: 'full'}}) }}
+                        {{ form_row(form.clientId) }}
+                        {{ form_row(form.secretEnv) }}
+                        {{ form_row(form.scopes, {row_attr: {class: 'full'}}) }}
+                        {{ form_row(form.preset) }}
+                        {{ form_row(form.trustEmail, {row_attr: {class: 'full'}}) }}
+                    </div>
+
+                    <details class="identity-mapping"{{ form.vars.submitted and not form.vars.valid ? ' open' : '' }}>
+                        <summary>{{ 'identity.mapping_title'|trans }}</summary>
+                        <p class="admin-panel-help">{{ 'identity.mapping_help'|trans }}</p>
+                        <div class="form-grid">
+                            {% for field in ['subject', 'email', 'emailVerified', 'firstName', 'lastName', 'displayName', 'affiliations'] %}
+                                {{ form_row(attribute(form, 'map_' ~ field)) }}
+                            {% endfor %}
+                        </div>
+                    </details>
+
+                    <div class="form-grid">
+                        {{ form_row(form.enabled, {row_attr: {class: 'full'}}) }}
+                    </div>
+
+                    <div class="form-actions">
+                        <a class="btn-link" href="{{ path('app_admin_identity') }}">{{ 'common.cancel'|trans }}</a>
+                        {% if provider %}<a class="btn-link" href="{{ path('app_admin_identity_test', {key: provider.key}) }}">{{ 'identity.test'|trans }}</a>{% endif %}
+                        <button type="submit" class="btn-link btn-primary-admin">{{ 'common.save'|trans }}</button>
+                    </div>
+                {{ form_end(form) }}
+            </section>
+        </div>
+    </main>
+{% endblock %}

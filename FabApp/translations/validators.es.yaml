@@ -119,3 +119,9 @@ venues:
         slug_required: "El identificador de URL es obligatorio."
         timezone_invalid: "Zona horaria desconocida."
         timezone_required: "La zona horaria es obligatoria."
+
+identity:
+    invalid:
+        key: "Clave no válida: minúsculas, cifras y «_», de 2 a 80 caracteres."
+        issuer: "El emisor debe ser una dirección https."
+        secret_env: "Un nombre de variable: mayúsculas, cifras y «_» (p. ej. OIDC_ESCUELA_SECRET)."

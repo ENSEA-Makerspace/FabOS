@@ -69,7 +69,7 @@ trait ProbeBrowser
         return $this->kernel->handle($request, HttpKernelInterface::MAIN_REQUEST, true);
     }
 
-    /** @param array<string, string> $fields ⚠️ `Origin` posé : les formulaires sans état le vérifient. */
+    /** @param array<string, mixed> $fields ⚠️ `Origin` posé : les formulaires sans état le vérifient. */
     private function post(string $path, array $fields, Session $session): Response
     {
         $request = Request::create($path, 'POST', $fields);

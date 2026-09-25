@@ -1,0 +1,89 @@
+{% extends 'base.html.twig' %}
+
+{# « TESTER » UN FOURNISSEUR (S196).
+
+   Trois blocs, dans l'ordre où l'exploitant se pose les questions :
+     1. ce que le fournisseur a ENVOYÉ (tous les attributs, tels quels) ;
+     2. ce que FabOS en LIT (le profil, selon la correspondance) ;
+     3. ce que FabOS en FERAIT (lier, créer, refuser — et pourquoi).
+   Ou, si l'aller-retour a échoué, la raison ET le détail technique : c'est là
+   qu'une audience fausse ou un secret absent se voit.
+
+   🔴 Le test ne connecte personne et n'écrit rien. Le rapport vit dans la
+   session de l'administrateur qui l'a lancé. #}
+
+{% block title %}{{ 'identity.test_title'|trans({'%label%': provider.label}) }} · FabOS{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">{% endblock %}
+
+{% block body %}
+    {% include 'site/_header.html.twig' %}
+    <main id="main-content" tabindex="-1" class="admin-page">
+        <div class="admin-edit-layout">
+            {% include 'site/_admin_sidebar.html.twig' %}
+
+            <section class="admin-panel admin-list-card admin-form-card">
+                {% include 'site/_admin_form_head.html.twig' with {
+                    title: 'identity.test_title'|trans({'%label%': provider.label}),
+                    subtitle: provider.issuer,
+                    back_href: path('app_admin_identity'),
+                    back_label: 'identity.back'|trans,
+                } only %}
+
+                <div class="admin-panel-pad">
+                    <p class="admin-panel-help">{{ 'identity.test_help'|trans }}</p>
+                    <a class="btn-link btn-primary-admin" href="{{ path('app_oidc_start', {provider: provider.key, test: 1}) }}">{{ (report ? 'identity.test_again' : 'identity.test_run')|trans }}</a>
+                </div>
+
+                {% if report %}
+                    <div class="admin-panel-pad identity-report">
+                        <p class="admin-panel-help">{{ 'identity.test_at'|trans({'%date%': report.at|lab_date('d/m/Y H:i:s')}) }}</p>
+
+                        {% if not report.ok %}
+                            <h2>{{ 'identity.test_failed'|trans }}</h2>
+                            {% include 'site/_cell_state.html.twig' with {label: report.refusal.key|trans(report.refusal.params), signal: 'stop'} only %}
+                            {% if report.refusal.detail %}<p><code>{{ report.refusal.detail }}</code></p>{% endif %}
+                        {% else %}
+                            <h2>{{ 'identity.test_decision'|trans }}</h2>
+                            {% set d = report.decision %}
+                            {% if d.outcome == 'link' %}
+                                {% include 'site/_cell_state.html.twig' with {label: 'identity.outcome.link'|trans({'%user%': d.userLabel}), signal: 'go'} only %}
+                            {% elseif d.outcome == 'create' %}
+                                {% include 'site/_cell_state.html.twig' with {label: 'identity.outcome.create'|trans, signal: 'go'} only %}
+                                <ul class="identity-notes">
+                                    {% for note in d.notes %}<li>{{ note[0]|trans(note[1]) }}</li>{% endfor %}
+                                    <li>{{ 'identity.note.name'|trans({'%first%': d.firstName ?? '—', '%last%': d.lastName ?? '—'}) }}</li>
+                                </ul>
+                            {% else %}
+                                {% include 'site/_cell_state.html.twig' with {label: d.reason|trans, signal: 'stop'} only %}
+                            {% endif %}
+
+                            <h2>{{ 'identity.test_profile'|trans }}</h2>
+                            {% include 'site/_admin_meta_grid.html.twig' with {items: [
+                                {label: 'identity.profile.subject'|trans ~ ' (' ~ (mapping.subject ?? '—') ~ ')', value: report.profile.subject},
+                                {label: 'identity.profile.email'|trans ~ ' (' ~ (mapping.email ?? '—') ~ ')', value: report.profile.email ?? '—'},
+                                {label: 'identity.profile.emailVerified'|trans, value: (report.profile.emailVerified ? 'common.yes' : 'common.no')|trans},
+                                {label: 'identity.profile.firstName'|trans ~ ' (' ~ (mapping.firstName ?? '—') ~ ')', value: report.profile.firstName ?? '—'},
+                                {label: 'identity.profile.lastName'|trans ~ ' (' ~ (mapping.lastName ?? '—') ~ ')', value: report.profile.lastName ?? '—'},
+                                {label: 'identity.profile.displayName'|trans ~ ' (' ~ (mapping.displayName ?? '—') ~ ')', value: report.profile.displayName ?? '—'},
+                                {label: 'identity.profile.affiliations'|trans, value: report.profile.affiliations ? report.profile.affiliations|join(', ') : '—'},
+                            ]} only %}
+
+                            <h2>{{ 'identity.test_attributes'|trans({'count': report.attributes|length}) }}</h2>
+                            {% embed 'site/_data_table.html.twig' with {
+                                columns: [{label: 'identity.col_attribute'|trans}, {label: 'identity.col_value'|trans, class: 'is-grow'}],
+                                rows: report.attributes,
+                                empty: '—',
+                            } %}
+                                {% block rows %}
+                                    {% for name, value in report.attributes %}
+                                        <tr><td><code>{{ name }}</code></td><td class="identity-value">{{ value }}</td></tr>
+                                    {% endfor %}
+                                {% endblock %}
+                            {% endembed %}
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </section>
+        </div>
+    </main>
+{% endblock %}

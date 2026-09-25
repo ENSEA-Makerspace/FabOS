@@ -370,6 +370,11 @@ final class NavBuilder
             $this->adminItem('admin_nav.entry.app_admin_mail_templates', 'app_admin_mail_templates', 'logs', [
                 'app_admin_mail_template_edit',
             ]),
+            // S196 — les fournisseurs de connexion quittent « Réseau » : ce sont
+            // des réglages de CONNEXION, pas de la fédération entre FabOS.
+            $this->adminItem('admin_nav.entry.app_admin_identity', 'app_admin_identity', 'dashboard', [
+                'app_admin_identity_new', 'app_admin_identity_edit', 'app_admin_identity_test',
+            ]),
             $this->adminItem('admin_nav.entry.app_admin_network', 'app_admin_network', 'dashboard'),
             // Last, because it is the one entry you use once and never again.
             $this->adminItem('admin_nav.entry.app_admin_wizard', 'app_admin_wizard', 'dashboard'),

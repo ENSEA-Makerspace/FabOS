@@ -2468,6 +2468,67 @@ trouvés en route, consignés : le limiteur de 127.0.0.1 se partage entre sondes
 compris — sont remis à zéro entre deux requêtes simulées : un `flush()` sur une
 entité chargée avant n'écrit RIEN.
 
+### ⏳ S196 — le socle (2026-09-25) : en ligne, sonde verte ; migration à passer
+
+✅ **Le contrat `ExternalProfile`** (fournisseur, identifiant immuable, e-mail +
+« garanti », prénom, nom, nom affiché, affiliations, désactivé à la source,
+attributs bruts) et **un seul service qui décide**, `ExternalIdentityService` :
+`decide()` (n'écrit rien — c'est ce que montre « Tester ») puis `apply()` (même
+décision, sous verrou). Aucun module n'a de règle d'identité à lui.
+✅ **La correspondance des attributs est une CONFIGURATION** (`AttributeMapping`) :
+préréglages « OpenID Connect standard » et « Microsoft Entra ID » (`oid`), et
+chaque champ se corrige à l'écran. ⚠️ Les préréglages LDAP/SUPANN/AD/CAS/eduPerson
+arriveront AVEC leurs modules (S198–S200) : les proposer avant serait une
+affordance morte.
+✅ **OIDC réécrit, trous bouchés** (`OidcModule`) : `id_token` exigé et vérifié
+contre le JWKS du fournisseur (`firebase/php-jwt` 7.2 — accord de l'opérateur ;
+6.11 était bloquée par un avis de sécurité), émetteur, audience, `azp`,
+expiration, et 🔴 **le `nonce` comparé** ; l'algorithme vient de la CLÉ (ni
+`alg: none`, ni confusion RS256→HS256) ; `userinfo` d'une autre personne →
+refus ; découverte et clés en cache une heure, clés relues UNE fois sur un `kid`
+inconnu (rotation). Un refus ramène à la connexion avec une PHRASE, jamais une
+page 500.
+✅ **E-mail** : repris seulement s'il est garanti (`email_verified`, ou la case
+« faire confiance aux adresses de ce fournisseur » pour SON établissement) ;
+🔴 une adresse déjà prise par un compte local donne un compte DISTINCT — jamais
+de rapprochement silencieux (S197 permettra de lier avec preuve). Sans adresse
+garantie : adresse de remplacement en `.invalid` (RFC 2606, ne reçoit rien).
+🔴 Le statut local gagne : un compte lié désactivé ici est refusé.
+✅ **« Connexion & annuaires »** (`/admin/connexion`, Configuration) : la liste
+(protocole, comptes liés, activer/désactiver), la fiche (l'adresse de retour à
+déclarer, affichée ; correspondance repliée), et **« Tester »** : un vrai
+aller-retour avec un compte de test, puis les attributs REÇUS, ce que FabOS en
+LIT et ce qu'il en FERAIT — ou la raison ET le détail technique de l'échec.
+Personne n'est connecté, rien n'est écrit ; marche sur un fournisseur désactivé.
+Les fournisseurs ont quitté `/admin/network` (la fédération), et son formulaire
+OIDC avec ses dix clés de traduction.
+✅ **Sonde `app:s196:identity-probe`**, contre un FAUX fournisseur tenu dans la
+commande (vraie paire RSA, JWKS, client HTTP simulé) : jeton valide ; refusés
+pour la BONNE raison — état rejoué, nonce d'une autre connexion, audience,
+émetteur, plusieurs audiences sans `azp`, expiré, autre clé sous le même `kid`,
+`alg: none`, HS256 signé avec la clé publique, `userinfo` d'un autre, découverte
+incohérente ; rotation des clés ; décisions (création, même compte au retour,
+adresse non garantie écartée puis reprise « de confiance », adresse d'un compte
+local → compte distinct sans lien, compte désactivé ici → refus, sans
+identifiant → refus) ; 🔴 **un fournisseur désactivé : `/login` identique octet
+pour octet**, activé : son bouton paraît ; l'écran, sa fiche, « Tester » ;
+`?test=1` refusé à un visiteur ; enregistrer par le formulaire ; un secret COLLÉ
+à la place d'un nom de variable refusé pour cette raison. Transaction annulée.
+⚠️ **Ce que la sonde ne couvre pas** : l'aller-retour COMPLET par le contrôleur
+contre un vrai fournisseur — il faut un Keycloak de test sur le homelab (prévu
+par la phase). La limite d'essais pour un compte d'annuaire attend S198.
+⏳ **Migration `Version20260925090000`** (expansion : `AUTH_PROVIDER.kind`,
+`settingsJson`) — sans elle tout marche, mais préréglage, confiance et
+correspondance ne s'enregistrent pas (l'écran le dit).
+
+| S196 | Où | Ce qui doit être vrai |
+|---|---|---|
+| ⏳ | Configuration → « Connexion & annuaires » | La liste, vide : « Aucun fournisseur… », et le conseil « préférez la redirection » |
+| ⏳ | « Ajouter un fournisseur » | L'adresse de retour https à déclarer chez le fournisseur ; coller un secret dans « variable d'environnement » → refusé |
+| ⏳ | `/login` sans fournisseur activé | Exactement la page d'avant |
+| ⏳ | `/admin/network` | Plus de formulaire OIDC |
+| ⏳ | `php bin/console app:s196:identity-probe` | Verte |
+
 ## Les invariants de la phase
 
 - 🔴 **Aucun fournisseur activé = rien ne change à l'écran.** C'est le cas de

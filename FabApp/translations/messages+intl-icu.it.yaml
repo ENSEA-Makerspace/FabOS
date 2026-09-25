@@ -225,3 +225,7 @@ account_status:
 
 badge_grants:
     revocations: "{count, plural, one {# badge ritirato} other {# badge ritirati}}"
+
+identity:
+    list_note: "{count, plural, =0 {Nessun fornitore} one {# fornitore} other {# fornitori}}"
+    test_attributes: "{count, plural, one {Cosa ha inviato il fornitore (# attributo)} other {Cosa ha inviato il fornitore (# attributi)}}"

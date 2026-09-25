@@ -163,6 +163,14 @@ si c'est une ressource.
 - 🔴 **Un compte « identique » sur l'écran d'ombre ne prouve pas une égalité** : les
   lignes « recovery admin » contournent le modèle et sont d'accord avec elles-mêmes.
 
+**Identité externe (S196).** Un module de connexion rend un `ExternalProfile` ;
+`ExternalIdentityService` est le SEUL à décider (lier / créer / refuser).
+Identité = `(émetteur, identifiant immuable)`, jamais l'e-mail ; jamais de
+rapprochement silencieux par e-mail ; le statut local gagne. OIDC : `OidcModule`
+(id_token vérifié par JWKS, nonce, cache). Configuration :
+`/admin/connexion` ; « Tester » n'écrit rien. ⚠️ Un refus est une
+`IdentityRefusal` portant une clé `identity.refused.*` — jamais une 500.
+
 **Les badges (S192c, S202).** 🔴 **Un badge DÉTENU est un badge**, d'où qu'il
 vienne : la ligne `UTILISATEUR_BADGE` est ce que lisent le lecteur, la
 réservation et « Mes badges ». `BADGE_GRANT` (S202) en est le journal : dons à la

@@ -13,19 +13,9 @@
     {{ form_end(forms.identity) }}
 {% endif %}
 
-<h3>{{ 'network.oidc'|trans }}</h3>
-{{ form_start(forms.provider, {attr: {class: 'form-grid'}}) }}
-    {% form_theme forms.provider 'form/admin_theme.html.twig' %}
-    {{ form_row(forms.provider.key) }}
-    {{ form_row(forms.provider.label) }}
-    {{ form_row(forms.provider.issuer) }}
-    {{ form_row(forms.provider.clientId) }}
-    {{ form_row(forms.provider.secretEnv) }}
-    {{ form_row(forms.provider.enabled) }}
-    <div class="form-field full"><button class="btn-link btn-primary-admin" type="submit">{{ 'common.save'|trans }}</button></div>
-{{ form_end(forms.provider) }}
-
-{% embed 'site/_data_table.html.twig' with {columns:[{label:'network.provider'|trans},{label:'network.issuer'|trans},{label:'network.state'|trans}],rows:providers,empty:'network.no_provider'|trans} %}{% block rows %}{% for provider in providers %}<tr><td>{{ provider.label }}</td><td>{{ provider.issuer }}</td><td>{% include 'site/_state_chip.html.twig' with {label:provider.enabled ? 'network.enabled'|trans : 'network.disabled'|trans,signal:provider.enabled ? 'positive':'neutral'} only %}</td></tr>{% endfor %}{% endblock %}{% endembed %}
+{# S196 — les fournisseurs de connexion ont quitté cet écran pour
+   « Connexion & annuaires » (`/admin/connexion`) : ce sont des réglages de
+   connexion, pas de fédération. #}
 <h3>{{ 'network.peers'|trans }}</h3>{% embed 'site/_data_table.html.twig' with {columns:[{label:'network.instance'|trans},{label:'network.origin'|trans},{label:'network.state'|trans}],rows:peers,empty:'network.no_peer'|trans} %}{% block rows %}{% for peer in peers %}<tr><td>{{ peer.institution ?: peer.instanceUuid }}</td><td>{{ peer.origin }}</td><td>{{ peer.trustState }}</td></tr>{% endfor %}{% endblock %}{% endembed %}
 <details{{ peerRefused|default(false) ? ' open' : '' }}><summary>{{ 'network.add_peer'|trans }}</summary>
     {{ form_start(forms.peer, {attr: {class: 'form-grid'}}) }}

@@ -674,6 +674,16 @@
 .badge-grants__reason { flex: 1 1 16rem; }
 .badge-grants__reason input[type="text"] { flex: 1; min-width: 0; }
 .badge-grants__row + .admin-panel-help { margin-top: var(--spacing-sm); }
+
+/* S196 — « Connexion & annuaires ». Des valeurs venues d'un fournisseur (URL,
+   jetons, identifiants opaques) n'ont pas d'espaces : sans `overflow-wrap`, une
+   seule ligne élargit la carte au-delà de l'écran. */
+.identity-toggle { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.identity-callback, .identity-value, .identity-report code { overflow-wrap: anywhere; }
+.identity-mapping { margin: var(--spacing-md) 0; }
+.identity-mapping > summary { cursor: pointer; font-weight: var(--font-weight-semibold); }
+.identity-report h2 { margin: var(--spacing-lg) 0 var(--spacing-sm); }
+.identity-notes { margin: var(--spacing-sm) 0 0; padding-left: 1.1rem; }
 .usage-assignment-list { display: grid; }
 .usage-assignment { padding: 15px 24px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 14px; }
 /* 🔴 S144b: this was `.usage-assignment .admin-action`, so it painted EVERY

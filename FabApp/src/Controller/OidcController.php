@@ -1,37 +1,124 @@
 <?php
+
+declare(strict_types=1);
+
 namespace App\Controller;
+
 use App\Identity\ExternalIdentityService;
+use App\Identity\IdentityRefusal;
+use App\Identity\OidcModule;
 use App\Identity\ProviderRegistry;
+use App\Identity\IdentityTestReport;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Core\Exception\AccountStatusException;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
-/** OIDC authorization-code + PKCE. External claims never create local roles. */
+/**
+ * S196 — se connecter avec un fournisseur OIDC, ou le TESTER.
+ *
+ * Toute la validation vit dans `OidcModule`, toute la décision d'identité dans
+ * `ExternalIdentityService` : ce contrôleur ne fait qu'aiguiller.
+ *
+ * ⚠️ Un refus ramène à la connexion avec une PHRASE (`identity.refused.*`),
+ * jamais une page 500 : un membre doit savoir s'il peut réessayer.
+ * « Tester » (`?test=1`, administrateurs seulement) fait le même aller-retour
+ * mais ne connecte personne et n'écrit rien : il range ce qu'il a vu pour
+ * l'écran « Connexion & annuaires ».
+ */
 final class OidcController extends AbstractController
 {
-    #[Route('/login/oidc/{provider}',name:'app_oidc_start',requirements:['provider'=>'[a-z][a-z0-9_]{1,79}'],methods:['GET'])]
-    public function start(string $provider,Request $request,ProviderRegistry $registry,HttpClientInterface $http): RedirectResponse
+    #[Route('/login/oidc/{provider}', name: 'app_oidc_start', requirements: ['provider' => '[a-z][a-z0-9_]{1,79}'], methods: ['GET'])]
+    public function start(string $provider, Request $request, ProviderRegistry $registry, OidcModule $oidc, IdentityTestReport $reports, TranslatorInterface $translator): RedirectResponse
     {
-        $config=$registry->find($provider); if(!$config?->enabled) throw $this->createNotFoundException();
-        $discovery=$http->request('GET',$config->issuer.'/.well-known/openid-configuration',['timeout'=>5,'max_redirects'=>0])->toArray();
-        if(($discovery['issuer']??null)!==$config->issuer) throw new \RuntimeException('Issuer OIDC incohérent.');
-        foreach(['authorization_endpoint','token_endpoint','userinfo_endpoint'] as $key) if(!isset($discovery[$key]) || !str_starts_with($discovery[$key],'https://')) throw new \RuntimeException('Découverte OIDC incomplète.');
-        $state=bin2hex(random_bytes(24)); $nonce=bin2hex(random_bytes(24)); $verifier=rtrim(strtr(base64_encode(random_bytes(48)),'+/','-_'),'=');
-        $request->getSession()->set('oidc_'.$state,['provider'=>$provider,'nonce'=>$nonce,'verifier'=>$verifier,'discovery'=>$discovery,'created'=>time()]);
-        $query=http_build_query(['response_type'=>'code','client_id'=>$config->clientId,'redirect_uri'=>$this->generateUrl('app_oidc_callback',[],0),'scope'=>implode(' ',$config->scopes),'state'=>$state,'nonce'=>$nonce,'code_challenge'=>rtrim(strtr(base64_encode(hash('sha256',$verifier,true)),'+/','-_'),'='),'code_challenge_method'=>'S256']);
-        return new RedirectResponse($discovery['authorization_endpoint'].'?'.$query);
+        $test = $request->query->getBoolean('test');
+        if ($test) {
+            $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        }
+        $config = $registry->find($provider);
+        if ($config === null || (!$config->enabled && !$test)) {
+            throw $this->createNotFoundException();
+        }
+        if ($test) {
+            $oidc->forget($config);
+        }
+
+        try {
+            return new RedirectResponse($oidc->begin($config, $request->getSession(), $this->callbackUrl(), $test));
+        } catch (IdentityRefusal $refusal) {
+            if ($test) {
+                $reports->store($request->getSession(), $config->key, refusal: $refusal);
+
+                return $this->redirectToRoute('app_admin_identity_test', ['key' => $config->key]);
+            }
+            $this->addFlash('error', ['identity.login_refused', ['%provider%' => $config->label, '%reason%' => $this->reason($refusal, $translator)]]);
+
+            return $this->redirectToRoute('app_login');
+        }
     }
-    #[Route('/login/oidc/callback',name:'app_oidc_callback',methods:['GET'],priority:10)]
-    public function callback(Request $request,ProviderRegistry $registry,ExternalIdentityService $identities,HttpClientInterface $http,Security $security): RedirectResponse
+
+    #[Route('/login/oidc/callback', name: 'app_oidc_callback', methods: ['GET'], priority: 10)]
+    public function callback(Request $request, ProviderRegistry $registry, OidcModule $oidc, ExternalIdentityService $identities, Security $security, IdentityTestReport $reports, TranslatorInterface $translator): RedirectResponse
     {
-        $state=$request->query->getString('state'); $flow=$request->getSession()->remove('oidc_'.$state); if(!is_array($flow) || time()-(int)$flow['created']>600) throw $this->createAccessDeniedException('État OIDC invalide ou expiré.');
-        $config=$registry->find($flow['provider']); if(!$config?->enabled) throw $this->createAccessDeniedException(); $secret=getenv($config->secretEnv); if(!is_string($secret)||$secret==='') throw new \RuntimeException('Secret OIDC indisponible.');
-        $tokens=$http->request('POST',$flow['discovery']['token_endpoint'],['body'=>['grant_type'=>'authorization_code','code'=>$request->query->getString('code'),'redirect_uri'=>$this->generateUrl('app_oidc_callback',[],0),'client_id'=>$config->clientId,'client_secret'=>$secret,'code_verifier'=>$flow['verifier']],'timeout'=>8,'max_redirects'=>0])->toArray();
-        $claims=$http->request('GET',$flow['discovery']['userinfo_endpoint'],['auth_bearer'=>$tokens['access_token']??'','timeout'=>8,'max_redirects'=>0])->toArray();
-        $user=$identities->resolveOrProvision($config,(string)($claims['sub']??''),isset($claims['email'])?(string)$claims['email']:null,isset($claims['name'])?(string)$claims['name']:null);
-        $security->login($user,'form_login','main'); return $this->redirectToRoute('app_profile');
+        $session = $request->getSession();
+        $state = $request->query->getString('state');
+        $testing = $oidc->testFlow($session, $state);
+        try {
+            $result = $oidc->complete(
+                $session,
+                $state,
+                $request->query->getString('code'),
+                $request->query->has('error') ? $request->query->getString('error') : null,
+                $this->callbackUrl(),
+                $registry->find(...),
+            );
+        } catch (IdentityRefusal $refusal) {
+            // « Tester » montre AUSSI l'échec, détail technique compris : c'est
+            // là qu'un réglage faux se voit (mauvaise audience, secret absent…).
+            if ($testing !== null && $this->isGranted('ROLE_ADMIN')) {
+                $reports->store($session, $testing, refusal: $refusal);
+
+                return $this->redirectToRoute('app_admin_identity_test', ['key' => $testing]);
+            }
+            $this->addFlash('error', ['identity.login_refused', ['%provider%' => '—', '%reason%' => $this->reason($refusal, $translator)]]);
+
+            return $this->redirectToRoute('app_login');
+        }
+
+        if ($result->test) {
+            $reports->store($session, $result->provider->key, result: $result, decision: $identities->decide($result->profile));
+
+            return $this->redirectToRoute('app_admin_identity_test', ['key' => $result->provider->key]);
+        }
+
+        try {
+            $user = $identities->apply($result->profile);
+            $security->login($user, 'form_login', 'main');
+        } catch (IdentityRefusal $refusal) {
+            $this->addFlash('error', ['identity.login_refused', ['%provider%' => $result->provider->label, '%reason%' => $this->reason($refusal, $translator)]]);
+
+            return $this->redirectToRoute('app_login');
+        } catch (AccountStatusException $e) {
+            // Le statut local gagne : même message que la connexion par mot de passe.
+            $this->addFlash('error', $e->getMessageKey());
+
+            return $this->redirectToRoute('app_login');
+        }
+
+        return $this->redirectToRoute('app_profile');
+    }
+
+    private function callbackUrl(): string
+    {
+        return $this->generateUrl('app_oidc_callback', [], UrlGeneratorInterface::ABSOLUTE_URL);
+    }
+
+    private function reason(IdentityRefusal $refusal, TranslatorInterface $translator): string
+    {
+        return $translator->trans($refusal->reasonKey, $refusal->params);
     }
 }

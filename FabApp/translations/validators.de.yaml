@@ -119,3 +119,9 @@ venues:
         slug_required: "Die URL-Kennung ist erforderlich."
         timezone_invalid: "Unbekannte Zeitzone."
         timezone_required: "Die Zeitzone ist erforderlich."
+
+identity:
+    invalid:
+        key: "Ungültiger Schlüssel: Kleinbuchstaben, Ziffern und „_“, 2 bis 80 Zeichen."
+        issuer: "Der Aussteller muss eine https-Adresse sein."
+        secret_env: "Ein Variablenname: Großbuchstaben, Ziffern und „_“ (z. B. OIDC_SCHULE_SECRET)."
