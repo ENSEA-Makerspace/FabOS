@@ -2468,7 +2468,7 @@ trouvés en route, consignés : le limiteur de 127.0.0.1 se partage entre sondes
 compris — sont remis à zéro entre deux requêtes simulées : un `flush()` sur une
 entité chargée avant n'écrit RIEN.
 
-### ⏳ S196 — le socle (2026-09-25) : en ligne, sonde verte ; migration à passer
+### ✅ S196 — le socle (2026-09-25)
 
 ✅ **Le contrat `ExternalProfile`** (fournisseur, identifiant immuable, e-mail +
 « garanti », prénom, nom, nom affiché, affiliations, désactivé à la source,
@@ -2517,17 +2517,20 @@ pour octet**, activé : son bouton paraît ; l'écran, sa fiche, « Tester » ;
 ⚠️ **Ce que la sonde ne couvre pas** : l'aller-retour COMPLET par le contrôleur
 contre un vrai fournisseur — il faut un Keycloak de test sur le homelab (prévu
 par la phase). La limite d'essais pour un compte d'annuaire attend S198.
-⏳ **Migration `Version20260925090000`** (expansion : `AUTH_PROVIDER.kind`,
-`settingsJson`) — sans elle tout marche, mais préréglage, confiance et
-correspondance ne s'enregistrent pas (l'écran le dit).
+✅ **Migration `Version20260925090000` passée le 2026-09-25** (expansion :
+`AUTH_PROVIDER.kind`, `settingsJson`) ; la sonde, relancée, mesure alors
+l'enregistrement : préréglage, confiance et champ corrigé rangés PUIS relus
+(e-mail ← `upn`, identifiant ← `oid` du préréglage). Balayage : 131 routes GET,
+`/login/oidc/callback` sans état renvoie désormais à la connexion avec une
+phrase (302) au lieu d'un 403 brut.
 
 | S196 | Où | Ce qui doit être vrai |
 |---|---|---|
-| ⏳ | Configuration → « Connexion & annuaires » | La liste, vide : « Aucun fournisseur… », et le conseil « préférez la redirection » |
-| ⏳ | « Ajouter un fournisseur » | L'adresse de retour https à déclarer chez le fournisseur ; coller un secret dans « variable d'environnement » → refusé |
-| ⏳ | `/login` sans fournisseur activé | Exactement la page d'avant |
-| ⏳ | `/admin/network` | Plus de formulaire OIDC |
-| ⏳ | `php bin/console app:s196:identity-probe` | Verte |
+| ✅ | Configuration → « Connexion & annuaires » | La liste, vide : « Aucun fournisseur… », et le conseil « préférez la redirection » |
+| ✅ | « Ajouter un fournisseur » | L'adresse de retour https à déclarer chez le fournisseur ; coller un secret dans « variable d'environnement » → refusé |
+| ✅ | `/login` sans fournisseur activé | Exactement la page d'avant |
+| ✅ | `/admin/network` | Plus de formulaire OIDC |
+| ✅ | `php bin/console app:s196:identity-probe` | Verte |
 
 ## Les invariants de la phase
 
