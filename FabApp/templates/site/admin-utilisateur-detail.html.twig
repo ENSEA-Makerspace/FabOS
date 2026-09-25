@@ -92,29 +92,25 @@
                         <p class="admin-panel-help">{{ 'badge_grants.help'|trans }}</p>
 
                         {% if badgeGrants.grantable is not empty %}
-                            <form method="post" action="{{ path('app_admin_user_badge_grant', {id: user.id}) }}" class="usage-assignment-form">
+                            <form method="post" action="{{ path('app_admin_user_badge_grant', {id: user.id}) }}" class="afp-tier badge-grants__row">
                                 <input type="hidden" name="_token" value="{{ csrf_token('admin_badge_grant_' ~ user.id) }}">
-                                <label class="sr-only" for="grant-badge">{{ 'badge_grants.badge_label'|trans }}</label>
-                                <select id="grant-badge" name="badge" required>
+                                <label class="afp-select"><span class="afp-k">{{ 'badge_grants.badge_label'|trans }}</span><select id="grant-badge" name="badge" required>
                                     {% for badge in badgeGrants.grantable %}<option value="{{ badge.id }}">{{ badge.nom }}</option>{% endfor %}
-                                </select>
-                                <label class="sr-only" for="grant-reason">{{ 'badge_grants.reason_label'|trans }}</label>
-                                <input id="grant-reason" name="reason" required maxlength="500" placeholder="{{ 'badge_grants.grant_reason_placeholder'|trans }}">
+                                </select></label>
+                                <label class="afp-select badge-grants__reason"><span class="afp-k">{{ 'badge_grants.reason_label'|trans }}</span><input type="text" id="grant-reason" name="reason" required maxlength="500" placeholder="{{ 'badge_grants.grant_reason_placeholder'|trans }}"></label>
                                 <button class="btn-link btn-primary-admin" type="submit">{{ 'badge_grants.grant'|trans }}</button>
                             </form>
                         {% endif %}
 
                         {% if badgeGrants.held is not empty %}
-                            <form method="post" action="{{ path('app_admin_user_badge_revoke', {id: user.id}) }}" class="usage-assignment-form"
+                            <form method="post" action="{{ path('app_admin_user_badge_revoke', {id: user.id}) }}" class="afp-tier badge-grants__row"
                                   data-controller="confirm" data-action="submit->confirm#ask"
                                   data-confirm-message-value="{{ 'badge_grants.revoke_confirm'|trans|e('html_attr') }}">
                                 <input type="hidden" name="_token" value="{{ csrf_token('admin_badge_revoke_' ~ user.id) }}">
-                                <label class="sr-only" for="revoke-badge">{{ 'badge_grants.badge_label'|trans }}</label>
-                                <select id="revoke-badge" name="badge" required>
+                                <label class="afp-select"><span class="afp-k">{{ 'badge_grants.badge_label'|trans }}</span><select id="revoke-badge" name="badge" required>
                                     {% for badge in badgeGrants.held %}<option value="{{ badge.id }}">{{ badge.nom }}</option>{% endfor %}
-                                </select>
-                                <label class="sr-only" for="revoke-reason">{{ 'badge_grants.reason_label'|trans }}</label>
-                                <input id="revoke-reason" name="reason" required maxlength="500" placeholder="{{ 'badge_grants.revoke_reason_placeholder'|trans }}">
+                                </select></label>
+                                <label class="afp-select badge-grants__reason"><span class="afp-k">{{ 'badge_grants.reason_label'|trans }}</span><input type="text" id="revoke-reason" name="reason" required maxlength="500" placeholder="{{ 'badge_grants.revoke_reason_placeholder'|trans }}"></label>
                                 <button class="btn-link btn-danger-admin" type="submit">{{ 'badge_grants.revoke'|trans }}</button>
                             </form>
                             <p class="admin-panel-help">{{ 'badge_grants.revoke_help'|trans }}</p>
