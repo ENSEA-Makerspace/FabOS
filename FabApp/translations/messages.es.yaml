@@ -2532,6 +2532,11 @@ admin_settings:
 
 # E-mails admin — S134c.
 admin_emails:
+    redirect_notice: "Modo de prueba activo: todos los correos van a %address%, no a sus destinatarios."
+    redirect_off: "desactivado"
+    redirect_summary: "Modo de prueba"
+    redirect_help: "Modo de prueba: cada correo va a esta única dirección, con el asunto empezando por «[TEST → destinatario real]». Sin enlace de baja. Vacío = envío normal."
+    redirect_label: "Enviar todo a esta dirección"
     col_version: "Texto"
     version_delivered: "Entregado"
     version_override: "Reescrito"

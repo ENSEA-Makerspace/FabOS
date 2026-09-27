@@ -2533,6 +2533,11 @@ admin_settings:
 
 # E-mails admin — S134c.
 admin_emails:
+    redirect_notice: "Test mode is on: every email goes to %address%, not to its recipients."
+    redirect_off: "off"
+    redirect_summary: "Test mode"
+    redirect_help: "Test mode: every email goes to this single address, its subject starting with “[TEST → real recipient]”. No unsubscribe link. Empty = normal sending."
+    redirect_label: "Send everything to this address"
     col_version: "Text"
     version_delivered: "Shipped"
     version_override: "Rewritten"

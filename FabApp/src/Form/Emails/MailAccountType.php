@@ -77,6 +77,14 @@ final class MailAccountType extends AbstractType
                 'row_attr' => ['class' => 'full'],
                 'attr' => ['placeholder' => 'https://fablab.exemple.fr', 'spellcheck' => 'false'],
             ])
+            ->add('mail_redirect_to', EmailType::class, [
+                'label' => 'admin_emails.redirect_label',
+                'help' => 'admin_emails.redirect_help',
+                'required' => false,
+                'empty_data' => '',
+                'constraints' => [new Assert\Email(message: 'L’email est invalide.')],
+                'row_attr' => ['class' => 'full'],
+            ])
             ->add('mail_paused', CheckboxType::class, [
                 'label' => 'admin_emails.pause_label',
                 'help' => 'admin_emails.pause_help',

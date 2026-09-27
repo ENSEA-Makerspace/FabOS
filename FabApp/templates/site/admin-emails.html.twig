@@ -78,6 +78,11 @@
                     </p>
                 </div>
 
+                {# Mode test : un état qu'on doit voir d'abord — il change la
+                   destination de TOUT ce qui part. #}
+                {% if mailRedirectTo %}
+                    <div class="notice">{{ 'admin_emails.redirect_notice'|trans({'%address%': mailRedirectTo}) }}</div>
+                {% endif %}
                 {% if mailPaused %}
                     <div class="notice">{{ 'admin_emails.paused_notice'|trans|raw }}</div>
                 {% elseif not configured %}
@@ -124,6 +129,15 @@
                        il est actif : un état qu'on subit ne se cache pas derrière un
                        clic. Le bandeau `paused_notice` en haut de carte reste la
                        première chose qu'on lit ; ceci en est l'interrupteur. #}
+                    {# Mode test : ouvert quand il est actif, et sa valeur dans le
+                       résumé — même règle que l'adresse publique juste au-dessus. #}
+                    <details class="settings-danger settings-danger--neutral"{{ (mailRedirectTo or refusedEditor|default(null) == 'account') ? ' open' : '' }}>
+                        <summary>{{ 'admin_emails.redirect_summary'|trans }} — {{ mailRedirectTo ?: 'admin_emails.redirect_off'|trans }}</summary>
+                        <div>
+                            {{ form_row(accountForm.mail_redirect_to) }}
+                        </div>
+                    </details>
+
                     <details class="settings-danger"{{ (mailPaused or refusedEditor|default(null) == 'account') ? ' open' : '' }}>
                         <summary>{{ 'admin_emails.pause_label'|trans }}</summary>
                         <div>

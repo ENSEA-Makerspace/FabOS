@@ -65,13 +65,25 @@ final class MailSender
             return;
         }
 
+        // Mode test : l'adresse de redirection remplace TOUT destinataire. 🔴 Une
+        // adresse invalide ne fait pas « retomber » sur le vrai destinataire :
+        // on refuse d'envoyer — le mode test existe pour que rien ne fuie.
+        $redirect = $this->settings->getRedirectTo();
+        if ($redirect !== '' && !filter_var($redirect, FILTER_VALIDATE_EMAIL)) {
+            $this->log->markFailed($logId, 'Test mode: invalid redirect address, nothing sent.');
+
+            return;
+        }
+
         try {
             $context = json_decode((string) $row['contextJson'], true, 512, JSON_THROW_ON_ERROR) ?: [];
 
             // Built here rather than by the caller: only the log row knows both
             // who the mail is for and which category it went out under, and the
             // link has to survive a retry that re-renders from that row alone.
-            $unsubscribeUrl = $this->unsubscribe->urlFor(
+            // ⚠️ Pas de lien de désinscription en mode test : il désinscrirait le
+            // destinataire RÉEL, qui n'a jamais vu ce courrier.
+            $unsubscribeUrl = $redirect !== '' ? null : $this->unsubscribe->urlFor(
                 isset($row['userId']) ? (int) $row['userId'] : null,
                 (string) $row['category'],
             );
@@ -85,15 +97,21 @@ final class MailSender
                 (string) $row['locale'],
             );
 
+            if ($redirect !== '') {
+                $subject = sprintf('[TEST → %s] %s', (string) $row['recipient'], $subject);
+            }
             $email = (new Email())
                 ->from(new Address($this->settings->getFromAddress(), $this->settings->getFromName()))
-                ->to(new Address((string) $row['recipient'], (string) ($row['recipientName'] ?? '')))
+                ->to($redirect !== '' ? new Address($redirect) : new Address((string) $row['recipient'], (string) ($row['recipientName'] ?? '')))
                 ->subject($subject)
                 ->text($text)
                 ->html($html);
 
             if (($replyTo = $this->settings->getReplyTo()) !== '') {
                 $email->replyTo($replyTo);
+            }
+            if ($redirect !== '') {
+                $email->getHeaders()->addTextHeader('X-FabOS-Original-To', (string) $row['recipient']);
             }
 
             if ($unsubscribeUrl !== null) {

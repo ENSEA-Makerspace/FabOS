@@ -3069,6 +3069,7 @@ final class AdminController extends AbstractController
             'mail_reply_to' => $mailSettings->getReplyTo(),
             'public_base_url' => $siteSettings->getPublicBaseUrl(),
             'mail_paused' => $mailSettings->isPaused(),
+            'mail_redirect_to' => $mailSettings->getRedirectTo(),
         ]);
         $testForm = $this->createForm(MailTestType::class, [
             'test_recipient' => $this->getUser() instanceof Utilisateur ? $this->getUser()->getEmail() : '',
@@ -3105,6 +3106,7 @@ final class AdminController extends AbstractController
             // A pause is a deliberate, visible state — not a side effect of
             // saving the form, so it is its own checkbox.
             $mailSettings->setPaused((bool) $data['mail_paused']);
+            $mailSettings->setRedirectTo((string) ($data['mail_redirect_to'] ?? ''));
             $this->addFlash('success', 'flash.compte_d_envoi_enregistre');
 
             return $this->redirectToRoute('app_admin_emails');
@@ -3203,6 +3205,7 @@ final class AdminController extends AbstractController
             'eventHorizon' => $eventHorizon,
             'loanHorizon' => $loanHorizon,
             'mailPaused' => $mailSettings->isPaused(),
+            'mailRedirectTo' => $mailSettings->getRedirectTo(),
             'configured' => $mailSettings->isConfigured(),
             'transportDsn' => $mailSettings->getMaskedTransportDsn(),
             'fromAddress' => $mailSettings->getFromAddress(),

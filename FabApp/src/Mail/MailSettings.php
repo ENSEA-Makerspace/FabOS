@@ -30,6 +30,17 @@ final class MailSettings
      */
     private const PAUSED_KEY = 'mail_paused';
 
+    /**
+     * Mode test : TOUT courrier part vers cette seule adresse (vide = normal).
+     *
+     * 🔴 Pour brancher un vrai compte d'envoi sur une installation dont les
+     * comptes sont des essais — ou des adresses de vraies personnes qui n'ont
+     * rien demandé. Le destinataire réel est cité dans l'objet ; rien d'autre ne
+     * change (mêmes gabarits, mêmes rappels), donc ce qu'on voit est ce qui
+     * partirait.
+     */
+    private const REDIRECT_KEY = 'mail_redirect_to';
+
     public function __construct(private readonly SiteSettingService $settings)
     {
     }
@@ -64,6 +75,16 @@ final class MailSettings
     public function setPaused(bool $paused): void
     {
         $this->settings->set(self::PAUSED_KEY, $paused ? '1' : '0');
+    }
+
+    public function getRedirectTo(): string
+    {
+        return trim($this->settings->get(self::REDIRECT_KEY) ?? '');
+    }
+
+    public function setRedirectTo(string $address): void
+    {
+        $this->settings->set(self::REDIRECT_KEY, trim($address));
     }
 
     /** A transport and a sender address are the minimum for any mail to go out. */

@@ -278,6 +278,14 @@ Développement de la nav. Jamais d'assouplissement d'accès ou d'authentificatio
 - ⚠️ Le worker n'a **pas de requête** : les liens absolus viennent du réglage
   `public_base_url`. Non renseigné = **pas de lien**, plutôt qu'un lien cassé.
 - Redémarrer `fabos-worker.service` après tout changement sous `src/Mail/`.
+- 🔴 **Mode test** (`mail_redirect_to`, `/admin/emails` → « Mode test ») : TOUT
+  courrier part vers une seule adresse, objet « [TEST → vrai destinataire] »,
+  en-tête `X-FabOS-Original-To`, **sans** lien de désinscription (il
+  désinscrirait le vrai destinataire). Appliqué dans `MailSender::send()`, le
+  seul point de sortie ; une adresse invalide = rien ne part (jamais de repli
+  vers le vrai destinataire). À activer AVANT de brancher un vrai SMTP sur une
+  base dont les comptes sont des essais. Sonde `app:mail:redirect-probe`
+  (refuse de tourner hors Mailpit ; lit ce qui arrive vraiment).
 
 ## 11. URLs signées
 

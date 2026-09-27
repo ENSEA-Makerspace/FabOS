@@ -2534,6 +2534,11 @@ admin_settings:
 
 # E-mails admin — S134c.
 admin_emails:
+    redirect_notice: "Mode test actif : tous les e-mails partent vers %address%, pas vers leurs destinataires."
+    redirect_off: "désactivé"
+    redirect_summary: "Mode test"
+    redirect_help: "Mode test : chaque e-mail part vers cette seule adresse, l’objet commençant par « [TEST → destinataire réel] ». Aucun lien de désinscription. Vide = envoi normal."
+    redirect_label: "Tout envoyer à cette adresse"
     col_version: "Texte"
     version_delivered: "Livré"
     version_override: "Réécrit"

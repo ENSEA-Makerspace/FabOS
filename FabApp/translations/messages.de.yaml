@@ -2532,6 +2532,11 @@ admin_settings:
 
 # E-mails admin — S134c.
 admin_emails:
+    redirect_notice: "Testmodus aktiv: Alle E-Mails gehen an %address%, nicht an ihre Empfänger."
+    redirect_off: "aus"
+    redirect_summary: "Testmodus"
+    redirect_help: "Testmodus: Jede E-Mail geht an diese eine Adresse, der Betreff beginnt mit „[TEST → echter Empfänger]“. Kein Abmeldelink. Leer = normaler Versand."
+    redirect_label: "Alles an diese Adresse senden"
     col_version: "Text"
     version_delivered: "Ausgeliefert"
     version_override: "Umgeschrieben"
