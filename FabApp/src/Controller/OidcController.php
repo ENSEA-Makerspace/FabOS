@@ -8,6 +8,7 @@ use App\Identity\ExternalIdentityService;
 use App\Identity\IdentityDecision;
 use App\Identity\PendingExternalLogin;
 use App\Security\AccountActivation;
+use App\Security\ReauthAfterLogoutListener;
 use App\Identity\IdentityRefusal;
 use App\Identity\OidcModule;
 use App\Identity\ProviderRegistry;
@@ -51,7 +52,12 @@ final class OidcController extends AbstractController
         }
 
         try {
-            return new RedirectResponse($oidc->begin($config, $request->getSession(), $this->callbackUrl(), $test));
+            // Déconnecté juste avant dans ce navigateur : le fournisseur doit
+            // redemander le mot de passe (poste partagé du labo). Le signal est consommé.
+            $response = new RedirectResponse($oidc->begin($config, $request->getSession(), $this->callbackUrl(), $test, $request->cookies->has(ReauthAfterLogoutListener::COOKIE)));
+            $response->headers->clearCookie(ReauthAfterLogoutListener::COOKIE, '/', null, true, true, 'lax');
+
+            return $response;
         } catch (IdentityRefusal $refusal) {
             if ($test) {
                 $reports->store($request->getSession(), $config->key, refusal: $refusal);

@@ -123,6 +123,11 @@ final class S196IdentityProbeCommand extends Command
             $this->check($io, $failures, 'un jeton valide passe : sub « sonde-sub-1 »', $result instanceof OidcResult && $result->profile->subject === 'sonde-sub-1');
             $this->check($io, $failures, 'l’URL de départ porte state, nonce et PKCE S256', str_contains($this->lastUrl, 'code_challenge_method=S256') && str_contains($this->lastUrl, 'nonce='));
 
+            $plain = $oidc->begin($provider, new Session(new MockArraySessionStorage()), self::REDIRECT);
+            $forced = $oidc->begin($provider, new Session(new MockArraySessionStorage()), self::REDIRECT, false, true);
+            $tested = $oidc->begin($provider, new Session(new MockArraySessionStorage()), self::REDIRECT, true);
+            $this->check($io, $failures, 'prompt=login : absent d’ordinaire, présent si forcé et pour « Tester »', !str_contains($plain, 'prompt=') && str_contains($forced, 'prompt=login') && str_contains($tested, 'prompt=login'));
+
             $replayed = $this->refusal(fn () => $oidc->complete($session, $this->lastState, 'code', null, self::REDIRECT, fn () => $provider));
             $this->check($io, $failures, 'l’état rejoué → refusé (' . $replayed . ')', $replayed === 'identity.refused.state');
 
@@ -233,6 +238,30 @@ final class S196IdentityProbeCommand extends Command
         $withButton = $this->page('/login', new Session(new MockArraySessionStorage()));
         $this->check($io, $failures, 'activé : son bouton paraît (la mesure voit une différence)', str_contains($withButton, '/login/oidc/sonde_s196') && $normalise($withButton) !== $baseline);
         $this->check($io, $failures, '« Tester » refuse un visiteur (?test=1 → connexion)', $this->handle(Request::create('/login/oidc/sonde_s196?test=1'), new Session(new MockArraySessionStorage()))->isRedirect());
+
+        // Après « Déconnexion », le bouton du fournisseur doit redemander le mot
+        // de passe (poste partagé) — mesuré sur le vrai fournisseur de test s'il existe.
+        // ⚠️ La mesure de /login ci-dessus a tout désactivé : on rallume CELUI-CI (transaction annulée).
+        if ($this->db->executeStatement("UPDATE AUTH_PROVIDER SET enabled = 1 WHERE providerKey = 'keycloak_test'") > 0
+            || $this->db->fetchOne("SELECT 1 FROM AUTH_PROVIDER WHERE providerKey = 'keycloak_test'")) {
+            $out = $this->handle(Request::create('/logout'), new Session(new MockArraySessionStorage()));
+            $cookie = null;
+            foreach ($out->headers->getCookies() as $c) {
+                if ($c->getName() === 'fabos_reauth') {
+                    $cookie = $c;
+                }
+            }
+            $this->check($io, $failures, 'la déconnexion pose le signal « redemander le mot de passe »', $cookie !== null && $cookie->getValue() === '1' && $cookie->isHttpOnly());
+            $start = Request::create('/login/oidc/keycloak_test');
+            $start->cookies->set('fabos_reauth', '1');
+            $withSignal = $this->handle($start, new Session(new MockArraySessionStorage()));
+            $cleared = array_filter($withSignal->headers->getCookies(), static fn ($c) => $c->getName() === 'fabos_reauth' && $c->isCleared());
+            $this->check($io, $failures, '🔴 le clic suivant part avec prompt=login, et consomme le signal', str_contains((string) $withSignal->headers->get('Location'), 'prompt=login') && $cleared !== []);
+            $without = $this->handle(Request::create('/login/oidc/keycloak_test'), new Session(new MockArraySessionStorage()));
+            $this->check($io, $failures, 'sans signal : pas de prompt (la mesure voit la différence)', $without->isRedirect() && !str_contains((string) $without->headers->get('Location'), 'prompt='));
+        } else {
+            $io->writeln('   (fournisseur keycloak_test absent : déconnexion → prompt=login non mesurée)');
+        }
 
         $admin = null;
         foreach ($this->users->findBy(['statut' => 'actif', 'isVerified' => true]) as $candidate) {

@@ -41,7 +41,12 @@ final class OidcModule
     }
 
     /** L'adresse où envoyer le navigateur ; l'état de la connexion attend dans la session. */
-    public function begin(AuthProvider $provider, SessionInterface $session, string $redirectUri, bool $test = false): string
+    /**
+     * @param bool $forceLogin `prompt=login` : le fournisseur redemande le mot de
+     *                         passe même s'il a encore une session ouverte dans
+     *                         ce navigateur (après une déconnexion, et pour « Tester »)
+     */
+    public function begin(AuthProvider $provider, SessionInterface $session, string $redirectUri, bool $test = false, bool $forceLogin = false): string
     {
         $discovery = $this->discovery($provider);
         $state = bin2hex(random_bytes(24));
@@ -60,7 +65,7 @@ final class OidcModule
             'nonce' => $nonce,
             'code_challenge' => rtrim(strtr(base64_encode(hash('sha256', $verifier, true)), '+/', '-_'), '='),
             'code_challenge_method' => 'S256',
-        ]);
+        ] + ($forceLogin || $test ? ['prompt' => 'login'] : []));
     }
 
     /** La clé du fournisseur si ce retour est celui d'un « Tester », sans consommer l'état. */
