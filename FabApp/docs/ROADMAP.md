@@ -2514,9 +2514,15 @@ identifiant → refus) ; 🔴 **un fournisseur désactivé : `/login` identique 
 pour octet**, activé : son bouton paraît ; l'écran, sa fiche, « Tester » ;
 `?test=1` refusé à un visiteur ; enregistrer par le formulaire ; un secret COLLÉ
 à la place d'un nom de variable refusé pour cette raison. Transaction annulée.
-⚠️ **Ce que la sonde ne couvre pas** : l'aller-retour COMPLET par le contrôleur
-contre un vrai fournisseur — il faut un Keycloak de test sur le homelab (prévu
-par la phase). La limite d'essais pour un compte d'annuaire attend S198.
+✅ **Le Keycloak de test existe** (2026-09-27, `tools/keycloak-test/`) :
+`https://auth-test.dstei.fr/realms/fabos-test`, client `fabos`, un compte par
+cas de S196/S197. Vérifié avec le VRAI `OidcModule` : découverte, clés (RS256
+de signature ; la clé de chiffrement est écartée), et Keycloak affiche son
+formulaire pour l'URL que FabOS construit (client, retour et PKCE acceptés) —
+témoin : une adresse de retour étrangère est refusée (400). ⏳ Reste
+l'aller-retour à la main, par l'opérateur, avec « Tester » puis une vraie
+connexion (comptes : `test-users.txt` sur la boîte). La limite d'essais pour
+un compte d'annuaire attend S198. La limite d'essais pour un compte d'annuaire attend S198.
 ✅ **Migration `Version20260925090000` passée le 2026-09-25** (expansion :
 `AUTH_PROVIDER.kind`, `settingsJson`) ; la sonde, relancée, mesure alors
 l'enregistrement : préréglage, confiance et champ corrigé rangés PUIS relus
