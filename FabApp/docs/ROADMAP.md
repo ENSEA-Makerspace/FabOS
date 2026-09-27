@@ -2519,9 +2519,16 @@ pour octet**, activé : son bouton paraît ; l'écran, sa fiche, « Tester » ;
 cas de S196/S197. Vérifié avec le VRAI `OidcModule` : découverte, clés (RS256
 de signature ; la clé de chiffrement est écartée), et Keycloak affiche son
 formulaire pour l'URL que FabOS construit (client, retour et PKCE acceptés) —
-témoin : une adresse de retour étrangère est refusée (400). ⏳ Reste
-l'aller-retour à la main, par l'opérateur, avec « Tester » puis une vraie
-connexion (comptes : `test-users.txt` sur la boîte). La limite d'essais pour
+témoin : une adresse de retour étrangère est refusée (400). ✅ **Aller-retour
+RÉEL fait par l'opérateur le 2026-09-27, les cinq cas** : alice (compte créé
+directement), bob (sans adresse → la tape → confirmée → connecté), carol
+(adresse non vérifiée → confirmée → connectée), frank (seul le nom demandé),
+dave (refusé par Keycloak). Trois défauts trouvés en route, corrigés le jour
+même : « dernière connexion » jamais écrite (pour personne), le compte
+précédent rouvert après déconnexion (→ `prompt=login`), un lien de
+confirmation cliqué dans un navigateur connecté à un autre compte qui
+n'expliquait rien. Et un worker d'envoi planté par `cache:clear`
+(→ `redeliver_timeout: 300`, redémarrer le worker après chaque `cache:clear`). La limite d'essais pour
 un compte d'annuaire attend S198. La limite d'essais pour un compte d'annuaire attend S198.
 ✅ **Migration `Version20260925090000` passée le 2026-09-25** (expansion :
 `AUTH_PROVIDER.kind`, `settingsJson`) ; la sonde, relancée, mesure alors
