@@ -1,0 +1,26 @@
+# Keycloak de TEST pour les modules de connexion de FabOS (Phase U).
+# ⚠️ Jamais un fournisseur réel : un royaume `fabos-test`, des comptes fictifs
+# en @example.org (RFC 2606, aucun courrier ne peut y arriver).
+# Installé et tenu par `setup.sh` — voir README.md.
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.7.4
+    command: ["start-dev", "--import-realm"]
+    env_file: .env
+    environment:
+      KC_HOSTNAME: https://auth-test.dstei.fr
+      KC_PROXY_HEADERS: xforwarded
+      KC_HTTP_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./import:/opt/keycloak/data/import:ro
+      # ⚠️ Le volume se monte sur `data` (qui existe dans l'image, au nom de
+      # l'utilisateur keycloak) et pas sur `data/h2` : un dossier absent de
+      # l'image naît au nom de root, et H2 ne peut plus écrire.
+      - kcdata:/opt/keycloak/data
+    mem_limit: 1g
+    restart: unless-stopped
+volumes:
+  kcdata: {}
