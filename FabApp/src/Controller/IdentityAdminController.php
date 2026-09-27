@@ -74,7 +74,7 @@ final class IdentityAdminController extends AbstractController
                     $registry->save(
                         $saveKey, (string) $values['label'], AuthProvider::KIND_OIDC, (string) $values['issuer'],
                         (string) $values['clientId'], (string) $values['secretEnv'], (string) $values['scopes'], (bool) $values['enabled'],
-                        ['preset' => (string) $values['preset'], 'trustEmail' => (bool) $values['trustEmail'], 'mapping' => $mapping],
+                        ['preset' => (string) $values['preset'], 'trustEmail' => (bool) $values['trustEmail'], 'passwordUrl' => trim((string) ($values['passwordUrl'] ?? '')), 'mapping' => $mapping],
                     );
                     $this->addFlash('success', ['identity.saved', ['%label%' => (string) $values['label']]]);
 
@@ -126,6 +126,7 @@ final class IdentityAdminController extends AbstractController
             'label' => $provider->label, 'key' => $provider->key, 'issuer' => $provider->issuer,
             'clientId' => $provider->clientId, 'secretEnv' => $provider->secretEnv, 'scopes' => implode(' ', $provider->scopes),
             'preset' => $provider->preset(), 'trustEmail' => $provider->trustsEmail(), 'enabled' => $provider->enabled,
+            'passwordUrl' => (string) $provider->passwordUrl(),
         ];
         $explicit = \is_array($provider->settings['mapping'] ?? null) ? $provider->settings['mapping'] : [];
         foreach (AttributeMapping::FIELDS as $field) {

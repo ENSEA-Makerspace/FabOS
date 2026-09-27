@@ -2532,6 +2532,54 @@ phrase (302) au lieu d'un 403 brut.
 | ✅ | `/admin/network` | Plus de formulaire OIDC |
 | ✅ | `php bin/console app:s196:identity-probe` | Verte |
 
+### ⏳ S197 — la première connexion, sans impasse (2026-09-27) : en ligne, sonde verte ; migration à passer
+
+✅ **Plus aucun compte n'est ouvert avec un trou.** S196 créait un compte à
+adresse de remplacement (`.invalid`) quand le fournisseur n'en garantissait
+aucune : un compte qui ne recevait rien et ne pouvait pas récupérer son accès.
+Désormais la décision est « compléter » (`IdentityDecision::COMPLETE`), et
+**« Complétez votre compte »** (`/connexion/completer`) ne demande QUE ce qui
+manque : l'adresse (absente, non garantie — alors proposée —, ou déjà prise
+ici), parfois le nom.
+🔴 **L'adresse tapée suit S189 à l'identique** : libre → compte créé NON
+confirmé + lien d'activation ; déjà prise → aucun compte, « vous avez déjà un
+compte » à sa propriétaire ; et **le même écran, octet pour octet**. Taper
+l'adresse d'un autre ne révèle rien et ne lie rien. Un compte en attente de
+confirmation est refusé aussi par le fournisseur (`Security::login()` ne
+rejoue pas ce contrôle : le contrôleur le fait).
+✅ **Lier un compte FabOS existant, avec preuve des deux côtés** : « J'ai déjà un
+compte FabOS » → se connecter à ce compte (mot de passe, second facteur
+compris) → une page montre l'identité externe en jeu (nom, adresse) → « Oui,
+lier » ou « Non, annuler ». 🔴 **Trouvé en le dessinant** : lier dès la
+connexion aurait permis, sur un poste partagé du labo, que la personne suivante
+lie SON compte à l'identité d'une autre. La confirmation qui montre le nom
+l'empêche ; sans le clic « J'ai déjà un compte », une connexion locale ne lie
+rien ; la demande meurt en 15 minutes.
+✅ **Mot de passe oublié d'un compte CRÉÉ par un fournisseur** : le courrier
+`password_managed` dit « votre mot de passe est géré par X », avec le lien que
+l'exploitant a réglé (« Adresse pour changer son mot de passe », https) —
+jamais un lien pour poser un mot de passe FabOS, qui serait une porte que
+l'établissement ne fermerait pas. L'écran répond pareil. Un compte local LIÉ
+garde sa réinitialisation (`EXTERNAL_IDENTITY.provisioned` distingue les deux).
+✅ « Tester » montre le nouveau cas : « Page Complétez votre compte, qui
+demandera : une adresse e-mail / un nom ».
+✅ **Sonde `app:s197:first-login-probe`** (par les vraies pages ;
+`--save=DIR` écrit les pages rendues pour en regarder les pixels) : ne demander
+que ce qui manque ; adresse libre / prise → même écran ; lier avec preuve et
+confirmation, annuler, pas de liaison sans le clic ; nom seul → compte ouvert
+et connecté. Les sondes S196 (mise à jour : « compléter » au lieu du compte à
+adresse de remplacement), S190 et S189 restent vertes.
+⏳ **Migration `Version20260927090000`** (`EXTERNAL_IDENTITY.provisioned`) :
+sans elle, « mot de passe oublié » garde l'ancien comportement pour tous.
+
+| S197 | Où | Ce qui doit être vrai |
+|---|---|---|
+| ⏳ | un fournisseur qui n'envoie pas d'e-mail (« Tester » le dit) | Après sa connexion : « Complétez votre compte », un seul champ, l'adresse ; puis « Vérifiez votre boîte » |
+| ⏳ | taper l'adresse de TON compte à la place | Le même écran ; dans ta boîte, « Vous avez déjà un compte » |
+| ⏳ | « J'ai déjà un compte FabOS » → se connecter | « Lier ce compte ? » avec le nom venu du fournisseur ; « Oui » → le bouton du fournisseur ouvre désormais ton compte |
+| ⏳ | « Mot de passe oublié » pour un compte créé par le fournisseur | Courrier « Votre mot de passe n'est pas géré par FabOS », avec le lien réglé dans « Connexion & annuaires » |
+| ⏳ | `php bin/console app:s197:first-login-probe` (après la migration) | Verte |
+
 ## Les invariants de la phase
 
 - 🔴 **Aucun fournisseur activé = rien ne change à l'écran.** C'est le cas de

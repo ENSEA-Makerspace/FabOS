@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Identity\ExternalIdentityService;
 use App\Identity\ProviderRegistry;
 use App\Mail\Mailer;
 use App\Mail\NotificationCategory;
@@ -46,6 +47,8 @@ final class SecurityController extends AbstractController
         UtilisateurRepository $users,
         PasswordResetTokenizer $tokenizer,
         Mailer $mailer,
+        ExternalIdentityService $identities,
+        ProviderRegistry $providers,
     ): Response {
         if (!$this->isCsrfTokenValid('forgot_password', (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'forgot.csrf');
@@ -56,7 +59,20 @@ final class SecurityController extends AbstractController
         $email = trim(mb_strtolower($request->request->getString('email')));
         $user = $email === '' ? null : $users->findOneBy(['email' => $email]);
 
-        if ($user !== null) {
+        // 🔴 S197 — un compte CRÉÉ par un fournisseur n'a pas de mot de passe
+        // ici (un aléa que personne ne connaît). Lui en poser un par ce lien
+        // ouvrirait une seconde porte que l'établissement ne ferme pas quand il
+        // coupe le compte. Le courrier dit donc où le mot de passe se gère.
+        // ⚠️ L'écran, lui, répond exactement pareil : rien ne dit lequel des cas.
+        $managedBy = $user !== null ? $identities->provisioningProvider($user) : null;
+        $provider = $managedBy !== null ? $providers->find($managedBy) : null;
+        if ($user !== null && $managedBy !== null) {
+            $mailer->queueToUser($user, 'password_managed', [
+                'providerLabel' => $provider?->label ?? $managedBy,
+                'passwordUrl' => $provider?->passwordUrl(),
+                'loginUrl' => $this->generateUrl('app_login', [], \Symfony\Component\Routing\Generator\UrlGeneratorInterface::ABSOLUTE_URL),
+            ], NotificationCategory::GENERAL, true);
+        } elseif ($user !== null) {
             $token = $tokenizer->create($user, new \DateTimeImmutable());
             // ⚠️ `transactional: true`. A password reset is not a notification and
             // must not be suppressed by a member's e-mail preferences — locking

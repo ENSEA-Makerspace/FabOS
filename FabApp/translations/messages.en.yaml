@@ -398,6 +398,7 @@ mail_editor:
     part_note: "⚠️ This text applies to EVERY mail sent in this language, password resets included. The unsubscribe link stays below the footer: it cannot be moved."
     preview_part_note: "The preview shows it on a sample mail — the only place you can see whether the text fits on one line."
     tpl:
+        password_managed: "Password managed by a provider"
         formation_message: "Training messages"
         account_verify: "Confirm an address (sign-up)"
         account_exists: "Existing account (sign-up)"
@@ -1364,6 +1365,13 @@ booking:
         "6": "Saturday"
         "7": "Sunday"
 mail:
+    password_managed:
+        login: "To sign in, choose “%provider%” on the sign-in page:"
+        no_url: "Contact the IT service that manages %provider%."
+        button: "Change my password (%provider%)"
+        intro: "You sign in to FabOS with %provider%: that is where your password is changed or recovered."
+        title: "Your password is not managed by FabOS"
+        subject: "Your password"
     account_verify:
         subject: "Confirm your address"
         title: "One step left"
@@ -4326,6 +4334,35 @@ badge_grants:
 
 # S196 — Connexion & annuaires.
 identity:
+    link:
+        cancel: "No, cancel"
+        confirm: "Yes, link to %provider%"
+        help: "Afterwards, the %provider% button will open this account. If this is not you, cancel."
+        who: "Person"
+        intro: "You are signed in to the FabOS account %account%. You can link it to this %provider% identity:"
+        title: "Link this account?"
+    complete:
+        email_taken_nomail: "This address is already in use. Give another one, or link your existing account."
+        name_required: "Give at least a first name or a last name."
+        email_invalid: "This email address is not valid."
+        link: "Sign in to link it"
+        have_account_help: "Sign in to it with its password: you will then confirm linking it to %provider%, and keep a single account."
+        have_account: "Already have a FabOS account?"
+        submit: "Continue"
+        email: "Email address"
+        why_taken: "Your address already belongs to a FabOS account. If it is yours, link it below; otherwise, give another address."
+        why_unverified: "Your institution does not guarantee this address: we will send you a link to confirm it."
+        why_missing: "%provider% did not send us an email address. We will send you a link to confirm it."
+        intro: "%provider% recognised you. One piece of information is missing to open your FabOS account."
+        title: "Complete your account"
+    link_cancelled: "Nothing was linked."
+    linked: "Your account is linked to %provider%: you can now sign in with it."
+    link_login: "Sign in to your FabOS account: you will then confirm linking it to %provider%."
+    pending_resolved: "Your account is ready: sign in with your institution’s button."
+    pending_expired: "The sign-in expired. Start again with your institution’s button."
+    need:
+        name: "a name"
+        email: "an email address"
     list_panel: "Sign-in providers"
     intro: "Let members sign in with their institution’s account. With no provider enabled, the sign-in page stays exactly as it is today."
     intro_redirect: "Prefer a redirect-based provider (OpenID Connect today; CAS and SAML later): the institution’s password never passes through FabOS."
@@ -4362,6 +4399,7 @@ identity:
     disabled_flash: "“%label%” is disabled: its button has left the sign-in page."
     login_refused: "Sign-in refused (%provider%): %reason%"
     field:
+        password_url: "Address to change one’s password"
         label: "Display name"
         key: "Key"
         issuer: "Issuer"
@@ -4372,6 +4410,7 @@ identity:
         trust_email: "Trust this provider’s email addresses"
         enabled: "Enabled"
     help:
+        password_url: "Optional. “Forgot password” sends it to accounts created by this provider, instead of a FabOS link."
         label: "The button text: “Or continue with …”."
         key: "Lowercase letters, digits and “_”. Cannot change once created."
         issuer: "The issuer’s exact https address; FabOS reads /.well-known/openid-configuration there."
@@ -4394,16 +4433,21 @@ identity:
         displayName: "Display name"
         affiliations: "Affiliations"
     outcome:
+        complete: "“Complete your account” page, which will ask for:"
         link: "Sign-in to the already linked account: %user%"
         create: "A new account is created"
     note:
-        no_email: "No address received: the account gets a placeholder address that receives nothing."
-        email_unverified: "Address %email% is not guaranteed by the provider: it is not kept."
-        email_taken: "The address %email% already belongs to an account: it is NOT silently matched; a separate account is created."
+        no_name: "No name received: the person will type it."
+        no_email: "No address received: the person will type it, then confirm it by email."
+        email_unverified: "Address %email% is not guaranteed by the provider: it is suggested and must be confirmed by email."
+        email_taken: "The address %email% already belongs to an account: never silently matched. The person can link that account by signing in to it, or choose another address."
         email_used: "Address kept: %email%."
         affiliations: "Affiliations read (%list%): they grant no rights."
         name: "First name: %first% · Last name: %last%"
     refused:
+        email_taken: "this address is already in use."
+        already_linked: "this identity is already linked to another account."
+        incomplete: "information is missing to open the account."
         no_subject: "the provider did not send the expected identifier (%attribute%)."
         state: "the sign-in request expired or was already used. Please start again."
         provider_off: "this provider is not enabled."
@@ -4418,6 +4462,7 @@ identity:
         local_inactive: "this account is disabled in FabOS."
         link_broken: "the linked account no longer exists."
     invalid:
+        password_url: "An https address, or nothing."
         key: "Invalid key: lowercase letters, digits and “_”, 2 to 80 characters."
         key_taken: "This key is already in use."
         kind: "Protocol not available."

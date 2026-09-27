@@ -38,7 +38,7 @@ final class IdentityTestReport
             $report['decision'] = [
                 'outcome' => $decision->outcome, 'userLabel' => $decision->userLabel, 'email' => $decision->email,
                 'firstName' => $decision->firstName, 'lastName' => $decision->lastName,
-                'reason' => $decision->reason, 'notes' => $decision->notes,
+                'reason' => $decision->reason, 'notes' => $decision->notes, 'needs' => $decision->needs,
             ];
         }
         $session->set(self::PREFIX . $key, $report);

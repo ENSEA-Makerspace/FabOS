@@ -53,6 +53,12 @@
                                     {% for note in d.notes %}<li>{{ note[0]|trans(note[1]) }}</li>{% endfor %}
                                     <li>{{ 'identity.note.name'|trans({'%first%': d.firstName ?? '—', '%last%': d.lastName ?? '—'}) }}</li>
                                 </ul>
+                            {% elseif d.outcome == 'complete' %}
+                                {% include 'site/_cell_state.html.twig' with {label: 'identity.outcome.complete'|trans, signal: 'wait'} only %}
+                                <ul class="identity-notes">
+                                    {% for need in d.needs|default([]) %}<li><strong>{{ ('identity.need.' ~ need)|trans }}</strong></li>{% endfor %}
+                                    {% for note in d.notes %}<li>{{ note[0]|trans(note[1]) }}</li>{% endfor %}
+                                </ul>
                             {% else %}
                                 {% include 'site/_cell_state.html.twig' with {label: d.reason|trans, signal: 'stop'} only %}
                             {% endif %}

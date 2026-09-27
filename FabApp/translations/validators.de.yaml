@@ -122,6 +122,7 @@ venues:
 
 identity:
     invalid:
+        password_url: "Eine https-Adresse oder nichts."
         key: "Ungültiger Schlüssel: Kleinbuchstaben, Ziffern und „_“, 2 bis 80 Zeichen."
         issuer: "Der Aussteller muss eine https-Adresse sein."
         secret_env: "Ein Variablenname: Großbuchstaben, Ziffern und „_“ (z. B. OIDC_SCHULE_SECRET)."

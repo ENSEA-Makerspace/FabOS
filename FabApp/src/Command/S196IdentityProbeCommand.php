@@ -172,7 +172,8 @@ final class S196IdentityProbeCommand extends Command
 
             $unverified = $this->roundTrip($oidc, $provider, new Session(new MockArraySessionStorage()), ['sub' => 'sonde-sub-2', 'email' => 'sonde-s196-b@example.org', 'email_verified' => false]);
             $d = $this->identities->decide($unverified->profile);
-            $this->check($io, $failures, 'adresse NON garantie → écartée (compte sans adresse réelle)', $d->outcome === IdentityDecision::CREATE && $d->email === null && self::hasNote($d, 'identity.note.email_unverified'));
+            // S197 : plus de compte à adresse de remplacement — la personne complète.
+            $this->check($io, $failures, 'adresse NON garantie → « compléter » (elle sera confirmée), rien de créé', $d->outcome === IdentityDecision::COMPLETE && $d->needs === ['email'] && self::hasNote($d, 'identity.note.email_unverified'));
             $trusting = $this->provider(['trustEmail' => true]);
             $t = $this->identities->decide(AttributeMapping::toProfile($trusting, $unverified->claims));
             $this->check($io, $failures, 'même adresse, fournisseur « de confiance » → reprise', $t->email === 'sonde-s196-b@example.org');
@@ -180,9 +181,9 @@ final class S196IdentityProbeCommand extends Command
             $local = $this->db->fetchAssociative("SELECT id, email FROM UTILISATEUR WHERE email NOT LIKE '%.invalid' AND id <> ? ORDER BY id LIMIT 1", [$user->getId()]);
             $taken = $this->roundTrip($oidc, $provider, new Session(new MockArraySessionStorage()), ['sub' => 'sonde-sub-3', 'email' => $local['email']]);
             $d = $this->identities->decide($taken->profile);
-            $this->check($io, $failures, '🔴 adresse d’un compte local existant → compte DISTINCT, jamais rapproché', $d->outcome === IdentityDecision::CREATE && $d->email === null && self::hasNote($d, 'identity.note.email_taken'));
-            $created = $this->identities->apply($taken->profile);
-            $this->check($io, $failures, 'et le compte local n’a reçu aucun lien', $created->getId() !== (int) $local['id'] && !$this->db->fetchOne('SELECT 1 FROM EXTERNAL_IDENTITY WHERE userId = ?', [$local['id']]));
+            $this->check($io, $failures, '🔴 adresse d’un compte local existant → jamais rapprochée : « compléter » (lier avec preuve, ou autre adresse)', $d->outcome === IdentityDecision::COMPLETE && $d->emailTaken && self::hasNote($d, 'identity.note.email_taken'));
+            $refused = $this->refusal(fn () => $this->identities->apply($taken->profile));
+            $this->check($io, $failures, 'et `apply()` refuse d’ouvrir un compte à compléter (' . $refused . ') ; aucun lien', $refused === 'identity.refused.incomplete' && !$this->db->fetchOne('SELECT 1 FROM EXTERNAL_IDENTITY WHERE userId = ?', [$local['id']]));
 
             $this->db->executeStatement("UPDATE UTILISATEUR SET statut = 'inactif' WHERE id = ?", [$user->getId()]);
             $d = $this->identities->decide($result->profile);

@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Identity\ExternalIdentityService;
+use App\Identity\IdentityDecision;
+use App\Identity\PendingExternalLogin;
+use App\Security\AccountActivation;
 use App\Identity\IdentityRefusal;
 use App\Identity\OidcModule;
 use App\Identity\ProviderRegistry;
@@ -62,7 +65,7 @@ final class OidcController extends AbstractController
     }
 
     #[Route('/login/oidc/callback', name: 'app_oidc_callback', methods: ['GET'], priority: 10)]
-    public function callback(Request $request, ProviderRegistry $registry, OidcModule $oidc, ExternalIdentityService $identities, Security $security, IdentityTestReport $reports, TranslatorInterface $translator): RedirectResponse
+    public function callback(Request $request, ProviderRegistry $registry, OidcModule $oidc, ExternalIdentityService $identities, Security $security, IdentityTestReport $reports, TranslatorInterface $translator, PendingExternalLogin $pending, AccountActivation $activation): RedirectResponse
     {
         $session = $request->getSession();
         $state = $request->query->getString('state');
@@ -95,8 +98,26 @@ final class OidcController extends AbstractController
             return $this->redirectToRoute('app_admin_identity_test', ['key' => $result->provider->key]);
         }
 
+        // S197 — il manque une adresse réelle ou un nom : on NE crée rien, la
+        // personne complète elle-même (et peut lier un compte qu'elle a déjà).
+        $decision = $identities->decide($result->profile);
+        if ($decision->outcome === IdentityDecision::COMPLETE) {
+            $pending->store($session, $result->provider, $result->profile, $decision);
+
+            return $this->redirectToRoute('app_external_complete');
+        }
+
         try {
             $user = $identities->apply($result->profile);
+            // 🔴 S189 vaut aussi ici : un compte dont l'adresse attend sa
+            // confirmation ne se connecte pas — même par le fournisseur.
+            // `Security::login()` ne rejoue pas ce contrôle : on le fait.
+            if (!$user->isVerified()) {
+                $activation->remember($session, $user->getEmail(), $user);
+                $this->addFlash('error', 'security.email_unconfirmed');
+
+                return $this->redirectToRoute('app_register_check');
+            }
             $security->login($user, 'form_login', 'main');
         } catch (IdentityRefusal $refusal) {
             $this->addFlash('error', ['identity.login_refused', ['%provider%' => $result->provider->label, '%reason%' => $this->reason($refusal, $translator)]]);

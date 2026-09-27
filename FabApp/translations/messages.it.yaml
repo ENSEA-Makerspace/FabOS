@@ -398,6 +398,7 @@ mail_editor:
     part_note: "⚠️ Questo testo vale per TUTTE le e-mail inviate in questa lingua, comprese le password dimenticate. Il link di disiscrizione resta sotto il piè di pagina: non è spostabile."
     preview_part_note: "L’anteprima lo mostra su una mail di esempio: è l’unico posto dove si vede se il testo sta su una riga."
     tpl:
+        password_managed: "Password gestita da un fornitore"
         formation_message: "Messaggi di formazione"
         account_verify: "Conferma di un indirizzo (registrazione)"
         account_exists: "Account già esistente (registrazione)"
@@ -1364,6 +1365,13 @@ booking:
         "6": "Sabato"
         "7": "Domenica"
 mail:
+    password_managed:
+        login: "Per accedere, scegliete «%provider%» nella pagina di accesso:"
+        no_url: "Rivolgetevi al servizio informatico che gestisce %provider%."
+        button: "Cambia la mia password (%provider%)"
+        intro: "Accedete a FabOS con %provider%: è lì che la password si cambia o si recupera."
+        title: "La vostra password non è gestita da FabOS"
+        subject: "La vostra password"
     account_verify:
         subject: "Conferma il tuo indirizzo"
         title: "Manca un passaggio"
@@ -4325,6 +4333,35 @@ badge_grants:
 
 # S196 — Connexion & annuaires.
 identity:
+    link:
+        cancel: "No, annulla"
+        confirm: "Sì, collega a %provider%"
+        help: "In seguito, il pulsante %provider% aprirà questo account. Se non siete voi, annullate."
+        who: "Persona"
+        intro: "Avete effettuato l’accesso all’account FabOS %account%. Potete collegarlo a questa identità %provider%:"
+        title: "Collegare questo account?"
+    complete:
+        email_taken_nomail: "Questo indirizzo è già in uso. Indicatene un altro, o collegate il vostro account esistente."
+        name_required: "Indicate almeno un nome o un cognome."
+        email_invalid: "Questo indirizzo e-mail non è valido."
+        link: "Accedi per collegarlo"
+        have_account_help: "Accedete con la sua password: confermerete poi il collegamento con %provider% e avrete un solo account."
+        have_account: "Avete già un account FabOS?"
+        submit: "Continua"
+        email: "Indirizzo e-mail"
+        why_taken: "Il vostro indirizzo appartiene già a un account FabOS. Se è il vostro, collegatelo qui sotto; altrimenti indicate un altro indirizzo."
+        why_unverified: "Il vostro istituto non garantisce questo indirizzo: vi invieremo un link per confermarlo."
+        why_missing: "%provider% non ci ha trasmesso alcun indirizzo e-mail. Vi invieremo un link per confermarlo."
+        intro: "%provider% vi ha riconosciuto. Manca un’informazione per aprire il vostro account FabOS."
+        title: "Completa il tuo account"
+    link_cancelled: "Nulla è stato collegato."
+    linked: "Il vostro account è collegato a %provider%: ora potete accedere con esso."
+    link_login: "Accedete al vostro account FabOS: confermerete poi il collegamento con %provider%."
+    pending_resolved: "Il vostro account è pronto: accedete con il pulsante del vostro istituto."
+    pending_expired: "L’accesso è scaduto. Ricominciate con il pulsante del vostro istituto."
+    need:
+        name: "un nome"
+        email: "un indirizzo e-mail"
     list_panel: "Fornitori di accesso"
     intro: "Permettere ai membri di accedere con l’account del proprio istituto. Senza fornitori attivati, la pagina di accesso resta quella di oggi."
     intro_redirect: "Preferite un fornitore con reindirizzamento (OpenID Connect oggi; CAS e SAML in seguito): la password dell’istituto non passa mai da FabOS."
@@ -4361,6 +4398,7 @@ identity:
     disabled_flash: "«%label%» è disattivato: il suo pulsante ha lasciato la pagina di accesso."
     login_refused: "Accesso rifiutato (%provider%): %reason%"
     field:
+        password_url: "Indirizzo per cambiare la password"
         label: "Nome visualizzato"
         key: "Chiave"
         issuer: "Emittente (issuer)"
@@ -4371,6 +4409,7 @@ identity:
         trust_email: "Fidarsi degli indirizzi e-mail di questo fornitore"
         enabled: "Attivato"
     help:
+        password_url: "Facoltativo. «Password dimenticata» lo invia agli account creati da questo fornitore, invece di un link FabOS."
         label: "Il testo del pulsante: «Oppure continua con …»."
         key: "Lettere minuscole, cifre e «_». Non cambia più una volta creata."
         issuer: "L’indirizzo https esatto dell’emittente; FabOS vi legge /.well-known/openid-configuration."
@@ -4393,16 +4432,21 @@ identity:
         displayName: "Nome visualizzato"
         affiliations: "Affiliazioni"
     outcome:
+        complete: "Pagina «Completa il tuo account», che chiederà:"
         link: "Accesso all’account già collegato: %user%"
         create: "Viene creato un nuovo account"
     note:
-        no_email: "Nessun indirizzo ricevuto: l’account riceve un indirizzo sostitutivo che non riceve nulla."
-        email_unverified: "L’indirizzo %email% non è garantito dal fornitore: non viene ripreso."
-        email_taken: "L’indirizzo %email% appartiene già a un account: NON viene collegato in silenzio; si crea un account distinto."
+        no_name: "Nessun nome ricevuto: la persona lo scriverà."
+        no_email: "Nessun indirizzo ricevuto: la persona lo scriverà e lo confermerà via e-mail."
+        email_unverified: "L’indirizzo %email% non è garantito dal fornitore: proposto, dovrà essere confermato via e-mail."
+        email_taken: "L’indirizzo %email% appartiene già a un account: mai collegato in silenzio. La persona può collegare quell’account accedendovi, o scegliere un altro indirizzo."
         email_used: "Indirizzo ripreso: %email%."
         affiliations: "Affiliazioni lette (%list%): non danno alcun diritto."
         name: "Nome: %first% · Cognome: %last%"
     refused:
+        email_taken: "questo indirizzo è già in uso."
+        already_linked: "questa identità è già collegata a un altro account."
+        incomplete: "mancano informazioni per aprire l’account."
         no_subject: "il fornitore non ha inviato l’identificativo atteso (%attribute%)."
         state: "la richiesta di accesso è scaduta o è già stata usata. Ricominciate."
         provider_off: "questo fornitore non è attivato."
@@ -4417,6 +4461,7 @@ identity:
         local_inactive: "questo account è disattivato in FabOS."
         link_broken: "l’account collegato non esiste più."
     invalid:
+        password_url: "Un indirizzo https, o niente."
         key: "Chiave non valida: lettere minuscole, cifre e «_», da 2 a 80 caratteri."
         key_taken: "Questa chiave è già in uso."
         kind: "Protocollo non disponibile."

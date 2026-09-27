@@ -1,0 +1,70 @@
+{% extends 'site/base_public.html.twig' %}
+
+{% block title %}{{ 'identity.complete.title'|trans }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+    {# S197 — « Complétez votre compte » : le fournisseur a authentifié la
+       personne, mais il manque de quoi ouvrir un compte sans impasse.
+       ⚠️ On ne demande QUE ce qui manque (`needsEmail`, `needsName`) : un champ
+       de plus serait une question de plus sur le chemin courant.
+       🔴 Une adresse déjà prise ici n'est PAS pré-remplie, et ce que l'on tape
+       suit S189 : l'écran suivant est le même que l'adresse soit libre ou non. #}
+    <main id="main-content" tabindex="-1" class="main-content">
+        <section class="auth-section">
+            <div class="auth-container">
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <h1 class="auth-title">{{ 'identity.complete.title'|trans }}</h1>
+                        <p class="auth-subtitle">{{ 'identity.complete.intro'|trans({'%provider%': provider}) }}</p>
+                    </div>
+
+                    {% for message in errors %}<div class="auth-flash error" role="alert">{{ message|trans }}</div>{% endfor %}
+
+                    {% if needsEmail %}
+                        <p class="auth-help">
+                            {% if emailTaken %}{{ 'identity.complete.why_taken'|trans }}
+                            {% elseif emailUnverified %}{{ 'identity.complete.why_unverified'|trans }}
+                            {% else %}{{ 'identity.complete.why_missing'|trans({'%provider%': provider}) }}{% endif %}
+                        </p>
+                    {% endif %}
+
+                    <form class="auth-form" method="post" action="{{ path('app_external_complete') }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('external_complete') }}">
+                        {% if needsEmail %}
+                            <div class="form-group">
+                                <label class="form-label" for="complete-email">{{ 'identity.complete.email'|trans }}</label>
+                                <input class="form-input" id="complete-email" type="email" name="email" required autocomplete="email" value="{{ values.email }}">
+                            </div>
+                        {% endif %}
+                        {% if needsName %}
+                            <div class="form-group">
+                                <label class="form-label" for="complete-first">{{ 'identity.profile.firstName'|trans }}</label>
+                                <input class="form-input" id="complete-first" type="text" name="firstName" autocomplete="given-name" maxlength="100" value="{{ values.firstName }}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="complete-last">{{ 'identity.profile.lastName'|trans }}</label>
+                                <input class="form-input" id="complete-last" type="text" name="lastName" autocomplete="family-name" maxlength="100" value="{{ values.lastName }}">
+                            </div>
+                        {% endif %}
+                        <button class="btn btn-primary btn-block" type="submit">{{ 'identity.complete.submit'|trans }}</button>
+                    </form>
+
+                    <h2 class="auth-subheading">{{ 'identity.complete.have_account'|trans }}</h2>
+                    <p class="auth-help">{{ 'identity.complete.have_account_help'|trans({'%provider%': provider}) }}</p>
+                    <form class="auth-form" method="post" action="{{ path('app_external_link_start') }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('external_complete') }}">
+                        <button class="btn btn-secondary btn-block" type="submit">{{ 'identity.complete.link'|trans }}</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('js/main.js') ~ '?v=' ~ js_version }}"></script>
+{% endblock %}

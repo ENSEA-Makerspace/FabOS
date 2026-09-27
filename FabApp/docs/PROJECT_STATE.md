@@ -170,6 +170,11 @@ rapprochement silencieux par e-mail ; le statut local gagne. OIDC : `OidcModule`
 (id_token vérifié par JWKS, nonce, cache). Configuration :
 `/admin/connexion` ; « Tester » n'écrit rien. ⚠️ Un refus est une
 `IdentityRefusal` portant une clé `identity.refused.*` — jamais une 500.
+S197 : un profil incomplet n'ouvre JAMAIS de compte (`COMPLETE` →
+`/connexion/completer`, adresse via S189) ; lier un compte existant = se
+connecter PUIS confirmer sur une page qui montre l'identité (poste partagé).
+Un compte créé par un fournisseur (`EXTERNAL_IDENTITY.provisioned`) n'a pas de
+mot de passe FabOS : « mot de passe oublié » renvoie au fournisseur.
 
 **Les badges (S192c, S202).** 🔴 **Un badge DÉTENU est un badge**, d'où qu'il
 vienne : la ligne `UTILISATEUR_BADGE` est ce que lisent le lecteur, la

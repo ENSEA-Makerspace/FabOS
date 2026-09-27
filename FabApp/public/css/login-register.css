@@ -2075,3 +2075,21 @@ html[data-theme="dark"] .profile-banner.has-custom-banner .profile-cover-image {
 .mfa-codes { margin: 0 0 16px; padding: 12px 14px; border: 1px solid var(--color-primary); border-radius: 10px; text-align: left; }
 .mfa-codes__list { columns: 2; margin: 0; padding-left: 1.4em; font-family: var(--font-mono, ui-monospace, monospace); color: var(--color-text); }
 .mfa-codes__list code { font-size: .95rem; }
+
+/* S197 — l'identité externe qu'on s'apprête à lier : lisible d'un coup d'œil,
+   c'est ce qui fait qu'on annule quand ce n'est pas soi. */
+.auth-identity {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: .35rem 1rem;
+    margin: 0 0 1rem;
+    padding: .9rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--theme-surface-elevated, var(--theme-surface));
+}
+.auth-identity dt { color: var(--color-text-light); }
+.auth-identity dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+/* Deux boutons pleine largeur empilés dans un même formulaire (oui / non) :
+   collés, ils se lisent comme un seul bloc. */
+.auth-form .btn-block + .btn-block { margin-top: .6rem; }

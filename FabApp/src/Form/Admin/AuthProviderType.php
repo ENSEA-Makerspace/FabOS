@@ -77,6 +77,14 @@ final class AuthProviderType extends AbstractType
                     AttributeMapping::presetsFor(AuthProvider::KIND_OIDC),
                 ),
             ])
+            ->add('passwordUrl', UrlType::class, [
+                'label' => 'identity.field.password_url',
+                'help' => 'identity.help.password_url',
+                'required' => false,
+                'default_protocol' => 'https',
+                'empty_data' => '',
+                'constraints' => [new Assert\Regex(pattern: '#^(https://\S+)?$#', message: 'identity.invalid.password_url')],
+            ])
             ->add('trustEmail', CheckboxType::class, [
                 'label' => 'identity.field.trust_email',
                 'help' => 'identity.help.trust_email',

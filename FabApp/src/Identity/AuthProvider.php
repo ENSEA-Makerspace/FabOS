@@ -49,6 +49,17 @@ final readonly class AuthProvider
     }
 
     /**
+     * S197 — où l'on change (ou retrouve) son mot de passe chez ce fournisseur.
+     * « Mot de passe oublié » l'envoie au lieu d'un lien FabOS. Https seulement.
+     */
+    public function passwordUrl(): ?string
+    {
+        $url = trim((string) ($this->settings['passwordUrl'] ?? ''));
+
+        return str_starts_with($url, 'https://') ? $url : null;
+    }
+
+    /**
      * Faire confiance aux adresses de ce fournisseur même quand il ne dit pas
      * `email_verified` — une case que l'exploitant coche pour SON établissement.
      */

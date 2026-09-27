@@ -1,0 +1,43 @@
+{% extends 'site/base_public.html.twig' %}
+
+{% block title %}{{ 'identity.link.title'|trans }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+    {# S197 — la liaison ne se fait QU'ICI, par un clic, une fois connecté au
+       compte FabOS. 🔴 La page montre l'identité externe en jeu (nom, adresse) :
+       sur un poste partagé, la personne suivante verrait le nom d'un autre et
+       annulerait. #}
+    <main id="main-content" tabindex="-1" class="main-content">
+        <section class="auth-section">
+            <div class="auth-container">
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <h1 class="auth-title">{{ 'identity.link.title'|trans }}</h1>
+                        <p class="auth-subtitle">{{ 'identity.link.intro'|trans({'%provider%': provider, '%account%': app.user.email}) }}</p>
+                    </div>
+
+                    <dl class="auth-identity">
+                        {% set name = [external.firstName, external.lastName]|filter(v => v)|join(' ') ?: external.displayName %}
+                        <dt>{{ 'identity.link.who'|trans }}</dt><dd>{{ name ?: '—' }}</dd>
+                        <dt>{{ 'identity.profile.email'|trans }}</dt><dd>{{ external.email ?: '—' }}</dd>
+                    </dl>
+                    <p class="auth-help">{{ 'identity.link.help'|trans({'%provider%': provider}) }}</p>
+
+                    <form class="auth-form" method="post" action="{{ path('app_external_link_confirm') }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('external_link') }}">
+                        <button class="btn btn-primary btn-block" type="submit" name="answer" value="link">{{ 'identity.link.confirm'|trans({'%provider%': provider}) }}</button>
+                        <button class="btn btn-secondary btn-block" type="submit" name="answer" value="cancel">{{ 'identity.link.cancel'|trans }}</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('js/main.js') ~ '?v=' ~ js_version }}"></script>
+{% endblock %}

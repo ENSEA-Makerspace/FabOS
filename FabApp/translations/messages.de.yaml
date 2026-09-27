@@ -398,6 +398,7 @@ mail_editor:
     part_note: "⚠️ Dieser Text gilt für ALLE E-Mails in dieser Sprache, auch für Passwort-Zurücksetzungen. Der Abmeldelink bleibt unter der Fußzeile: er lässt sich nicht verschieben."
     preview_part_note: "Die Vorschau zeigt ihn an einer Beispiel-Mail — nur dort sieht man, ob der Text in eine Zeile passt."
     tpl:
+        password_managed: "Passwort von einem Anbieter verwaltet"
         formation_message: "Schulungsnachrichten"
         account_verify: "Adresse bestätigen (Registrierung)"
         account_exists: "Bestehendes Konto (Registrierung)"
@@ -1364,6 +1365,13 @@ booking:
         "6": "Samstag"
         "7": "Sonntag"
 mail:
+    password_managed:
+        login: "Zum Anmelden wählen Sie „%provider%“ auf der Anmeldeseite:"
+        no_url: "Wenden Sie sich an den IT-Dienst, der %provider% verwaltet."
+        button: "Mein Passwort ändern (%provider%)"
+        intro: "Sie melden sich bei FabOS mit %provider% an: Dort wird Ihr Passwort geändert oder wiederhergestellt."
+        title: "Ihr Passwort wird nicht von FabOS verwaltet"
+        subject: "Ihr Passwort"
     account_verify:
         subject: "Bestätigen Sie Ihre Adresse"
         title: "Nur noch ein Schritt"
@@ -4325,6 +4333,35 @@ badge_grants:
 
 # S196 — Connexion & annuaires.
 identity:
+    link:
+        cancel: "Nein, abbrechen"
+        confirm: "Ja, mit %provider% verknüpfen"
+        help: "Danach öffnet die Schaltfläche %provider% dieses Konto. Wenn Sie das nicht sind, brechen Sie ab."
+        who: "Person"
+        intro: "Sie sind beim FabOS-Konto %account% angemeldet. Sie können es mit dieser %provider%-Identität verknüpfen:"
+        title: "Dieses Konto verknüpfen?"
+    complete:
+        email_taken_nomail: "Diese Adresse wird bereits verwendet. Geben Sie eine andere an oder verknüpfen Sie Ihr bestehendes Konto."
+        name_required: "Geben Sie mindestens einen Vor- oder Nachnamen an."
+        email_invalid: "Diese E-Mail-Adresse ist ungültig."
+        link: "Anmelden, um es zu verknüpfen"
+        have_account_help: "Melden Sie sich mit seinem Passwort an: Danach bestätigen Sie die Verknüpfung mit %provider% und behalten ein einziges Konto."
+        have_account: "Sie haben bereits ein FabOS-Konto?"
+        submit: "Weiter"
+        email: "E-Mail-Adresse"
+        why_taken: "Ihre Adresse gehört bereits zu einem FabOS-Konto. Wenn es Ihres ist, verknüpfen Sie es unten; sonst geben Sie eine andere Adresse an."
+        why_unverified: "Ihre Einrichtung garantiert diese Adresse nicht: Wir senden Ihnen einen Link zur Bestätigung."
+        why_missing: "%provider% hat uns keine E-Mail-Adresse übermittelt. Wir senden Ihnen einen Link zur Bestätigung."
+        intro: "%provider% hat Sie erkannt. Eine Angabe fehlt noch, um Ihr FabOS-Konto zu eröffnen."
+        title: "Konto vervollständigen"
+    link_cancelled: "Nichts wurde verknüpft."
+    linked: "Ihr Konto ist mit %provider% verknüpft: Sie können sich jetzt damit anmelden."
+    link_login: "Melden Sie sich bei Ihrem FabOS-Konto an: Danach bestätigen Sie die Verknüpfung mit %provider%."
+    pending_resolved: "Ihr Konto ist bereit: Melden Sie sich mit der Schaltfläche Ihrer Einrichtung an."
+    pending_expired: "Die Anmeldung ist abgelaufen. Beginnen Sie erneut mit der Schaltfläche Ihrer Einrichtung."
+    need:
+        name: "einem Namen"
+        email: "einer E-Mail-Adresse"
     list_panel: "Anmeldeanbieter"
     intro: "Mitglieder melden sich mit dem Konto ihrer Einrichtung an. Ohne aktivierten Anbieter bleibt die Anmeldeseite, wie sie heute ist."
     intro_redirect: "Bevorzugen Sie einen Anbieter mit Weiterleitung (heute OpenID Connect, später CAS und SAML): Das Passwort der Einrichtung geht nie durch FabOS."
@@ -4361,6 +4398,7 @@ identity:
     disabled_flash: "„%label%“ ist deaktiviert: Seine Schaltfläche ist von der Anmeldeseite verschwunden."
     login_refused: "Anmeldung abgelehnt (%provider%): %reason%"
     field:
+        password_url: "Adresse zum Ändern des Passworts"
         label: "Anzeigename"
         key: "Schlüssel"
         issuer: "Aussteller (Issuer)"
@@ -4371,6 +4409,7 @@ identity:
         trust_email: "E-Mail-Adressen dieses Anbieters vertrauen"
         enabled: "Aktiviert"
     help:
+        password_url: "Optional. „Passwort vergessen“ sendet sie an von diesem Anbieter angelegte Konten statt eines FabOS-Links."
         label: "Der Text der Schaltfläche: „Oder weiter mit …“."
         key: "Kleinbuchstaben, Ziffern und „_“. Nach dem Anlegen unveränderlich."
         issuer: "Die genaue https-Adresse des Ausstellers; FabOS liest dort /.well-known/openid-configuration."
@@ -4393,16 +4432,21 @@ identity:
         displayName: "Anzeigename"
         affiliations: "Zugehörigkeiten"
     outcome:
+        complete: "Seite „Konto vervollständigen“, die fragt nach:"
         link: "Anmeldung beim bereits verknüpften Konto: %user%"
         create: "Ein neues Konto wird angelegt"
     note:
-        no_email: "Keine Adresse erhalten: Das Konto bekommt eine Ersatzadresse, die nichts empfängt."
-        email_unverified: "Adresse %email% ist vom Anbieter nicht garantiert: Sie wird nicht übernommen."
-        email_taken: "Die Adresse %email% gehört bereits zu einem Konto: Es wird NICHT stillschweigend zugeordnet; ein separates Konto wird angelegt."
+        no_name: "Kein Name erhalten: Die Person gibt ihn ein."
+        no_email: "Keine Adresse erhalten: Die Person gibt sie ein und bestätigt sie per E-Mail."
+        email_unverified: "Adresse %email% ist vom Anbieter nicht garantiert: vorgeschlagen, muss per E-Mail bestätigt werden."
+        email_taken: "Die Adresse %email% gehört bereits zu einem Konto: nie stillschweigend zugeordnet. Die Person kann dieses Konto durch Anmelden verknüpfen oder eine andere Adresse wählen."
         email_used: "Adresse übernommen: %email%."
         affiliations: "Gelesene Zugehörigkeiten (%list%): Sie geben keine Rechte."
         name: "Vorname: %first% · Nachname: %last%"
     refused:
+        email_taken: "Diese Adresse wird bereits verwendet."
+        already_linked: "Diese Identität ist bereits mit einem anderen Konto verknüpft."
+        incomplete: "Es fehlen Angaben, um das Konto zu eröffnen."
         no_subject: "Der Anbieter hat die erwartete Kennung nicht gesendet (%attribute%)."
         state: "Die Anmeldeanfrage ist abgelaufen oder wurde schon verwendet. Bitte neu beginnen."
         provider_off: "Dieser Anbieter ist nicht aktiviert."
@@ -4417,6 +4461,7 @@ identity:
         local_inactive: "Dieses Konto ist in FabOS deaktiviert."
         link_broken: "Das verknüpfte Konto existiert nicht mehr."
     invalid:
+        password_url: "Eine https-Adresse oder nichts."
         key: "Ungültiger Schlüssel: Kleinbuchstaben, Ziffern und „_“, 2 bis 80 Zeichen."
         key_taken: "Dieser Schlüssel wird bereits verwendet."
         kind: "Protokoll nicht verfügbar."

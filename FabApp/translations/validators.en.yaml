@@ -122,6 +122,7 @@ venues:
 
 identity:
     invalid:
+        password_url: "An https address, or nothing."
         key: "Invalid key: lowercase letters, digits and “_”, 2 to 80 characters."
         issuer: "The issuer must be an https address."
         secret_env: "A variable name: capitals, digits and “_” (e.g. OIDC_SCHOOL_SECRET)."

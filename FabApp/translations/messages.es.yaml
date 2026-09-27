@@ -398,6 +398,7 @@ mail_editor:
     part_note: "⚠️ Este texto se aplica a TODOS los correos enviados en este idioma, incluidas las contraseñas olvidadas. El enlace de baja permanece bajo el pie: no se puede mover."
     preview_part_note: "La vista previa lo muestra en un correo de ejemplo: es el único sitio donde se ve si el texto cabe en una línea."
     tpl:
+        password_managed: "Contraseña gestionada por un proveedor"
         formation_message: "Mensajes de formación"
         account_verify: "Confirmar una dirección (registro)"
         account_exists: "Cuenta existente (registro)"
@@ -1364,6 +1365,13 @@ booking:
         "6": "Sábado"
         "7": "Domingo"
 mail:
+    password_managed:
+        login: "Para iniciar sesión, elija «%provider%» en la página de inicio de sesión:"
+        no_url: "Diríjase al servicio informático que gestiona %provider%."
+        button: "Cambiar mi contraseña (%provider%)"
+        intro: "Inicia sesión en FabOS con %provider%: allí se cambia o se recupera su contraseña."
+        title: "Su contraseña no la gestiona FabOS"
+        subject: "Su contraseña"
     account_verify:
         subject: "Confirme su dirección"
         title: "Solo un paso más"
@@ -4325,6 +4333,35 @@ badge_grants:
 
 # S196 — Connexion & annuaires.
 identity:
+    link:
+        cancel: "No, cancelar"
+        confirm: "Sí, vincular a %provider%"
+        help: "Después, el botón %provider% abrirá esta cuenta. Si no es usted, cancele."
+        who: "Persona"
+        intro: "Ha iniciado sesión en la cuenta FabOS %account%. Puede vincularla a esta identidad de %provider%:"
+        title: "¿Vincular esta cuenta?"
+    complete:
+        email_taken_nomail: "Esta dirección ya está en uso. Indique otra o vincule su cuenta existente."
+        name_required: "Indique al menos un nombre o un apellido."
+        email_invalid: "Esta dirección de correo no es válida."
+        link: "Iniciar sesión para vincularla"
+        have_account_help: "Inicie sesión con su contraseña: después confirmará su vinculación con %provider% y tendrá una sola cuenta."
+        have_account: "¿Ya tiene una cuenta FabOS?"
+        submit: "Continuar"
+        email: "Correo electrónico"
+        why_taken: "Su dirección ya pertenece a una cuenta FabOS. Si es la suya, vincúlela abajo; si no, indique otra dirección."
+        why_unverified: "Su institución no garantiza esta dirección: le enviaremos un enlace para confirmarla."
+        why_missing: "%provider% no nos transmitió ninguna dirección de correo. Le enviaremos un enlace para confirmarla."
+        intro: "%provider% le ha reconocido. Falta un dato para abrir su cuenta FabOS."
+        title: "Complete su cuenta"
+    link_cancelled: "No se ha vinculado nada."
+    linked: "Su cuenta está vinculada a %provider%: ya puede iniciar sesión con él."
+    link_login: "Inicie sesión en su cuenta FabOS: después confirmará su vinculación con %provider%."
+    pending_resolved: "Su cuenta está lista: inicie sesión con el botón de su institución."
+    pending_expired: "El inicio de sesión caducó. Vuelva a empezar con el botón de su institución."
+    need:
+        name: "un nombre"
+        email: "una dirección de correo"
     list_panel: "Proveedores de inicio de sesión"
     intro: "Permitir que los miembros inicien sesión con la cuenta de su institución. Sin proveedor activado, la página de inicio de sesión queda como hoy."
     intro_redirect: "Prefiera un proveedor por redirección (OpenID Connect hoy; CAS y SAML después): la contraseña de la institución nunca pasa por FabOS."
@@ -4361,6 +4398,7 @@ identity:
     disabled_flash: "«%label%» está desactivado: su botón ha salido de la página de inicio de sesión."
     login_refused: "Inicio de sesión rechazado (%provider%): %reason%"
     field:
+        password_url: "Dirección para cambiar la contraseña"
         label: "Nombre visible"
         key: "Clave"
         issuer: "Emisor (issuer)"
@@ -4371,6 +4409,7 @@ identity:
         trust_email: "Confiar en las direcciones de correo de este proveedor"
         enabled: "Activado"
     help:
+        password_url: "Opcional. «Contraseña olvidada» la envía a las cuentas creadas por este proveedor, en lugar de un enlace FabOS."
         label: "El texto del botón: «O continuar con …»."
         key: "Minúsculas, cifras y «_». No cambia una vez creada."
         issuer: "La dirección https exacta del emisor; FabOS lee allí /.well-known/openid-configuration."
@@ -4393,16 +4432,21 @@ identity:
         displayName: "Nombre visible"
         affiliations: "Afiliaciones"
     outcome:
+        complete: "Página «Complete su cuenta», que pedirá:"
         link: "Inicio de sesión en la cuenta ya vinculada: %user%"
         create: "Se crea una cuenta nueva"
     note:
-        no_email: "No se recibió dirección: la cuenta recibe una dirección de sustitución que no recibe nada."
-        email_unverified: "La dirección %email% no está garantizada por el proveedor: no se conserva."
-        email_taken: "La dirección %email% ya pertenece a una cuenta: NO se vincula en silencio; se crea una cuenta distinta."
+        no_name: "No se recibió nombre: la persona lo escribirá."
+        no_email: "No se recibió dirección: la persona la escribirá y la confirmará por correo."
+        email_unverified: "La dirección %email% no está garantizada por el proveedor: se propone y deberá confirmarse por correo."
+        email_taken: "La dirección %email% ya pertenece a una cuenta: nunca se vincula en silencio. La persona puede vincular esa cuenta iniciando sesión en ella, o elegir otra dirección."
         email_used: "Dirección conservada: %email%."
         affiliations: "Afiliaciones leídas (%list%): no otorgan ningún derecho."
         name: "Nombre: %first% · Apellido: %last%"
     refused:
+        email_taken: "esta dirección ya está en uso."
+        already_linked: "esta identidad ya está vinculada a otra cuenta."
+        incomplete: "faltan datos para abrir la cuenta."
         no_subject: "el proveedor no envió el identificador esperado (%attribute%)."
         state: "la solicitud de inicio de sesión caducó o ya se usó. Vuelva a empezar."
         provider_off: "este proveedor no está activado."
@@ -4417,6 +4461,7 @@ identity:
         local_inactive: "esta cuenta está desactivada en FabOS."
         link_broken: "la cuenta vinculada ya no existe."
     invalid:
+        password_url: "Una dirección https, o nada."
         key: "Clave no válida: minúsculas, cifras y «_», de 2 a 80 caracteres."
         key_taken: "Esta clave ya está en uso."
         kind: "Protocolo no disponible."
