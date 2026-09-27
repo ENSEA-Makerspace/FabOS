@@ -446,7 +446,12 @@ Recette complète : `ARTEMIS_DEPLOYMENT.md`. L'essentiel :
 - Rollback : `git archive HEAD <paths>`, pousser, extraire par-dessus, `rm -f` les
   fichiers neufs, **puis `rm -rf var/cache/prod`** (un gabarit Twig compilé survit
   à `cache:clear`).
-- Redémarrer `fabos.service` ; **et `fabos-worker.service`** après du code mail.
+- Redémarrer `fabos.service` ; 🔴 **et `fabos-worker.service` après CHAQUE
+  `cache:clear`**, pas seulement après du code mail (mesuré le 2026-09-27) : le
+  worker charge les fichiers de son conteneur à la demande ; `cache:clear` les
+  efface, et il plante (`Failed opening required …/ContainerXXX/…`) au PREMIER
+  message qui suit — ce message reste « pris ». `redeliver_timeout: 300`
+  (messenger.yaml) le rend au bout de 5 min au lieu d'une heure.
 - **Dérive de schéma assumée** : les entités sont en avance sur les migrations.
   🔴 **Jamais `doctrine:schema:update --force`** — le diff contient des DROP.
 - L'agent ne peut ni migrer ni `git push` : donner la ligne de commande à

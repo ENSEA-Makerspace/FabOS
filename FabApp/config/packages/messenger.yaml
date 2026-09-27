@@ -6,6 +6,13 @@ framework:
             # https://symfony.com/doc/current/messenger.html#transport-configuration
             async:
                 dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                # ⚠️ Un worker arrêté pendant un envoi (cache:clear d'un déploiement,
+                # redémarrage) laisse son message « pris » ; Doctrine ne le rend
+                # qu'après ce délai — 1 h par défaut, soit un lien de confirmation
+                # d'adresse en retard d'une heure (vécu le 2026-09-27). Un envoi
+                # dure quelques secondes : 5 min ne peut pas créer de doublon.
+                options:
+                    redeliver_timeout: 300
                 retry_strategy:
                     max_retries: 3
                     multiplier: 2
