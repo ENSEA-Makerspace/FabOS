@@ -2612,6 +2612,18 @@ connexion en attente renvoient à la connexion (302).
 
 ## Ce que l'opérateur doit trancher avant S198–S200
 
+- 🅿️ **Déconnexion : fermer AUSSI la session chez le fournisseur ?** (ouvert
+  le 2026-09-27, l'opérateur hésite). Aujourd'hui : après « Déconnexion », le
+  prochain clic sur un fournisseur part avec `prompt=login` (le mot de passe
+  est redemandé) — le compte d'un autre membre ne se rouvre plus sur un poste
+  partagé. ⚠️ Mais la session du fournisseur reste ouverte dans le navigateur :
+  le membre suivant pourrait ouvrir d'AUTRES applications de l'école sous le
+  nom du précédent. L'alternative — la déconnexion initiée par FabOS
+  (`end_session_endpoint`, `id_token_hint`) — la ferme, mais déconnecte aussi
+  de toutes les applications de l'école. Piste : un réglage PAR fournisseur,
+  « fermer aussi la session chez le fournisseur », éteint par défaut, à
+  proposer aux postes partagés. À trancher avec un établissement réel.
+
 - **Ce qu'utilise l'ENSEA** (CAS ? Shibboleth / Renater ? AD ?) — ça fixe
   l'ORDRE des sessions S198–S200, pas leur contenu.
 - **Deux dépendances** : `php8.4-ldap` sur l'hôte (S198), `onelogin/php-saml`
