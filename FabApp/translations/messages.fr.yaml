@@ -4205,6 +4205,8 @@ thread:
 
 # S189 — « vérifiez votre boîte », renvoi, correction, activation.
 register_check:
+    activated_provider: "Adresse confirmée. Connectez-vous avec le bouton « %provider% »."
+    activated_other: "Adresse %email% confirmée. Ce navigateur est connecté au compte %current% : déconnectez-vous pour vous connecter avec l’autre."
     title: "Vérifiez votre boîte mail"
     sent_to: "Nous avons écrit à"
     step_open: "Ouvrez l’e-mail envoyé par FabOS (pensez aux indésirables)."

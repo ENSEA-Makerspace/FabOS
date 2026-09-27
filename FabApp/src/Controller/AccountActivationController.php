@@ -2,6 +2,9 @@
 
 namespace App\Controller;
 
+use App\Entity\Utilisateur;
+use App\Identity\ExternalIdentityService;
+use App\Identity\ProviderRegistry;
 use App\Security\AccountActivation;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -83,7 +86,7 @@ final class AccountActivationController extends AbstractController
      * précisément ce que le lien prouve.
      */
     #[Route('/inscription/activer/{token}', name: 'app_register_activate', methods: ['GET'], requirements: ['token' => '[A-Za-z0-9_\-\.]+'])]
-    public function activate(string $token, Request $request, AccountActivation $activation): Response
+    public function activate(string $token, Request $request, AccountActivation $activation, ExternalIdentityService $identities, ProviderRegistry $providers): Response
     {
         $user = $activation->activate($token);
         if ($user === null) {
@@ -96,6 +99,25 @@ final class AccountActivationController extends AbstractController
         foreach ([AccountActivation::SESSION_EMAIL, AccountActivation::SESSION_USER, AccountActivation::SESSION_SENT_AT, 'activation.corrections'] as $key) {
             $session->remove($key);
         }
+        // ⚠️ Lien cliqué dans un navigateur déjà connecté à un AUTRE compte (vécu le
+        // 2026-09-27 : le lien de carol menait au profil de bob, sans un mot). On
+        // ne connecte ni ne déconnecte personne : on dit ce qui s'est passé.
+        $current = $this->getUser();
+        if ($current instanceof Utilisateur && $current->getId() !== $user->getId()) {
+            $this->addFlash('success', ['register_check.activated_other', ['%email%' => $user->getEmail(), '%current%' => $current->getEmail()]]);
+
+            return $this->redirectToRoute('app_profile', [], Response::HTTP_SEE_OTHER);
+        }
+
+        // S197 — un compte créé par un fournisseur n'a pas de mot de passe FabOS :
+        // on dit par où se connecter, plutôt que de pré-remplir un champ inutile.
+        $managedBy = $identities->provisioningProvider($user);
+        if ($managedBy !== null) {
+            $this->addFlash('success', ['register_check.activated_provider', ['%provider%' => $providers->find($managedBy)?->label ?? $managedBy]]);
+
+            return $this->redirectToRoute('app_login', [], Response::HTTP_SEE_OTHER);
+        }
+
         // L'adresse est pré-remplie à la connexion : il ne reste que le mot de passe.
         $session->set(SecurityRequestAttributes::LAST_USERNAME, $user->getEmail());
         $this->addFlash('success', 'register_check.activated');

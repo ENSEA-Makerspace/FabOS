@@ -4203,6 +4203,8 @@ thread:
 
 # S189 — « vérifiez votre boîte », renvoi, correction, activation.
 register_check:
+    activated_provider: "Dirección confirmada. Inicie sesión con el botón «%provider%»."
+    activated_other: "Dirección %email% confirmada. Este navegador tiene la sesión de la cuenta %current%: cierre sesión para entrar con la otra."
     title: "Revise su correo"
     sent_to: "Hemos escrito a"
     step_open: "Abra el correo enviado por FabOS (mire también en el spam)."

@@ -10,6 +10,7 @@ use App\Identity\IdentityDecision;
 use App\Identity\PendingExternalLogin;
 use App\Repository\UtilisateurRepository;
 use App\Security\AccountActivation;
+use App\Security\AccountVerificationTokenizer;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -65,6 +66,7 @@ final class S197FirstLoginProbeCommand extends Command
         private readonly ExternalIdentityService $identities,
         private readonly PendingExternalLogin $pending,
         private readonly AccountActivation $activation,
+        private readonly AccountVerificationTokenizer $verifyTokens,
         private readonly UserPasswordHasherInterface $hasher,
         private readonly TokenStorageInterface $tokens,
         private readonly TranslatorInterface $translator,
@@ -191,6 +193,21 @@ final class S197FirstLoginProbeCommand extends Command
             $s6 = $this->pendingSession($this->profile('sub-6', $memberEmail, true, 'X', 'Y'), $this->identities->decide($this->profile('sub-6', $memberEmail, true, 'X', 'Y')));
             $this->login4($s6, $memberEmail);
             $this->check($io, $failures, 'sans le clic « J’ai déjà un compte », une connexion locale ne mène à AUCUNE liaison', $this->status('/profil', $s6) === 200 && !$this->db->fetchOne('SELECT 1 FROM EXTERNAL_IDENTITY WHERE subject = ?', ['sub-6']));
+
+            $io->section('3b. Le lien de confirmation, cliqué au mauvais endroit');
+            $pendingUser = $this->identities->provision($this->profile('sub-8', null, false, 'Carol', 'Sonde'), 'sonde-s197-carol-' . bin2hex(random_bytes(3)) . '@example.org', 'Carol', 'Sonde', verified: false);
+            $link = fn (): string => '/inscription/activer/' . $this->verifyTokens->create($pendingUser, new \DateTimeImmutable());
+            $r = $this->handle(Request::create($link()), $s4);
+            $shown = $this->page((string) $r->headers->get('Location'), $s4);
+            $this->check($io, $failures, 'navigateur connecté à UN AUTRE compte : l’adresse est confirmée, on reste sur son profil, et la page dit pourquoi', (int) $this->db->fetchOne('SELECT isVerified FROM UTILISATEUR WHERE id = ?', [$pendingUser->getId()]) === 1 && str_ends_with((string) $r->headers->get('Location'), '/profil') && $this->inAnyLocale($shown, 'register_check.activated_other', ['%email%' => $pendingUser->getEmail(), '%current%' => $memberEmail]));
+            $this->db->executeStatement('UPDATE UTILISATEUR SET isVerified = 0 WHERE id = ?', [$pendingUser->getId()]);
+            $this->entityManager->clear();
+            $pendingUser = $this->users->find($pendingUser->getId());
+            $anonSession = new Session(new MockArraySessionStorage());
+            $r2 = $this->handle(Request::create($link()), $anonSession);
+            if ($provisionedColumn) {
+                $this->check($io, $failures, 'compte créé par le fournisseur : « connectez-vous avec Sonde S197 », pas un champ mot de passe pré-rempli', str_ends_with((string) $r2->headers->get('Location'), '/login') && $this->inAnyLocale($this->page('/login', $anonSession), 'register_check.activated_provider', ['%provider%' => 'sonde_s197']));
+            }
 
             $io->section('4. Seul le nom manquait');
             $nameless = $this->profile('sub-7', 'sonde-s197-nom-' . bin2hex(random_bytes(3)) . '@example.org', true, null, null);
