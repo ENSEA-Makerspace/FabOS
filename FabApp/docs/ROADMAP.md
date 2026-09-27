@@ -2532,7 +2532,7 @@ phrase (302) au lieu d'un 403 brut.
 | ✅ | `/admin/network` | Plus de formulaire OIDC |
 | ✅ | `php bin/console app:s196:identity-probe` | Verte |
 
-### ⏳ S197 — la première connexion, sans impasse (2026-09-27) : en ligne, sonde verte ; migration à passer
+### ✅ S197 — la première connexion, sans impasse (2026-09-27)
 
 ✅ **Plus aucun compte n'est ouvert avec un trou.** S196 créait un compte à
 adresse de remplacement (`.invalid`) quand le fournisseur n'en garantissait
@@ -2569,16 +2569,19 @@ que ce qui manque ; adresse libre / prise → même écran ; lier avec preuve et
 confirmation, annuler, pas de liaison sans le clic ; nom seul → compte ouvert
 et connecté. Les sondes S196 (mise à jour : « compléter » au lieu du compte à
 adresse de remplacement), S190 et S189 restent vertes.
-⏳ **Migration `Version20260927090000`** (`EXTERNAL_IDENTITY.provisioned`) :
-sans elle, « mot de passe oublié » garde l'ancien comportement pour tous.
+✅ **Migration `Version20260927090000` passée le 2026-09-27** ; la sonde,
+relancée, mesure alors le dernier point : le compte créé reçoit « géré par le
+fournisseur », le compte local lié garde sa réinitialisation, même écran.
+Balayage : 133 routes GET ; `/connexion/completer` et `/connexion/lier` sans
+connexion en attente renvoient à la connexion (302).
 
 | S197 | Où | Ce qui doit être vrai |
 |---|---|---|
-| ⏳ | un fournisseur qui n'envoie pas d'e-mail (« Tester » le dit) | Après sa connexion : « Complétez votre compte », un seul champ, l'adresse ; puis « Vérifiez votre boîte » |
-| ⏳ | taper l'adresse de TON compte à la place | Le même écran ; dans ta boîte, « Vous avez déjà un compte » |
-| ⏳ | « J'ai déjà un compte FabOS » → se connecter | « Lier ce compte ? » avec le nom venu du fournisseur ; « Oui » → le bouton du fournisseur ouvre désormais ton compte |
-| ⏳ | « Mot de passe oublié » pour un compte créé par le fournisseur | Courrier « Votre mot de passe n'est pas géré par FabOS », avec le lien réglé dans « Connexion & annuaires » |
-| ⏳ | `php bin/console app:s197:first-login-probe` (après la migration) | Verte |
+| ✅ | un fournisseur qui n'envoie pas d'e-mail (« Tester » le dit) | Après sa connexion : « Complétez votre compte », un seul champ, l'adresse ; puis « Vérifiez votre boîte » |
+| ✅ | taper l'adresse de TON compte à la place | Le même écran ; dans ta boîte, « Vous avez déjà un compte » |
+| ✅ | « J'ai déjà un compte FabOS » → se connecter | « Lier ce compte ? » avec le nom venu du fournisseur ; « Oui » → le bouton du fournisseur ouvre désormais ton compte |
+| ✅ | « Mot de passe oublié » pour un compte créé par le fournisseur | Courrier « Votre mot de passe n'est pas géré par FabOS », avec le lien réglé dans « Connexion & annuaires » |
+| ✅ | `php bin/console app:s197:first-login-probe` | Verte |
 
 ## Les invariants de la phase
 
