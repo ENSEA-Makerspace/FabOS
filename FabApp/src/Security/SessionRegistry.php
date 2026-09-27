@@ -180,6 +180,18 @@ final class SessionRegistry
         ) : 0;
     }
 
+    /**
+     * L'heure de la connexion, sur le compte (`derniereConnexion`). Horodatage
+     * machine : écrit en UTC (`NOW()` sur une base en UTC), affiché par `|lab_date`.
+     * ⚠️ Indépendant de la migration S191 : c'est une colonne de `UTILISATEUR`.
+     */
+    public function stampLogin(Utilisateur $user): void
+    {
+        if ($user->getId() !== null) {
+            $this->db->executeStatement('UPDATE UTILISATEUR SET derniereConnexion = NOW() WHERE id = ?', [$user->getId()]);
+        }
+    }
+
     /** L'anonymisation efface l'historique des connexions (IP tronquées comprises). */
     public function forget(int $userId): void
     {

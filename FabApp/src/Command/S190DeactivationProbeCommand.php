@@ -145,6 +145,8 @@ final class S190DeactivationProbeCommand extends Command
             $api = $this->login($email, self::PASSWORD);
             $io->writeln('   connexion : ' . $this->lastLogin);
             $this->check($io, $failures, 'deux sessions ouvertes : /profil répond 200', $this->status('/profil', $page) === 200 && $this->status('/profil', $api) === 200);
+            $stamp = $this->db->fetchOne('SELECT derniereConnexion FROM UTILISATEUR WHERE id = ?', [$member->getId()]);
+            $this->check($io, $failures, '« dernière connexion » écrite par la connexion (' . ($stamp ?: 'vide') . ')', \is_string($stamp) && abs(strtotime($stamp . ' UTC') - time()) < 120);
 
             $io->section('La bascule : « inactif »');
             $this->db->executeStatement("UPDATE UTILISATEUR SET statut = 'inactif' WHERE id = ?", [$member->getId()]);

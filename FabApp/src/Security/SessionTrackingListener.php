@@ -45,6 +45,11 @@ final class SessionTrackingListener
             return;
         }
         $this->registry->open($user, $request, $request->getSession());
+        // « Dernière connexion » (profil, fiche admin) : jamais écrite par rien
+        // avant le 2026-09-27 — 0 compte sur 11 l'avait. Ici, parce que c'est le
+        // seul endroit que TOUTES les connexions traversent (mot de passe,
+        // fournisseur externe, compte complété).
+        $this->registry->stampLogin($user);
     }
 
     #[AsEventListener(event: KernelEvents::REQUEST, priority: -2)]
