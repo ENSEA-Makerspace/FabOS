@@ -7,7 +7,7 @@ Un fournisseur OpenID Connect (et plus tard SAML) **de test**, pour éprouver
 - **Où** : CT 210, `/opt/keycloak-test`, conteneur `keycloak` (port 8081 sur le LAN).
 - **Adresse** : `https://auth-test.dstei.fr` — DNS + hôte NPM (certificat
   Let's Encrypt, même liste blanche que `fabos.dstei.fr`) vers
-  `http://192.168.100.210:8081`.
+  `http://192.168.100.21:8081`.
 - **Royaume** `fabos-test`, client `fabos` (confidentiel, PKCE S256, retour
   `https://fabos.dstei.fr/login/oidc/callback`).
 - **Comptes** : un par cas de S196/S197 (voir `test-users.txt` sur la boîte),
