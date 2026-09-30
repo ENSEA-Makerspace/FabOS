@@ -73,7 +73,7 @@ final class SeedLabDemoCommand extends Command
      */
     private array $renamed = [];
 
-    public function __construct(private readonly EntityManagerInterface $em, private readonly \App\Service\PlaceBadges $placeBadges)
+    public function __construct(private readonly EntityManagerInterface $em, private readonly \App\Service\PlaceBadges $placeBadges, private readonly \App\Training\BadgeGrants $grants)
     {
         parent::__construct();
     }
@@ -207,6 +207,7 @@ final class SeedLabDemoCommand extends Command
         $this->em->flush();
         $before = \count($this->plan);
         $this->factoryAccess();
+        $this->demoBadges();
         foreach (\array_slice($this->plan, $before) as $line) {
             $io->writeln('   ' . $line);
         }
@@ -409,6 +410,45 @@ final class SeedLabDemoCommand extends Command
                     ->setCloseTime($row->getCloseTime())->setSortOrder($row->getSortOrder()));
             }
             $this->note('horaires : la Factory reprend ceux du FabLab');
+        }
+    }
+
+    /**
+     * Les badges des comptes de TEST, par la voie officielle (S202 : journal
+     * qui / quand / pourquoi, motif « Jeu de démonstration »), choisis pour que
+     * les réservations de démo soient cohérentes et que chaque compte montre un
+     * cas : bob n'en a aucun. ⚠️ Pas en --dry-run (BadgeGrants écrit tout de suite).
+     */
+    private function demoBadges(): void
+    {
+        if (!$this->grants->isReady()) {
+            return;
+        }
+        $admin = null;
+        foreach ($this->em->getRepository(Utilisateur::class)->findBy(['statut' => 'actif']) as $candidate) {
+            if (\in_array('ROLE_ADMIN', $candidate->getRoles(), true)) {
+                $admin = $candidate;
+                break;
+            }
+        }
+        if (!$admin instanceof Utilisateur) {
+            return;
+        }
+        foreach ([
+            'alice@example.org' => ['Maker 3D', 'Badge Brodeuse Numérique', 'Accès MetalFab'],
+            'carol@example.org' => ['Découpe Laser - Niveau 1', 'Accès WoodFab'],
+            'frank@example.org' => ['Maker 3D', 'Badge Soudure Électronique', 'Accès PrintLab'],
+        ] as $email => $names) {
+            $user = $this->em->getRepository(Utilisateur::class)->findOneBy(['email' => $email]);
+            if (!$user instanceof Utilisateur) {
+                continue;
+            }
+            foreach ($names as $name) {
+                $badge = $this->em->getRepository(Badge::class)->findOneBy(['nom' => $name]);
+                if ($badge instanceof Badge && $this->grants->grant($user, $badge, $admin, 'Jeu de démonstration')) {
+                    $this->note("badge attribué : $name → $email");
+                }
+            }
         }
     }
 
