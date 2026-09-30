@@ -193,6 +193,7 @@ final class SeedLabDemoCommand extends Command
 
         $this->formations();
         $this->factory();
+        $this->photos();
         $this->events($venue);
         $this->activity($byName, $venue);
 
@@ -447,6 +448,37 @@ final class SeedLabDemoCommand extends Command
                 $badge = $this->em->getRepository(Badge::class)->findOneBy(['nom' => $name]);
                 if ($badge instanceof Badge && $this->grants->grant($user, $badge, $admin, 'Jeu de démonstration')) {
                     $this->note("badge attribué : $name → $email");
+                }
+            }
+        }
+    }
+
+    /**
+     * Photos de démo : seulement des images SOUS LICENCE LIBRE (Wikimedia
+     * Commons, crédits dans public/images/machines/demo/CREDITS.md), et
+     * seulement celles qui montrent vraiment la machine — trois candidates
+     * (CNC, four, thermoformeuse) ont été écartées à l'œil. Le crédit est
+     * ajouté à la description, comme la licence l'exige. Une photo déjà posée
+     * par l'exploitant n'est jamais remplacée.
+     */
+    private function photos(): void
+    {
+        $sets = [
+            'Bambu Lab X1C' => ['bambu-x1c', 'Benlisquare, CC BY-SA 4.0'],
+            'Creality K1 Max' => ['creality-k1', 'Mortymore, CC BY 2.0 (Creality K1C, même famille)'],
+            'Presse à chaud' => ['presse-a-chaud', 'Scrud123, CC BY-SA 3.0'],
+            'Station de soudure' => ['station-soudure', 'Leisto, CC BY-SA 4.0'],
+        ];
+        foreach ($this->em->getRepository(Machine::class)->findBy(['archivedAt' => null]) as $machine) {
+            foreach ($sets as $prefix => [$file, $credit]) {
+                if (!str_starts_with($machine->getNom(), $prefix) || ($machine->getPhoto() ?? '') !== '') {
+                    continue;
+                }
+                $this->note(sprintf('photo : %s ← %s.jpg', $machine->getNom(), $file));
+                $machine->setPhoto("images/machines/demo/$file.jpg");
+                $line = "Photo : $credit, Wikimedia Commons.";
+                if (!str_contains((string) $machine->getDescription(), $line)) {
+                    $machine->setDescription(trim((string) $machine->getDescription() . "\n\n" . $line));
                 }
             }
         }
