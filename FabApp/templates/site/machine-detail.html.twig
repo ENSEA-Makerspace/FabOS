@@ -76,7 +76,12 @@
                 <div class="machine-detail-header">
                     <div class="machine-detail-image">
                         <div class="machine-image-placeholder large">
-                            {% if icon == 'decoupe' %}
+                            {# La photo de la machine dans la MÊME boîte que le pictogramme
+                               (tailles par écran, bordure, variante sombre déjà réglées) ;
+                               `pt-photo` lui applique le traitement du thème. #}
+                            {% if machine.photo %}
+                                <img class="pt-photo" src="{{ machine.photo starts with 'http' or machine.photo starts with '/' ? machine.photo : asset(machine.photo) }}" alt="{{ machine.nom }}">
+                            {% elseif icon == 'decoupe' %}
                                 <svg viewBox="0 0 200 200" class="machine-icon large" aria-hidden="true"><rect x="32" y="56" width="136" height="88" fill="var(--color-primary)" rx="12"/><path d="M52 84h96M52 116h96" stroke="#fff" stroke-width="8" stroke-linecap="round"/><path d="M76 42l48 112" stroke="#444" stroke-width="10" stroke-linecap="round"/></svg>
                             {% elseif icon == 'electronique' %}
                                 <svg viewBox="0 0 200 200" class="machine-icon large" aria-hidden="true"><rect x="36" y="48" width="128" height="104" fill="var(--color-primary)" rx="14"/><circle cx="72" cy="100" r="16" fill="#fff"/><circle cx="124" cy="100" r="16" fill="#fff"/><path d="M56 152v24M100 154v22M144 152v24" stroke="#444" stroke-width="10" stroke-linecap="round"/></svg>
