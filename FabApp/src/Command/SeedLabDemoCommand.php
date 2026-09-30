@@ -55,7 +55,7 @@ final class SeedLabDemoCommand extends Command
     /** Machines de dev absentes du labo : archivées. */
     private const ARCHIVE = [
         'Imprimante 3D test', 'The Beast', 'Imprimante 3D Prusa i3 MK3S', 'Découpeuse Vinyle Silhouette',
-        'Fraiseuse CNC', 'Oscilloscope Numérique', 'CNC 4x8', 'Uranus',
+        'Fraiseuse CNC', 'Oscilloscope Numérique', 'Uranus',
     ];
 
     private const CATEGORIES = [
@@ -106,12 +106,6 @@ final class SeedLabDemoCommand extends Command
                 $this->em->persist((new MachineCategory())->setLabel($label));
             }
         }
-        $usinage = $this->em->getRepository(MachineCategory::class)->findOneBy(['label' => 'Usinage']);
-        if ($usinage instanceof MachineCategory && $usinage->getArchivedAt() === null) {
-            $this->note('catégorie archivée : Usinage (plus aucune machine : les deux CNC sont archivées)');
-            $usinage->archive();
-        }
-
         foreach (self::RENAME as $old => $new) {
             $machine = $this->machine($old);
             if ($machine instanceof Machine && !$this->machine($new)) {
@@ -198,6 +192,7 @@ final class SeedLabDemoCommand extends Command
         }
 
         $this->formations();
+        $this->factory();
         $this->events($venue);
         $this->activity($byName, $venue);
 
@@ -249,6 +244,142 @@ final class SeedLabDemoCommand extends Command
                 ->setDescription('Préparer un visuel, l’imprimer sur une Sawgrass SG1000 et le transférer à la presse à chaud sur un t-shirt polyester ou un mug.')
                 ->setObjectifs('Choisir le bon support ; régler temps, température et pression ; éviter les dédoublements et les brûlures.')
                 ->setMaterielFourni('Encre et papier sublimation, un t-shirt polyester par personne.'));
+        }
+    }
+
+    /**
+     * La Factory (2026-09-30) : un second lieu, trois pièces réservables —
+     * MetalFab, WoodFab, PrintLab —, chacune avec sa porte, sa formation d'accès
+     * et son badge. Toutes les machines d'une pièce exigent le badge de la pièce.
+     *
+     * ⚠️ Une PIÈCE n'exige pas encore de badge (ni pour la réserver, ni à sa
+     * porte, qui s'ouvre sur une réservation en cours) : c'est une fonctionnalité
+     * à construire. Ici, seules les machines sont gardées par le badge.
+     * ⚠️ La CNC 4x8 existait (archivée, avec son historique) : elle est
+     * RÉACTIVÉE et déplacée, pas recréée.
+     */
+    private function factory(): void
+    {
+        $venues = $this->em->getRepository(Venue::class);
+        $factory = $venues->findOneBy(['slug' => 'factory']);
+        if (!$factory instanceof Venue) {
+            $this->note('lieu créé : Factory');
+            $factory = (new Venue())->setSlug('factory')->setName('Factory')->setTimezone('Europe/Paris');
+            $this->em->persist($factory);
+        }
+        foreach (['Métal' => 'metal', 'Usinage' => 'usinage', 'Thermoformage' => 'thermoformage'] as $label => $icon) {
+            $category = $this->em->getRepository(MachineCategory::class)->findOneBy(['label' => $label]);
+            if (!$category instanceof MachineCategory) {
+                $this->note("catégorie créée : $label");
+                $this->em->persist((new MachineCategory())->setLabel($label));
+            } elseif ($category->getArchivedAt() !== null) {
+                $this->note("catégorie réactivée : $label");
+                $category->restore();
+            }
+        }
+
+        $rooms = [
+            'MetalFab' => [4, 'Atelier métal : soudure et découpe laser du métal.', 'Soudure et découpe laser du métal : EPI, fumées, risques laser classe 4, zones interdites.'],
+            'WoodFab' => [6, 'Atelier bois : usinage numérique grand format.', 'Usinage bois : bridage, fixation du martyr, poussières, arrêt d’urgence, choix des fraises.'],
+            'PrintLab' => [8, 'Impression 3D technique (TPU, nylon, PETG, ASA) et thermoformage.', 'Matières techniques : températures, ventilation des vapeurs (ASA, nylon), séchage des filaments, thermoformeuse.'],
+        ];
+        $badges = [];
+        foreach ($rooms as $room => [$capacity, $description, $training]) {
+            $place = $this->em->getRepository(Place::class)->findOneBy(['nom' => $room, 'venue' => $factory->getId() ? $factory : null]);
+            if (!$place instanceof Place) {
+                $this->note("pièce réservable créée : $room (Factory)");
+                $place = (new Place())->setNom($room)->setVenue($factory)->setCapacite($capacity)->setDescription($description);
+                $this->em->persist($place);
+            }
+            if (!$this->em->getRepository(\App\Entity\AccessPoint::class)->findOneBy(['nom' => "Porte $room"])) {
+                $this->note("porte créée : Porte $room");
+                $this->em->persist((new \App\Entity\AccessPoint())->setNom("Porte $room")->setKind('door')->setVenue($factory)->setPlace($place)
+                    ->setDescription("S’ouvre pendant une réservation de la pièce $room."));
+            }
+            $badge = $this->em->getRepository(Badge::class)->findOneBy(['nom' => "Accès $room"]);
+            if (!$badge instanceof Badge) {
+                $this->note("badge créé : Accès $room");
+                $badge = (new Badge())->setNom("Accès $room")->setDescription("Autorise les machines de la pièce $room (Factory).");
+                $this->em->persist($badge);
+            }
+            $badges[$room] = $badge;
+            if (!$this->em->getRepository(Formation::class)->findOneBy(['titre' => "Formation d’accès $room"])) {
+                $this->note("formation créée : Formation d’accès $room");
+                $this->em->persist((new Formation())->setTitre("Formation d’accès $room")->setBadge($badge)->setNiveau(2)
+                    ->setDuree('2 h')->setPlacesTotales(6)->setRequiresPractical(true)->setCategorie('Factory')
+                    ->setDescription("Obligatoire pour utiliser les machines de la pièce $room. Théorie en ligne, puis validation en personne.")
+                    ->setObjectifs($training));
+            }
+        }
+
+        $cnc = $this->machine('CNC 4x8');
+        if ($cnc instanceof Machine) {
+            if ($cnc->getArchivedAt() !== null) {
+                $this->note('machine réactivée et déplacée : CNC 4x8 → Factory / WoodFab (historique gardé)');
+                $cnc->restore();
+            }
+            // Son ancien badge (« Badge CNC ») est archivé : l'exiger encore fermerait la machine à tous.
+            foreach ($this->em->getRepository(MachineBadge::class)->findBy(['machine' => $cnc]) as $link) {
+                if ($link->getBadge()?->getArchivedAt() !== null) {
+                    $this->note('lien retiré : CNC 4x8 n’exige plus le badge archivé « ' . $link->getBadge()?->getNom() . ' »');
+                    $this->em->remove($link);
+                }
+            }
+        }
+
+        $k1 = 'Imprimante FDM 300 × 300 × 300 mm, buse haute température, caisson fermé.';
+        $machines = [
+            ['xTool MetalFab 800', 'xTool', 'MetalFab', 'Métal', 'metal', 'MetalFab', 'Laser fibre 800 W : soudure et découpe de l’acier, de l’inox et de l’aluminium.', null],
+            ['CNC 4x8', null, null, 'Usinage', 'usinage', 'WoodFab', 'Fraiseuse numérique grand format, plateau 2440 × 1220 mm (4 × 8 pieds) : panneaux, mobilier, gabarits.', null],
+            ['Mayku Proformer', 'Mayku', 'Proformer', 'Thermoformage', 'thermoformage', 'PrintLab', 'Thermoformeuse grand format : moules, coques, emballages sur plaques plastiques.', null],
+            ['Creality K1 Max n°1', 'Creality', 'K1 Max', 'Impression 3D', 'impression-3d', 'PrintLab', $k1, 'TPU'],
+            ['Creality K1 Max n°2', 'Creality', 'K1 Max', 'Impression 3D', 'impression-3d', 'PrintLab', $k1, 'Nylon'],
+            ['Creality K1 Max n°3', 'Creality', 'K1 Max', 'Impression 3D', 'impression-3d', 'PrintLab', $k1, 'PETG'],
+            ['Creality K1 Max n°4', 'Creality', 'K1 Max', 'Impression 3D', 'impression-3d', 'PrintLab', $k1, 'ASA'],
+        ];
+        foreach ($machines as [$name, $maker, $model, $label, $slug, $room, $description, $material]) {
+            $machine = $this->machine($name);
+            if (!$machine instanceof Machine) {
+                $this->note("machine créée : $name (Factory / $room)");
+                $machine = (new Machine())->setNom($name)->setMachineToken(bin2hex(random_bytes(8)))->setStatut('disponible');
+                $this->em->persist($machine);
+            }
+            $machine->setVenue($factory)->setLocalisation($room)->setManufacturer($maker ?? $machine->getManufacturer())
+                ->setModel($model ?? $machine->getModel())->setDescription($description)
+                ->setCategorySlug($slug)->setCategoryLabel($label)->setIconSlug($slug);
+            if ($material !== null) {
+                $machine->setRequirementTitle("Matière : $material")
+                    ->setRequirementDescription("Cette imprimante est réservée au $material ; les autres matières ont leur propre K1 Max.");
+            }
+            $badge = $badges[$room];
+            $linked = $machine->getId() !== null && $badge->getId() !== null
+                && $this->em->getRepository(MachineBadge::class)->findOneBy(['machine' => $machine, 'badge' => $badge]);
+            if (!$linked) {
+                $this->note("  badge exigé : Accès $room → $name");
+                $this->em->persist((new MachineBadge())->setMachine($machine)->setBadge($badge)->setRequiredForAccess(true));
+            }
+            if ($material !== null) {
+                $this->materialFor($material, $machine, 'Filament', "Filament $material pour l’impression technique (PrintLab, Factory).");
+            }
+        }
+        $cncNow = $this->machine('CNC 4x8');
+        foreach (['MDF', 'Contreplaqué de peuplier'] as $panel) {
+            if ($cncNow instanceof Machine) {
+                $this->materialFor($panel, $cncNow, 'Panneau', null);
+            }
+        }
+    }
+
+    private function materialFor(string $name, Machine $machine, string $category, ?string $description): void
+    {
+        $material = $this->em->getRepository(Material::class)->findOneBy(['name' => $name]);
+        if (!$material instanceof Material) {
+            $this->note("matière créée : $name");
+            $material = (new Material())->setName($name)->setCategory($category)->setDescription($description);
+            $this->em->persist($material);
+        }
+        if (!$material->getMachines()->contains($machine)) {
+            $material->getMachines()->add($machine);
         }
     }
 
