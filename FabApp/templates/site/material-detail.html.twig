@@ -51,7 +51,7 @@
                 <div class="mat-head">
                     <span class="mat-visual">
                         {%- if material.imageUrl -%}
-                            <img src="{{ material.imageUrl }}" alt="{{ material.name }}" onerror="this.style.display='none'">
+                            <img class="pt-photo" src="{{ material.imageUrl }}" alt="{{ material.name }}" onerror="this.style.display='none'">
                         {%- elseif material.icon -%}
                             {{ material.icon }}
                         {%- else -%}

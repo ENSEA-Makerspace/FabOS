@@ -185,29 +185,7 @@
     .ml-card:hover .ml-media img { transform: none; }
 }
 
-/* --- Traitement des photos (réglage du thème, 2026-09-30) ------------------
-   Des photos d'origines différentes (fonds, lumières, cadrages) se lisent comme
-   une collection. Choix de l'opérateur après comparaison de trois variantes :
-   **gris léger, la vraie couleur revient au survol et au clavier** (le duotone
-   de marque et la désaturation chaude ont été retirés — raisonnement dans
-   HISTORY). Posé par le thème : `data-photo-treatment="mono"` sur `<html>`.
-   ⚠️ Cartes du catalogue SEULEMENT (`.ml-media`) : la fiche d'une machine garde
-   ses couleurs vraies — celle d'un filament ou d'un fil en est une information.
-   ⚠️ `--pt-dim` assombrit un peu en mode sombre : une photo claire y devient
-   sinon une tache lumineuse. Les deux formes du sélecteur : l'attribut est sur
-   `<html>` lui-même (le thème) OU sur un ancêtre (l'exemple de /admin/design). */
-[data-photo-treatment] { --pt-dim: 1; }
-html[data-theme="dark"][data-photo-treatment],
-html[data-theme="dark"] [data-photo-treatment] { --pt-dim: .88; }
-[data-photo-treatment="mono"] .ml-media img {
-    filter: grayscale(.9) contrast(1.04) brightness(var(--pt-dim));
-    transition: transform 480ms cubic-bezier(.22,.61,.36,1), filter 320ms ease;
-}
-[data-photo-treatment="mono"] .ml-card:hover .ml-media img,
-[data-photo-treatment="mono"] .ml-card:focus-within .ml-media img { filter: brightness(var(--pt-dim)); }
-@media (prefers-reduced-motion: reduce) {
-    [data-photo-treatment="mono"] .ml-media img { transition: none; }
-}
+/* Traitement des photos (réglage du thème) : dans style.css, pour que cartes ET fiches suivent la même règle. */
 /* ⚠️ **S153 — l'affiche de remplacement occupe la boîte comme une photo.**
    `_event_placeholder.html.twig` est un `<svg>` sans `width` ni `height` : posé
    tel quel dans une grille il retombe sur la taille intrinsèque d'un remplacé
