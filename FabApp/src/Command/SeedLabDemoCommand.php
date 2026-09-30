@@ -122,12 +122,12 @@ final class SeedLabDemoCommand extends Command
 
         $x1c = 'Imprimante FDM, volume 256 × 256 × 256 mm, plateau chauffant, caméra de suivi.';
         $machines = [
-            ['Epilog Fusion Pro 48', 'Epilog', 'Fusion Pro 48', 'decoupe', 'Laser CO2 grand format, plateau 1219 × 914 mm : découpe et gravure du bois, du MDF, du contreplaqué, de l’acrylique, du cuir, du carton.', [$laser]],
+            ['Epilog Fusion Pro 48', 'Epilog', 'Fusion Pro 48', 'decoupe', 'Laser CO2 80 W grand format, plateau 1219 × 914 mm : découpe et gravure du bois, du MDF, du contreplaqué, de l’acrylique, du cuir, du carton.', [$laser]],
             ['xTool F1 Ultra', 'xTool', 'F1 Ultra', 'decoupe', 'Laser portable à double source — fibre 20 W (métal, gravure fine) et diode 20 W (bois, cuir) — pour la gravure de petits objets et de petites séries.', [$laser]],
             ['Roland VersaSTUDIO BN-20', 'Roland DG', 'VersaSTUDIO BN-20', 'decoupe', 'Imprimante-découpeuse éco-solvant, laize 515 mm : autocollants, étiquettes, flex textile imprimé.', [$vinyle]],
             ['Ricoma EM-1010', 'Ricoma', 'EM-1010', 'textile', 'Brodeuse 10 aiguilles, une tête : écussons, t-shirts, sacs, casquettes.', [$brodeuse]],
-            ['Sawgrass n°1', 'Sawgrass', null, 'textile', 'Imprimante à sublimation : visuels transférés ensuite à la presse à chaud sur textile polyester, mugs, tapis de souris.', []],
-            ['Sawgrass n°2', 'Sawgrass', null, 'textile', 'Imprimante à sublimation : visuels transférés ensuite à la presse à chaud sur textile polyester, mugs, tapis de souris.', []],
+            ['Sawgrass n°1', 'Sawgrass', 'SG1000', 'textile', 'Imprimante à sublimation A3 : visuels transférés ensuite à la presse à chaud sur textile polyester, mugs, tapis de souris.', []],
+            ['Sawgrass n°2', 'Sawgrass', 'SG1000', 'textile', 'Imprimante à sublimation A3 : visuels transférés ensuite à la presse à chaud sur textile polyester, mugs, tapis de souris.', []],
             ['Presse à chaud', null, null, 'textile', 'Transfert des impressions sublimation et du flex sur textile et objets plats.', []],
             ['Four à refusion CIF 03', 'CIF', null, 'electronique', 'Four à refusion pour souder des cartes électroniques CMS après dépose de pâte à braser.', [$soudure]],
         ];
