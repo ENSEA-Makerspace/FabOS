@@ -2154,6 +2154,29 @@ question ; à regarder avec de vraies données. Aucune machine n'exige plusieurs
 badges aujourd'hui, donc l'écart « le lecteur : UN suffit / la réservation :
 TOUS » ne se voit pas encore.
 
+### ✅ S204 — une pièce peut exiger un badge (2026-09-30)
+
+Demande de l'opérateur : la Factory (MetalFab, WoodFab, PrintLab), « une
+formation spéciale par pièce pour y rentrer ». Décision : à la porte, **le badge
+seul** suffit, pendant les heures d'ouverture.
+✅ `PLACE_BADGE` (migration `Version20260930090000`, passée le 2026-09-30) et
+`PlaceBadges` : détenir UN des badges exigés suffit. Réserver une pièce gardée
+l'exige (`TRAINING_REQUIRED`, badges nommés ; admins exemptés). La porte :
+sans badge `missing_badge` ; avec, pendant les heures de la pièce ou de son lieu,
+`badge_open_hours` sans réservation ; hors des heures, retour à la réservation
+en cours. Pièce sans badge exigé : inchangée. Fiche admin : section « Accès » ;
+fiche publique : « Accès réservé : badge … requis ».
+✅ Sonde `app:s204:place-badge-probe` verte, sur les vrais horaires ; S178
+(portes) verte. Démo : les trois pièces de la Factory gardées, la Factory
+reprend les horaires du FabLab (sans horaires, une porte au badge seul ne
+s'ouvrirait jamais).
+
+| S204 | Où | Ce qui doit être vrai |
+|---|---|---|
+| ✅ | `/places` → MetalFab | « Accès réservé : badge Accès MetalFab requis » |
+| ✅ | réserver MetalFab avec un compte sans ce badge | Refus : « Formation requise : obtenez Accès MetalFab… » |
+| ✅ | Admin → Espaces → MetalFab | Section « Accès », « Accès MetalFab » coché |
+
 ### 🅿️ Délivrer un badge autrement — ce que l'option 2 demande (S202–S203)
 
 | Session | Livre | Ce qu'on mesure |
