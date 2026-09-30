@@ -427,6 +427,15 @@ mail_editor:
         test: "Test send"
 
 machine:
+    staff_only: "Staff only"
+    state_title: "Status and maintenance"
+    before_title: "Before using the machine"
+    access_title_anon: "Access"
+    access_title: "Your access"
+    next_slot: "Free on %day% at %start%"
+    verdict_training: "Training required to book"
+    verdict_signin: "Sign in to book"
+    verdict_can: "You can book this machine"
     reserve_next: "Book — free on %day% at %start%"
     reserve: "Book this machine"
     login_to_reserve: "Sign in to book"

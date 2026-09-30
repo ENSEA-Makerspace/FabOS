@@ -494,6 +494,15 @@ mail_editor:
         test: "Envoi de test"
 
 machine:
+    staff_only: "Réservé au personnel"
+    state_title: "État et maintenance"
+    before_title: "Avant d’utiliser la machine"
+    access_title_anon: "Accès"
+    access_title: "Votre accès"
+    next_slot: "Libre le %day% à %start%"
+    verdict_training: "Formation requise pour réserver"
+    verdict_signin: "Connectez-vous pour réserver"
+    verdict_can: "Vous pouvez réserver cette machine"
     reserve_next: "Réserver — libre le %day% à %start%"
     reserve: "Réserver cette machine"
     login_to_reserve: "Se connecter pour réserver"

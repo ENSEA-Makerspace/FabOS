@@ -162,3 +162,21 @@ page de design. B est devenu un réglage du thème (Thèmes → Mise en page →
 Traitement des photos : aucun / gris léger), posé en `data-photo-treatment` sur
 `<html>` ; cartes du catalogue seulement, la fiche d'une machine garde ses
 couleurs (celle d'un filament ou d'un fil est une information).
+
+## La fiche machine repensée (2026-09-30)
+
+Demande de l'opérateur (« repense toute la page, on a des exemples »), d'après la
+planche `equipment-machine-member-detail.png` — « tâche d'abord ». En tête : le
+titre, une carte **Réservation** (verdict en une phrase, les boutons existants,
+lieu et prochain créneau) et une carte **Votre accès** (badges cochés ou non),
+la **photo** en paysage à droite — ou l'icône de catégorie par défaut, par le
+composant commun `_category_icon` (les cinq pictogrammes recopiés dans la page
+sont partis). Dessous : matériaux compatibles, « Avant d'utiliser la machine »
+(exigence, documents, quiz), description, et « État et maintenance » replié.
+Onglets, calendrier, documents : inchangés. Cartes = `.detail-card` ; seules la
+mise en page `.md-*` et la pastille de verdict sont neuves ; 12 règles mortes
+supprimées. 🔴 Trouvé en route : un membre à qui manquait la formation
+(`training_required`, `physical_training_required`) voyait « Machine
+indisponible » — la page ne connaissait que `missing_badge`. Et la boîte photo
+était bornée à 200 px par une règle des vignettes de l'accueil. Popularité en
+étoiles abandonnée (absente de la planche).

@@ -62,7 +62,6 @@
                 {% set features = machine.features %}
                 {% set requirementTitle = machine.requirementTitle %}
                 {% set requirementDescription = machine.requirementDescription %}
-                {% set popularity = machine.popularity %}
                 {# The mapping lives on the entity (`Machine::getStatusKey`), not here:
                    this page and the admin list used to decide it separately, and the
                    list lost. #}
@@ -73,61 +72,26 @@
                 {% set canReserve = machineAvailable and app.user and usageRight.allowed and authorizationStatus in ['authorized', 'no_badge_required'] %}
                 {% set slotDuration = machine.granulariteLabel %}
 
-                <div class="machine-detail-header">
-                    <div class="machine-detail-image">
-                        <div class="machine-image-placeholder large">
-                            {# La photo de la machine dans la MÊME boîte que le pictogramme
-                               (tailles par écran, bordure, variante sombre déjà réglées) ;
-                               `pt-photo` lui applique le traitement du thème. #}
-                            {% if machine.photo %}
-                                <img class="pt-photo" src="{{ machine.photo starts with 'http' or machine.photo starts with '/' ? machine.photo : asset(machine.photo) }}" alt="{{ machine.nom }}">
-                            {% elseif icon == 'decoupe' %}
-                                <svg viewBox="0 0 200 200" class="machine-icon large" aria-hidden="true"><rect x="32" y="56" width="136" height="88" fill="var(--color-primary)" rx="12"/><path d="M52 84h96M52 116h96" stroke="#fff" stroke-width="8" stroke-linecap="round"/><path d="M76 42l48 112" stroke="#444" stroke-width="10" stroke-linecap="round"/></svg>
-                            {% elseif icon == 'electronique' %}
-                                <svg viewBox="0 0 200 200" class="machine-icon large" aria-hidden="true"><rect x="36" y="48" width="128" height="104" fill="var(--color-primary)" rx="14"/><circle cx="72" cy="100" r="16" fill="#fff"/><circle cx="124" cy="100" r="16" fill="#fff"/><path d="M56 152v24M100 154v22M144 152v24" stroke="#444" stroke-width="10" stroke-linecap="round"/></svg>
-                            {% elseif icon == 'usinage' %}
-                                <svg viewBox="0 0 200 200" class="machine-icon large" aria-hidden="true"><rect x="36" y="116" width="128" height="36" fill="#444" rx="6"/><rect x="60" y="48" width="80" height="68" fill="var(--color-primary)" rx="10"/><path d="M100 116v44" stroke="#fff" stroke-width="10"/></svg>
-                            {% elseif icon == 'textile' %}
-                                <svg viewBox="0 0 200 200" class="machine-icon large" aria-hidden="true"><rect x="36" y="60" width="128" height="76" fill="var(--color-primary)" rx="16"/><path d="M72 136c16-36 40-36 56 0" stroke="#fff" stroke-width="10" fill="none"/><path d="M100 40v116" stroke="#444" stroke-width="10" stroke-linecap="round"/></svg>
-                            {% else %}
-                                <svg viewBox="0 0 200 200" class="machine-icon large" aria-hidden="true"><rect x="50" y="60" width="100" height="70" fill="var(--color-primary)" rx="10"/><rect x="62" y="42" width="76" height="18" fill="#666" rx="3"/><circle cx="100" cy="154" r="15" fill="#444"/></svg>
-                            {% endif %}
-                        </div>
-                        <div class="machine-status-badge large {{ statusClass }}">{{ statusLabel }}</div>
-                    </div>
-                    <div class="machine-detail-info">
-                        <div class="machine-detail-badge">{{ categoryLabel }} · {{ levelLabel }}</div>
+                {# 🔴 **2026-09-30 — la fiche repensée d'après la planche de référence
+                   `equipment-machine-member-detail.png`** (« tâche d'abord ») : ce que
+                   le membre vient décider — puis-je réserver ? ai-je l'accès ? — en
+                   tête, à côté de la photo ; le contenu dessous. RIEN n'est perdu :
+                   mêmes verdicts, mêmes boutons (logique inchangée), mêmes blocs.
+                   ⚠️ Les cartes réutilisent `.detail-card` ; seules la mise en page
+                   (`.md-*`) et la pastille de verdict sont neuves (details.css). #}
+                {# ⚠️ Le service rend TROIS formes de « formation manquante » :
+                   `missing_badge`, `training_required`, `physical_training_required`.
+                   La page ne connaissait que la première : un membre à qui manquait la
+                   formation voyait « Machine indisponible » (vu le 2026-09-30). #}
+                {% set trainingMissing = authorizationStatus in ['missing_badge', 'training_required', 'physical_training_required'] %}
+                {% set bookTone = canReserve ? 'go' : (not app.user or usageRight.reason|default('') == 'signin_required' ? 'wait' : 'stop') %}
+                <div class="md-hero">
+                    <div class="md-hero-main">
+                        <p class="md-kicker">{{ categoryLabel }}{% if levelLabel %} · {{ levelLabel }}{% endif %}</p>
                         <h1 class="machine-detail-title">{{ machine.nom }}{{ admin_actions([
                             { route: 'app_admin_machine_edit', params: { id: machine.id }, label: 'admin_inline.edit'|trans }
                         ]) }}</h1>
-                        <p class="machine-detail-location">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                            {{ machine.localisation ?? 'machine.no_location'|trans }}
-                        </p>
-                        <div class="machine-detail-meta">
-                            <div class="meta-item">{{ 'machine.slots'|trans({'%duration%': slotDuration}) }}</div>
-                            <div class="meta-item">{{ 'machine.concurrent_reservations'|trans({'count': machine.limiteReservations}) }}</div>
-                            <div class="meta-item">{{ 'machine.popularity'|trans }} {% for i in 1..5 %}{{ i <= popularity ? '★' : '☆' }}{% endfor %}</div>
-                        </div>
-                        {# 🔴 **S151, R7 — cet écran disait QUATRE fois « connectez-vous ».**
-                           Compté sur `/machines/5` en anonyme : la pastille « Connexion
-                           requise », la phrase « Connectez-vous pour consulter et utiliser
-                           vos droits d'usage », le bouton « Se connecter pour réserver »,
-                           et la ligne « Connectez-vous pour créer une réservation et
-                           vérifier vos badges ». Quatre formulations pour une seule
-                           information, sur une seule vue.
-
-                           ⚠️ **Ce qui saute est le PANNEAU, pas le bouton.** Le panneau de
-                           droits d'usage explique une mécanique — les packages — à
-                           quelqu'un qui n'a pas encore de compte : il ne peut rien en
-                           faire, et son action « Connexion » est celle du bouton juste
-                           en dessous, en moins direct. Pour tous les AUTRES verdicts il
-                           reste : « votre package ne couvre pas ceci » est une
-                           information qu'un membre connecté ne peut pas deviner.
-
-                           Il reste donc deux phrases en anonyme : le bouton, qui est le
-                           verbe, et la ligne d'état, qui ajoute les badges — ce que le
-                           bouton ne dit pas. #}
+                        {# S151, R7 — le panneau de droits reste pour tout verdict sauf « connectez-vous ». #}
                         {% if usageRight.enforced and not usageRight.allowed and usageRight.reason != 'signin_required' %}
                             {% include 'site/_usage_right_state.html.twig' with {
                                 capability: usageRight.capability,
@@ -136,7 +100,20 @@
                                 action: {label: 'usage_rights.my_rights'|trans, url: path('app_profile') ~ '#usage-rights'}
                             } only %}
                         {% endif %}
-                        <div class="machine-detail-actions">
+
+                        <div class="md-cards">
+                            <section class="detail-card md-book" aria-labelledby="md-book-title">
+                                <div class="md-book-head">
+                                    <span class="md-verdict md-verdict--{{ bookTone }}" aria-hidden="true">{{ canReserve ? '✓' : (bookTone == 'wait' ? '→' : '!') }}</span>
+                                    <h2 id="md-book-title" class="md-book-title">
+                                        {%- if canReserve -%}{{ 'machine.verdict_can'|trans }}
+                                        {%- elseif not app.user or usageRight.reason|default('') == 'signin_required' -%}{{ 'machine.verdict_signin'|trans }}
+                                        {%- elseif not usageRight.allowed -%}{{ ('usage_rights.verdict.' ~ usageRight.reason ~ '.label')|trans }}
+                                        {%- elseif trainingMissing -%}{{ 'machine.verdict_training'|trans }}
+                                        {%- else -%}{{ 'machine.not_bookable'|trans({'%status%': statusLabel|lower}) }}{%- endif -%}
+                                    </h2>
+                                </div>
+                                <div class="machine-detail-actions">
                             {% if canReserve %}
                                 {# The page already knows when this machine is next free, so it
                                    says so instead of sending someone into a grid to find out
@@ -169,8 +146,9 @@
                                 </a>
                             {% elseif not app.user %}
                                 <a class="btn btn-primary" href="{{ path('app_login') }}">{{ 'machine.login_to_reserve'|trans }}</a>
-                            {% elseif authorizationStatus == 'missing_badge' %}
-                                <a class="btn btn-primary" href="{{ path('app_formations') }}">{{ 'machine.training_required'|trans }}</a>
+                            {% elseif trainingMissing %}
+                                {# Le verdict au-dessus dit déjà « formation requise » : le bouton dit le verbe. #}
+                                <a class="btn btn-primary" href="{{ path('app_formations') }}">{{ 'machine.see_trainings'|trans }}</a>
                             {% else %}
                                 {# 🔴 **S149 — c'était un `<button disabled>`, donc un contrôle qui ne fait
                                    rien.** « Indisponible » n'est pas une action, c'est un état : la pastille
@@ -192,17 +170,48 @@
                                 <span class="favorite-label">{{ isFavorite ? 'machines.fav_remove'|trans : 'machines.fav_add'|trans }}</span>
                             </button>
                         </div>
-                        {% if authorizationStatus == 'authorized' %}
-                            <div class="access-status">{{ 'machine.badge_ok'|trans }}</div>
-                        {% elseif authorizationStatus == 'missing_badge' %}
-                            <div class="access-status cannot-access">{{ 'machine.badge_missing'|trans }}</div>
-                        {% elseif app.user and canReserve %}
-                            <div class="access-status">{{ 'machine.no_badge_required'|trans }}</div>
-                        {% elseif not app.user %}
-                            <div class="access-status cannot-access">{{ 'machine.login_hint'|trans }}</div>
-                        {% else %}
-                            <div class="access-status cannot-access">{{ 'machine.not_bookable'|trans({'%status%': statusLabel|lower}) }}</div>
-                        {% endif %}
+                                <p class="md-book-foot">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                                    {{ machine.localisation ?? 'machine.no_location'|trans }}
+                                    <span aria-hidden="true">·</span>
+                                    {% if nextSlot and machineAvailable %}
+                                        <span class="md-next">{{ 'machine.next_slot'|trans({'%day%': nextSlot.start|lab_date('d/m'), '%start%': nextSlot.start|lab_date('H:i')}) }}</span>
+                                    {% else %}
+                                        <span>{{ statusLabel }}</span>
+                                    {% endif %}
+                                </p>
+                            </section>
+
+                            <section class="detail-card md-access" aria-labelledby="md-access-title">
+                                <h2 id="md-access-title" class="detail-card-title">{{ (app.user ? 'machine.access_title' : 'machine.access_title_anon')|trans }}</h2>
+                                <ul class="md-access-list">
+                                    {% for row in requiredBadgeRows %}
+                                        <li class="{{ row.owned ? 'is-ok' : 'is-missing' }}">
+                                            <span class="md-access-mark" aria-hidden="true">{{ row.owned ? '✓' : '✗' }}</span>
+                                            <span>{{ row.badge.nom }}</span>
+                                        </li>
+                                    {% else %}
+                                        <li class="is-ok"><span class="md-access-mark" aria-hidden="true">✓</span><span>{{ 'machine.free_access'|trans }}</span></li>
+                                    {% endfor %}
+                                </ul>
+                                {# Aucun lien ici : le bouton de la carte voisine porte le verbe
+                                   (formations, connexion) — pas deux fois la même action. #}
+                            </section>
+                        </div>
+                    </div>
+
+                    {# La photo, ou l'icône de la catégorie quand rien n'est saisi : le
+                       MÊME repli que les cartes du catalogue (`_category_icon`), plus les
+                       cinq pictogrammes recopiés qui vivaient ici. #}
+                    <div class="machine-detail-image md-hero-photo">
+                        <div class="machine-image-placeholder large">
+                            {% if machine.photo %}
+                                <img class="pt-photo" src="{{ machine.photo starts with 'http' or machine.photo starts with '/' ? machine.photo : asset(machine.photo) }}" alt="{{ machine.nom }}">
+                            {% else %}
+                                <span class="md-fallback-icon">{% include 'site/_category_icon.html.twig' with { slug: category|default(icon) } only %}</span>
+                            {% endif %}
+                        </div>
+                        <div class="machine-status-badge large {{ statusClass }}">{{ statusLabel }}</div>
                     </div>
                 </div>
 
@@ -260,106 +269,61 @@
                 {% endif %}
 
                 <div class="detail-tab-content active" id="overview">
-                    <div class="detail-tab-grid">
-                        {# 🔴 **S173 — la question du membre passe DEVANT la prose.**
-                           « Puis-je l'utiliser ? » se répondait en bas de l'onglet, après
-                           la description, les caractéristiques et les matériaux : trois
-                           blocs de contenu avant la seule chose dont dépend l'action. La
-                           carte n'a pas changé de contenu, elle a changé de rang — et de
-                           titre, parce qu'elle empruntait celui du KIOSQUE
-                           (`kiosk.machine_required_badges`), écrit pour un mur, pas pour
-                           quelqu'un qui décide.
-                           ⚠️ Elle reste DANS la grille : la fiche est une page, pas deux. #}
-                        <div class="detail-card">
-                            <h3 class="detail-card-title">{{ 'machine.prereq_title'|trans }}</h3>
-                            <div class="required-badges">
-                                {% for row in requiredBadgeRows %}
-                                    {% set requiredBadge = row.badge %}
-                                    <div class="required-badge {{ row.owned ? 'obtained' : '' }}">
-                                        <div class="badge-icon small">✓</div>
-                                        <div>
-                                            <strong>{{ requiredBadge.nom }}</strong>
-                                            <p>{{ requiredBadge.description ?: 'machine.badge_required_desc'|trans }}</p>
-                                        </div>
-                                        {% if app.user and row.owned %}
-                                            <span class="badge-check">{{ 'machine.badge_validated'|trans }}</span>
-                                        {% elseif app.user %}
-                                            <span class="badge-missing"><span>{{ 'machine.badge_denied'|trans }}</span><a class="get-badge-link" href="{{ path('app_formations') }}">{{ 'machine.see_trainings'|trans }}</a></span>
-                                        {% else %}
-                                            <span class="badge-missing"><span>{{ 'machine.login_required'|trans }}</span><a class="get-badge-link" href="{{ path('app_login') }}">{{ 'login.submit'|trans }}</a></span>
-                                        {% endif %}
-                                    </div>
-                                {% else %}
-                                    <div class="required-badge obtained">
-                                        <div class="badge-icon small">✓</div>
-                                        <div>
-                                            <strong>{{ 'machine.no_badges'|trans }}</strong>
-                                            <p>{{ 'machine.no_badges_desc'|trans }}</p>
-                                        </div>
-                                        <span class="badge-check">{{ 'machine.free_access'|trans }}</span>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        <div class="detail-card full-width">
-                            <h3 class="detail-card-title">{{ 'machine.description'|trans }}</h3>
-                            <div class="detail-card-content">
-                                <p>{{ machine.description ?? 'machine.default_description'|trans }}</p>
-                            </div>
-                        </div>
-                        <div class="detail-card">
-                            <h3 class="detail-card-title">{{ 'machine.features'|trans }}</h3>
-                            <ul class="feature-list">
-                                {% for feature in features %}
-                                    <li>{{ feature }}</li>
-                                {% endfor %}
-                                <li>{{ 'machine.current_status'|trans({'%status%': statusLabel}) }}</li>
-                                <li>{{ 'machine.location'|trans({'%location%': machine.localisation ?? 'machine.location_unknown'|trans}) }}</li>
-                            </ul>
-                        </div>
-                        {# 🔴 **S174 — cette page portait DEUX listes de matériaux.**
-                           « Matériaux et usages » lisait le tableau de texte
-                           `Machine::materials` ; « Matériaux compatibles » lisait la
-                           relation `MACHINE_MATERIAL`. Deux réponses à une question,
-                           l'une à côté de l'autre, et rien ne les tenait d'accord.
-
-                           🔴 **Et la première mentait quand elle était vide** :
-                           `getMaterials()` retombait sur `['PLA','PETG','TPU','Support']`,
-                           donc une découpeuse laser annonçait du filament. Le repli
-                           est parti ; vide veut dire vide.
-
-                           **La relation gagne** — elle nomme de vrais matériaux du
-                           catalogue, elle sait les lier, et l'écran d'administration
-                           du matériau la tient déjà à jour. Le tableau de texte reste
-                           lisible pour les machines pas encore rattachées : c'est une
-                           note de transition, pas une source. #}
-                        <div class="detail-card full-width">
-                            <h3 class="detail-card-title">{{ 'materials.on_machine'|trans }}</h3>
+                    <div class="detail-tab-grid md-grid">
+                        {# 🔴 S174 — UNE liste de matériaux : la relation gagne ; le texte libre
+                           reste lisible pour une machine pas encore rattachée (ne mène nulle part). #}
+                        <section class="detail-card md-materials">
+                            <h2 class="detail-card-title">{{ 'materials.on_machine'|trans }}</h2>
                             {% if materialsEnabled and machineMaterials is not empty %}
                                 <div class="machine-materials-list">
                                     {% for material in machineMaterials %}
                                         <a class="machine-material-chip" href="{{ path('app_materials_detail', {id: material.id}) }}">
-                                            <span class="machine-material-visual">{% if material.imageUrl %}<img src="{{ material.imageUrl }}" alt="{{ material.name }}" onerror="this.style.display='none'">{% elseif material.icon %}{{ material.icon }}{% else %}{% include 'site/_icon.html.twig' with { name: 'box' } only %}{% endif %}</span>
+                                            <span class="machine-material-visual">{% if material.imageUrl %}<img class="pt-photo" src="{{ material.imageUrl }}" alt="{{ material.name }}" onerror="this.style.display='none'">{% elseif material.icon %}{{ material.icon }}{% else %}{% include 'site/_icon.html.twig' with { name: 'box' } only %}{% endif %}</span>
                                             <span class="machine-material-name">{{ material.name }}{% if material.category %} <em>· {{ material.category }}</em>{% endif %}</span>
                                         </a>
                                     {% endfor %}
                                 </div>
                             {% elseif materials is not empty %}
-                                {# ⚠️ Texte libre : ces mots ne sont rattachés à aucune
-                                   entrée du catalogue, donc ils ne mènent nulle part.
-                                   C'est visible à l'œil — pas de pastille cliquable —
-                                   et c'est voulu. #}
                                 <div class="materials-grid">
-                                    {% for material in materials %}
-                                        <span class="material-tag">{{ material }}</span>
-                                    {% endfor %}
+                                    {% for material in materials %}<span class="material-tag">{{ material }}</span>{% endfor %}
                                 </div>
                             {% else %}
                                 {% include 'site/_cell_empty.html.twig' with {reason: 'materials.machine_none'} only %}
                             {% endif %}
-                        </div>
+                        </section>
+
+                        <section class="detail-card md-before">
+                            <h2 class="detail-card-title">{{ 'machine.before_title'|trans }}</h2>
+                            <ul class="md-access-list">
+                                {% if requirementTitle %}
+                                    <li class="is-ok"><span class="md-access-mark" aria-hidden="true">✓</span><span><strong>{{ requirementTitle }}</strong>{% if requirementDescription %} — {{ requirementDescription }}{% endif %}</span></li>
+                                {% endif %}
+                                {% for doc in machineDocuments|default([]) %}
+                                    <li class="is-ok"><span class="md-access-mark" aria-hidden="true">✓</span><a href="{{ path('app_machine_document_download', {id: machine.id, documentId: doc.id}) }}">{{ doc.label }}</a></li>
+                                {% endfor %}
+                                <li class="is-ok"><span class="md-access-mark" aria-hidden="true">✓</span><a href="{{ path('app_machine_quiz', {id: machine.id}) }}">{{ 'machine.go_quiz'|trans }}</a></li>
+                            </ul>
+                        </section>
+
+                        <section class="detail-card full-width md-about">
+                            <h2 class="detail-card-title">{{ 'machine.description'|trans }}</h2>
+                            <div class="detail-card-content">
+                                <p>{{ machine.description ?? 'machine.default_description'|trans }}</p>
+                            </div>
+                            <ul class="feature-list">
+                                {% for feature in features %}<li>{{ feature }}</li>{% endfor %}
+                                <li>{{ 'machine.slots'|trans({'%duration%': slotDuration}) }}</li>
+                                <li>{{ 'machine.concurrent_reservations'|trans({'count': machine.limiteReservations}) }}</li>
+                            </ul>
+                        </section>
+
+                        {# « État et maintenance », replié (planche) : la santé pour tous
+                           quand le module est actif ; la zone Exploitation, staff seulement. #}
+                        {% if maintenanceEnabled or seesOperations %}
+                            <details class="detail-card full-width detail-disclosure md-state">
+                                <summary class="detail-card-title">{{ 'machine.state_title'|trans }}{% if seesOperations %} <span class="md-staff">{{ 'machine.staff_only'|trans }}</span>{% endif %}</summary>
                         {% if maintenanceEnabled %}
-                        <div class="detail-card full-width">
+                        <div class="md-state-part">
                             <h3 class="detail-card-title">
                                 {{ 'maintenance.health'|trans }}
                                 <span class="maint-health-badge {{ maintenanceHealth }}">{{ ('maintenance.health_' ~ maintenanceHealth)|trans }}</span>
@@ -449,6 +413,8 @@
                                 </div>
                             </details>
                         </div>
+                        {% endif %}
+                            </details>
                         {% endif %}
                     </div>
                 </div>
