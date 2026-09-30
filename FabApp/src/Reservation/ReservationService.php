@@ -57,6 +57,8 @@ final class ReservationService
         private readonly LabClock $clock,
         private readonly UsageRightsService $usageRights,
         private readonly UsageAllowanceService $allowances,
+        private readonly \App\Repository\PlaceRepository $places,
+        private readonly \App\Service\PlaceBadges $placeBadges,
     ) {
     }
 
@@ -516,6 +518,23 @@ final class ReservationService
     {
         if ($type === ReservableType::User) {
             return $this->checkPersonAccess($id, $user);
+        }
+
+        // S204 — une pièce peut exiger un badge, comme une machine.
+        if ($type === ReservableType::Place && !$this->security->isGranted('ROLE_ADMIN')) {
+            $place = $this->places->find($id);
+            if ($place !== null && !$this->placeBadges->qualifies($place, $user)) {
+                $names = $this->placeBadges->requiredNames($place);
+
+                return BookingResult::refused(
+                    'TRAINING_REQUIRED',
+                    'Formation requise : obtenez ' . implode(' ou ', $names) . ' avant de réserver cet espace.',
+                    403,
+                    ['missingBadges' => $names],
+                );
+            }
+
+            return null;
         }
 
         if ($type !== ReservableType::Machine || $this->security->isGranted('ROLE_ADMIN')) {

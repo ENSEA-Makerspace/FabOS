@@ -2,7 +2,10 @@
 
 namespace App\Form;
 
+use App\Entity\Badge;
 use App\Entity\Place;
+use Doctrine\ORM\EntityRepository;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
@@ -35,6 +38,11 @@ final class PlaceAdminType extends AbstractType
         [
             'title' => 'admin_place_form.section_where',
             'fields' => ['venue', 'localisation', 'capacite'],
+        ],
+        [
+            // S204 — absent tant que la migration PLACE_BADGE manque (champ non ajouté).
+            'title' => 'admin_place_form.section_access',
+            'fields' => ['requiredBadges'],
         ],
         [
             // Repli : trois champs de classement interne, tous facultatifs, et
@@ -81,12 +89,31 @@ final class PlaceAdminType extends AbstractType
                 'constraints' => [new Assert\Length(max: 2000, maxMessage: 'La description ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('save', SubmitType::class, ['label' => 'common.save']);
+
+        // S204 — les badges qui ouvrent la pièce. Non rattaché à l'entité : la
+        // liste vit dans PLACE_BADGE (`PlaceBadges`), que le contrôleur écrit.
+        if ($options['badges_enabled']) {
+            $builder->add('requiredBadges', EntityType::class, [
+                'class' => Badge::class,
+                'choice_label' => 'nom',
+                'query_builder' => static fn (EntityRepository $r) => $r->createQueryBuilder('b')->andWhere('b.archivedAt IS NULL')->orderBy('b.nom', 'ASC'),
+                'multiple' => true,
+                'expanded' => true,
+                'required' => false,
+                'mapped' => false,
+                'label' => 'admin_place_form.required_badges',
+                'help' => 'admin_place_form.required_badges_help',
+                'choice_translation_domain' => false,
+            ]);
+        }
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
             'data_class' => Place::class,
+            'badges_enabled' => false,
         ]);
+        $resolver->setAllowedTypes('badges_enabled', 'bool');
     }
 }

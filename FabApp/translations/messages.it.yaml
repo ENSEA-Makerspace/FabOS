@@ -1301,6 +1301,7 @@ events:
     foot_open_seating: "Ingresso libero"
     empty: "Nessun evento corrispondente."
 places:
+    required_badges: "Accesso riservato: badge %badges% richiesto (ottenuto con la sua formazione)."
     no_places: "Nessuno spazio disponibile per ora."
     capacity_suffix: "persone"
     book_this_place: "Prenota questo spazio"
@@ -3116,6 +3117,7 @@ machine_calendar:
     js_context_day: "%machine% · %day%"
     browser_title: "Calendario — %machine% - FabOS"
 rfid_logs:
+    status_badge_open_hours: "Aperta con badge (orari di apertura)"
     status_reader_inactive: "Lettore disattivato"
     col_result: "Esito"
     status_authorized: "Autorizzato"
@@ -3786,6 +3788,9 @@ machine_documents:
     flash_not_found: "Documento non trovato."
 
 admin_place_form:
+    required_badges_help: "Vuoto: stanza libera (tutti possono prenotare, la porta apre con una prenotazione). Selezionato: serve uno di questi badge per prenotarla, e basta alla sua porta durante gli orari di apertura."
+    required_badges: "Badge che aprono la stanza"
+    section_access: "Accesso"
     capacite: "Capienza (persone)"
     manager: "Responsabile"
     department: "Dipartimento"

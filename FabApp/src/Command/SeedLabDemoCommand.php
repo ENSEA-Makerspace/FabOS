@@ -73,7 +73,7 @@ final class SeedLabDemoCommand extends Command
      */
     private array $renamed = [];
 
-    public function __construct(private readonly EntityManagerInterface $em)
+    public function __construct(private readonly EntityManagerInterface $em, private readonly \App\Service\PlaceBadges $placeBadges)
     {
         parent::__construct();
     }
@@ -203,6 +203,12 @@ final class SeedLabDemoCommand extends Command
             $io->note(\count($this->plan) . ' changement(s) prévus — rien n’a été écrit (--dry-run).');
 
             return Command::SUCCESS;
+        }
+        $this->em->flush();
+        $before = \count($this->plan);
+        $this->factoryAccess();
+        foreach (\array_slice($this->plan, $before) as $line) {
+            $io->writeln('   ' . $line);
         }
         $this->em->flush();
         $io->success(\count($this->plan) . ' changement(s) écrits.');
@@ -367,6 +373,42 @@ final class SeedLabDemoCommand extends Command
             if ($cncNow instanceof Machine) {
                 $this->materialFor($panel, $cncNow, 'Panneau', null);
             }
+        }
+    }
+
+    /**
+     * S204 — après l'écriture (il faut les identifiants) : chaque pièce de la
+     * Factory exige son badge d'accès, et la Factory reprend les horaires du
+     * FabLab — sans horaires, une porte « au badge seul » ne s'ouvrirait jamais.
+     * ⚠️ Ne tourne pas en --dry-run (rien n'est encore en base à relier).
+     */
+    private function factoryAccess(): void
+    {
+        $factory = $this->em->getRepository(Venue::class)->findOneBy(['slug' => 'factory']);
+        $fablab = $this->em->getRepository(Venue::class)->findOneBy(['slug' => 'default']);
+        if (!$factory instanceof Venue || !$fablab instanceof Venue) {
+            return;
+        }
+        if ($this->placeBadges->isReady()) {
+            foreach (['MetalFab', 'WoodFab', 'PrintLab'] as $room) {
+                $place = $this->em->getRepository(Place::class)->findOneBy(['nom' => $room, 'venue' => $factory]);
+                $badge = $this->em->getRepository(Badge::class)->findOneBy(['nom' => "Accès $room"]);
+                if ($place instanceof Place && $badge instanceof Badge && $this->placeBadges->requiredIds($place) === []) {
+                    $this->note("pièce gardée : $room exige « Accès $room » (réservation, et porte au badge seul)");
+                    $this->placeBadges->set($place, [$badge]);
+                }
+            }
+        } else {
+            $this->note('(migration S204 pas encore passée : pièces non encore gardées par badge)');
+        }
+        $hours = $this->em->getRepository(\App\Entity\OpeningHour::class);
+        if ($hours->findBy(['venue' => $factory]) === []) {
+            foreach ($hours->findBy(['venue' => $fablab, 'scopeType' => null]) as $row) {
+                $this->em->persist((new \App\Entity\OpeningHour())->setVenue($factory)->setDayOfWeek($row->getDayOfWeek())
+                    ->setLabel($row->getLabel())->setIsClosed($row->isClosed())->setOpenTime($row->getOpenTime())
+                    ->setCloseTime($row->getCloseTime())->setSortOrder($row->getSortOrder()));
+            }
+            $this->note('horaires : la Factory reprend ceux du FabLab');
         }
     }
 

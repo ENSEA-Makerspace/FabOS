@@ -1301,6 +1301,7 @@ events:
     foot_open_seating: "Open seating"
     empty: "No event matches."
 places:
+    required_badges: "Restricted access: badge %badges% required (earned through its training)."
     no_places: "No spaces available yet."
     capacity_suffix: "people"
     book_this_place: "Book this space"
@@ -3117,6 +3118,7 @@ machine_calendar:
     js_context_day: "%machine% · %day%"
     browser_title: "Calendar — %machine% - FabOS"
 rfid_logs:
+    status_badge_open_hours: "Opened by badge (opening hours)"
     status_reader_inactive: "Reader disabled"
     col_result: "Result"
     status_authorized: "Authorised"
@@ -3787,6 +3789,9 @@ machine_documents:
     flash_not_found: "Document not found."
 
 admin_place_form:
+    required_badges_help: "Empty: open room (anyone can book it, door opens on a booking). Ticked: one of these badges is needed to book it, and is enough at its door during opening hours."
+    required_badges: "Badges that open the room"
+    section_access: "Access"
     capacite: "Capacity (people)"
     manager: "Manager"
     department: "Department"

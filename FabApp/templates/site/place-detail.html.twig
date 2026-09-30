@@ -48,6 +48,10 @@
                     {{ place.localisation ?: '' }}{% if place.localisation and place.capacite %} · {% endif %}{% if place.capacite %}{{ place.capacite }} {{ 'places.capacity_suffix'|trans }}{% endif %}
                 </p>
                 {% if place.description %}<p>{{ place.description }}</p>{% endif %}
+                {% if requiredBadges|default([]) is not empty %}
+                    {# S204 — dit AVANT la réservation ce que la pièce exige : pas de refus surprise. #}
+                    <p class="place-access">{{ 'places.required_badges'|trans({'%badges%': requiredBadges|join(' / ')}) }}</p>
+                {% endif %}
 
                 {# 🔴 **S177 — « comment j'entre ? », enfin posable.** Jusqu'à S175
                    une porte n'existait pas comme objet du produit : cette fiche

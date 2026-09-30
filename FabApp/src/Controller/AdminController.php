@@ -3855,18 +3855,21 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/places/new', name: 'app_admin_place_new', methods: ['GET', 'POST'])]
-    public function newPlace(Request $request, EntityManagerInterface $entityManager, VenueRepository $venues): Response
+    public function newPlace(Request $request, EntityManagerInterface $entityManager, VenueRepository $venues, \App\Service\PlaceBadges $placeBadges): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         $place = new Place();
         $place->setVenue($this->requireDefaultVenue($venues));
-        $form = $this->createForm(PlaceAdminType::class, $place);
+        $form = $this->createForm(PlaceAdminType::class, $place, ['badges_enabled' => $placeBadges->isReady()]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($place);
             $entityManager->flush();
+            if ($form->has('requiredBadges')) {
+                $placeBadges->set($place, [...$form->get('requiredBadges')->getData()]);
+            }
             $this->addFlash('success', ['flash.espace_cree', ['%p1%' => $place->getNom()]]);
 
             return $this->redirectToRoute('app_admin_places');
@@ -3879,15 +3882,22 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/places/{id}/edit', name: 'app_admin_place_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
-    public function editPlace(Place $place, Request $request, EntityManagerInterface $entityManager): Response
+    public function editPlace(Place $place, Request $request, EntityManagerInterface $entityManager, \App\Service\PlaceBadges $placeBadges): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-        $form = $this->createForm(PlaceAdminType::class, $place);
+        $form = $this->createForm(PlaceAdminType::class, $place, ['badges_enabled' => $placeBadges->isReady()]);
+        if ($form->has('requiredBadges')) {
+            $current = $placeBadges->requiredIds($place);
+            $form->get('requiredBadges')->setData($current === [] ? [] : $entityManager->getRepository(\App\Entity\Badge::class)->findBy(['id' => $current]));
+        }
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
+            if ($form->has('requiredBadges')) {
+                $placeBadges->set($place, [...$form->get('requiredBadges')->getData()]);
+            }
             $this->addFlash('success', ['flash.espace_mis_a_jour', ['%p1%' => $place->getNom()]]);
 
             return $this->redirectToRoute('app_admin_places');

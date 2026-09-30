@@ -1301,6 +1301,7 @@ events:
     foot_open_seating: "Entrada libre"
     empty: "Ningún evento coincide."
 places:
+    required_badges: "Acceso restringido: se requiere la insignia %badges% (obtenida con su formación)."
     no_places: "Todavia no hay espacios disponibles."
     capacity_suffix: "personas"
     book_this_place: "Reservar este espacio"
@@ -3116,6 +3117,7 @@ machine_calendar:
     js_context_day: "%machine% · %day%"
     browser_title: "Calendario — %machine% - FabOS"
 rfid_logs:
+    status_badge_open_hours: "Abierta con insignia (horario de apertura)"
     status_reader_inactive: "Lector desactivado"
     col_result: "Resultado"
     status_authorized: "Autorizado"
@@ -3786,6 +3788,9 @@ machine_documents:
     flash_not_found: "Documento no encontrado."
 
 admin_place_form:
+    required_badges_help: "Vacío: sala libre (todos pueden reservar, la puerta abre con reserva). Marcado: se necesita una de estas insignias para reservarla, y basta en su puerta en horario de apertura."
+    required_badges: "Insignias que abren la sala"
+    section_access: "Acceso"
     capacite: "Capacidad (personas)"
     manager: "Responsable"
     department: "Departamento"

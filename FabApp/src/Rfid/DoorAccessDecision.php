@@ -50,6 +50,8 @@ final class DoorAccessDecision
     public function __construct(
         private readonly ReservationRepository $reservations,
         private readonly LabClock $clock,
+        private readonly \App\Service\PlaceBadges $placeBadges,
+        private readonly \App\Schedule\ScheduleResolver $schedule,
     ) {
     }
 
@@ -90,6 +92,25 @@ final class DoorAccessDecision
         }
 
         $now = $at ?? $this->clock->now();
+
+        /*
+         * 🔴 S204 — une pièce qui EXIGE un badge s'ouvre au badge seul, pendant
+         * ses heures d'ouverture (décision de l'opérateur, 2026-09-30) : pas
+         * besoin de réserver pour entrer dans MetalFab quand on a la formation.
+         * ⚠️ Hors des heures, le badge ne suffit plus ; une réservation en cours
+         * (vérifiée plus bas) ouvre encore — c'est le cas d'un créneau accordé
+         * par l'équipe en dehors des heures.
+         */
+        if ($this->placeBadges->requiredIds($place) !== []) {
+            if (!$this->placeBadges->qualifies($place, $user)) {
+                return ['allowed' => false, 'status' => 'missing_badge', 'reservationId' => null];
+            }
+            $wall = $now->setTimezone($this->clock->zone());
+            if ($this->schedule->isOpenAt($place->getVenue()?->getId(), $wall, 'place', (int) $place->getId())) {
+                return ['allowed' => true, 'status' => 'badge_open_hours', 'reservationId' => null];
+            }
+        }
+
         $from = $now->modify('+' . self::MARGIN_MINUTES . ' minutes');
         $until = $now->modify('-' . self::MARGIN_MINUTES . ' minutes');
 

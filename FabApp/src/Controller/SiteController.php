@@ -1957,6 +1957,7 @@ final class SiteController extends AbstractController
         CalendarPayload $calendarPayload,
         ReservableResolver $reservables,
         AccessPointRepository $accessPoints,
+        \App\Service\PlaceBadges $placeBadges,
     ): Response {
         $currentUser = $this->getUser();
         $usageVerdict = $usageRights->verdict($currentUser instanceof Utilisateur ? $currentUser : null, 'places');
@@ -1966,6 +1967,8 @@ final class SiteController extends AbstractController
 
         return $this->render('site/place-detail.html.twig', [
             'place' => $place,
+            // S204 — les badges qui ouvrent la pièce (vide = libre, comme avant).
+            'requiredBadges' => $placeBadges->requiredNames($place),
             /*
              * 🔴 **S177 — « comment j'entre ? », la question qu'aucun écran ne
              * pouvait poser avant S175.** Une porte n'existait pas comme objet :

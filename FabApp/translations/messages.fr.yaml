@@ -1368,6 +1368,7 @@ events:
     foot_open_seating: "Entrée libre"
     empty: "Aucun événement ne correspond."
 places:
+    required_badges: "Accès réservé : badge %badges% requis (obtenu par sa formation)."
     no_places: "Aucun espace disponible pour le moment."
     capacity_suffix: "personnes"
     book_this_place: "Reserver cet espace"
@@ -3118,6 +3119,7 @@ machine_calendar:
     js_context_day: "%machine% · %day%"
     browser_title: "Calendrier — %machine% - FabOS"
 rfid_logs:
+    status_badge_open_hours: "Ouvert au badge (heures d’ouverture)"
     status_reader_inactive: "Lecteur désactivé"
     col_result: "Résultat"
     status_authorized: "Autorisé"
@@ -3788,6 +3790,9 @@ machine_documents:
     flash_not_found: "Document introuvable."
 
 admin_place_form:
+    required_badges_help: "Vide : pièce libre (réservation ouverte à tous, porte ouverte sur réservation). Coché : il faut l’un de ces badges pour la réserver, et il suffit à sa porte pendant les heures d’ouverture."
+    required_badges: "Badges qui ouvrent la pièce"
+    section_access: "Accès"
     capacite: "Capacité (personnes)"
     manager: "Responsable"
     department: "Département"
