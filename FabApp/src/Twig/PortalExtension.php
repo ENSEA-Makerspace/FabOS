@@ -77,6 +77,7 @@ final class PortalExtension extends AbstractExtension
             // ⚠️ Rend `null` hors aperçu : hors de la grille, personne n'impose
             // un thème à personne.
             new TwigFunction('theme_forced_mode', $this->preview->forcedMode(...)),
+            new TwigFunction('theme_photo_treatment', $this->photoTreatment(...)),
             // ⚠️ Rend une CHAÎNE VIDE au préréglage livré : aucune règle n'est
             // alors émise, et le balisage reste identique au bit près.
             new TwigFunction('theme_preset_css', $this->presetCss(...)),
@@ -132,6 +133,17 @@ final class PortalExtension extends AbstractExtension
      * aperçu où la couleur suit le brouillon mais pas la densité serait
      * exactement le genre d'aperçu qui ment.
      */
+    /**
+     * La valeur de `data-photo-treatment` sur `<html>`, ou '' — le brouillon en
+     * aperçu, comme les autres axes.
+     */
+    public function photoTreatment(): string
+    {
+        $key = $this->value('site_photo_treatment', 'photoTreatment') ?: 'aucun';
+
+        return (string) (\App\Theme\ThemePresets::PHOTOS[$key] ?? '');
+    }
+
     public function presetCss(): string
     {
         return $this->presets->css(

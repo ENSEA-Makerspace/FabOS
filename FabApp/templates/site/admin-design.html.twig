@@ -707,96 +707,22 @@
                 </p>
             </div>
 
-            {# =============================================================
-               PROPOSITION — le traitement des photos (2026-09-30)
-               Trois variantes, UNE variable : le filtre. Mêmes cartes, mêmes
-               photos (les vraies de la démo), la dernière sans photo pour voir
-               que l'icône de repli reste cohérente. Le choix fait, la variante
-               retenue devient un réglage du thème et les autres sont RETIRÉES.
-               ============================================================= #}
+            {# LE TRAITEMENT DES PHOTOS — réglage du thème (2026-09-30).
+               Proposition tranchée par l'opérateur : B, gris léger + couleur au
+               survol. Le duotone de marque et la désaturation chaude sont
+               retirés (raisonnement dans HISTORY). Ceci est l'exemple de la règle
+               réelle de machines-list.css, sur les vraies cartes. #}
             <div class="dz-sec" id="photos">
-                <h3>Proposition — le traitement des photos du catalogue</h3>
+                <h3>Photos du catalogue — gris léger, couleur au survol</h3>
                 <p>
-                    Des photos d’origines différentes (fonds, lumières, cadrages) côte à côte. Chaque rangée
-                    applique un traitement, par la règle réelle de <code>machines-list.css</code>
-                    (<code>data-photo-treatment</code>) — celle que le réglage du thème posera sur la page.
-                    <strong>Cartes du catalogue seulement</strong> : la fiche d’une machine garde ses couleurs
-                    vraies. Passez la souris sur les cartes, et comparez en thème clair et sombre.
+                    Réglage du thème : Thèmes → Mise en page → <strong>Traitement des photos</strong>
+                    (aucun / gris léger). Il pose <code>data-photo-treatment="mono"</code> sur
+                    <code>&lt;html&gt;</code> ; la règle vit dans <code>machines-list.css</code>.
+                    <strong>Cartes du catalogue seulement</strong> : la fiche d’une machine garde ses
+                    couleurs vraies. La couleur revient au survol et au clavier ; un peu assombries en
+                    thème sombre.
                 </p>
-                <h4>Aujourd’hui — aucun traitement</h4>
-                <div class="ml-grid">
-                        {% include 'site/_catalogue_card.html.twig' with {
-                            url: '#', title: 'Bambu Lab X1C n°01', type: 'Impression 3D', state: 'Libre', state_tone: 'free',
-                            foot: 'Formation requise', action: 'Voir', icon_slug: 'impression-3d', photo: 'images/machines/demo/bambu-x1c.jpg',
-                        } only %}
-                        {% include 'site/_catalogue_card.html.twig' with {
-                            url: '#', title: 'Creality K1 Max n°2', type: 'Impression 3D', state: 'Libre', state_tone: 'free',
-                            foot: 'Formation requise', action: 'Voir', icon_slug: 'impression-3d', photo: 'images/machines/demo/creality-k1.jpg',
-                        } only %}
-                        {% include 'site/_catalogue_card.html.twig' with {
-                            url: '#', title: 'Presse à chaud', type: 'Textile', state: 'Libre', state_tone: 'free',
-                            foot: 'Formation requise', action: 'Voir', icon_slug: 'textile', photo: 'images/machines/demo/presse-a-chaud.jpg',
-                        } only %}
-                        {% include 'site/_catalogue_card.html.twig' with {
-                            url: '#', title: 'Station de soudure n°1', type: 'Électronique', state: 'Libre', state_tone: 'free',
-                            foot: 'Formation requise', action: 'Voir', icon_slug: 'electronique', photo: 'images/machines/demo/station-soudure.jpg',
-                        } only %}
-                        {% include 'site/_catalogue_card.html.twig' with {
-                            url: '#', title: 'Epilog Fusion Pro 48', type: 'Découpe', state: 'Libre', state_tone: 'free',
-                            foot: 'Formation requise', action: 'Voir', icon_slug: 'decoupe', photo: '',
-                        } only %}
-                </div>
-                <h4>A — Duotone de marque</h4>
-                <p class="dz-used">Niveaux de gris teintés par <code>--color-primary</code> : la plus forte identité ; la couleur réelle disparaît.</p>
-                <div class="ml-grid" data-photo-treatment="duotone">
-                        {% include 'site/_catalogue_card.html.twig' with {
-                            url: '#', title: 'Bambu Lab X1C n°01', type: 'Impression 3D', state: 'Libre', state_tone: 'free',
-                            foot: 'Formation requise', action: 'Voir', icon_slug: 'impression-3d', photo: 'images/machines/demo/bambu-x1c.jpg',
-                        } only %}
-                        {% include 'site/_catalogue_card.html.twig' with {
-                            url: '#', title: 'Creality K1 Max n°2', type: 'Impression 3D', state: 'Libre', state_tone: 'free',
-                            foot: 'Formation requise', action: 'Voir', icon_slug: 'impression-3d', photo: 'images/machines/demo/creality-k1.jpg',
-                        } only %}
-                        {% include 'site/_catalogue_card.html.twig' with {
-                            url: '#', title: 'Presse à chaud', type: 'Textile', state: 'Libre', state_tone: 'free',
-                            foot: 'Formation requise', action: 'Voir', icon_slug: 'textile', photo: 'images/machines/demo/presse-a-chaud.jpg',
-                        } only %}
-                        {% include 'site/_catalogue_card.html.twig' with {
-                            url: '#', title: 'Station de soudure n°1', type: 'Électronique', state: 'Libre', state_tone: 'free',
-                            foot: 'Formation requise', action: 'Voir', icon_slug: 'electronique', photo: 'images/machines/demo/station-soudure.jpg',
-                        } only %}
-                        {% include 'site/_catalogue_card.html.twig' with {
-                            url: '#', title: 'Epilog Fusion Pro 48', type: 'Découpe', state: 'Libre', state_tone: 'free',
-                            foot: 'Formation requise', action: 'Voir', icon_slug: 'decoupe', photo: '',
-                        } only %}
-                </div>
-                <h4>B — Gris léger, couleur au survol</h4>
-                <p class="dz-used">Calme au repos, la vraie couleur revient au survol et au clavier.</p>
                 <div class="ml-grid" data-photo-treatment="mono">
-                        {% include 'site/_catalogue_card.html.twig' with {
-                            url: '#', title: 'Bambu Lab X1C n°01', type: 'Impression 3D', state: 'Libre', state_tone: 'free',
-                            foot: 'Formation requise', action: 'Voir', icon_slug: 'impression-3d', photo: 'images/machines/demo/bambu-x1c.jpg',
-                        } only %}
-                        {% include 'site/_catalogue_card.html.twig' with {
-                            url: '#', title: 'Creality K1 Max n°2', type: 'Impression 3D', state: 'Libre', state_tone: 'free',
-                            foot: 'Formation requise', action: 'Voir', icon_slug: 'impression-3d', photo: 'images/machines/demo/creality-k1.jpg',
-                        } only %}
-                        {% include 'site/_catalogue_card.html.twig' with {
-                            url: '#', title: 'Presse à chaud', type: 'Textile', state: 'Libre', state_tone: 'free',
-                            foot: 'Formation requise', action: 'Voir', icon_slug: 'textile', photo: 'images/machines/demo/presse-a-chaud.jpg',
-                        } only %}
-                        {% include 'site/_catalogue_card.html.twig' with {
-                            url: '#', title: 'Station de soudure n°1', type: 'Électronique', state: 'Libre', state_tone: 'free',
-                            foot: 'Formation requise', action: 'Voir', icon_slug: 'electronique', photo: 'images/machines/demo/station-soudure.jpg',
-                        } only %}
-                        {% include 'site/_catalogue_card.html.twig' with {
-                            url: '#', title: 'Epilog Fusion Pro 48', type: 'Découpe', state: 'Libre', state_tone: 'free',
-                            foot: 'Formation requise', action: 'Voir', icon_slug: 'decoupe', photo: '',
-                        } only %}
-                </div>
-                <h4>C — Désaturation partielle, teinte chaude</h4>
-                <p class="dz-used">Les couleurs restent lisibles, adoucies et accordées entre elles.</p>
-                <div class="ml-grid" data-photo-treatment="warm">
                         {% include 'site/_catalogue_card.html.twig' with {
                             url: '#', title: 'Bambu Lab X1C n°01', type: 'Impression 3D', state: 'Libre', state_tone: 'free',
                             foot: 'Formation requise', action: 'Voir', icon_slug: 'impression-3d', photo: 'images/machines/demo/bambu-x1c.jpg',

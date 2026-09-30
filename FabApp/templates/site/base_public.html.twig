@@ -50,7 +50,7 @@
    identique dans `base.html.twig`. Sans le verrou, `main.js` réécrirait le thème
    depuis `localStorage` au chargement, et les quatre cadres de la grille
    d'aperçu, qui partagent ce stockage, afficheraient tous la même chose. #}
-<html lang="{{ app.request.locale }}"{% if forced_theme %} data-theme="{{ forced_theme }}" data-theme-locked="1"{% endif %}{% if html_attrs is defined and html_attrs %} {{ html_attrs|raw }}{% endif %}>
+<html lang="{{ app.request.locale }}"{% if forced_theme %} data-theme="{{ forced_theme }}" data-theme-locked="1"{% endif %}{% set _photo_treatment = theme_photo_treatment() %}{% if _photo_treatment %} data-photo-treatment="{{ _photo_treatment }}"{% endif %}{% if html_attrs is defined and html_attrs %} {{ html_attrs|raw }}{% endif %}>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

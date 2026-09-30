@@ -11,7 +11,7 @@
    thème et la moitié sombre de l'aperçu serait un mensonge. `data-theme-locked`
    dit au script de ne pas réécrire ce que le serveur vient de poser.
    ⚠️ Vide hors aperçu : aucune page ordinaire ne porte ces attributs. #}
-<html lang="{{ app.request.locale }}"{% if forced_theme %} data-theme="{{ forced_theme }}" data-theme-locked="1"{% endif %}>
+<html lang="{{ app.request.locale }}"{% if forced_theme %} data-theme="{{ forced_theme }}" data-theme-locked="1"{% endif %}{% set _photo_treatment = theme_photo_treatment() %}{% if _photo_treatment %} data-photo-treatment="{{ _photo_treatment }}"{% endif %}>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

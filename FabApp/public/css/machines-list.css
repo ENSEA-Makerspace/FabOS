@@ -185,37 +185,26 @@
     .ml-card:hover .ml-media img { transform: none; }
 }
 
-/* --- Traitement des photos (proposition, 2026-09-30) ------------------------
+/* --- Traitement des photos (réglage du thème, 2026-09-30) ------------------
    Des photos d'origines différentes (fonds, lumières, cadrages) se lisent comme
-   une seule collection. UNE règle par traitement, sous `data-photo-treatment` :
-   aujourd'hui posé sur les rangées de /admin/design (propositions), demain par
-   le réglage du thème sur la page entière — les mêmes octets.
+   une collection. Choix de l'opérateur après comparaison de trois variantes :
+   **gris léger, la vraie couleur revient au survol et au clavier** (le duotone
+   de marque et la désaturation chaude ont été retirés — raisonnement dans
+   HISTORY). Posé par le thème : `data-photo-treatment="mono"` sur `<html>`.
    ⚠️ Cartes du catalogue SEULEMENT (`.ml-media`) : la fiche d'une machine garde
    ses couleurs vraies — celle d'un filament ou d'un fil en est une information.
    ⚠️ `--pt-dim` assombrit un peu en mode sombre : une photo claire y devient
-   sinon une tache lumineuse. */
+   sinon une tache lumineuse. Les deux formes du sélecteur : l'attribut est sur
+   `<html>` lui-même (le thème) OU sur un ancêtre (l'exemple de /admin/design). */
 [data-photo-treatment] { --pt-dim: 1; }
+html[data-theme="dark"][data-photo-treatment],
 html[data-theme="dark"] [data-photo-treatment] { --pt-dim: .88; }
-[data-photo-treatment] .ml-media { position: relative; isolation: isolate; }
-
-/* 1. Duotone de marque : niveaux de gris, teintés par la couleur du thème. */
-[data-photo-treatment="duotone"] .ml-media img { filter: grayscale(1) contrast(1.08) brightness(calc(1.04 * var(--pt-dim))); }
-[data-photo-treatment="duotone"] .ml-media:has(img)::after {
-    content: ""; position: absolute; inset: 0; pointer-events: none;
-    background: var(--color-primary); mix-blend-mode: color; opacity: .55;
-}
-
-/* 2. Gris léger, la couleur revient au survol (et au clavier). */
 [data-photo-treatment="mono"] .ml-media img {
     filter: grayscale(.9) contrast(1.04) brightness(var(--pt-dim));
     transition: transform 480ms cubic-bezier(.22,.61,.36,1), filter 320ms ease;
 }
 [data-photo-treatment="mono"] .ml-card:hover .ml-media img,
 [data-photo-treatment="mono"] .ml-card:focus-within .ml-media img { filter: brightness(var(--pt-dim)); }
-
-/* 3. Désaturation partielle, teinte chaude commune. */
-[data-photo-treatment="warm"] .ml-media img { filter: saturate(.55) sepia(.22) contrast(1.03) brightness(var(--pt-dim)); }
-
 @media (prefers-reduced-motion: reduce) {
     [data-photo-treatment="mono"] .ml-media img { transition: none; }
 }

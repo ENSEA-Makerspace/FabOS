@@ -47,7 +47,7 @@ final class ThemeDraftType extends AbstractType
         ['title' => 'admin_themes.section_identity', 'fields' => ['orgName', 'venueLabel']],
         ['title' => 'admin_themes.section_colour', 'fields' => ['primaryColor']],
         ['title' => 'admin_themes.section_images', 'fields' => ['logoPath', 'logoDarkPath', 'faviconPath']],
-        ['title' => 'admin_themes.section_layout', 'fields' => ['radius', 'density', 'typeScale']],
+        ['title' => 'admin_themes.section_layout', 'fields' => ['radius', 'density', 'typeScale', 'photoTreatment']],
     ];
 
     public function __construct(
@@ -159,6 +159,11 @@ final class ThemeDraftType extends AbstractType
             ->add('typeScale', ChoiceType::class, [
                 'label' => 'admin_themes.type_scale',
                 'choices' => self::presetChoices('type', array_keys(ThemePresets::TYPE)),
+            ])
+            ->add('photoTreatment', ChoiceType::class, [
+                'label' => 'admin_themes.photo_treatment',
+                'help' => 'admin_themes.photo_treatment_help',
+                'choices' => self::presetChoices('photos', array_keys(ThemePresets::PHOTOS)),
             ]);
     }
 

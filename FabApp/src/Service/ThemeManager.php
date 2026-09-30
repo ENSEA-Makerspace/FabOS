@@ -51,6 +51,7 @@ final class ThemeManager
             'radius' => $this->settings->get('site_radius') ?: 'standard',
             'density' => $this->settings->get('site_density') ?: 'standard',
             'typeScale' => $this->settings->get('site_type_scale') ?: 'standard',
+            'photoTreatment' => $this->settings->get('site_photo_treatment') ?: 'aucun',
         ];
     }
 
@@ -74,6 +75,7 @@ final class ThemeManager
             'radius' => trim((string) ($input['radius'] ?? '')) ?: 'standard',
             'density' => trim((string) ($input['density'] ?? '')) ?: 'standard',
             'typeScale' => trim((string) ($input['typeScale'] ?? '')) ?: 'standard',
+            'photoTreatment' => trim((string) ($input['photoTreatment'] ?? '')) ?: 'aucun',
         ];
         if ($draft['orgName'] === '' || $draft['venueLabel'] === '') {
             throw new \InvalidArgumentException('Les deux noms publics sont obligatoires.');
@@ -107,7 +109,7 @@ final class ThemeManager
         // ⚠️ Vérifié ICI aussi, alors que l'écran ne propose qu'une liste : ce
         // point de passage est celui d'un import ou d'une commande, et une valeur
         // inconnue atteindrait le `<style>` du site.
-        foreach (['radius', 'density', 'typeScale'] as $axis) {
+        foreach (['radius', 'density', 'typeScale', 'photoTreatment'] as $axis) {
             if (!ThemePresets::isKnown($axis, $draft[$axis])) {
                 throw new \InvalidArgumentException('Préréglage inconnu : ' . $draft[$axis] . '.');
             }
@@ -158,6 +160,7 @@ final class ThemeManager
             $this->settings->set('site_radius', $draft['radius']);
             $this->settings->set('site_density', $draft['density']);
             $this->settings->set('site_type_scale', $draft['typeScale']);
+            $this->settings->set('site_photo_treatment', $draft['photoTreatment']);
         });
     }
 

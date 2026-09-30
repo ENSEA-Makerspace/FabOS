@@ -53,6 +53,19 @@ final class ThemePresets
         'grande' => 1.125,
     ];
 
+    /**
+     * Le traitement des photos des cartes du catalogue (2026-09-30, choix de
+     * l'opérateur : B, « gris léger, couleur au survol », après comparaison de
+     * trois variantes dans /admin/design). Clé → valeur de `data-photo-treatment`
+     * sur `<html>` ; `aucun` n'émet rien.
+     *
+     * @var array<string, ?string>
+     */
+    public const PHOTOS = [
+        'aucun' => null,
+        'gris' => 'mono',
+    ];
+
     /** Le barème livré, celui de `style.css`. */
     private const SPACING = ['xs' => 4, 'sm' => 8, 'md' => 16, 'lg' => 24, 'xl' => 32, '2xl' => 48, '3xl' => 64];
 
@@ -67,6 +80,7 @@ final class ThemePresets
             'radius' => array_key_exists($value, self::RADIUS),
             'density' => array_key_exists($value, self::DENSITY),
             'typeScale' => array_key_exists($value, self::TYPE),
+            'photoTreatment' => array_key_exists($value, self::PHOTOS),
             default => false,
         };
     }

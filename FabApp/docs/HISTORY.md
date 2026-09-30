@@ -148,3 +148,17 @@ question est reposée à chaque badge. Détail →
 `history/phase-P-espaces-acces-S175-S178.md`.
 🅿️ Une ligne de revue reste ouverte dans `ROADMAP.md` : la pastille « Libre à
 14:00 » sur `/places`, non mesurable la nuit.
+
+## Décision de design — le traitement des photos du catalogue (2026-09-30)
+
+Les photos de démo (Wikimedia Commons) venaient de sources différentes : fonds,
+lumières et cadrages juraient côte à côte. Trois variantes comparées dans
+`/admin/design`, sur les vraies cartes, une seule variable (le filtre) :
+**A** duotone de marque (plus forte identité, mais la couleur réelle
+disparaît — et un premier essai était criard), **B** gris léger avec la vraie
+couleur au survol et au clavier, **C** désaturation partielle chaude.
+L'opérateur a choisi **B**, « clairement ». A et C sont retirés du CSS et de la
+page de design. B est devenu un réglage du thème (Thèmes → Mise en page →
+Traitement des photos : aucun / gris léger), posé en `data-photo-treatment` sur
+`<html>` ; cartes du catalogue seulement, la fiche d'une machine garde ses
+couleurs (celle d'un filament ou d'un fil est une information).
