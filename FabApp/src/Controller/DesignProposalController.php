@@ -30,6 +30,7 @@ use App\Design\DoorSheet;
 use App\Design\ModuleReading;
 use App\Design\KioskHome;
 use App\Design\TrainingBuilder;
+use App\Design\AccountDecisionFile;
 use App\Design\PageProposals;
 use App\Search\SiteSearch;
 use App\Home\MemberToday;
@@ -93,6 +94,7 @@ final class DesignProposalController extends AbstractController
         ModuleReading $moduleReading,
         KioskHome $kioskHome,
         TrainingBuilder $trainingBuilder,
+        AccountDecisionFile $accountDecisionFile,
     ): Response
     {
         $proposal = $proposals->find($slug) ?? throw $this->createNotFoundException();
@@ -135,6 +137,7 @@ final class DesignProposalController extends AbstractController
             'module-cours' => ['reading' => $moduleReading->build($user, $request->query->getInt('formation') ?: null, max(1, $request->query->getInt('section', 1)))],
             'kiosque-accueil' => ['home' => $kioskHome->build()],
             'constructeur-formation' => ['builder' => $trainingBuilder->build($request->query->getInt('formation'))],
+            'validation-inscription' => ['file' => $accountDecisionFile->build(max(0, (int) $request->query->get('compte', 0)))],
             default => [],
         };
 

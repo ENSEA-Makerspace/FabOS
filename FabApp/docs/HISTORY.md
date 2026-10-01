@@ -181,7 +181,7 @@ indisponible » — la page ne connaissait que `missing_badge`. Et la boîte pho
 était bornée à 200 px par une règle des vignettes de l'accueil. Popularité en
 étoiles abandonnée (absente de la planche).
 
-## Phase V — les pages revues d'après les planches (2026-10-01, en cours)
+## Phase V — les pages revues d'après les planches (2026-10-01) — 25 propositions posées
 
 Demande de l'opérateur (AFK) : revoir chaque planche face à notre page, en garder
 les bonnes idées, et poser des **propositions en sous-pages du menu Développement**

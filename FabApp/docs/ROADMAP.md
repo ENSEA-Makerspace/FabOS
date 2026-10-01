@@ -58,6 +58,33 @@ notre page, en garder les bonnes idées (jamais une copie), et poser une
   planche et la page actuelle à un clic, « pris de la planche » / « gardé de
   chez nous ». Dire **retenue** ou **refusée** pour chacune.
 - 🅿️ Une proposition tranchée se supprime (gabarit, entrée, CSS `pp-*`).
+- **Les 25 propositions à trancher** (retenue / refusée / à revoir) :
+  - [ ] `espaces-catalogue` — Catalogue des espaces
+  - [ ] `mes-reservations` — Mes réservations
+  - [ ] `accueil-membre` — Accueil d’un membre connecté
+  - [ ] `mes-formations` — Mes formations
+  - [ ] `admin-attention` — Accueil admin : ce qui demande votre attention
+  - [ ] `recherche` — Recherche
+  - [ ] `evenements` — Événements
+  - [ ] `incidents-acces` — Incidents d’accès
+  - [ ] `annuaire-utilisateurs` — Annuaire des utilisateurs
+  - [ ] `prets-admin` — Prêts (comptoir)
+  - [ ] `fiche-lecteur` — Fiche d’un lecteur
+  - [ ] `exploitation-machine` — Exploitation d’une machine
+  - [ ] `maintenance` — Maintenance : une file d’intervention
+  - [ ] `profil-securite-emails` — Sécurité et e-mails du profil
+  - [ ] `parcours-reservation` — Réserver un espace (confirmation)
+  - [ ] `badge-obtenu` — Badge obtenu
+  - [ ] `rendez-vous` — Rendez-vous avec une personne
+  - [ ] `rapports` — Rapports : ce qu’il faut retenir, puis agir
+  - [ ] `validation-pratique` — Validation pratique
+  - [ ] `accueil-public` — Accueil d’un visiteur
+  - [ ] `point-acces` — Fiche d’un point d’accès
+  - [ ] `module-cours` — Lire une section d’une formation
+  - [ ] `kiosque-accueil` — Accueil de borne
+  - [ ] `constructeur-formation` — Construire une formation
+  - [ ] `validation-inscription` — Valider une inscription
+- Le tri complet (dont les 🟢 « on fait déjà aussi bien ») : `docs/references/PROPOSITIONS.md`.
 
 ## Cap produit
 

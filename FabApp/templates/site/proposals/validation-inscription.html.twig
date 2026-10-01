@@ -1,0 +1,150 @@
+{% extends 'base.html.twig' %}
+
+{#
+   PROPOSITION `validation-inscription` — un ÉCRAN DE DÉCISION pour un compte en attente.
+
+   Ce qui change par rapport à la fiche `/admin/utilisateurs/{id}` (admin-utilisateur-detail.html.twig) :
+   - le compte en attente (statut `pending`, la tuile « à valider » de la liste) a son dossier :
+     « Dossier N sur M » avec précédent / suivant, ce qu'on sait à gauche (identité, adresse
+     vérifiée ou non, date d'inscription, origine : formulaire ou fournisseur d'identité),
+     TROIS décisions au centre avec leur conséquence écrite dessous, « Qui sera notifié » à droite ;
+   - les boutons sont des LIENS vers la fiche réelle (aucun POST ici).
+   ⚠️ HONNÊTETÉ : aujourd'hui rien dans l'application ne crée de compte `pending`, la fiche n'a AUCUN
+   bouton « Valider » / « Refuser » pour lui (seul « Réactiver » existe, pour un compte `inactif`),
+   et aucun e-mail de validation ou de refus n'existe dans `MailTemplateCatalog`. Chaque décision le dit.
+   Données : `AccountDecisionFile::build()` (lecture seule). Styles : `pp-vi-*`.
+
+   ⚠️ Dans `.admin-panel`, `style.css` repeint tout <span> en gris `!important` : texte coloré ou gras
+   en <b>, <div>, <p>, jamais en <span>.
+
+   🅿️ À la décision : retirer ce gabarit, son entrée, la branche du contrôleur,
+   `AccountDecisionFile` et `proposals-validation-inscription.css`.
+#}
+
+{% block title %}Proposition — Valider une inscription{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals-validation-inscription.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+{% embed 'site/_admin_list.html.twig' with {
+    panel_title: 'Valider une inscription',
+} %}
+    {% block content %}
+        {% include 'site/proposals/_banner.html.twig' %}
+
+        {% set acct = file.user %}
+        <div class="pp-vi">
+            {% if acct is null %}
+                <p class="pp-vi-note"><b>Aucun compte dans la base :</b> rien à décider.</p>
+            {% else %}
+                {% if file.fallback == 'unverified' %}
+                    <p class="pp-vi-note"><b>Aucun compte n’est « en attente ».</b> Pour la démonstration, voici le premier compte dont l’adresse n’est pas vérifiée.</p>
+                {% elseif file.fallback == 'latest' %}
+                    <p class="pp-vi-note"><b>Aucun compte n’est « en attente » ni non vérifié.</b> Pour la démonstration, voici le dernier inscrit.</p>
+                {% endif %}
+
+                <div class="pp-vi-head">
+                    <h2>Valider une inscription</h2>
+                    <div class="pp-vi-pager">
+                        <p class="pp-vi-count">Dossier {{ file.index + 1 }} sur {{ file.total }}</p>
+                        {% if file.index > 0 %}
+                            <a class="pp-vi-step" href="?compte={{ file.index - 1 }}" aria-label="Dossier précédent">← Précédent</a>
+                        {% else %}
+                            <b class="pp-vi-step is-off">← Précédent</b>
+                        {% endif %}
+                        {% if file.index + 1 < file.total %}
+                            <a class="pp-vi-step" href="?compte={{ file.index + 1 }}" aria-label="Dossier suivant">Suivant →</a>
+                        {% else %}
+                            <b class="pp-vi-step is-off">Suivant →</b>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="pp-vi-cols">
+                    <section class="pp-vi-card" aria-labelledby="pp-vi-know">
+                        <h3 id="pp-vi-know">Ce qu’on sait</h3>
+                        <div class="pp-vi-who">
+                            <b>{{ acct.displayName }}</b>
+                            <p>Inscrit le {{ acct.createdAt|lab_date('d/m/Y H:i') }}</p>
+                        </div>
+                        <ul class="pp-vi-facts">
+                            <li class="pp-vi-fact">
+                                <div>
+                                    <b>Adresse e-mail</b>
+                                    <p>{{ acct.email }}</p>
+                                </div>
+                                {% if acct.verified %}
+                                    {% include 'site/_state_chip.html.twig' with { label: 'Vérifiée', signal: 'go' } only %}
+                                {% else %}
+                                    {% include 'site/_state_chip.html.twig' with { label: 'Non vérifiée', signal: 'caution' } only %}
+                                {% endif %}
+                            </li>
+                            <li class="pp-vi-fact">
+                                <div>
+                                    <b>Inscription par</b>
+                                    {% if file.origin.kind == 'external' %}
+                                        <p>Fournisseur d’identité « {{ file.origin.provider|default('?') }} » (compte créé par lui)</p>
+                                    {% elseif file.origin.kind == 'linked' %}
+                                        <p>Formulaire, puis lié au fournisseur « {{ file.origin.provider|default('?') }} »</p>
+                                    {% else %}
+                                        <p>Formulaire d’inscription</p>
+                                    {% endif %}
+                                </div>
+                                {% include 'site/_icon.html.twig' with { name: file.origin.kind == 'form' ? 'edit' : 'key' } only %}
+                            </li>
+                            <li class="pp-vi-fact">
+                                <div>
+                                    <b>Statut enregistré</b>
+                                    <p>{{ acct.statut }}</p>
+                                </div>
+                                {% include 'site/_state_chip.html.twig' with { label: acct.statusKey|trans, signal: file.fallback is null ? 'wait' : 'muted' } only %}
+                            </li>
+                        </ul>
+                    </section>
+
+                    <section class="pp-vi-card" aria-labelledby="pp-vi-decide">
+                        <h3 id="pp-vi-decide">Que souhaitez-vous faire ?</h3>
+
+                        <div class="pp-vi-choice is-main">
+                            <b>Valider</b>
+                            <p>Le compte passe à « actif » : la personne peut se connecter, réserver et se faire attribuer des droits.</p>
+                            <p class="pp-vi-caveat">Aucun e-mail n’est envoyé à la personne (aucun modèle de courrier de validation n’existe).</p>
+                            <a class="pp-vi-go" href="{{ path('app_admin_user_detail', { id: acct.id }) }}">Ouvrir la fiche</a>
+                        </div>
+
+                        <div class="pp-vi-choice is-off">
+                            <b>Demander une précision</b>
+                            <p>N’existe pas encore : aucun moyen d’écrire à la personne depuis son dossier, ni de mettre le compte « en attente d’une réponse ».</p>
+                            <b class="pp-vi-go is-off">Pas encore</b>
+                        </div>
+
+                        <div class="pp-vi-choice">
+                            <b>Refuser</b>
+                            <p>Aujourd’hui, le plus proche est « Désactiver » sur la fiche : le compte passe à « inactif », sessions et réservations à venir fermées. Pas de motif demandé, pas de statut « refusé ».</p>
+                            <p class="pp-vi-caveat">La personne n’est pas notifiée (aucun courrier de refus n’existe).</p>
+                            <a class="pp-vi-go" href="{{ path('app_admin_user_detail', { id: acct.id }) }}">Ouvrir la fiche</a>
+                        </div>
+                    </section>
+
+                    <section class="pp-vi-card" aria-labelledby="pp-vi-notify">
+                        <h3 id="pp-vi-notify">Qui sera notifié</h3>
+                        <ul class="pp-vi-who-list">
+                            <li>
+                                <b>{{ acct.displayName }}</b>
+                                <p>Personne, quelle que soit la décision : ni validation ni refus ne part par e-mail aujourd’hui.</p>
+                            </li>
+                            <li>
+                                <b>L’équipe d’administration</b>
+                                <p>Personne non plus : aucune notification à l’équipe n’existe pour ce changement de statut.</p>
+                            </li>
+                        </ul>
+                    </section>
+                </div>
+            {% endif %}
+        </div>
+    {% endblock %}
+{% endembed %}
+{% endblock %}

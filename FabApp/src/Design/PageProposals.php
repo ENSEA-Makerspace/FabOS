@@ -455,6 +455,24 @@ final class PageProposals
                 ],
                 'demo' => [],
             ],
+            [
+                'slug' => 'validation-inscription',
+                'title' => 'Valider une inscription',
+                'planche' => 'users/07-validation-inscription.png',
+                'current' => ['route' => 'app_admin_users', 'params' => [], 'label' => '/admin/utilisateurs (comptes en attente)'],
+                'shell' => 'admin',
+                'take' => [
+                    'Un écran de décision par compte en attente : « Dossier N sur M » avec précédent / suivant.',
+                    'Ce qu’on sait à gauche (identité, adresse vérifiée ou non, date et origine de l’inscription), trois décisions au centre, « Qui sera notifié » à droite.',
+                    'Chaque décision porte sa conséquence écrite dessous.',
+                ],
+                'keep' => [
+                    '⚠️ Aucun code ne crée aujourd’hui de compte « en attente » : l’inscription crée un compte actif, non vérifié tant que l’adresse n’est pas confirmée. Cet écran suppose de DÉCIDER d’abord qu’une inscription se valide.',
+                    'Ni « Valider », ni « Refuser » avec motif, ni « Demander une précision », ni e-mail de décision n’existent : l’écran le dit, et ses boutons mènent à la fiche réelle.',
+                    'Pas de pièces justificatives : FabOS n’en collecte pas.',
+                ],
+                'demo' => [],
+            ],
         ];
     }
 

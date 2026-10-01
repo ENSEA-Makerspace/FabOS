@@ -14,7 +14,7 @@ Tri du 2026-10-01 (lecture des planches et des gabarits ; la valeur /5 = gain po
 | `04-exploitation-espaces.png` | 🟡 [Proposition](/admin/propositions/admin-attention) (4/5) — fusionné avec « vue d'ensemble Équipement » : `/admin` en blocs « ce qui demande une action ». |
 | `05-mise-en-service-point-acces.png` | 🟡 [Proposition](/admin/propositions/point-acces) (2/5) — la checklist `_commissioning` sur la fiche du point d'accès. |
 | `06-incidents-acces.png` | 🟡 [Proposition](/admin/propositions/incidents-acces) (3/5) — tuiles par cause avec compteur, « À traiter » par défaut ; santé des points. |
-| `07-kiosque-entree.png` | 🅿️ pas de page (2/5) — écran de porte « Badgez votre carte » par lieu. |
+| `07-kiosque-entree.png` | 🟡 [Dans « Accueil de borne »](/admin/propositions/kiosque-accueil) (2/5) — pavé « Badgez votre carte ». |
 | `08-mes-reservations.png` | 🟡 [Proposition](/admin/propositions/mes-reservations) — la prochaine en tête (quand, quoi, fenêtre de porte), le reste en lignes datées. |
 
 ## equipement
@@ -36,11 +36,11 @@ Tri du 2026-10-01 (lecture des planches et des gabarits ; la valeur /5 = gain po
 |---|---|
 | `01-creation-compte.png` | 🟢 égal (1/5) — « Et après ? », étapes, CGU, mot de passe visible : déjà. |
 | `02-confirmation-email.png` | 🟢 égal (1/5) — renvoyer, corriger l'adresse, « pas reçu ? » : déjà. |
-| `03-profil-adhesion.png` | 🅿️ pas de page (1/5) — pas d'adhésion payante dans FabOS. |
+| `03-profil-adhesion.png` | 🅿️ pas proposé (1/5) — pas d'adhésion payante dans FabOS (Phase R, commerce). |
 | `04-accueil-membre.png` | 🟡 [Proposition](/admin/propositions/accueil-membre) (4/5) — « À faire » avec un verbe par ligne, prochaine réservation, mes accès. |
 | `05-profil-securite.png` | 🟡 [Proposition](/admin/propositions/profil-securite-emails) (2/5) — une section « Sécurité » à part, une ligne par chose ; export de mes données. |
 | `06-droits-et-acces-admin.png` | 🟢 égal (1/5) — le même composant que le membre voit (`_usage_rights_summary`). |
-| `07-validation-inscription.png` | 🅿️ pas de page (2/5) — pas de flux valider / demander / refuser une inscription. |
+| `07-validation-inscription.png` | 🟡 [Proposition](/admin/propositions/validation-inscription) (2/5) — ⚠️ suppose de décider qu'une inscription se valide : aucun compte « en attente » n'est créé aujourd'hui. |
 | `08-annuaire-utilisateurs.png` | 🟡 [Proposition](/admin/propositions/annuaire-utilisateurs) (3/5) — tuiles « À valider / Suspendu / Expire bientôt », formations en « 3/4 », dernière activité. |
 
 ## productwide
@@ -53,7 +53,7 @@ Tri du 2026-10-01 (lecture des planches et des gabarits ; la valeur /5 = gain po
 | `04-maintenance.png` | 🟡 [Proposition](/admin/propositions/maintenance) (2/5) — verbe par ligne (« Démarrer » / « Terminer ») et tuile « Cette semaine ». |
 | `05-configuration.png` | 🟢 égal (1/5) — cartes par domaine avec état résumé : déjà (S132). |
 | `06-creations.png` | 🟢 égal (1/5) — grille, auteur, épingle, partage : déjà. |
-| `07-kiosque.png` | 🅿️ pas de page (2/5) — accueil de borne : trois grosses tuiles. |
+| `07-kiosque.png` | 🟡 [Proposition](/admin/propositions/kiosque-accueil) (2/5) — accueil de borne : état du jour, trois grosses tuiles. |
 
 ## coordination
 
@@ -70,9 +70,9 @@ Tri du 2026-10-01 (lecture des planches et des gabarits ; la valeur /5 = gain po
 
 | Planche | Verdict |
 |---|---|
-| `lms-course-module.png` | 🅿️ pas de page (2/5) — pas de modèle de module. |
+| `lms-course-module.png` | 🟡 [Proposition](/admin/propositions/module-cours) (2/5) — une page par section, sommaire, précédent/suivant. |
 | `lms-my-trainings.png` | 🟡 [Proposition](/admin/propositions/mes-formations) (4/5) — « Mes formations » : à reprendre, en cours, terminées. |
-| `lms-practical-exercise-file.png` | 🅿️ pas de page (1/5) — exercices pratiques non modélisés. |
+| `lms-practical-exercise-file.png` | 🅿️ pas proposé (1/5) — exercices pratiques non modélisés ; la consigne pourrait vivre dans une section (voir « module-cours »). |
 | `lms-practical-validations-queue.png` | 🟢 égal (1/5) — bâtie sur cette planche (S180). |
 | `lms-quiz-question-types.png` | 🟢 égal (1/5) — types de question et progression : déjà. |
 | `lms-quiz-result-retry.png` | 🟢 égal (1/5) — score, points à revoir, rejouer : déjà. |
