@@ -1,0 +1,135 @@
+{% extends 'base.html.twig' %}
+
+{#
+   PROPOSITION `validation-pratique` — un ÉCRAN de validation pour une personne × une formation.
+
+   Ce qui change vs `/admin/validations-pratiques` → fiche utilisateur :
+   - la file mène aujourd'hui à la fiche de la personne, où la validation est UN
+     bouton POST sans contexte. Ici : un dossier qui dit QUI (avatar, nom), QUELLE
+     formation, CE QU'ELLE A DÉJÀ FAIT (théorie, quiz x/y, depuis quand), CE QU'IL
+     FAUT OBSERVER, CE QUE LA VALIDATION OUVRE (badge + machines) ;
+   - le bouton « Valider » est un LIEN vers la fiche réelle, qui porte le vrai
+     bouton (aucun POST ici) ; « Pas encore » revient à la file.
+   - `?dossier=<n>` : index dans `PracticalQueue::pending()` (défaut : le premier).
+
+   ⚠️ « À observer sur la machine » : AUCUN modèle de checklist n'existe. On
+   découpe en lignes le champ texte `objectifs` de la formation ; à défaut on
+   montre les SECTIONS de la formation. Une vraie checklist (compétences
+   propres à la validation, avec « Acquis / À revoir » enregistrés, note,
+   évaluateur, historique des tentatives) demanderait un modèle NEUF.
+   « Acquis / À revoir » est purement visuel ici, présenté en exemple.
+
+   Données : `PracticalValidation::build()` (lecture seule). Styles : `pp-vp-*`.
+   ⚠️ Dans `.admin-panel`, pas de <span> coloré : <b>, <div>, <p>.
+
+   🅿️ À la décision : retirer ce gabarit, son entrée, la branche du contrôleur,
+   `src/Design/PracticalValidation.php` et `public/css/proposals-validation-pratique.css`.
+#}
+
+{% block title %}Proposition — Validation pratique{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals-validation-pratique.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+{% embed 'site/_admin_list.html.twig' with {
+    panel_title: 'Validation pratique',
+} %}
+    {% block content %}
+        {% include 'site/proposals/_banner.html.twig' %}
+
+        <div class="pp-vp">
+        {% if dossier is null %}
+            <p class="pp-vp-note">Aucune personne en attente et aucune progression non terminée d’une formation à validation pratique : rien à montrer.</p>
+        {% else %}
+            {% if dossier.fallback %}
+                <p class="pp-vp-note"><b>Note :</b> personne n’attend de validation ; ce dossier est une progression non terminée d’une formation qui exige une validation pratique, prise pour la démonstration.</p>
+            {% elseif dossier.count > 1 %}
+                <p class="pp-vp-note">Dossier {{ dossier.dossier + 1 }} sur {{ dossier.count }} en attente
+                    {% if dossier.dossier + 1 < dossier.count %}· <a href="?dossier={{ dossier.dossier + 1 }}">Dossier suivant</a>{% endif %}
+                    {% if dossier.dossier > 0 %}· <a href="?dossier={{ dossier.dossier - 1 }}">Précédent</a>{% endif %}
+                </p>
+            {% endif %}
+
+            {% set journey = dossier.journey %}
+            <div class="pp-vp-grid">
+                <div class="pp-vp-main">
+                    <section class="detail-card">
+                        <div class="pp-vp-who">
+                            {% include 'site/_user_avatar.html.twig' with { user: dossier.user, size: 64 } only %}
+                            <div>
+                                <p class="pp-vp-name">{{ dossier.user.displayName }}</p>
+                                <p class="pp-vp-meta">{{ dossier.formation.titre }}{% if dossier.physical != dossier.formation %} · {{ dossier.physical.titre }}{% endif %}</p>
+                                <div class="pp-vp-done">
+                                    {% include 'site/_state_chip.html.twig' with { label: 'Théorie validée', signal: 'go' } only %}
+                                    {% include 'site/_state_chip.html.twig' with {
+                                        label: 'Quiz ' ~ journey.quizValidated ~ ' / ' ~ journey.quizTotal,
+                                        signal: journey.quizValidated == journey.quizTotal ? 'go' : 'wait',
+                                    } only %}
+                                    {% if dossier.since %}
+                                        <p class="pp-vp-meta">Attend depuis le {{ dossier.since|lab_date('d/m H:i') }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="detail-card">
+                        <h2 class="pp-vp-title">À observer sur la machine</h2>
+                        {% if dossier.points|length %}
+                            <ul class="pp-vp-list">
+                                {% for point in dossier.points %}
+                                    <li class="pp-vp-item">
+                                        <b class="pp-vp-num">{{ loop.index }}</b>
+                                        <div class="pp-vp-txt">{{ point }}</div>
+                                        <b class="pp-vp-pick{{ loop.index is odd ? ' is-on' : '' }}">Acquis</b>
+                                        <b class="pp-vp-pick{{ loop.index is even ? ' is-redo' : '' }}">À revoir</b>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                            <p class="pp-vp-note">
+                                {% if dossier.pointsSource == 'objectifs' %}
+                                    Points tirés du champ « objectifs » de la formation, coupé en lignes.
+                                {% else %}
+                                    Cette formation n’a pas d’objectifs : on montre ses sections, faute de mieux.
+                                {% endif %}
+                                Une vraie checklist (compétences propres à la validation, « Acquis / À revoir » enregistrés, note, historique) demanderait un modèle neuf. Les boutons ci-dessus sont un exemple, rien ne se coche.
+                            </p>
+                        {% else %}
+                            <p class="pp-vp-note">Cette formation n’a ni objectifs ni sections : aucun point à lister. Une checklist demanderait un modèle neuf.</p>
+                        {% endif %}
+                    </section>
+
+                    <div class="pp-vp-actions">
+                        <a class="btn" href="{{ path('app_admin_practical_queue') }}">Pas encore</a>
+                        <a class="btn btn-primary-admin" href="{{ path('app_admin_user_detail', {id: dossier.user.id}) }}">Valider</a>
+                    </div>
+                    <p class="pp-vp-note">« Valider » ouvre la fiche de la personne, où se trouve le vrai bouton : cet écran n’enregistre rien.</p>
+                </div>
+
+                <aside class="pp-vp-side">
+                    <section class="detail-card pp-vp-open">
+                        <h2 class="pp-vp-title">Ce que cette validation ouvre</h2>
+                        {% if journey.badge %}
+                            <p><b>Badge : {{ journey.badge.nom }}</b></p>
+                        {% endif %}
+                        {% if journey.machines|length %}
+                            <ul>
+                                {% for machine in journey.machines %}
+                                    <li>{{ machine.nom }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="pp-vp-note">Ce badge n’ouvre aucune machine pour l’instant.</p>
+                        {% endif %}
+                    </section>
+                </aside>
+            </div>
+        {% endif %}
+        </div>
+    {% endblock %}
+{% endembed %}
+{% endblock %}

@@ -21,6 +21,10 @@ use App\Design\MyTrainings;
 use App\Design\MaintenanceQueue;
 use App\Design\AccountSecurityEmails;
 use App\Design\BookingConfirmation;
+use App\Design\BadgeHeld;
+use App\Design\PersonAppointment;
+use App\Design\ReportingBrief;
+use App\Design\PracticalValidation;
 use App\Design\PageProposals;
 use App\Search\SiteSearch;
 use App\Home\MemberToday;
@@ -75,6 +79,10 @@ final class DesignProposalController extends AbstractController
         MaintenanceQueue $maintenanceQueue,
         AccountSecurityEmails $accountSecurityEmails,
         BookingConfirmation $bookingConfirmation,
+        BadgeHeld $badgeHeld,
+        PersonAppointment $personAppointment,
+        ReportingBrief $reportingBrief,
+        PracticalValidation $practicalValidation,
     ): Response
     {
         $proposal = $proposals->find($slug) ?? throw $this->createNotFoundException();
@@ -108,6 +116,10 @@ final class DesignProposalController extends AbstractController
             'maintenance' => ['queue' => $maintenanceQueue->build($request->query->getString('tuile'))],
             'profil-securite-emails' => ['account' => $user === null ? null : $accountSecurityEmails->for($user)],
             'parcours-reservation' => ['booking' => $bookingConfirmation->build($request, $user)],
+            'badge-obtenu' => ['held' => $badgeHeld->for($request->query->getInt('badge') ?: null, $user)],
+            'rendez-vous' => ['appointment' => $personAppointment->build($request->query->getInt('personne') ?: null, $request->query->get('jour'), $request->query->get('creneau'), $request->query->getInt('duree') ?: null)],
+            'rapports' => ['brief' => $reportingBrief->build($request->query->getString('espace') === 'spaces' ? 'spaces' : 'equipment', $request->query->getInt('jours', 30))],
+            'validation-pratique' => ['dossier' => $practicalValidation->build($request->query->getInt('dossier'))],
             default => [],
         };
 

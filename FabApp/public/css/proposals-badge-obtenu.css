@@ -1,0 +1,26 @@
+/* Proposition « badge obtenu » : un badge vu par qui le détient. */
+.pp-bo-head { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: var(--spacing-lg); align-items: center; }
+.pp-bo-head img { width: 120px; height: 120px; object-fit: contain; }
+.pp-bo-lead { margin: 0 0 var(--spacing-xs); font-size: var(--font-size-xl); font-weight: 700; color: var(--color-primary-text, var(--color-primary)); }
+.pp-bo-lead.is-wish { color: var(--color-text); }
+.pp-bo-title { margin: 0 0 var(--spacing-xs); }
+.pp-bo-meta { margin: 0; display: flex; flex-wrap: wrap; gap: 4px var(--spacing-md); color: var(--color-text-light); font-size: var(--font-size-sm); }
+.pp-bo-meta svg { width: 14px; height: 14px; vertical-align: -2px; }
+.pp-bo-actions { margin-top: var(--spacing-md); display: flex; flex-wrap: wrap; gap: var(--spacing-sm); }
+.pp-bo-opens { margin-top: var(--spacing-lg); }
+.pp-bo-opens h2 { margin: 0 0 var(--spacing-sm); font-size: var(--font-size-lg); }
+.pp-bo-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--spacing-md); }
+.pp-bo-item { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: var(--spacing-md); align-items: center; padding: var(--spacing-sm); border: 1px solid var(--border-color); border-radius: var(--border-radius); background: var(--theme-surface); }
+.pp-bo-media { aspect-ratio: 4 / 3; border-radius: calc(var(--border-radius) - 4px); background: color-mix(in srgb, var(--color-primary) 6%, var(--theme-surface)); display: grid; place-items: center; color: var(--color-primary); overflow: hidden; }
+.pp-bo-media svg { width: 42%; height: auto; }
+.pp-bo-media img { width: 100%; height: 100%; object-fit: cover; }
+.pp-bo-item h3 { margin: 0 0 4px; font-size: var(--font-size-md); }
+.pp-bo-kind { margin: 0 0 var(--spacing-xs); color: var(--color-text-light); font-size: var(--font-size-sm); }
+.pp-bo-empty { color: var(--color-text-light); font-style: italic; }
+.pp-bo-path h2 { margin: 0 0 var(--spacing-xs); font-size: var(--font-size-lg); }
+.pp-bo-path + .pp-bo-path { margin-top: var(--spacing-lg); }
+.pp-bo-back { margin-top: var(--spacing-lg); text-align: center; }
+@media (max-width: 640px) {
+    .pp-bo-head { grid-template-columns: 72px minmax(0, 1fr); }
+    .pp-bo-head img { width: 72px; height: 72px; }
+}

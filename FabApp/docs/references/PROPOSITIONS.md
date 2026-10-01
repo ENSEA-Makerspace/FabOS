@@ -60,7 +60,7 @@ Tri du 2026-10-01 (lecture des planches et des gabarits ; la valeur /5 = gain po
 | Planche | Verdict |
 |---|---|
 | `01-calendrier.png` | 🟢 égal (1/5) — semaine/mois, prochain créneau : déjà ; filtres retirés exprès (S146c). |
-| `02-rendez-vous-personne.png` | 🟡 à proposer (2/5) — « prochain créneau » en tête, bande de jours cliquables. |
+| `02-rendez-vous-personne.png` | 🟡 [Proposition](/admin/propositions/rendez-vous) (2/5) — « prochain créneau » en tête, bande de jours cliquables. |
 | `03-groupes.png` | 🟢 égal (1/5) — membres, rôle, validité, lots de droits : déjà. |
 | `04-mon-badge.png` | 🟢 égal (1/5) — `_badge_reach` dans le profil ; à ajouter peut-être « dernière utilisation ». |
 | `05-recherche.png` | 🟡 [Proposition](/admin/propositions/recherche) (3/5) — accès rapides avant saisie, filtre par type avec compteurs. |
@@ -76,10 +76,10 @@ Tri du 2026-10-01 (lecture des planches et des gabarits ; la valeur /5 = gain po
 | `lms-practical-validations-queue.png` | 🟢 égal (1/5) — bâtie sur cette planche (S180). |
 | `lms-quiz-question-types.png` | 🟢 égal (1/5) — types de question et progression : déjà. |
 | `lms-quiz-result-retry.png` | 🟢 égal (1/5) — score, points à revoir, rejouer : déjà. |
-| `lms-staff-practical-validation.png` | 🟡 à proposer (3/5) — checklist de compétences ; exige un modèle de checklist. |
+| `lms-staff-practical-validation.png` | 🟡 [Proposition](/admin/propositions/validation-pratique) (3/5) — checklist de compétences ; exige un modèle de checklist. |
 | `lms-training-builder.png` | 🟡 à proposer (2/5) — un seul parcours ordonné (modules, quiz, validation). |
 | `lms-training-catalogue.png` | 🟡 [Dans « Mes formations »](/admin/propositions/mes-formations) (3/5) — verbe de carte selon l'état (Commencer / Continuer) et « À reprendre ». |
-| `lms-training-certificate-badge.png` | 🟡 à proposer (2/5) — page de réussite : « vous êtes autorisé à… ». |
+| `lms-training-certificate-badge.png` | 🟡 [Proposition](/admin/propositions/badge-obtenu) (2/5) — page de réussite : « vous êtes autorisé à… ». |
 | `lms-training-overview.png` | 🟢 égal (1/5) — prochaine étape et parcours : déjà (S179). |
 
 ## finalsurface
@@ -88,5 +88,5 @@ Tri du 2026-10-01 (lecture des planches et des gabarits ; la valeur /5 = gain po
 |---|---|
 | `01-accueil-configurable.png` | 🟡 à proposer (2/5) — « Ouvert aujourd'hui », espaces et équipements libres du jour. |
 | `02-acces-exceptionnels.png` | 🟢 égal (1/5) — motif, portée, validité, révocation : déjà. |
-| `03-rapports.png` | 🟡 à proposer (2/5) — lignes cliquables, bande « à retenir » avec un verbe. |
+| `03-rapports.png` | 🟡 [Proposition](/admin/propositions/rapports) (2/5) — lignes cliquables, bande « à retenir » avec un verbe. |
 | `04-recuperation-compte.png` | 🟢 égal (1/5) — réponse non divulgante : déjà. |

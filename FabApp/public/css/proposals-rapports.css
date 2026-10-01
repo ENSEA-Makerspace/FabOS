@@ -1,0 +1,33 @@
+/* Proposition `rapports` — préfixe pp-rp-, jetons du thème seulement.
+   🅿️ Se supprime avec la proposition. */
+
+.pp-rp { display: grid; gap: var(--spacing-lg); padding-block: var(--spacing-md); }
+
+.pp-rp-switch { display: flex; flex-wrap: wrap; gap: var(--spacing-md); margin: 0; font-size: var(--font-size-sm); color: var(--color-text-light); }
+.pp-rp-switch a { color: var(--color-primary-text); }
+.pp-rp-switch b { color: var(--color-text); }
+
+.pp-rp-head { display: grid; gap: var(--spacing-xs); }
+.pp-rp-title { margin: 0; font-size: var(--font-size-lg); color: var(--color-text); }
+.pp-rp-sub { margin: 0; color: var(--color-text-light); font-size: var(--font-size-sm); }
+
+.pp-rp-finds { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--spacing-md); grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.pp-rp-find {
+    display: grid; align-content: start; gap: var(--spacing-xs);
+    padding: var(--spacing-md); border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm); background: var(--theme-surface);
+}
+.pp-rp-find-text { margin: 0; color: var(--color-text); font-weight: var(--font-weight-semibold); }
+.pp-rp-find-hint { margin: 0; color: var(--color-text-light); font-size: var(--font-size-sm); }
+.pp-rp-find-verb { justify-self: start; color: var(--color-primary-text); font-weight: var(--font-weight-semibold); }
+.pp-rp-calm { margin: 0; color: var(--color-text-light); }
+
+.pp-rp-table { width: 100%; }
+.pp-rp-name { color: var(--color-primary-text); font-weight: var(--font-weight-semibold); }
+
+.pp-rp-idle { margin: 0; color: var(--color-text-light); font-size: var(--font-size-sm); }
+.pp-rp-idle a { color: var(--color-primary-text); }
+
+@media (max-width: 640px) {
+    .pp-rp-table th:nth-child(4), .pp-rp-table td:nth-child(4) { display: none; }
+}

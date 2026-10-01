@@ -1,0 +1,38 @@
+/* Proposition `validation-pratique` — préfixe pp-vp-, jetons du thème seulement.
+   🅿️ Se supprime avec la proposition. */
+
+.pp-vp { display: grid; gap: var(--spacing-lg); padding-block: var(--spacing-md); }
+.pp-vp-note { margin: 0; color: var(--color-text-light); font-size: var(--font-size-sm); }
+.pp-vp-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: var(--spacing-lg); align-items: start; }
+.pp-vp-main, .pp-vp-side { display: grid; gap: var(--spacing-md); }
+
+.pp-vp-who { display: flex; align-items: center; gap: var(--spacing-md); }
+.pp-vp-name { margin: 0; font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--color-text); }
+.pp-vp-meta { margin: 0; color: var(--color-text-light); font-size: var(--font-size-sm); }
+.pp-vp-done { display: flex; flex-wrap: wrap; gap: var(--spacing-sm); margin-top: var(--spacing-xs); }
+
+.pp-vp-title { margin: 0 0 var(--spacing-sm); font-size: var(--font-size-md); color: var(--color-primary-text); }
+.pp-vp-list { list-style: none; margin: 0; padding: 0; display: grid; }
+.pp-vp-item {
+    display: grid; grid-template-columns: 2em minmax(0, 1fr) auto auto; gap: var(--spacing-sm);
+    align-items: center; padding: var(--spacing-sm) 0; border-top: 1px solid var(--border-color);
+}
+.pp-vp-item:first-child { border-top: 0; }
+.pp-vp-num { color: var(--color-text-light); }
+.pp-vp-txt { color: var(--color-text); }
+.pp-vp-pick {
+    border: 1px solid var(--border-color); border-radius: 999px; padding: 2px 12px;
+    font-size: var(--font-size-sm); color: var(--color-text-light); background: var(--theme-surface);
+}
+.pp-vp-pick.is-on { border-color: var(--color-ok); color: var(--color-ok); font-weight: var(--font-weight-semibold); }
+.pp-vp-pick.is-redo { border-color: var(--color-warn); color: var(--color-warn); font-weight: var(--font-weight-semibold); }
+
+.pp-vp-open { display: grid; gap: var(--spacing-xs); }
+.pp-vp-open ul { margin: 0; padding-left: 1.2em; color: var(--color-text); }
+
+.pp-vp-actions { display: flex; flex-wrap: wrap; gap: var(--spacing-sm); align-items: center; justify-content: flex-end; }
+
+@media (max-width: 800px) {
+    .pp-vp-grid { grid-template-columns: minmax(0, 1fr); }
+    .pp-vp-item { grid-template-columns: 2em minmax(0, 1fr); }
+}

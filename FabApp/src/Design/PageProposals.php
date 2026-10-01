@@ -295,6 +295,77 @@ final class PageProposals
                 ],
                 'demo' => ['?membre=45' => 'avec alice (délai d’annulation, iCal)'],
             ],
+            [
+                'slug' => 'badge-obtenu',
+                'title' => 'Badge obtenu',
+                'planche' => 'formations/lms-training-certificate-badge.png',
+                'current' => ['route' => 'app_badges', 'params' => [], 'label' => '/badges/{id}'],
+                'shell' => 'public',
+                'take' => [
+                    '« Vous êtes autorisé·e à … » en tête : ce que le badge ouvre (machines et pièces), chacune avec son image et un bouton « Réserver ».',
+                    '« Obtenu le … » et la formation qui l’a donné, avec son parcours en étapes faites.',
+                    'Pour qui ne le détient pas : « Ce que ce badge ouvrirait » et « Commencer la formation ».',
+                ],
+                'keep' => [
+                    'Pas de « Télécharger mon certificat » : le certificat PDF n’existe pas.',
+                    'Le parcours est celui de `LearnerJourney` (mêmes libellés), pas une seconde logique.',
+                    'Les pièces comptent aussi (`PLACE_BADGE`), pas seulement les machines.',
+                ],
+                'demo' => ['?membre=45' => 'vu par alice'],
+            ],
+            [
+                'slug' => 'rendez-vous',
+                'title' => 'Rendez-vous avec une personne',
+                'planche' => 'coordination/02-rendez-vous-personne.png',
+                'current' => ['route' => 'app_trainers', 'params' => [], 'label' => '/personnes/{id}/reserver'],
+                'shell' => 'public',
+                'take' => [
+                    'En tête, la personne avec « Prochain créneau disponible » en évidence et un bouton qui le prend.',
+                    'Une bande de 14 jours cliquables avec le nombre de créneaux libres ; seulement les créneaux du jour choisi, au lieu de tous les jours empilés.',
+                    'À droite, « Votre rendez-vous » qui se remplit au choix du créneau.',
+                ],
+                'keep' => [
+                    'Les créneaux viennent de `PersonAvailabilityService::dailySlots()`, le même appel que la page actuelle.',
+                    'La demande libre pour un autre moment et la confirmation (droits d’usage) restent sur la vraie page.',
+                ],
+                'demo' => [],
+            ],
+            [
+                'slug' => 'rapports',
+                'title' => 'Rapports : ce qu’il faut retenir, puis agir',
+                'planche' => 'finalsurface/03-rapports.png',
+                'current' => ['route' => 'app_admin_reporting', 'params' => ['workspace' => 'equipment'], 'label' => '/admin/reporting/equipment'],
+                'shell' => 'admin',
+                'take' => [
+                    'Une bande « À retenir » en tête : trois constats courts tirés des mêmes chiffres, chacun avec UN verbe vers la fiche ou la liste où l’on agit.',
+                    'Chaque ligne du classement ouvre la fiche de la machine ou de l’espace, avec sa part des réservations.',
+                    'La période en trois tuiles (7 / 30 / 90 jours), comparée à la période précédente.',
+                ],
+                'keep' => [
+                    'Les chiffres viennent du même adaptateur que la page actuelle (`ReportingRegistry`).',
+                    'Dates libres, tableau jour par jour et export CSV restent sur la page réelle.',
+                    'Pas de graphique inventé : le reporting n’a pas de série à tracer.',
+                ],
+                'demo' => ['?espace=spaces' => 'espaces', '?jours=90' => '90 jours'],
+            ],
+            [
+                'slug' => 'validation-pratique',
+                'title' => 'Validation pratique',
+                'planche' => 'formations/lms-staff-practical-validation.png',
+                'current' => ['route' => 'app_admin_practical_queue', 'params' => [], 'label' => '/admin/validations-pratiques'],
+                'shell' => 'admin',
+                'take' => [
+                    'Un ÉCRAN de validation pour une personne × une formation, ouvert depuis la file : qui, quelle formation, ce qu’elle a déjà fait (théorie, quiz x/y).',
+                    '« À observer sur la machine » : des points à regarder, « Acquis / À revoir » par ligne.',
+                    '« Ce que cette validation ouvre » : le badge et ses machines, avant de décider.',
+                ],
+                'keep' => [
+                    'La file se DÉDUIT (finir la théorie est la demande) : rien à demander.',
+                    'Le vrai geste reste sur la fiche utilisateur : « Valider » y mène, l’écran n’écrit rien.',
+                    '⚠️ Une vraie checklist enregistrée (points, note, évaluateur, tentatives) demanderait un modèle NEUF : ici les points viennent du texte « objectifs » de la formation, et « Acquis / À revoir » est un exemple visuel.',
+                ],
+                'demo' => ['?dossier=1' => 'dossier suivant'],
+            ],
         ];
     }
 

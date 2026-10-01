@@ -1,0 +1,150 @@
+{% extends 'site/base_public.html.twig' %}
+
+{# PROPOSITION — « Rendez-vous avec une personne », d'après
+   `coordination/02-rendez-vous-personne.png`.
+   Aujourd'hui `/personnes/{id}/reserver` empile TOUS les jours de créneaux (21 jours)
+   dans une carte, avec le formulaire au bout. Ici :
+   1. en tête, la personne et « Prochain créneau disponible » avec un bouton qui le prend ;
+   2. une bande de 14 jours (nombre de créneaux libres par jour, jours vides grisés) ;
+   3. seulement les créneaux du jour choisi (`?jour=`) ;
+   4. à droite « Votre rendez-vous » (`?creneau=`), dont le bouton mène à la vraie page.
+   Les créneaux viennent de `PersonAvailabilityService::dailySlots()` (même appel que
+   le contrôleur actuel). Aucun POST.
+   🅿️ À la décision : retirer ce gabarit, son entrée, la branche du contrôleur,
+   `src/Design/PersonAppointment.php` et `public/css/proposals-rendez-vous.css`. #}
+
+{% block title %}Proposition — Rendez-vous avec une personne - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals-rendez-vous.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+{% include 'site/proposals/_banner.html.twig' %}
+<main id="main-content" tabindex="-1" class="main-content">
+    <section class="machine-detail-section">
+        <div class="container pp-rdv">
+            <h1>Prendre rendez-vous</h1>
+
+            {% if appointment.person is null %}
+                <section class="detail-card">
+                    <p>Personne n’accepte de rendez-vous pour l’instant : une personne doit être marquée « réservable » dans sa fiche d’administration.</p>
+                </section>
+            {% else %}
+                {% set person = appointment.person %}
+                {% set pid = person.id %}
+                {% set dur = appointment.duration %}
+                {% set soon = appointment.next %}
+                {% set day = appointment.day %}
+                {% set slot = appointment.slot %}
+                {% set dayKey = day ? day.date|date('Y-m-d') : null %}
+
+                <div class="pp-rdv-grid">
+                    <div class="pp-rdv-main">
+                        <section class="detail-card pp-rdv-person">
+                            <div class="pp-rdv-avatar">
+                                {% include 'site/_user_avatar.html.twig' with {user: person, size: 96, alt: person.displayName} only %}
+                            </div>
+                            <div class="pp-rdv-id">
+                                <h2>{{ person.displayName }}</h2>
+                                <p class="pp-rdv-role">
+                                    {% if person.isTrainer %}{{ 'trainers.role_label'|trans }}{% endif %}{% if person.isTrainer and person.isStaff %} · {% endif %}{% if person.isStaff %}{{ 'staff.role_label'|trans }}{% endif %}
+                                </p>
+                                {% if person.bookingNote %}<p class="pp-rdv-note">{{ person.bookingNote }}</p>{% endif %}
+                            </div>
+                            <div class="pp-rdv-nextslot">
+                                <p class="pp-rdv-kicker">Prochain créneau disponible</p>
+                                {% if soon %}
+                                    <p class="pp-rdv-nextwhen">
+                                        <b>{{ ('booking.weekday.' ~ soon.date.format('N'))|trans }} {{ soon.date|date('d/m') }} · {{ soon.slot.start|date('H:i') }}</b>
+                                    </p>
+                                    <a class="btn btn-primary" href="{{ path('app_admin_proposal', {slug: 'rendez-vous', personne: pid, duree: dur, jour: soon.date|date('Y-m-d'), creneau: soon.slot.start|date('H:i')}) }}">Prendre ce créneau</a>
+                                {% else %}
+                                    <p class="pp-rdv-nextwhen">Aucun créneau dans les 21 prochains jours.</p>
+                                {% endif %}
+                            </div>
+                        </section>
+
+                        {% if appointment.durations|length > 1 %}
+                            <nav class="pp-rdv-durations" aria-label="Durée">
+                                {% for d in appointment.durations %}
+                                    <a href="{{ path('app_admin_proposal', {slug: 'rendez-vous', personne: pid, duree: d}) }}"
+                                       class="pp-rdv-chip{{ d == dur ? ' is-active' : '' }}"{% if d == dur %} aria-current="true"{% endif %}>{{ 'booking.duration_minutes'|trans({'%minutes%': d}) }}</a>
+                                {% endfor %}
+                            </nav>
+                        {% endif %}
+
+                        <section>
+                            <h2 class="pp-rdv-h">Choisir un jour</h2>
+                            <ol class="pp-rdv-strip">
+                                {% for s in appointment.strip %}
+                                    <li>
+                                        {% if s.free > 0 %}
+                                            <a class="pp-rdv-day{{ s.key == dayKey ? ' is-active' : '' }}"
+                                               href="{{ path('app_admin_proposal', {slug: 'rendez-vous', personne: pid, duree: dur, jour: s.key}) }}"
+                                               {% if s.key == dayKey %}aria-current="date"{% endif %}>
+                                                <b>{{ ('booking.weekday.' ~ s.dow)|trans|slice(0, 3) }}</b>
+                                                <strong>{{ s.date|date('d/m') }}</strong>
+                                                <small>{{ s.free }} libre{{ s.free > 1 ? 's' : '' }}</small>
+                                            </a>
+                                        {% else %}
+                                            <div class="pp-rdv-day is-empty" aria-disabled="true">
+                                                <b>{{ ('booking.weekday.' ~ s.dow)|trans|slice(0, 3) }}</b>
+                                                <strong>{{ s.date|date('d/m') }}</strong>
+                                                <small>—</small>
+                                            </div>
+                                        {% endif %}
+                                    </li>
+                                {% endfor %}
+                            </ol>
+                        </section>
+
+                        {% if day %}
+                            <section>
+                                <h2 class="pp-rdv-h">{{ ('booking.weekday.' ~ day.dayLabel)|trans }} {{ day.date|date('d/m') }}</h2>
+                                <ul class="pp-rdv-slots">
+                                    {% for sl in day.slots %}
+                                        {% set hm = sl.start|date('H:i') %}
+                                        <li>
+                                            <a class="pp-rdv-slot{{ slot and slot.start|date('H:i') == hm ? ' is-active' : '' }}"
+                                               href="{{ path('app_admin_proposal', {slug: 'rendez-vous', personne: pid, duree: dur, jour: dayKey, creneau: hm}) }}"
+                                               {% if slot and slot.start|date('H:i') == hm %}aria-current="true"{% endif %}>{{ hm }}</a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                                <p class="pp-rdv-tz">Heure du laboratoire.</p>
+                            </section>
+                        {% else %}
+                            <section class="detail-card">
+                                <p>Aucun créneau libre sur les 21 prochains jours. On peut tout de même <a href="{{ path('app_person_booking', {id: pid}) }}">envoyer une demande</a> pour un autre moment : la personne l’accepte ou la refuse.</p>
+                            </section>
+                        {% endif %}
+                    </div>
+
+                    <aside class="detail-card pp-rdv-recap" aria-label="Votre rendez-vous">
+                        <h2>Votre rendez-vous</h2>
+                        <dl class="pp-rdv-facts">
+                            <div><dt>Avec</dt><dd>{{ person.displayName }}</dd></div>
+                            {% if slot %}
+                                <div><dt>Quand</dt><dd>{{ ('booking.weekday.' ~ day.dayLabel)|trans }} {{ day.date|date('d/m/Y') }}</dd></div>
+                                <div><dt>Heure</dt><dd>{{ slot.start|date('H:i') }} – {{ slot.end|date('H:i') }}</dd></div>
+                            {% else %}
+                                <div><dt>Quand</dt><dd class="pp-rdv-muted">Choisissez un créneau</dd></div>
+                            {% endif %}
+                            <div><dt>Durée</dt><dd>{{ 'booking.duration_minutes'|trans({'%minutes%': dur}) }}</dd></div>
+                            <div><dt>Lieu</dt><dd class="pp-rdv-muted">Au laboratoire</dd></div>
+                        </dl>
+                        {% if slot %}
+                            <a class="btn btn-primary" href="{{ path('app_person_booking', {id: pid, duree: dur}) }}">Confirmer sur la page de réservation</a>
+                            <p class="pp-rdv-tz">Le jour et l’heure se confirment sur la vraie page : cette proposition n’enregistre rien.</p>
+                        {% else %}
+                            <p class="pp-rdv-tz">Le bouton apparaît dès qu’un créneau est choisi.</p>
+                        {% endif %}
+                    </aside>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+</main>
+{% endblock %}

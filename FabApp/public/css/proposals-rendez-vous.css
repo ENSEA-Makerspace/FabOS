@@ -1,0 +1,37 @@
+/* Proposition « Rendez-vous avec une personne » — préfixe pp-rdv-. */
+.pp-rdv h1 { margin: 0 0 var(--spacing-md); }
+.pp-rdv-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); gap: var(--spacing-lg); align-items: start; }
+.pp-rdv-main { display: flex; flex-direction: column; gap: var(--spacing-lg); min-width: 0; }
+.pp-rdv-person { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--spacing-md) var(--spacing-lg); align-items: center; }
+.pp-rdv-avatar .fabos-user-avatar { border-radius: 50%; object-fit: cover; }
+.pp-rdv-id h2 { margin: 0 0 2px; }
+.pp-rdv-role { margin: 0; color: var(--color-primary-text, var(--color-primary)); font-weight: 700; font-size: var(--font-size-sm); text-transform: uppercase; letter-spacing: .04em; }
+.pp-rdv-note { margin: var(--spacing-xs) 0 0; color: var(--color-text-light); }
+.pp-rdv-nextslot { grid-column: 1 / -1; border-top: 1px solid var(--border-color); padding-top: var(--spacing-md); display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-sm) var(--spacing-lg); }
+.pp-rdv-kicker { margin: 0; flex-basis: 100%; color: var(--color-primary-text, var(--color-primary)); font-weight: 700; font-size: var(--font-size-sm); }
+.pp-rdv-nextwhen { margin: 0; font-size: var(--font-size-lg); }
+.pp-rdv-nextwhen b { color: var(--color-ok); }
+.pp-rdv-durations { display: flex; flex-wrap: wrap; gap: var(--spacing-sm); }
+.pp-rdv-chip { padding: 6px 14px; border-radius: 999px; border: 1px solid var(--border-color); font-weight: 700; text-decoration: none; color: var(--color-text); }
+.pp-rdv-chip.is-active { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-on-primary, var(--theme-surface)); }
+.pp-rdv-h { margin: 0 0 var(--spacing-sm); font-size: var(--font-size-md); }
+.pp-rdv-strip { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--spacing-sm); }
+.pp-rdv-day { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: var(--spacing-sm) var(--spacing-xs); border: 1px solid var(--border-color); border-radius: var(--border-radius); background: var(--theme-surface); color: var(--color-text); text-decoration: none; }
+a.pp-rdv-day:hover { border-color: var(--color-primary); }
+.pp-rdv-day small { color: var(--color-text-light); font-size: var(--font-size-sm); }
+.pp-rdv-day.is-active { border: 2px solid var(--color-primary); background: color-mix(in srgb, var(--color-primary) 8%, var(--theme-surface)); }
+.pp-rdv-day.is-empty { opacity: .45; background: color-mix(in srgb, var(--color-text-light) 8%, var(--theme-surface)); }
+.pp-rdv-slots { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: var(--spacing-sm); }
+.pp-rdv-slot { display: block; text-align: center; padding: 10px 0; border: 1px solid var(--color-primary); border-radius: var(--border-radius); font-weight: 700; text-decoration: none; color: var(--color-primary-text, var(--color-primary)); background: var(--theme-surface); }
+.pp-rdv-slot.is-active { background: var(--color-primary); color: var(--color-on-primary, var(--theme-surface)); }
+.pp-rdv-tz { margin: var(--spacing-sm) 0 0; color: var(--color-text-light); font-size: var(--font-size-sm); }
+.pp-rdv-recap h2 { margin: 0 0 var(--spacing-md); }
+.pp-rdv-facts { margin: 0 0 var(--spacing-md); display: grid; gap: var(--spacing-sm); }
+.pp-rdv-facts div { display: grid; grid-template-columns: 5rem minmax(0, 1fr); gap: var(--spacing-sm); }
+.pp-rdv-facts dt { color: var(--color-text-light); }
+.pp-rdv-facts dd { margin: 0; font-weight: 700; }
+.pp-rdv-facts dd.pp-rdv-muted, .pp-rdv-muted { color: var(--color-text-light); font-weight: 400; }
+@media (max-width: 900px) {
+    .pp-rdv-grid { grid-template-columns: 1fr; }
+    .pp-rdv-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
