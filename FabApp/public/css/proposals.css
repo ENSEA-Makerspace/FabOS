@@ -1,0 +1,65 @@
+/* Les propositions de pages (`/admin/propositions/*`, menu Développement).
+   🔴 Tout ici part avec la proposition qu'il sert : une proposition retenue
+   déménage ses règles dans la vraie feuille, une refusée les supprime.
+   Jetons du thème seulement. */
+.pp-banner {
+    border-bottom: 2px dashed var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 6%, var(--theme-surface));
+    padding: var(--spacing-md) 16px;
+}
+.pp-banner-in { max-width: 1200px; margin: 0 auto; }
+.pp-banner-kicker { margin: 0; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--color-primary-text, var(--color-primary)); }
+.pp-banner-title { margin: 2px 0 4px; font-size: var(--font-size-lg); }
+.pp-banner-links { margin: 0 0 var(--spacing-sm); font-size: var(--font-size-sm); }
+.pp-banner-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--spacing-md); }
+.pp-banner-cols h2 { margin: 0 0 4px; font-size: var(--font-size-sm); }
+.pp-banner-cols ul { margin: 0; padding-left: 18px; font-size: var(--font-size-sm); color: var(--color-text-light); }
+.pp-banner-cols li + li { margin-top: 2px; }
+
+/* ---- espaces-catalogue ---------------------------------------------------- */
+.pp-now { margin: 0 0 var(--spacing-lg); }
+.pp-now-head { display: flex; align-items: baseline; gap: var(--spacing-sm); flex-wrap: wrap; margin: 0 0 var(--spacing-sm); }
+.pp-now-head h2 { margin: 0; font-size: var(--font-size-lg); }
+.pp-now-head p { margin: 0; color: var(--color-text-light); font-size: var(--font-size-sm); }
+.pp-now-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: var(--spacing-md); }
+.pp-hcard {
+    display: grid; grid-template-columns: 112px minmax(0, 1fr) auto; gap: var(--spacing-md); align-items: center;
+    background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: var(--border-radius);
+    box-shadow: var(--shadow-card); padding: 10px;
+}
+.pp-hcard-media { aspect-ratio: 4 / 3; border-radius: calc(var(--border-radius) - 4px); background: color-mix(in srgb, var(--color-primary) 6%, var(--theme-surface)); display: grid; place-items: center; color: var(--color-primary); overflow: hidden; }
+.pp-hcard-media svg { width: 42%; height: auto; }
+.pp-hcard-media img { width: 100%; height: 100%; object-fit: cover; }
+.pp-hcard h3 { margin: 0 0 4px; font-size: var(--font-size-md); }
+.pp-hcard-meta { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 12px; color: var(--color-text-light); font-size: var(--font-size-sm); }
+.pp-hcard-meta svg { width: 14px; height: 14px; vertical-align: -2px; }
+.pp-hcard-when { margin: 4px 0 0; font-size: var(--font-size-sm); font-weight: 700; color: var(--color-ok); }
+.pp-hcard-when.is-later { color: var(--color-primary-text, var(--color-primary)); }
+.pp-closed {
+    display: flex; gap: var(--spacing-sm); align-items: center; flex-wrap: wrap;
+    padding: 10px 14px; margin: 0 0 var(--spacing-md); border-radius: var(--border-radius);
+    background: var(--theme-surface); border: 1px solid var(--border-color); font-size: var(--font-size-sm);
+}
+.pp-closed svg { width: 18px; height: 18px; color: var(--color-text-light); }
+/* La carte porte le verbe : l'action du pied devient un bouton plein. */
+.pp-cta .ml-see {
+    background: var(--color-primary); color: var(--color-text-inverse); border-radius: 999px;
+    padding: 4px 14px; font-weight: 700;
+}
+@media (max-width: 640px) {
+    .pp-now-list { grid-template-columns: minmax(0, 1fr); }
+    .pp-hcard { grid-template-columns: 84px minmax(0, 1fr); }
+    .pp-hcard > .btn { grid-column: 1 / -1; }
+}
+
+/* ---- L'index ---------------------------------------------------------------- */
+.pp-index-intro { color: var(--color-text-light); max-width: 78ch; margin: 0 0 var(--spacing-lg); }
+.pp-index-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--spacing-md); margin-bottom: var(--spacing-xl); }
+.pp-index-card { display: flex; flex-direction: column; gap: 4px; text-decoration: none; color: inherit; border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 8px; background: var(--theme-surface); }
+.pp-index-card:hover { border-color: var(--color-primary); }
+.pp-index-card img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; object-position: top; border-radius: calc(var(--border-radius) - 4px); }
+.pp-index-name { font-weight: 700; }
+.pp-index-cur { font-size: var(--font-size-sm); color: var(--color-text-light); }
+.pp-triage { max-width: 110ch; }
+.pp-triage table { width: 100%; border-collapse: collapse; display: block; overflow-x: auto; font-size: var(--font-size-sm); }
+.pp-triage th, .pp-triage td { border-bottom: 1px solid var(--border-color); padding: 6px 10px; text-align: left; vertical-align: top; }

@@ -1863,73 +1863,13 @@ final class SiteController extends AbstractController
      * absence rather than as a special case — which is the test of whether they
      * are shells at all.
      */
-    public function places(
-        PlaceRepository $places,
-        NextFreeSlotService $nextFreeSlot,
-        ScheduleResolver $schedule,
-        Request $request,
-        SiteSettingService $siteSettings,
-        UsageRightsService $usageRights,
-        VenueContext $venues,
-    ): Response {
+    public function places(Request $request, \App\Catalogue\PlaceCatalogue $catalogue): Response
+    {
+        // 2026-10-01 — le calcul vit dans `PlaceCatalogue`, que la proposition de
+        // `/admin/propositions/espaces-catalogue` lit aussi : une seule vérité.
         $user = $this->getUser();
-        $user = $user instanceof Utilisateur ? $user : null;
-        $usageVerdict = $usageRights->verdict($user, 'places');
-        $search = trim((string) $request->query->get('q', ''));
 
-        $now = new \DateTimeImmutable('now', $this->labZone($siteSettings));
-
-        // ⚠️ S138. The PUBLIC catalogue had no location filter, on an install with
-        // more than one location since S129 — a member was shown every row in the
-        // organisation with no way to narrow it. Same gap /machines had until S137.
-        $venueContext = $venues->forRequest($request, $this->getUser() instanceof Utilisateur ? $this->getUser() : null);
-
-        // ⚠️ When the catalogue is filtered to one location, "closed" is that
-        // location's fact; aggregated across all of them there is no single
-        // answer, so it keeps the default venue's.
-        // 🔴 `isOpenAt()` rather than a comparison against the envelope (S134d):
-        // at 12:30 in a lab that shuts for lunch, the envelope says open and the
-        // door is locked.
-        // 🔴 **And it must come AFTER `$venueContext` exists.** S134d put this
-        // block above the assignment on this page, so `$venueContext['selected']`
-        // was an undefined variable and the location filter was ignored — the
-        // page silently answered for the DEFAULT venue. Prod runs without
-        // `strict_variables`, so nothing said a word; it took a warning in a
-        // self-test to surface it.
-        $venueOpenNow = $schedule->isOpenAt($venueContext['selected']?->getId(), $now);
-        // 🔴 **The reason, not just the fact** (S134e). "Closed" leaves a member
-        // wondering whether the lab is shut, broken, or whether they misread the
-        // page; "closed — public holiday" ends the question.
-        $venueClosureReason = $venueOpenNow ? null : $schedule->closureReasonFor($venueContext['selected']?->getId(), $now);
-        // ⚠️ S147, J-2 — le catalogue PROPOSE, donc les espaces archivés en sortent.
-        $rows = $places->findLive(
-            $venueContext['selected'] === null ? [] : ['venue' => $venueContext['selected']],
-            ['nom' => 'ASC'],
-        );
-        $cards = [];
-        foreach ($rows as $place) {
-            if ($search !== '' && stripos($place->getNom(), $search) === false) {
-                continue;
-            }
-            $slot = $nextFreeSlot->find($usageVerdict->allowed ? $user : null, ReservableType::Place, (int) $place->getId());
-            $cards[] = [
-                'place' => $place,
-                'slot' => $slot,
-                'freeNow' => $venueOpenNow && $slot !== null && $slot['start'] <= $now->modify('+60 minutes'),
-                'usageRight' => $usageVerdict,
-            ];
-        }
-
-        return $this->render('site/places.html.twig', [
-            'venueContext' => $venueContext,
-            'cards' => $cards,
-            'search' => $search,
-            'venueOpenNow' => $venueOpenNow,
-            'venueClosureReason' => $venueClosureReason,
-            'totalCount' => \count($cards),
-            'allCount' => \count($rows),
-            'freeCount' => \count(array_filter($cards, static fn (array $c): bool => $c['freeNow'])),
-        ]);
+        return $this->render('site/places.html.twig', $catalogue->build($request, $user instanceof Utilisateur ? $user : null));
     }
 
     /**

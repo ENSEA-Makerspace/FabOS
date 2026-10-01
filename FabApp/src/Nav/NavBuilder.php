@@ -37,6 +37,7 @@ final class NavBuilder
         private readonly SiteSettingService $settings,
         private readonly RouteAccessChecker $access,
         private readonly RequestStack $requests,
+        private readonly \App\Design\PageProposals $proposals,
     ) {
     }
 
@@ -398,6 +399,14 @@ final class NavBuilder
                 // qu'elle s'annonce comme une planche et n'enregistre rien ; elle
                 // part le jour où la phase est écrite. Voir `ROADMAP.md`.
                 $this->adminItem('admin_nav.entry.app_admin_references', 'app_admin_references', 'formations'),
+                // 2026-10-01 — les pages revues d'après ces planches : l'index, puis
+                // une sous-page par proposition (demande de l'opérateur). Libellés
+                // non traduits, comme le reste de ce menu d'outillage.
+                $this->adminItem('admin_nav.entry.app_admin_proposals', 'app_admin_proposals', 'dashboard'),
+                ...array_map(
+                    fn (array $p): ?array => $this->adminItem('↳ ' . $p['title'], 'app_admin_proposal', 'dashboard', [], null, ['slug' => $p['slug']]),
+                    $this->proposals->all(),
+                ),
             ]);
         }
 

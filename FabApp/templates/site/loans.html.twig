@@ -53,6 +53,7 @@
                 state: entry.free > 0 ? 'state.available'|trans : 'state.borrowed'|trans,
                 state_tone: entry.free > 0 ? 'go' : 'wait',
                 photo: i.imageUrl,
+                fallback_icon: 'box',
             } only %}
         {% endfor %}
     {% endblock %}

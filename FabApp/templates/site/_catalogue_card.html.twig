@@ -34,6 +34,8 @@
      action       the call to action ("Voir")
 
      icon_slug    which category icon to draw (head + media fallback)
+     fallback_icon  an `_icon` NAME for the media fallback of a thing that is
+                  not a machine (place → map, loan/material → box)
      photo        an image path; the media box keeps the SAME aspect ratio with
                   or without one, so a half-photographed catalogue stays even
      placeholder_seed
@@ -156,7 +158,15 @@
                 {% include 'site/_event_placeholder.html.twig' with { seed: placeholder_seed } only %}
             {% else %}
                 <span class="ml-media-icon">
-                    {% include 'site/_category_icon.html.twig' with { slug: icon_slug|default('') } only %}
+                    {#- ⚠️ 2026-10-01 — `fallback_icon` (un nom de `_icon`) pour ce qui
+                        n'est pas une machine : sans lui, un espace, un objet prêté ou
+                        un matériau sans photo affichait l'imprimante 3D, repli par
+                        défaut de `_category_icon`. -#}
+                    {% if fallback_icon|default('') %}
+                        {% include 'site/_icon.html.twig' with { name: fallback_icon } only %}
+                    {% else %}
+                        {% include 'site/_category_icon.html.twig' with { slug: icon_slug|default('') } only %}
+                    {% endif %}
                 </span>
             {% endif %}
         </div>

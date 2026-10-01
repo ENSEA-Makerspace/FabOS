@@ -89,6 +89,7 @@
                 foot: entry.usageRight.enforced and not entry.usageRight.allowed ? ('usage_rights.verdict.' ~ entry.usageRight.reason ~ '.label')|trans : (p.capacite ? p.capacite ~ ' ' ~ 'places.capacity_suffix'|trans : ''),
                 foot_tone: entry.usageRight.enforced and not entry.usageRight.allowed ? entry.usageRight.tone : 'muted',
                 action: 'machines.see'|trans,
+                fallback_icon: 'map',
             } only %}
         {% endfor %}
     {% endblock %}
