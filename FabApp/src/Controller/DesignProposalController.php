@@ -27,6 +27,7 @@ use App\Design\ReportingBrief;
 use App\Design\PracticalValidation;
 use App\Design\PublicHome;
 use App\Design\DoorSheet;
+use App\Design\ModuleReading;
 use App\Design\PageProposals;
 use App\Search\SiteSearch;
 use App\Home\MemberToday;
@@ -87,6 +88,7 @@ final class DesignProposalController extends AbstractController
         PracticalValidation $practicalValidation,
         PublicHome $publicHome,
         DoorSheet $doorSheet,
+        ModuleReading $moduleReading,
     ): Response
     {
         $proposal = $proposals->find($slug) ?? throw $this->createNotFoundException();
@@ -126,6 +128,7 @@ final class DesignProposalController extends AbstractController
             'validation-pratique' => ['dossier' => $practicalValidation->build($request->query->getInt('dossier'))],
             'accueil-public' => $publicHome->build(),
             'point-acces' => ['door' => $doorSheet->build($request->query->getInt('porte') ?: null)],
+            'module-cours' => ['reading' => $moduleReading->build($user, $request->query->getInt('formation') ?: null, max(1, $request->query->getInt('section', 1)))],
             default => [],
         };
 

@@ -1,0 +1,113 @@
+{% extends 'site/base_public.html.twig' %}
+
+{# PROPOSITION — « Lire une section », d'après `formations/lms-course-module.png`.
+   Aujourd'hui une section se lit DANS l'accordéon de la fiche formation
+   (`_formation_journey.html.twig`) : pas d'adresse, pas de « section suivante »,
+   et le sommaire est la liste elle-même. Ici, une page de lecture par étape :
+   fil d'Ariane, « Étape n sur N · environ X min », le contenu, « Dans ce module »
+   à droite (étape courante en évidence, validées cochées), et en pied
+   précédente / suivante / « Passer au quiz ».
+   Données : `GuidedTrainingService::buildJourney()` (les mêmes que la fiche).
+   🅿️ À la décision : retirer ce gabarit, `public/css/proposals-module-cours.css`,
+   `src/Design/ModuleReading.php`, l'entrée de registre et la ligne du `match`. #}
+
+{% block title %}Proposition — Lire une section - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/section-journey.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals-module-cours.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+{% include 'site/proposals/_banner.html.twig' %}
+<main id="main-content" tabindex="-1" class="main-content">
+    <section class="machine-detail-section">
+        <div class="container pp-home">
+            {% if reading is null %}
+                <section class="detail-card"><p>Aucune formation n’a encore de parcours par sections : rien à lire.</p></section>
+            {% else %}
+                {% set item = reading.item %}
+                {% set content = item.content %}
+                {% set qs = (app.request.query.get('membre') ? '&membre=' ~ app.request.query.get('membre') : '') ~ '&formation=' ~ reading.formation.id %}
+
+                {% include 'site/_breadcrumb.html.twig' with {trail: [
+                    {label: 'nav.trainings'|trans, url: path('app_formations')},
+                    {label: reading.formation.titre, url: path('app_formation_detail', {id: reading.formation.id})},
+                    {label: item.section.titre},
+                ]} only %}
+
+                <header class="pp-home-head">
+                    <h1>{{ item.section.titre }}</h1>
+                    <p class="pp-mc-meta">Étape {{ item.position }} sur {{ reading.total }} · environ {{ reading.minutes }} min de lecture</p>
+                </header>
+
+                <div class="pp-mc-grid">
+                    <div class="pp-mc-body">
+                        <article class="detail-card">
+                            <p class="pp-mc-intro">{{ content.intro }}</p>
+
+                            {% if content.objectives is not empty %}
+                                <div class="journey-objectives" aria-label="{{ 'journey.objectives_label'|trans }}">
+                                    {% for objective in content.objectives %}<span class="journey-objective">{{ objective }}</span>{% endfor %}
+                                </div>
+                            {% endif %}
+
+                            {% if content.steps is not empty %}
+                                <div class="journey-steps">
+                                    {% for step in content.steps %}
+                                        <article class="journey-step">
+                                            <span class="journey-step__number">{{ loop.index }}</span>
+                                            <h2>{{ step.title }}</h2>
+                                            <p>{{ step.text }}</p>
+                                        </article>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+
+                            {% if content.callouts is not empty %}
+                                <div class="journey-callouts">
+                                    {% for callout in content.callouts %}
+                                        {% set icon = callout.type == 'warning' ? '!' : (callout.type == 'check' ? '✓' : (callout.type == 'info' ? 'i' : '✦')) %}
+                                        <div class="journey-callout is-{{ callout.type }}">
+                                            <span class="journey-callout__icon" aria-hidden="true">{{ icon }}</span>
+                                            <div><strong>{{ callout.title }}</strong><p>{{ callout.text }}</p></div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </article>
+
+                        <nav class="pp-mc-foot" aria-label="Navigation entre les sections">
+                            {% if reading.previous %}
+                                <a class="btn btn-secondary" href="?section={{ reading.previous }}{{ qs }}">‹ Section précédente</a>
+                            {% endif %}
+                            {% if item.quiz %}
+                                <a class="btn btn-primary" href="{{ path('app_formation_detail', {id: reading.formation.id}) }}#section-panel-{{ item.section.id }}">Passer au quiz</a>
+                                <small>{{ item.completed ? 'Quiz réussi : cette section est validée.' : 'Cette section sera validée après le quiz.' }}</small>
+                            {% endif %}
+                            {% if reading.next %}
+                                <a class="btn {{ item.quiz ? 'btn-secondary' : 'btn-primary' }}" href="?section={{ reading.next }}{{ qs }}">Section suivante ›</a>
+                            {% endif %}
+                        </nav>
+                    </div>
+
+                    <aside class="detail-card pp-mc-toc" aria-labelledby="pp-mc-toc-title">
+                        <h2 id="pp-mc-toc-title">Dans ce module</h2>
+                        <ol>
+                            {% for entry in reading.journey.items %}
+                                <li class="{{ entry.position == item.position ? 'is-current' : '' }} {{ entry.completed ? 'is-done' : '' }}">
+                                    <a href="?section={{ entry.position }}{{ qs }}"{% if entry.position == item.position %} aria-current="page"{% endif %}>
+                                        <span class="pp-mc-mark" aria-hidden="true">{{ entry.completed ? '✓' : entry.position }}</span>
+                                        <b>{{ entry.section.titre }}</b>
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ol>
+                    </aside>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+</main>
+{% endblock %}

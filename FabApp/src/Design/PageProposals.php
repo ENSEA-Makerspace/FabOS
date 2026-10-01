@@ -401,6 +401,24 @@ final class PageProposals
                 ],
                 'demo' => [],
             ],
+            [
+                'slug' => 'module-cours',
+                'title' => 'Lire une section d’une formation',
+                'planche' => 'formations/lms-course-module.png',
+                'current' => ['route' => 'app_formations', 'params' => [], 'label' => '/formations/{id} (accordéon des étapes)'],
+                'shell' => 'public',
+                'take' => [
+                    'Une page de lecture par étape : fil d’Ariane, « Étape n sur N · environ X min de lecture », le contenu.',
+                    '« Dans ce module » à droite : toutes les étapes, l’étape courante en évidence, les validées cochées.',
+                    'En pied : « Section précédente », « Passer au quiz » (quand l’étape en a un), « Section suivante » : chaque étape a enfin une adresse.',
+                ],
+                'keep' => [
+                    'Le contenu et les états viennent de `GuidedTrainingService::buildJourney()`, les mêmes que la fiche.',
+                    'La durée n’existe dans aucun champ : estimée à 200 mots/minute sur le texte de l’étape.',
+                    'Pas d’encadré « À retenir » : aucun champ ne s’y prête.',
+                ],
+                'demo' => ['?membre=3' => 'un membre avec des progressions', '?section=2' => 'section 2'],
+            ],
         ];
     }
 
