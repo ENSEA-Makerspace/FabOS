@@ -25,6 +25,8 @@ use App\Design\BadgeHeld;
 use App\Design\PersonAppointment;
 use App\Design\ReportingBrief;
 use App\Design\PracticalValidation;
+use App\Design\PublicHome;
+use App\Design\DoorSheet;
 use App\Design\PageProposals;
 use App\Search\SiteSearch;
 use App\Home\MemberToday;
@@ -83,6 +85,8 @@ final class DesignProposalController extends AbstractController
         PersonAppointment $personAppointment,
         ReportingBrief $reportingBrief,
         PracticalValidation $practicalValidation,
+        PublicHome $publicHome,
+        DoorSheet $doorSheet,
     ): Response
     {
         $proposal = $proposals->find($slug) ?? throw $this->createNotFoundException();
@@ -120,6 +124,8 @@ final class DesignProposalController extends AbstractController
             'rendez-vous' => ['appointment' => $personAppointment->build($request->query->getInt('personne') ?: null, $request->query->get('jour'), $request->query->get('creneau'), $request->query->getInt('duree') ?: null)],
             'rapports' => ['brief' => $reportingBrief->build($request->query->getString('espace') === 'spaces' ? 'spaces' : 'equipment', $request->query->getInt('jours', 30))],
             'validation-pratique' => ['dossier' => $practicalValidation->build($request->query->getInt('dossier'))],
+            'accueil-public' => $publicHome->build(),
+            'point-acces' => ['door' => $doorSheet->build($request->query->getInt('porte') ?: null)],
             default => [],
         };
 

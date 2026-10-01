@@ -366,6 +366,41 @@ final class PageProposals
                 ],
                 'demo' => ['?dossier=1' => 'dossier suivant'],
             ],
+            [
+                'slug' => 'accueil-public',
+                'title' => 'Accueil d’un visiteur',
+                'planche' => 'finalsurface/01-accueil-configurable.png',
+                'current' => ['route' => 'app_home', 'params' => [], 'label' => '/'],
+                'shell' => 'public',
+                'take' => [
+                    'Une pastille d’état du jour sous le titre : « Ouvert aujourd’hui 9:00–18:30 » ou « Fermé — rouvre lundi 9:00 ».',
+                    '« Espaces » puis « Équipements » AVANT la présentation : 4 cartes au plus, chacune avec son état (« Libre maintenant », « Libre à 14:00 »…), et « Voir tout ».',
+                    'Le visiteur voit d’abord ce qu’il peut faire, ensuite les événements et « Comment ça fonctionne ? ».',
+                ],
+                'keep' => [
+                    'Les états sont ceux de `/places` et `/machines`, pas une seconde logique ; les cartes sont `_catalogue_card`.',
+                    'La configuration par blocs et par rôles (`/admin/homepage`) reste celle de la vraie page.',
+                ],
+                'demo' => [],
+            ],
+            [
+                'slug' => 'point-acces',
+                'title' => 'Fiche d’un point d’accès',
+                'planche' => 'espaces/05-mise-en-service-point-acces.png',
+                'current' => ['route' => 'app_admin_access_points', 'params' => [], 'label' => '/admin/access-points/{id}/edit'],
+                'shell' => 'admin',
+                'take' => [
+                    'L’état d’abord : « En service » / « À mettre en service », puis la mise en service tant qu’elle n’est pas finie, étape bloquante dite en clair.',
+                    'Les étapes réelles d’une porte : pièce reliée, lecteur relié et en ligne, badge exigé, horaires, premier passage.',
+                    '« Ce que fait cette porte » en une phrase ; le réglage ramené à un lien.',
+                ],
+                'keep' => [
+                    'Pas d’assistant en 3 étapes : une fiche qui se relit à tout moment.',
+                    'Aucun secret : celui de la planche concerne le lecteur.',
+                    'La règle vient de `DoorAccessDecision` (réservation ±15 min, ou badge seul pendant les heures).',
+                ],
+                'demo' => [],
+            ],
         ];
     }
 

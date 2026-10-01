@@ -12,7 +12,7 @@ Tri du 2026-10-01 (lecture des planches et des gabarits ; la valeur /5 = gain po
 | `02-detail-espace-reservation.png` | ✅ Appliqué (2026-10-01) — tête partagée `_detail_hero`. |
 | `03-parcours-reservation.png` | 🟡 [Proposition](/admin/propositions/parcours-reservation) (2/5) — politique d'annulation et nombre de participants (borné par la capacité) dans le panneau de réservation. |
 | `04-exploitation-espaces.png` | 🟡 [Proposition](/admin/propositions/admin-attention) (4/5) — fusionné avec « vue d'ensemble Équipement » : `/admin` en blocs « ce qui demande une action ». |
-| `05-mise-en-service-point-acces.png` | 🟡 à proposer (2/5) — la checklist `_commissioning` sur la fiche du point d'accès. |
+| `05-mise-en-service-point-acces.png` | 🟡 [Proposition](/admin/propositions/point-acces) (2/5) — la checklist `_commissioning` sur la fiche du point d'accès. |
 | `06-incidents-acces.png` | 🟡 [Proposition](/admin/propositions/incidents-acces) (3/5) — tuiles par cause avec compteur, « À traiter » par défaut ; santé des points. |
 | `07-kiosque-entree.png` | 🅿️ pas de page (2/5) — écran de porte « Badgez votre carte » par lieu. |
 | `08-mes-reservations.png` | 🟡 [Proposition](/admin/propositions/mes-reservations) — la prochaine en tête (quand, quoi, fenêtre de porte), le reste en lignes datées. |
@@ -86,7 +86,7 @@ Tri du 2026-10-01 (lecture des planches et des gabarits ; la valeur /5 = gain po
 
 | Planche | Verdict |
 |---|---|
-| `01-accueil-configurable.png` | 🟡 à proposer (2/5) — « Ouvert aujourd'hui », espaces et équipements libres du jour. |
+| `01-accueil-configurable.png` | 🟡 [Proposition](/admin/propositions/accueil-public) (2/5) — « Ouvert aujourd'hui », espaces et équipements libres du jour. |
 | `02-acces-exceptionnels.png` | 🟢 égal (1/5) — motif, portée, validité, révocation : déjà. |
 | `03-rapports.png` | 🟡 [Proposition](/admin/propositions/rapports) (2/5) — lignes cliquables, bande « à retenir » avec un verbe. |
 | `04-recuperation-compte.png` | 🟢 égal (1/5) — réponse non divulgante : déjà. |

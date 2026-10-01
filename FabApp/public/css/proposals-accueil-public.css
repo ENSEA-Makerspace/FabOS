@@ -1,0 +1,36 @@
+/* Proposition `accueil-public` — préfixe pp-ap-, jetons du thème seulement.
+   🅿️ Se supprime avec la proposition. */
+
+.pp-ap { display: flex; flex-direction: column; gap: var(--spacing-xl); }
+
+.pp-ap-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: var(--spacing-xl); align-items: center; }
+.pp-ap-hero-text { display: grid; gap: var(--spacing-md); justify-items: start; }
+.pp-ap-hero-text h1 { margin: 0; font-size: var(--font-size-3xl, var(--font-size-2xl)); }
+.pp-ap-tagline { margin: 0; color: var(--color-text-light); font-size: var(--font-size-lg); }
+.pp-ap-hero-art img { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: var(--border-radius-md, var(--border-radius-sm)); }
+
+.pp-ap-today { margin: 0; display: inline-flex; align-items: center; gap: var(--spacing-sm); flex-wrap: wrap; }
+.pp-ap-today b { display: inline-flex; align-items: center; gap: var(--spacing-xs); padding: .2em .8em; border-radius: 999px; font-size: var(--font-size-sm); }
+.pp-ap-today i { font-style: normal; color: var(--color-text); }
+.pp-ap-dot { width: .6em; height: .6em; border-radius: 50%; background: currentColor; }
+.pp-ap-today--go b { background: color-mix(in srgb, var(--color-ok) 16%, transparent); color: var(--color-ok); }
+.pp-ap-today--wait b { background: color-mix(in srgb, var(--color-primary) 14%, transparent); color: var(--color-primary-text); }
+.pp-ap-today--muted b { background: color-mix(in srgb, var(--color-text-light) 16%, transparent); color: var(--color-text-light); }
+
+.pp-ap-row { display: grid; gap: var(--spacing-md); }
+.pp-ap-row-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--spacing-md); }
+.pp-ap-row-head h2 { margin: 0; font-size: var(--font-size-lg); }
+.pp-ap-row-head a { color: var(--color-primary-text); }
+.pp-ap-empty { margin: 0; color: var(--color-text-light); }
+
+.pp-ap-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--spacing-md); grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); }
+.pp-ap-step { display: flex; gap: var(--spacing-sm); align-items: flex-start; }
+.pp-ap-step h3 { margin: 0 0 var(--spacing-xs); font-size: var(--font-size-base); }
+.pp-ap-step p { margin: 0; color: var(--color-text-light); font-size: var(--font-size-sm); }
+.pp-ap-step a { color: inherit; }
+.pp-ap-step-ic { flex: none; width: 1.5rem; height: 1.5rem; color: var(--color-primary-text); }
+.pp-ap-step-ic svg { width: 100%; height: 100%; }
+
+@media (max-width: 720px) {
+    .pp-ap-hero { grid-template-columns: minmax(0, 1fr); }
+}
