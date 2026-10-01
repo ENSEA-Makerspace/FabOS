@@ -1,0 +1,64 @@
+/* Proposition `kiosque-accueil` — préfixe pp-kq-, jetons kiosque (--k-*) : un
+   kiosque ne charge pas le thème du portail. 🅿️ Se supprime avec la proposition. */
+
+.pp-kq-body { min-height: 100vh; }
+
+/* Le bandeau commun attend les jetons du site : on les lui prête depuis ceux du kiosque. */
+.pp-kq-banner {
+    --color-surface: var(--k-surface-solid);
+    --color-background: var(--k-bg);
+    --color-text: var(--k-ink);
+    --color-text-light: var(--k-muted);
+    --color-border: var(--k-line);
+    --color-primary: var(--k-accent);
+    --font-size-sm: 14px;
+    --font-size-lg: 20px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --border-radius-sm: 8px;
+    --border-radius-md: 12px;
+    padding: 16px 4vw 0;
+}
+
+.pp-kq { display: flex; flex-direction: column; gap: 4vh; padding: 4vh 4vw; }
+
+.pp-kq-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 3vw; }
+.pp-kq-venue { font-size: 4.4vw; letter-spacing: -.02em; line-height: 1.1; }
+.pp-kq-status { font-size: 3.2vw; font-weight: 800; margin-top: 1vh; }
+.pp-kq-status--go { color: var(--k-go-ink); }
+.pp-kq-status--wait { color: var(--k-warn-ink); }
+.pp-kq-status--stop { color: var(--k-stop-ink); }
+.pp-kq-reason { font-size: 1.8vw; color: var(--k-muted); margin-top: .6vh; }
+.pp-kq-clock { font-size: 5.4vw; font-weight: 800; color: var(--k-accent); font-variant-numeric: tabular-nums; line-height: 1; }
+
+.pp-kq-welcome { text-align: center; }
+.pp-kq-welcome h2 { font-size: 3.6vw; }
+.pp-kq-welcome p { font-size: 1.9vw; color: var(--k-muted); margin-top: 1vh; }
+
+.pp-kq-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 2.2vw; }
+.pp-kq-tile {
+    display: flex; flex-direction: column; gap: 1.2vh; justify-content: center;
+    min-height: 64px; padding: 3vh 2.2vw;
+    background: var(--k-surface-strong); border: 1px solid var(--k-line); border-radius: 24px;
+    color: var(--k-ink); text-decoration: none;
+}
+.pp-kq-tile:active, .pp-kq-tile:focus-visible { border-color: var(--k-accent); background: var(--k-surface-solid); }
+.pp-kq-tile .ic { width: 5vw; height: 5vw; min-width: 48px; min-height: 48px; color: var(--k-accent); }
+.pp-kq-tile b { font-size: 2.6vw; line-height: 1.15; }
+.pp-kq-tile p { font-size: 1.7vw; color: var(--k-ink-soft); }
+
+/* Les horaires : cachés, ouverts par l'ancre — aucun JS. */
+.pp-kq-hours { display: none; background: var(--k-surface-solid); border: 1px solid var(--k-line); border-radius: 24px; padding: 3vh 2.6vw; }
+.pp-kq-hours:target { display: block; }
+.pp-kq-hours h2 { font-size: 2.6vw; margin-bottom: 2vh; }
+.pp-kq-hours ul { list-style: none; display: grid; gap: 1vh; }
+.pp-kq-hours li { display: flex; justify-content: space-between; font-size: 2vw; padding: 1vh 0; border-bottom: 1px solid var(--k-line); }
+.pp-kq-hours li.is-today b, .pp-kq-hours li.is-today strong { color: var(--k-accent-ink); }
+.pp-kq-close { display: inline-flex; align-items: center; min-height: 64px; margin-top: 2vh; padding: 0 2.4vw; font-size: 2vw; font-weight: 700; color: var(--k-ink); border: 1px solid var(--k-line); border-radius: 16px; text-decoration: none; }
+
+/* L'écran de porte : une consigne, pas un bouton. */
+.pp-kq-door { display: flex; align-items: center; justify-content: center; gap: 2.4vw; padding: 3vh 2.6vw; border: 2px dashed var(--k-line); border-radius: 24px; }
+.pp-kq-door .ic { width: 4.6vw; height: 4.6vw; min-width: 44px; min-height: 44px; color: var(--k-go-ink); }
+.pp-kq-door b { font-size: 2.6vw; }
+.pp-kq-door p { font-size: 1.7vw; color: var(--k-muted); margin-top: .6vh; }

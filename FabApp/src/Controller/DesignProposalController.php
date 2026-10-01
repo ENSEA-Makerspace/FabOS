@@ -28,6 +28,8 @@ use App\Design\PracticalValidation;
 use App\Design\PublicHome;
 use App\Design\DoorSheet;
 use App\Design\ModuleReading;
+use App\Design\KioskHome;
+use App\Design\TrainingBuilder;
 use App\Design\PageProposals;
 use App\Search\SiteSearch;
 use App\Home\MemberToday;
@@ -89,6 +91,8 @@ final class DesignProposalController extends AbstractController
         PublicHome $publicHome,
         DoorSheet $doorSheet,
         ModuleReading $moduleReading,
+        KioskHome $kioskHome,
+        TrainingBuilder $trainingBuilder,
     ): Response
     {
         $proposal = $proposals->find($slug) ?? throw $this->createNotFoundException();
@@ -129,6 +133,8 @@ final class DesignProposalController extends AbstractController
             'accueil-public' => $publicHome->build(),
             'point-acces' => ['door' => $doorSheet->build($request->query->getInt('porte') ?: null)],
             'module-cours' => ['reading' => $moduleReading->build($user, $request->query->getInt('formation') ?: null, max(1, $request->query->getInt('section', 1)))],
+            'kiosque-accueil' => ['home' => $kioskHome->build()],
+            'constructeur-formation' => ['builder' => $trainingBuilder->build($request->query->getInt('formation'))],
             default => [],
         };
 

@@ -419,6 +419,42 @@ final class PageProposals
                 ],
                 'demo' => ['?membre=3' => 'un membre avec des progressions', '?section=2' => 'section 2'],
             ],
+            [
+                'slug' => 'kiosque-accueil',
+                'title' => 'Accueil de borne',
+                'planche' => 'productwide/07-kiosque.png',
+                'current' => ['route' => 'app_kiosk_events', 'params' => [], 'label' => '/kiosk/* (pas d’accueil de borne aujourd’hui)'],
+                'shell' => 'kiosque',
+                'take' => [
+                    'UN écran d’accueil tactile : le nom du lieu et l’état du jour en très grand, avec l’heure.',
+                    'Trois grosses tuiles qui portent le verbe : événements, machines, horaires.',
+                    'Un pavé « Badgez votre carte pour entrer » (planche `espaces/07-kiosque-entree.png`), sans donnée personnelle.',
+                ],
+                'keep' => [
+                    'L’état du jour vient de `ScheduleResolver` (raison de fermeture comprise).',
+                    'Les tuiles mènent aux écrans de kiosque EXISTANTS ; aucun JS, aucun secret, rien du journal RFID.',
+                    '⚠️ Les kiosques n’héritent pas du thème du portail (`kiosk.css`, jetons `--k-*`) : à décider si on les y rattache.',
+                ],
+                'demo' => [],
+            ],
+            [
+                'slug' => 'constructeur-formation',
+                'title' => 'Construire une formation',
+                'planche' => 'formations/lms-training-builder.png',
+                'current' => ['route' => 'app_admin_formations', 'params' => [], 'label' => '/admin/formations/{id}/content'],
+                'shell' => 'admin',
+                'take' => [
+                    'UN seul parcours ordonné, dans l’ordre où l’apprenant le vit : sections, quiz rattachés, validation pratique, badge — au lieu de neuf cartes et de deux listes séparées.',
+                    'Une ligne par étape : numéro, type, titre, état (Publié / Brouillon / Manquant) et un verbe vers la vraie page d’édition.',
+                    'Un panneau « Résultat après validation » : le badge délivré, les machines et les pièces qu’il ouvre.',
+                ],
+                'keep' => [
+                    'La checklist de publication (`PublishChecklist` + `_commissioning`) reste en tête, inchangée.',
+                    'Pas de glisser-déposer : l’ordre se règle par les flèches de la page réelle, chaque élément s’édite sur sa page.',
+                    'Ni section ni quiz n’ont de statut en base : « Publié / Brouillon » est DÉDUIT (contenu présent, au moins une question).',
+                ],
+                'demo' => [],
+            ],
         ];
     }
 

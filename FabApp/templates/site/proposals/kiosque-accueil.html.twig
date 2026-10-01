@@ -1,0 +1,94 @@
+{#
+   PROPOSITION « Accueil de borne » (planches `productwide/07-kiosque.png` et
+   `espaces/07-kiosque-entree.png`).
+
+   Ce qui change vs l'existant : aujourd'hui quatre écrans `/kiosk/*` séparés,
+   atteints par des liens dans /admin ; ni accueil de borne, ni écran de porte.
+   Ici UN écran d'accueil tactile : nom du lieu et état du jour en très grand
+   (ScheduleResolver), l'heure, trois grosses tuiles qui mènent aux écrans de
+   kiosque EXISTANTS (événements, fiche machine) ou à la semaine d'ouverture
+   (ancre `:target`, sans JS), et un pavé « Badgez votre carte » (écran de porte).
+   Aucune donnée personnelle, aucun UID, aucun secret.
+
+   ⚠️ Un kiosque est autonome : il n'étend NI base_public NI base.html.twig et ne
+   charge que `kiosk.css` (jetons `--k-*`). Le thème du portail ne s'y applique PAS
+   (voir `kiosk.css`) : cette page suit donc ses voisines, pas le thème. Le bandeau
+   de proposition, lui, attend les jetons du site : `proposals-kiosque-accueil.css`
+   les lui prête depuis les jetons kiosque.
+
+   🅿️ À la décision : retirer `src/Design/KioskHome.php`,
+   `templates/site/proposals/kiosque-accueil.html.twig`,
+   `public/css/proposals-kiosque-accueil.css`, l'entrée du registre et la ligne du `match`.
+#}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta http-equiv="refresh" content="60">
+    <title>{{ venue_label() }} — Accueil de borne (proposition)</title>
+    {% include 'site/_favicon.html.twig' %}
+    <link rel="stylesheet" href="{{ asset('css/kiosk.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals-kiosque-accueil.css') ~ '?v=' ~ css_version }}">
+</head>
+<body class="pp-kq-body">
+    <div class="pp-kq-banner">{% include 'site/proposals/_banner.html.twig' %}</div>
+
+    <main class="pp-kq">
+        <header class="pp-kq-head">
+            <div>
+                <h1 class="pp-kq-venue">{{ venue_label() }}</h1>
+                <p class="pp-kq-status pp-kq-status--{{ home.status.signal }}">{{ home.status.label }}</p>
+                {% if home.status.detail %}<p class="pp-kq-reason">{{ home.status.detail }}</p>{% endif %}
+            </div>
+            <p class="pp-kq-clock">{{ 'now'|lab_date('H:i') }}</p>
+        </header>
+
+        <section class="pp-kq-welcome">
+            <h2>Bienvenue !</h2>
+            <p>Touchez une tuile pour accéder aux informations.</p>
+        </section>
+
+        <nav class="pp-kq-tiles" aria-label="Informations">
+            {% if home.events is not null %}
+                <a class="pp-kq-tile" href="{{ path('app_kiosk_events') }}">
+                    {% include 'site/_icon.html.twig' with { name: 'calendar' } only %}
+                    <b>Voir les événements</b>
+                    <p>{% if home.events.count > 0 %}{{ home.events.count }} à venir{% if home.events.next %} · {{ home.events.next }}{% endif %}{% else %}Aucun événement prévu pour l’instant{% endif %}</p>
+                </a>
+            {% endif %}
+            {% if home.machines is not null and home.machines.firstId %}
+                <a class="pp-kq-tile" href="{{ path('app_kiosk_machine', {id: home.machines.firstId}) }}">
+                    {% include 'site/_icon.html.twig' with { name: 'tool' } only %}
+                    <b>Consulter les machines</b>
+                    <p>{{ home.machines.count }} machine{{ home.machines.count > 1 ? 's' : '' }}{% if home.machines.down > 0 %} · {{ home.machines.down }} à l’arrêt{% endif %}</p>
+                </a>
+            {% endif %}
+            <a class="pp-kq-tile" href="#horaires">
+                {% include 'site/_icon.html.twig' with { name: 'history' } only %}
+                <b>Horaires et consignes</b>
+                <p>Les heures d’ouverture de la semaine</p>
+            </a>
+        </nav>
+
+        <section class="pp-kq-hours" id="horaires" aria-label="Horaires de la semaine">
+            <h2>Horaires de la semaine</h2>
+            <ul>
+                {% for d in home.week %}
+                    <li class="{{ d.today ? 'is-today' : '' }}"><b>{{ d.day }}</b><strong>{{ d.hours ?? 'Fermé' }}</strong></li>
+                {% endfor %}
+            </ul>
+            <a class="pp-kq-close" href="#">Fermer</a>
+        </section>
+
+        <aside class="pp-kq-door" aria-label="Accès à la porte">
+            {% include 'site/_icon.html.twig' with { name: 'lock' } only %}
+            <div>
+                <b>Badgez votre carte pour entrer</b>
+                <p>Les accès sont accordés selon vos droits, réservations et horaires.</p>
+            </div>
+        </aside>
+    </main>
+</body>
+</html>
