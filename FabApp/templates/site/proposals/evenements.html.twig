@@ -1,0 +1,164 @@
+{% extends 'site/base_public.html.twig' %}
+
+{# PROPOSITION — « Événements », d'après `productwide/01-evenements.png`.
+   Ce qui change vs `/events` :
+   1. un bloc « Mes inscriptions » AVANT la grille, pour un membre connecté : le
+      prochain événement auquel il est inscrit en grand (quand, où, sa place ou sa
+      liste d'attente, et SES actions réelles : « Billet » → la page de billet
+      signée, « Gérer » → la fiche, où l'annulation vit déjà), puis ses autres
+      inscriptions à venir en lignes ;
+   2. la grille est celle de la page actuelle, SANS changement (même partiel, mêmes
+      paramètres) : places restantes déjà dans le pied de carte (`events.foot_seats_left`).
+   ⚠️ Le PRIX n'existe pas sur `Event` : il n'est pas inventé.
+   ⚠️ Recherche et filtres mènent à la vraie page `/events` (le partiel `_catalogue`
+   lie sa propre route) ; la grille ci-dessous se lit donc avec ses paramètres par défaut.
+   🅿️ À la décision : retirer ce gabarit, `public/css/proposals-evenements.css`,
+   `src/Design/EventsHub.php`, son entrée de registre et la branche du contrôleur. #}
+
+{% block title %}Proposition — Événements - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals-evenements.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+{% include 'site/proposals/_banner.html.twig' %}
+
+{% if mine is not null %}
+<main id="main-content" tabindex="-1" class="main-content">
+    <section class="machine-detail-section">
+        <div class="container pp-ev-mine">
+            <h2>Mes inscriptions</h2>
+            {% if mine.next is null %}
+                <p class="pp-ev-empty">Aucune inscription à venir. Choisissez un événement ci-dessous.</p>
+            {% else %}
+                {% set n = mine.next %}
+                {% set e = n.card.event %}
+                {% set reg = n.registration %}
+                <section class="pp-next" aria-labelledby="pp-ev-next-title">
+                    <div class="pp-next-media">
+                        {% if n.card.photo %}<img src="{{ n.card.photo starts with 'http' or n.card.photo starts with '/' ? n.card.photo : asset(n.card.photo) }}" alt="" loading="lazy">{% else %}{% include 'site/_icon.html.twig' with { name: 'calendar' } only %}{% endif %}
+                    </div>
+                    <div class="pp-next-main">
+                        <p class="pp-ev-state{{ reg.waitlisted ? ' is-wait' : '' }}">{{ reg.waitlisted ? 'Sur liste d’attente' : 'Vous êtes inscrit·e' }}</p>
+                        <p class="pp-next-when"><b>{{ e.dateDebut|date('d/m/Y') }}</b> · {{ e.dateDebut|date('H:i') }}{% if e.dateFin %} – {{ e.dateFin|date('H:i') }}{% endif %}</p>
+                        <h3 id="pp-ev-next-title" class="pp-next-title"><a href="{{ path('app_event_detail', {id: e.id}) }}">{{ e.titre }}</a></h3>
+                        {% if e.lieu %}<p class="pp-next-motif">{% include 'site/_icon.html.twig' with { name: 'pin' } only %} {{ e.lieu }}</p>{% endif %}
+                        {% if n.card.seatsLeft is not null %}
+                            <p class="pp-ev-seats">{{ n.card.seatsLeft }} place{{ n.card.seatsLeft > 1 ? 's' : '' }} restante{{ n.card.seatsLeft > 1 ? 's' : '' }} sur {{ e.capacite }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="pp-next-side">
+                        <div class="pp-next-actions">
+                            {% if n.ticketUrl %}
+                                <a class="btn btn-primary" href="{{ n.ticketUrl }}">{% include 'site/_icon.html.twig' with { name: 'ticket' } only %} Billet</a>
+                            {% endif %}
+                            <a class="btn {{ n.ticketUrl ? 'btn-secondary' : 'btn-primary' }}" href="{{ path('app_event_detail', {id: e.id}) }}">Gérer mon inscription</a>
+                        </div>
+                    </div>
+                </section>
+
+                {% if mine.others|length %}
+                    <section class="pp-rows">
+                        <h2>Mes autres inscriptions à venir</h2>
+                        <ul class="pp-ev-rows">
+                            {% for o in mine.others %}
+                                {% set oe = o.card.event %}
+                                <li>
+                                    <span class="pp-row-what"><a href="{{ path('app_event_detail', {id: oe.id}) }}">{{ oe.titre }}</a></span>
+                                    <span class="pp-row-motif">{{ oe.dateDebut|date('d/m/Y · H:i') }}</span>
+                                    <span class="pp-row-motif">{{ o.registration.waitlisted ? 'Liste d’attente' : (oe.lieu ?: 'Inscrit·e') }}</span>
+                                    <a class="pp-row-go" href="{{ o.ticketUrl ?: path('app_event_detail', {id: oe.id}) }}">{{ o.ticketUrl ? 'Billet' : 'Gérer' }}</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </section>
+                {% endif %}
+            {% endif %}
+        </div>
+    </section>
+</main>
+{% else %}
+<div class="container">
+    <p>Pour voir « Mes inscriptions », regardez cette proposition avec un compte membre (<code>?membre=&lt;id&gt;</code>).</p>
+</div>
+{% endif %}
+
+{# La grille : EXACTEMENT celle de `site/events.html.twig` (mêmes paramètres). #}
+{% embed 'site/_catalogue.html.twig' with {
+    venue_context: venueContext,
+    route: 'app_events',
+    title: 'nav.events'|trans,
+    search: search,
+    search_placeholder: 'events.search'|trans,
+    filter_key: 'when',
+    filter_value: when,
+    filter_all_value: 'all',
+    tile_all_label: 'events.tile_all'|trans,
+    show_tile_icons: false,
+    tiles: [
+        { slug: 'upcoming', label: 'events.tile_upcoming'|trans, total: countUpcoming },
+        { slug: 'past',     label: 'events.tile_past'|trans,     total: countPast },
+    ],
+    refine: categoryOptions|length > 1 ? [
+        {name: 'category', label: 'event_categories.menu'|trans, value: category, options: categoryOptions},
+    ] : [],
+    total: total,
+    all: all,
+    unit: 'events.unit'|trans,
+    unit_plural: 'events.unit_plural'|trans,
+    headline_count: countUpcoming,
+    headline_label: 'events.headline_upcoming'|trans,
+    available_word: 'events.headline_upcoming'|trans,
+    empty_text: (search or when == 'past') ? 'events.empty'|trans : 'events.none_upcoming'|trans,
+    card_min: '29rem',
+} %}
+    {% block cards %}
+        {% set monthCounts = {} %}
+        {% for card in cards %}
+            {% set monthKey = card.event.dateDebut|loc_date('MMMM yyyy') %}
+            {% set monthCounts = monthCounts|merge({(monthKey): (monthCounts[monthKey]|default(0)) + 1}) %}
+        {% endfor %}
+        {% set currentMonth = null %}
+        {% for card in cards %}
+            {% set event = card.event %}
+            {% set monthKey = event.dateDebut|loc_date('MMMM yyyy') %}
+            {% if monthKey and monthKey != currentMonth %}
+                {% set currentMonth = monthKey %}
+                <div class="ml-month">
+                    <h2>{{ monthKey }}</h2>
+                    <span>{{ monthCounts[monthKey] }} {{ monthCounts[monthKey] > 1 ? 'events.unit_plural'|trans : 'events.unit'|trans }}</span>
+                </div>
+            {% endif %}
+            {% set past = card.past %}
+            {% set eventCategory = event.category %}
+            {% include 'site/_catalogue_card.html.twig' with {
+                url: path('app_event_detail', {id: event.id}),
+                title: event.titre,
+                type: eventCategory ? eventCategory.label : event.dateDebut|loc_date('EEEE d MMMM'),
+                meta: event.lieu,
+                note: (eventCategory ? event.dateDebut|loc_date('EEEE d MMMM') ~ ' · ' : '') ~ event.dateDebut|date('H:i') ~ (event.dateFin ? ' – ' ~ event.dateFin|date('H:i') : ''),
+                state: event.cancelled ? 'events.state_cancelled'|trans
+                     : (past ? 'events.state_over'|trans
+                     : (card.full ? 'events.state_full'|trans : 'events.state_open'|trans)),
+                state_tone: event.cancelled ? 'stop' : (past ? 'muted' : (card.full ? 'wait' : 'go')),
+                foot: card.usageRight and card.usageRight.enforced and not card.usageRight.allowed ? ('usage_rights.verdict.' ~ card.usageRight.reason ~ '.label')|trans
+                    : (past ? null
+                    : (event.cancelled ? 'events.foot_closed'|trans
+                    : (card.full ? 'events.foot_waitlist'|trans
+                    : (card.seatsLeft is null ? 'events.foot_open_seating'|trans
+                    : 'events.foot_seats_left'|trans({'count': card.seatsLeft}))))),
+                foot_tone: card.usageRight and card.usageRight.enforced and not card.usageRight.allowed ? card.usageRight.tone : (card.full and not past and not event.cancelled ? 'caution' : 'muted'),
+                spent: past,
+                action: 'common.see'|trans,
+                icon_slug: eventCategory and eventCategory.iconSlug ? eventCategory.iconSlug : 'evenement',
+                photo: card.photo,
+                media_ratio: '4 / 3',
+                placeholder_seed: event.id,
+            } only %}
+        {% endfor %}
+    {% endblock %}
+{% endembed %}
+{% endblock %}

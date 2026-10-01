@@ -1,0 +1,11 @@
+/* Proposition « Événements » : le bloc « Mes inscriptions » avant la grille. */
+.pp-ev-mine { display: flex; flex-direction: column; gap: var(--spacing-md); }
+.pp-ev-mine > h2 { margin: 0; font-size: var(--font-size-lg); }
+.pp-ev-state { margin: 0; font-weight: 700; color: var(--color-ok); }
+.pp-ev-state.is-wait { color: var(--color-warn); }
+.pp-ev-seats { margin: 0; color: var(--color-text-light); font-size: var(--font-size-sm); }
+.pp-ev-rows li { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr) auto; }
+.pp-ev-empty { margin: 0; color: var(--color-text-light); }
+@media (max-width: 720px) {
+    .pp-ev-rows li { grid-template-columns: minmax(0, 1fr) auto; }
+}

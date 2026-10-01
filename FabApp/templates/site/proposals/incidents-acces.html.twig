@@ -1,0 +1,181 @@
+{% extends 'base.html.twig' %}
+
+{#
+   PROPOSITION `incidents-acces` — « À traiter » d'abord, par CAUSE, avec la santé
+   des lecteurs à côté.
+
+   Ce qui change par rapport à `/admin/access-rfid-logs` (admin-access-rfid-logs.html.twig) :
+   - on ouvre sur « À traiter » (les refus des 7 derniers jours), au lieu du
+     journal complet filtré par un Oui/Non ;
+   - des tuiles PAR CAUSE avec compteur (badge manquant, formation manquante, badge
+     inconnu, lecteur ou machine, compte inactif, erreur serveur) ; la tuile
+     choisie filtre la liste (`?cause=<clé>`, `all` = tout le journal, autorisés compris) ;
+   - à côté : « Santé des lecteurs » (en ligne / hors ligne / à configurer), et
+     les lecteurs qui demandent une action, avec un lien vers leur fiche ;
+   - période, lecteur et machine restent, repliés sous « Affiner » ;
+   - le détail (motif, message, jeton) n'est pas repris : il reste sur la page réelle.
+   Données : `AccessIncidentBoard::build()` (lecture seule, mêmes requêtes que la
+   page actuelle). Styles : `pp-ai-*`.
+
+   ⚠️ Dans `.admin-panel`, `style.css` repeint tout <span> en gris `!important` :
+   le texte coloré ou gras ici est en <b>, <div> ou <p>, jamais en <span>
+   (les composants partagés `_state_chip`, `_rfid_result` et `_cell_fix` portent
+   leurs propres règles).
+
+   🅿️ À la décision : retirer ce gabarit, son entrée dans PageProposals, la branche
+   du contrôleur (`DesignProposalController`), `AccessIncidentBoard` et
+   `proposals-incidents-acces.css`.
+#}
+
+{% block title %}Proposition — Incidents d’accès{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals-incidents-acces.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+{% embed 'site/_admin_list.html.twig' with {
+    panel_title: 'Incidents d’accès',
+} %}
+    {% block content %}
+        {% include 'site/proposals/_banner.html.twig' %}
+
+        {% set periods = {1: 'Aujourd’hui', 7: '7 jours', 30: '30 jours', 0: 'Tout'} %}
+
+        <div class="pp-ai">
+            <div class="pp-ai-main">
+                <nav class="pp-ai-tiles" aria-label="Cause">
+                    {% for tile in board.tiles %}
+                        <a class="pp-ai-tile{{ tile.key == board.cause ? ' is-active' : '' }}{{ tile.count == 0 and tile.key != 'all' ? ' is-empty' : '' }}"
+                           href="{{ path('app_admin_proposal', {slug: 'incidents-acces', cause: tile.key, days: board.days, reader: board.readerId, machine: board.machineId}) }}"
+                           {% if tile.key == board.cause %}aria-current="true"{% endif %}>
+                            <b class="pp-ai-count">{{ tile.count }}</b>
+                            <div class="pp-ai-label">{{ tile.label }}</div>
+                        </a>
+                    {% endfor %}
+                </nav>
+
+                <details class="pp-ai-refine"{{ board.refined ? ' open' : '' }}>
+                    <summary>Affiner{% if board.refined %} · filtres actifs{% endif %}</summary>
+                    {# Un formulaire GET : il ne fait que recharger cette proposition. #}
+                    <form class="pp-ai-refine-form" method="get" action="{{ path('app_admin_proposal', {slug: 'incidents-acces'}) }}">
+                        <input type="hidden" name="cause" value="{{ board.cause }}">
+                        <label>Période
+                            <select name="days">
+                                {% for value, label in periods %}
+                                    <option value="{{ value }}"{{ value == board.days ? ' selected' : '' }}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </label>
+                        <label>Lecteur
+                            <select name="reader">
+                                <option value="">Tous</option>
+                                {% for r in board.readerOptions %}
+                                    <option value="{{ r.id }}"{{ r.id == board.readerId ? ' selected' : '' }}>{{ r.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </label>
+                        <label>Machine
+                            <select name="machine">
+                                <option value="">Toutes</option>
+                                {% for m in board.machineOptions %}
+                                    <option value="{{ m.id }}"{{ m.id == board.machineId ? ' selected' : '' }}>{{ m.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </label>
+                        <button type="submit" class="btn btn-secondary">Appliquer</button>
+                    </form>
+                </details>
+
+                <p class="pp-ai-count-line">
+                    {{ board.matching }} {{ board.cause == 'all' ? 'passage' : 'refus' }}{{ board.matching > 1 ? 's' : '' }}
+                    · {{ periods[board.days]|lower }}{% if board.shown < board.matching %} · {{ board.shown }} montrés{% endif %}
+                </p>
+
+                {% embed 'site/_data_table.html.twig' with {
+                    columns: [
+                        {label: 'Quand', class: 'is-tight'},
+                        {label: 'Badge', class: 'is-grow'},
+                        {label: 'Où'},
+                        {label: 'Résultat', class: 'is-tight'},
+                        {label: 'À faire', class: 'is-tight'},
+                    ],
+                    rows: board.rows,
+                    empty: board.cause == 'todo' ? 'Aucun refus sur la période : rien à traiter.' : 'Aucune ligne pour cette cause sur la période.',
+                } %}
+                    {% block rows %}
+                        {% for row in board.rows %}
+                            {% set log = row.log %}
+                            <tr>
+                                <td>{% include 'site/_cell_date.html.twig' with {
+                                    value: log.createdAt, convention: 'machine', format: 'd/m H:i',
+                                } only %}</td>
+                                <td>{% include 'site/_cell_title.html.twig' with {
+                                    title: log.badgeUid,
+                                    subtitle: log.utilisateur ? log.utilisateur.displayName : '',
+                                } only %}</td>
+                                <td>{% include 'site/_cell_title.html.twig' with {
+                                    title: log.machine ? log.machine.nom : '',
+                                    subtitle: log.reader ? log.reader.name : '',
+                                } only %}</td>
+                                <td>{% include 'site/_rfid_result.html.twig' with {
+                                    status: log.status, authorized: log.authorized, color: log.color,
+                                } only %}</td>
+                                <td>{% if row.fix %}{% include 'site/_cell_fix.html.twig' with {
+                                    fix: row.fix.fix, route: row.fix.route, params: row.fix.params,
+                                } only %}{% else %}{% include 'site/_cell_empty.html.twig' with {reason: 'cell.nothing_to_fix'} only %}{% endif %}</td>
+                            </tr>
+                        {% endfor %}
+                    {% endblock %}
+                {% endembed %}
+
+                <p class="pp-ai-all">
+                    <a href="{{ path('app_admin_access_rfid_logs', {days: board.days, result: board.cause == 'all' ? '' : 'no'}) }}">Ouvrir le journal complet (motif, message, jeton)</a>
+                </p>
+            </div>
+
+            <aside class="pp-ai-health" aria-labelledby="pp-ai-health-title">
+                <h2 class="pp-ai-health-title" id="pp-ai-health-title">
+                    {% include 'site/_icon.html.twig' with { name: 'bolt' } only %}
+                    Santé des lecteurs
+                </h2>
+                <div class="pp-ai-stat">
+                    <b class="pp-ai-stat-n">{{ board.health.ready }}</b>
+                    <div>{% include 'site/_state_chip.html.twig' with { label: 'En ligne', signal: 'go' } only %}</div>
+                </div>
+                <div class="pp-ai-stat">
+                    <b class="pp-ai-stat-n">{{ board.health.offline }}</b>
+                    <div>{% include 'site/_state_chip.html.twig' with { label: 'Hors ligne', signal: board.health.offline > 0 ? 'stop' : 'muted' } only %}</div>
+                </div>
+                {% if board.health.other > 0 %}
+                    <div class="pp-ai-stat">
+                        <b class="pp-ai-stat-n">{{ board.health.other }}</b>
+                        <div>{% include 'site/_state_chip.html.twig' with { label: 'À configurer', signal: 'caution' } only %}</div>
+                    </div>
+                {% endif %}
+
+                {% if board.health.attention %}
+                    <ul class="pp-ai-readers">
+                        {% for r in board.health.attention %}
+                            <li>
+                                <div class="pp-ai-reader-name">
+                                    <b>{{ r.name }}</b>
+                                    {% if r.where %}<div class="pp-ai-reader-meta">{{ r.where }}</div>{% endif %}
+                                    {% if r.lastSeen %}<div class="pp-ai-reader-meta">Dernier contact {{ r.lastSeen|lab_date('d/m H:i') }}</div>{% endif %}
+                                </div>
+                                <div>{% include 'site/_state_chip.html.twig' with { label: r.label|trans, signal: r.signal } only %}</div>
+                                <a class="pp-ai-verb" href="{{ path('app_admin_rfid_reader_edit', {id: r.id}) }}">Ouvrir le lecteur</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="pp-ai-reader-meta">Tous les lecteurs en service répondent.</p>
+                {% endif %}
+
+                <p class="pp-ai-all"><a href="{{ path('app_admin_rfid_readers') }}">Voir tous les lecteurs</a></p>
+            </aside>
+        </div>
+    {% endblock %}
+{% endembed %}
+{% endblock %}

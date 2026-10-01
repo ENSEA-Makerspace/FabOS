@@ -116,6 +116,79 @@ final class PageProposals
                     'Pas de couleurs de la planche : états par `_state_chip`, icônes par `_icon`, jetons du thème.',
                 ],
             ],
+            [
+                'slug' => 'recherche',
+                'title' => 'Recherche',
+                'planche' => 'coordination/05-recherche.png',
+                'current' => ['route' => 'app_recherche', 'params' => [], 'label' => '/recherche'],
+                'shell' => 'public',
+                'take' => [
+                    'Avant la saisie, des accès rapides (mes réservations, machines, formations, événements) au lieu de trois conseils sur la façon de chercher.',
+                    'Les types deviennent un filtre à un clic, « Tout » en premier, chacun avec son compteur.',
+                    'Des lignes avec le pictogramme du type, et « Voir tout » vers le catalogue déjà filtré par la saisie.',
+                ],
+                'keep' => [
+                    'Les résultats sont ceux de `SiteSearch` tels quels, « Pages du site » en tête (taper « horaires » mène aux horaires).',
+                    'Pas de « récents » : FabOS ne garde pas l’historique de navigation, et n’a pas à le faire.',
+                ],
+                'demo' => ['?q=laser' => '« laser »', '?q=laser&type=machines' => '« laser », machines seulement'],
+            ],
+            [
+                'slug' => 'evenements',
+                'title' => 'Événements',
+                'planche' => 'productwide/01-evenements.png',
+                'current' => ['route' => 'app_events', 'params' => [], 'label' => '/events'],
+                'shell' => 'public',
+                'take' => [
+                    '« Mes inscriptions » AVANT la grille : le prochain événement auquel on est inscrit en grand (quand, où, place ou liste d’attente) avec ses vraies actions, « Billet » et « Gérer ».',
+                    'Ses autres inscriptions à venir en lignes datées, un seul verbe par ligne.',
+                    'Les places restantes lisibles sur la carte.',
+                ],
+                'keep' => [
+                    'La grille actuelle, inchangée (même partiel `_catalogue_card`, mêmes signaux) : états ouvert/complet/terminé/annulé, regroupement par mois, droit d’usage au pied.',
+                    'Le prix n’existe pas sur `Event` : il n’est pas inventé.',
+                    'L’annulation reste sur la fiche de l’événement (« Gérer »), pas de mur de boutons dans la liste.',
+                ],
+                'demo' => [],
+            ],
+            [
+                'slug' => 'incidents-acces',
+                'title' => 'Incidents d’accès',
+                'planche' => 'espaces/06-incidents-acces.png',
+                'current' => ['route' => 'app_admin_access_rfid_logs', 'params' => [], 'label' => '/admin/access-rfid-logs'],
+                'shell' => 'admin',
+                'take' => [
+                    'Des tuiles par CAUSE avec compteur (badge manquant, formation manquante, badge inconnu, lecteur ou machine, compte inactif, erreur serveur).',
+                    '« À traiter » sélectionné par défaut (les refus des 7 derniers jours) au lieu du seul filtre Oui/Non.',
+                    'Un petit panneau « Santé des lecteurs » à côté : en ligne / hors ligne / à configurer.',
+                    'Période, lecteur et machine repliés sous « Affiner ».',
+                ],
+                'keep' => [
+                    'Le verbe correctif par ligne (« Accorder le badge », « Réactiver le boîtier »…) : `AccessIncident`, mieux que la planche et son lien générique.',
+                    'Aucune donnée personnelle de plus que la page actuelle.',
+                    'Pas de tuile « hors plage horaire » : le journal n’écrit pas ce statut, on ne l’invente pas.',
+                ],
+                'demo' => ['?cause=badge' => 'tuile « Badge manquant »', '?cause=all&days=30' => 'tout le journal, 30 jours'],
+            ],
+            [
+                'slug' => 'annuaire-utilisateurs',
+                'title' => 'Annuaire des utilisateurs',
+                'planche' => 'users/08-annuaire-utilisateurs.png',
+                'current' => ['route' => 'app_admin_users', 'params' => [], 'label' => '/admin/utilisateurs'],
+                'shell' => 'admin',
+                'take' => [
+                    'Des tuiles orientées travail, chacune avec son compteur : « À valider », « Suspendus ou inactifs », « Expire bientôt » (appartenance de groupe qui prend fin dans 30 jours), « Sans badge ».',
+                    'Les formations en « 3 / 4 » avec leur jauge, au lieu d’un entier « progressions ».',
+                    '« Dernière activité » (dernier passage de badge ou dernière connexion) au lieu du compteur brut de passages RFID.',
+                    'Un verbe qui dit la tâche : « Examiner » quand la ligne demande une décision, « Ouvrir » sinon.',
+                ],
+                'keep' => [
+                    'La coquille de liste admin : recherche, compteur, bouton de création, `_data_table` avec action épinglée.',
+                    'Les filtres Groupe et Forfait de la page réelle (non rejoués ici) : ils passent par `AudienceResolver`.',
+                    'Le statut « adresse non confirmée », que la planche n’a pas.',
+                ],
+                'demo' => ['?tuile=valider' => 'à valider', '?tuile=expire' => 'expire bientôt', '?tuile=sans-badge' => 'sans badge'],
+            ],
         ];
     }
 

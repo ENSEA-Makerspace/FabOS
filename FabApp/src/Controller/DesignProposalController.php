@@ -10,9 +10,13 @@ use App\Repository\AccessPointRepository;
 use App\Repository\MachineRepository;
 use App\Repository\UtilisateurRepository;
 use App\Reservation\ReservableType;
+use App\Design\AccessIncidentBoard;
 use App\Design\AdminAttention;
+use App\Design\AdminUserDirectory;
+use App\Design\EventsHub;
 use App\Design\MyTrainings;
 use App\Design\PageProposals;
+use App\Search\SiteSearch;
 use App\Home\MemberToday;
 use App\Entity\Utilisateur;
 use App\Service\MarkdownDocService;
@@ -55,6 +59,10 @@ final class DesignProposalController extends AbstractController
         MemberToday $memberToday,
         MyTrainings $myTrainings,
         AdminAttention $adminAttention,
+        SiteSearch $siteSearch,
+        EventsHub $eventsHub,
+        AccessIncidentBoard $accessIncidents,
+        AdminUserDirectory $adminUserDirectory,
     ): Response
     {
         $proposal = $proposals->find($slug) ?? throw $this->createNotFoundException();
@@ -73,6 +81,15 @@ final class DesignProposalController extends AbstractController
             'accueil-membre' => ['member' => $user, 'today' => $user === null ? null : $memberToday->for($user)],
             'mes-formations' => ['trainings' => $user === null ? null : $myTrainings->for($user)],
             'admin-attention' => ['attention' => $adminAttention->build()],
+            'recherche' => (static function () use ($request, $siteSearch): array {
+                $query = trim((string) $request->query->get('q', ''));
+                $groups = $siteSearch->groups($query, false);
+
+                return ['query' => $query, 'groups' => $groups, 'totalResults' => array_sum(array_map(static fn (array $g): int => \count($g['items']), $groups))];
+            })(),
+            'evenements' => $eventsHub->build($request, $user),
+            'incidents-acces' => ['board' => $accessIncidents->build($request->query->getInt('days', 7), $request->query->getInt('reader') ?: null, $request->query->getInt('machine') ?: null, (string) $request->query->get('cause', 'todo'))],
+            'annuaire-utilisateurs' => ['directory' => $adminUserDirectory->build($request->query->getString('tuile'), $request->query->getString('q'))],
             default => [],
         };
 

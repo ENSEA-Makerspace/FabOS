@@ -1,0 +1,44 @@
+/* Proposition `incidents-acces` — préfixe pp-ai-, jetons du thème seulement.
+   🅿️ Se supprime avec la proposition. */
+
+.pp-ai { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: var(--spacing-lg); align-items: start; padding-block: var(--spacing-md); }
+.pp-ai-main { display: grid; gap: var(--spacing-md); min-width: 0; }
+
+.pp-ai-tiles { display: flex; flex-wrap: wrap; gap: var(--spacing-sm); }
+.pp-ai-tile {
+    display: flex; align-items: baseline; gap: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-md);
+    background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: var(--border-radius);
+    color: var(--color-text); text-decoration: none;
+}
+.pp-ai-tile:hover { border-color: var(--color-primary-text); }
+.pp-ai-tile.is-active { background: var(--color-primary-text); border-color: var(--color-primary-text); color: var(--theme-surface); }
+.pp-ai-tile.is-empty:not(.is-active) { color: var(--color-text-light); }
+.pp-ai-count { font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); }
+.pp-ai-label { font-size: var(--font-size-sm); }
+
+.pp-ai-refine > summary { cursor: pointer; color: var(--color-primary-text); font-weight: var(--font-weight-semibold); }
+.pp-ai-refine-form { display: flex; flex-wrap: wrap; align-items: end; gap: var(--spacing-md); padding-top: var(--spacing-sm); }
+.pp-ai-refine-form label { display: grid; gap: var(--spacing-xs); color: var(--color-text-light); font-size: var(--font-size-sm); }
+
+.pp-ai-count-line { margin: 0; color: var(--color-text-light); font-size: var(--font-size-sm); }
+.pp-ai-all { margin: 0; font-size: var(--font-size-sm); }
+.pp-ai-all a, .pp-ai-verb { color: var(--color-primary-text); font-weight: var(--font-weight-semibold); }
+
+.pp-ai-health {
+    display: grid; gap: var(--spacing-sm); padding: var(--spacing-md);
+    background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: var(--border-radius);
+}
+.pp-ai-health-title { display: flex; align-items: center; gap: var(--spacing-sm); margin: 0; font-size: var(--font-size-lg); color: var(--color-text); }
+.pp-ai-health-title svg { width: 18px; height: 18px; flex: 0 0 auto; }
+.pp-ai-stat { display: flex; align-items: center; gap: var(--spacing-md); }
+.pp-ai-stat-n { min-width: 2ch; font-size: var(--font-size-xl); color: var(--color-text); }
+
+.pp-ai-readers { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--spacing-sm); border-top: 1px solid var(--border-color); padding-top: var(--spacing-sm); }
+.pp-ai-readers li { display: grid; gap: var(--spacing-xs); }
+.pp-ai-reader-name b { color: var(--color-text); }
+.pp-ai-reader-meta { margin: 0; color: var(--color-text-light); font-size: var(--font-size-sm); }
+
+@media (max-width: 900px) {
+    .pp-ai { grid-template-columns: minmax(0, 1fr); }
+}
