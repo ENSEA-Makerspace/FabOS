@@ -10,7 +10,7 @@ Tri du 2026-10-01 (lecture des planches et des gabarits ; la valeur /5 = gain po
 |---|---|
 | `01-catalogue-espaces.png` | 🟡 [Proposition](/admin/propositions/espaces-catalogue) — « Libre maintenant » en tête, la carte dit quand, bouton « Réserver ». |
 | `02-detail-espace-reservation.png` | ✅ Appliqué (2026-10-01) — tête partagée `_detail_hero`. |
-| `03-parcours-reservation.png` | 🟡 à proposer (2/5) — politique d'annulation et nombre de participants (borné par la capacité) dans le panneau de réservation. |
+| `03-parcours-reservation.png` | 🟡 [Proposition](/admin/propositions/parcours-reservation) (2/5) — politique d'annulation et nombre de participants (borné par la capacité) dans le panneau de réservation. |
 | `04-exploitation-espaces.png` | 🟡 [Proposition](/admin/propositions/admin-attention) (4/5) — fusionné avec « vue d'ensemble Équipement » : `/admin` en blocs « ce qui demande une action ». |
 | `05-mise-en-service-point-acces.png` | 🟡 à proposer (2/5) — la checklist `_commissioning` sur la fiche du point d'accès. |
 | `06-incidents-acces.png` | 🟡 [Proposition](/admin/propositions/incidents-acces) (3/5) — tuiles par cause avec compteur, « À traiter » par défaut ; santé des points. |
@@ -38,7 +38,7 @@ Tri du 2026-10-01 (lecture des planches et des gabarits ; la valeur /5 = gain po
 | `02-confirmation-email.png` | 🟢 égal (1/5) — renvoyer, corriger l'adresse, « pas reçu ? » : déjà. |
 | `03-profil-adhesion.png` | 🅿️ pas de page (1/5) — pas d'adhésion payante dans FabOS. |
 | `04-accueil-membre.png` | 🟡 [Proposition](/admin/propositions/accueil-membre) (4/5) — « À faire » avec un verbe par ligne, prochaine réservation, mes accès. |
-| `05-profil-securite.png` | 🟡 à proposer (2/5) — une section « Sécurité » à part, une ligne par chose ; export de mes données. |
+| `05-profil-securite.png` | 🟡 [Proposition](/admin/propositions/profil-securite-emails) (2/5) — une section « Sécurité » à part, une ligne par chose ; export de mes données. |
 | `06-droits-et-acces-admin.png` | 🟢 égal (1/5) — le même composant que le membre voit (`_usage_rights_summary`). |
 | `07-validation-inscription.png` | 🅿️ pas de page (2/5) — pas de flux valider / demander / refuser une inscription. |
 | `08-annuaire-utilisateurs.png` | 🟡 [Proposition](/admin/propositions/annuaire-utilisateurs) (3/5) — tuiles « À valider / Suspendu / Expire bientôt », formations en « 3/4 », dernière activité. |
@@ -50,7 +50,7 @@ Tri du 2026-10-01 (lecture des planches et des gabarits ; la valeur /5 = gain po
 | `01-evenements.png` | 🟡 [Proposition](/admin/propositions/evenements) (3/5) — « Mes inscriptions » avant la grille ; places restantes sur les cartes. |
 | `02-prets.png` | 🟡 [Proposition](/admin/propositions/prets-admin) (3/5) — « Enregistrer le retour » sur la fiche de l'objet ; tuile « À rendre aujourd'hui ». |
 | `03-materiaux-equipement.png` | 🟢 égal (1/5) — pas de donnée de stock ; la fiche a les machines compatibles. |
-| `04-maintenance.png` | 🟡 à proposer (2/5) — verbe par ligne (« Démarrer » / « Terminer ») et tuile « Cette semaine ». |
+| `04-maintenance.png` | 🟡 [Proposition](/admin/propositions/maintenance) (2/5) — verbe par ligne (« Démarrer » / « Terminer ») et tuile « Cette semaine ». |
 | `05-configuration.png` | 🟢 égal (1/5) — cartes par domaine avec état résumé : déjà (S132). |
 | `06-creations.png` | 🟢 égal (1/5) — grille, auteur, épingle, partage : déjà. |
 | `07-kiosque.png` | 🅿️ pas de page (2/5) — accueil de borne : trois grosses tuiles. |
@@ -64,7 +64,7 @@ Tri du 2026-10-01 (lecture des planches et des gabarits ; la valeur /5 = gain po
 | `03-groupes.png` | 🟢 égal (1/5) — membres, rôle, validité, lots de droits : déjà. |
 | `04-mon-badge.png` | 🟢 égal (1/5) — `_badge_reach` dans le profil ; à ajouter peut-être « dernière utilisation ». |
 | `05-recherche.png` | 🟡 [Proposition](/admin/propositions/recherche) (3/5) — accès rapides avant saisie, filtre par type avec compteurs. |
-| `06-preferences-email.png` | 🟡 à proposer (2/5) — regrouper par domaine, « toujours activé » non modifiable. |
+| `06-preferences-email.png` | 🟡 [Proposition](/admin/propositions/profil-securite-emails) (2/5) — regrouper par domaine, « toujours activé » non modifiable. |
 
 ## formations
 

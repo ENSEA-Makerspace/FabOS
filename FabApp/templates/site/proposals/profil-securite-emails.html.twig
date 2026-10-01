@@ -1,0 +1,120 @@
+{% extends 'site/base_public.html.twig' %}
+
+{# PROPOSITION — « Sécurité et e-mails », d'après `users/05-profil-securite.png`
+   et `coordination/06-preferences-email.png`.
+   Aujourd'hui tout vit dans `/profil#settings`, dans UN formulaire avec l'affichage
+   et le reste. Ici, deux sections à part :
+   1. « Sécurité » — UNE ligne par chose, son état et son verbe : mot de passe,
+      adresse e-mail (vérifiée ou non), double authentification (`MfaService`),
+      sessions ouvertes (`SessionRegistry`) ; « Supprimer mon compte » en bas, discret ;
+   2. « E-mails » — regroupés par domaine ; dans chaque groupe, les e-mails
+      ESSENTIELS (catégories hors `NotificationCategory::OPTOUTABLE`) en « Toujours
+      envoyé », et les optionnels avec ce qu'on reçoit et leur état « Reçu / Non reçu ».
+   Aucun interrupteur ici : l'enregistrement se fait sur `/profil` (un lien par
+   groupe). Rien n'est enregistré.
+   🅿️ À la décision : retirer ce gabarit, `public/css/proposals-profil-securite-emails.css`,
+   `src/Design/AccountSecurityEmails.php`, son entrée de registre et la branche du contrôleur. #}
+
+{% block title %}Proposition — Sécurité et e-mails - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals-profil-securite-emails.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+{% include 'site/proposals/_banner.html.twig' %}
+<main id="main-content" tabindex="-1" class="main-content">
+    <section class="machine-detail-section">
+        <div class="container pp-home">
+            <header class="pp-resv-head">
+                <h1>Sécurité et e-mails</h1>
+                <a class="btn btn-secondary" href="{{ path('app_profile') }}#settings">Retour au profil</a>
+            </header>
+
+            {% if account is null %}
+                <p>Cette proposition se regarde avec un compte membre : <a href="?membre=45">voir avec alice</a>.</p>
+            {% else %}
+                <section class="detail-card pp-se-sec pp-todo" aria-labelledby="pp-se-sec-title">
+                    <h2 id="pp-se-sec-title">Sécurité</h2>
+                    <p class="pp-se-lede">Ce qui protège votre compte, et ce que vous pouvez en changer.</p>
+                    <ul>
+                        <li>
+                            <span class="pp-todo-ic" aria-hidden="true">{% include 'site/_icon.html.twig' with {name: 'lock'} only %}</span>
+                            <div><b>Mot de passe</b><small>Changer le mot de passe ferme vos autres sessions.</small></div>
+                            <a class="btn btn-secondary" href="{{ path('app_profile_password') }}">Modifier</a>
+                        </li>
+                        <li>
+                            <span class="pp-todo-ic" aria-hidden="true">{% include 'site/_icon.html.twig' with {name: 'mail'} only %}</span>
+                            <div>
+                                <b>Adresse e-mail</b>
+                                <small>{{ account.email }}</small>
+                            </div>
+                            <div>{% include 'site/_state_chip.html.twig' with {label: account.verified ? 'Vérifiée' : 'Non vérifiée', signal: account.verified ? 'go' : 'caution'} only %}</div>
+                        </li>
+                        {% if account.mfa is not null %}
+                            <li>
+                                <span class="pp-todo-ic" aria-hidden="true">{% include 'site/_icon.html.twig' with {name: 'key'} only %}</span>
+                                <div>
+                                    <b>Double authentification{% if account.mfa != 'enabled' %}<span class="pp-se-tag">Recommandé</span>{% endif %}</b>
+                                    <small>{{ account.mfa == 'enabled' ? 'Un code de votre téléphone est demandé à la connexion.' : (account.mfa == 'pending' ? 'Commencée, pas encore confirmée.' : 'Un code à 6 chiffres en plus du mot de passe.') }}</small>
+                                </div>
+                                <a class="btn {{ account.mfa == 'enabled' ? 'btn-secondary' : 'btn-primary' }}" href="{{ path('app_profile_mfa') }}">{{ account.mfa == 'enabled' ? 'Gérer' : (account.mfa == 'pending' ? 'Terminer' : 'Activer') }}</a>
+                            </li>
+                        {% endif %}
+                        {% if account.sessions is not null %}
+                            <li>
+                                <span class="pp-todo-ic" aria-hidden="true">{% include 'site/_icon.html.twig' with {name: 'history'} only %}</span>
+                                <div>
+                                    <b>Sessions ouvertes</b>
+                                    <small>{{ account.sessions == 0 ? 'Aucune session ouverte.' : (account.sessions == 1 ? '1 session ouverte (celle-ci).' : account.sessions ~ ' sessions ouvertes.') }}</small>
+                                </div>
+                                <a class="btn btn-secondary" href="{{ path('app_profile_sessions') }}">Voir</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                    <p class="pp-se-danger">Plus besoin de ce compte ? <a href="{{ path('app_profile_delete') }}">Supprimer mon compte</a> — une page vous dit d’abord ce qui part et ce qui reste.</p>
+                </section>
+
+                <section class="pp-se-mail" aria-labelledby="pp-se-mail-title">
+                    <h2 id="pp-se-mail-title">E-mails</h2>
+                    <p class="pp-se-lede">
+                        {% if account.masterOn %}
+                            Les e-mails essentiels sont toujours envoyés : ils répondent à ce que vous venez de faire.
+                        {% else %}
+                            Vous avez coupé les e-mails dans leur ensemble : aucun e-mail optionnel n’est envoyé, quel que soit son état ci-dessous.
+                        {% endif %}
+                    </p>
+                    <div class="pp-se-groups">
+                        {% for group in account.groups %}
+                            <article class="pp-se-group">
+                                <h3>{% include 'site/_icon.html.twig' with {name: group.icon} only %}{{ group.title }}</h3>
+                                <ul>
+                                    {% for line in group.lines %}
+                                        <li>
+                                            <div>
+                                                <b>{{ line.essential ? 'Essentiels' : 'Optionnels' }}</b>
+                                                <small>{{ line.what }}</small>
+                                            </div>
+                                            {% if line.essential %}
+                                                <div class="pp-se-state">Toujours envoyé</div>
+                                            {% else %}
+                                                {% set on = line.received and account.masterOn %}
+                                                <div class="pp-se-state{{ on ? '' : ' is-off' }}">{{ on ? 'Reçu' : 'Non reçu' }}</div>
+                                            {% endif %}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </article>
+                        {% endfor %}
+                    </div>
+                    <p class="pp-se-foot">
+                        <a class="btn btn-primary" href="{{ path('app_profile') }}#settings">Modifier sur mon profil</a>
+                        <small>L’enregistrement se fait sur la page du profil.</small>
+                    </p>
+                </section>
+            {% endif %}
+        </div>
+    </section>
+</main>
+{% endblock %}

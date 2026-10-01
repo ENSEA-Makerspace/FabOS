@@ -1,0 +1,139 @@
+{% extends 'site/base_public.html.twig' %}
+
+{# PROPOSITION — « Réserver un espace », d'après `espaces/03-parcours-reservation.png`.
+   On ne peut pas montrer la modale JS d'une proposition statique : on montre
+   l'ÉTAT « créneau choisi » de la fiche `/places/{id}` — la journée à gauche (ce
+   qui est pris, ce qu'on a choisi), à droite la CONFIRMATION, courte, avant
+   d'envoyer — puis, dessous, l'écran d'APRÈS (« C'est réservé »).
+   Aujourd'hui le panneau (`_calendar_booking`) montre deux cases (date, créneau),
+   deux listes d'heures et un motif ; il ne dit ni quel espace, ni la durée, ni
+   jusqu'à quand on peut annuler, ni ce que le badge ouvrira. Ici :
+   1. le récapitulatif : l'espace (icône plan par défaut — un espace n'a pas de
+      photo), le jour, début–fin, la durée, la capacité ;
+   2. le motif (optionnel, comme aujourd'hui) ;
+   3. « Annulable jusqu'au … » SEULEMENT si la politique de réservation en fixe un
+      (`BookingPolicyService::changeDeadlineFor`) ;
+   4. « Votre badge ouvrira la porte de HH:MM à HH:MM » SEULEMENT si l'espace a des
+      portes (marge de `DoorAccessDecision::MARGIN_MINUTES`) ;
+   5. après : prochaines étapes (voir dans Mes réservations, s'abonner au
+      calendrier de l'espace, annuler).
+   ⚠️ Pas de champ « nombre de participants » : il n'existe pas en base, on ne
+   l'ajoute pas. Le bouton « Réserver » mène à la vraie fiche (aucun envoi).
+   🅿️ À la décision : retirer ce gabarit, son entrée dans `PageProposals`, la
+   branche du contrôleur, `src/Design/BookingConfirmation.php` et
+   `public/css/proposals-parcours-reservation.css`. #}
+
+{% block title %}Proposition — Réserver un espace - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals-parcours-reservation.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+{% include 'site/proposals/_banner.html.twig' %}
+<main id="main-content" tabindex="-1" class="main-content">
+    <section class="machine-detail-section">
+        <div class="container pp-bk">
+            {% if booking is null %}
+                <p>Aucun espace réservable à montrer.</p>
+            {% else %}
+                {% set p = booking.place %}
+                {% set hours = booking.minutes // 60 %}
+                {% set rest = booking.minutes % 60 %}
+                {% set duration = (hours > 0 ? hours ~ ' h' : '') ~ (rest > 0 ? (hours > 0 ? ' ' : '') ~ rest ~ ' min' : '') %}
+                {% set dayLabel = booking.day|loc_date('EEEE d MMMM')|capitalize %}
+                {% set realUrl = path('app_place_detail', {id: p.id}) %}
+
+                <header class="pp-resv-head">
+                    <div>
+                        <h1>Réserver : {{ p.nom }}</h1>
+                        <p class="md-kicker">Créneau choisi · il reste à confirmer</p>
+                    </div>
+                    {% if booking.choices|length > 1 %}
+                        <p class="pp-bk-others">Voir avec :
+                            {% for c in booking.choices|slice(0, 6) %}{% if c.id != p.id %}<a href="?espace={{ c.id }}">{{ c.nom }}</a>{% if not loop.last %} · {% endif %}{% endif %}{% endfor %}
+                        </p>
+                    {% endif %}
+                </header>
+
+                <div class="pp-bk-grid">
+                    <section class="detail-card pp-bk-day" aria-labelledby="pp-bk-day-title">
+                        <h2 id="pp-bk-day-title" class="detail-card-title">{% include 'site/_icon.html.twig' with { name: 'calendar' } only %} {{ dayLabel }}</h2>
+                        <ul class="pp-bk-hours">
+                            {% for h in booking.hours %}
+                                <li class="is-{{ h.state }}">
+                                    <b>{{ h.label }}</b>
+                                    <span class="pp-bk-hour-state">{{ h.state == 'busy' ? 'Pris' : (h.state == 'chosen' ? 'Votre créneau' : (h.state == 'clash' ? 'Déjà pris' : 'Libre')) }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                        <p class="pp-bk-legend">Le vrai calendrier garde la semaine et le mois ; ici, seule la journée choisie.</p>
+                    </section>
+
+                    <section class="detail-card pp-bk-confirm" aria-labelledby="pp-bk-confirm-title">
+                        <div class="pp-bk-space">
+                            <div class="pp-bk-media" aria-hidden="true">{% include 'site/_icon.html.twig' with { name: 'map' } only %}</div>
+                            <div>
+                                <h2 id="pp-bk-confirm-title" class="pp-bk-space-name">{{ p.nom }}</h2>
+                                {% if p.localisation %}<p class="pp-bk-muted">{{ p.localisation }}</p>{% endif %}
+                                {% if p.capacite %}<p class="pp-bk-muted">{{ p.capacite }} {{ 'places.capacity_suffix'|trans }}</p>{% endif %}
+                            </div>
+                        </div>
+
+                        <dl class="pp-bk-facts">
+                            <div><dt>Jour</dt><dd>{{ dayLabel }}</dd></div>
+                            <div><dt>Horaire</dt><dd>{{ booking.start|date('H:i') }}–{{ booking.end|date('H:i') }}</dd></div>
+                            <div><dt>Durée</dt><dd>{{ duration }}</dd></div>
+                        </dl>
+
+                        {% if booking.clash %}
+                            <p class="pp-bk-warn">{% include 'site/_icon.html.twig' with { name: 'warning' } only %} Ce créneau chevauche une réservation existante : le bouton ne réserverait rien.</p>
+                        {% endif %}
+
+                        <div class="pp-bk-motif">
+                            <label for="pp-bk-motif">{{ 'cal.reason_opt'|trans }}</label>
+                            <textarea id="pp-bk-motif" rows="3" placeholder="{{ 'cal.reason_ph'|trans }}" readonly></textarea>
+                        </div>
+
+                        <ul class="pp-bk-notes">
+                            {% if booking.deadline %}
+                                <li>{% include 'site/_icon.html.twig' with { name: 'history' } only %}
+                                    <p>Annulable jusqu’au <b>{{ booking.deadline|date('d/m') }} à {{ booking.deadline|date('H:i') }}</b>.</p></li>
+                            {% endif %}
+                            {% if booking.doors|length %}
+                                <li>{% include 'site/_icon.html.twig' with { name: 'key' } only %}
+                                    <p>Votre badge ouvrira {{ booking.doors|length > 1 ? 'les portes' : 'la porte' }} de <b>{{ booking.doorFrom|date('H:i') }}</b> à <b>{{ booking.doorUntil|date('H:i') }}</b> ({{ booking.doors|join(', ') }}).</p></li>
+                            {% endif %}
+                        </ul>
+
+                        <div class="pp-bk-actions">
+                            <a class="btn btn-primary" href="{{ realUrl }}#place-calendar">{{ 'cal.book'|trans }}</a>
+                            <a class="btn btn-secondary" href="{{ realUrl }}#place-calendar">Changer de créneau</a>
+                        </div>
+                    </section>
+                </div>
+
+                <section class="detail-card pp-bk-after" aria-labelledby="pp-bk-after-title">
+                    <p class="md-kicker">Écran d’après</p>
+                    <div class="pp-bk-done">
+                        <span class="pp-bk-tick" aria-hidden="true">{% include 'site/_icon.html.twig' with { name: 'check' } only %}</span>
+                        <div>
+                            <h2 id="pp-bk-after-title" class="pp-next-title">C’est réservé</h2>
+                            <p class="pp-bk-muted">{{ p.nom }} · {{ dayLabel }} · {{ booking.start|date('H:i') }}–{{ booking.end|date('H:i') }}</p>
+                        </div>
+                    </div>
+                    <ul class="pp-bk-next">
+                        <li><a class="btn btn-primary" href="{{ path('app_my_reservations') }}">Voir dans Mes réservations</a></li>
+                        {% if member %}
+                            <li><a class="btn btn-secondary" href="{{ (url('app_place_ical', {id: p.id}) ~ '?token=' ~ ical_feed_token())|replace({'https://': 'webcal://', 'http://': 'webcal://'}) }}">{% include 'site/_icon.html.twig' with { name: 'calendar' } only %} S’abonner au calendrier de cet espace</a></li>
+                        {% endif %}
+                        <li><a class="btn btn-secondary" href="{{ path('app_my_reservations') }}">Annuler{% if booking.deadline %} (jusqu’au {{ booking.deadline|date('d/m H:i') }}){% endif %}</a></li>
+                    </ul>
+                    <p class="pp-bk-muted">Le flux iCal est celui de l’espace entier (créneaux occupés, sans noms) : il n’existe pas d’« ajouter cette réservation » à un clic.</p>
+                </section>
+            {% endif %}
+        </div>
+    </section>
+</main>
+{% endblock %}

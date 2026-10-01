@@ -18,6 +18,9 @@ use App\Design\LoansCounter;
 use App\Design\MachineOperations;
 use App\Design\ReaderSheet;
 use App\Design\MyTrainings;
+use App\Design\MaintenanceQueue;
+use App\Design\AccountSecurityEmails;
+use App\Design\BookingConfirmation;
 use App\Design\PageProposals;
 use App\Search\SiteSearch;
 use App\Home\MemberToday;
@@ -69,6 +72,9 @@ final class DesignProposalController extends AbstractController
         LoansCounter $loansCounter,
         ReaderSheet $readerSheet,
         MachineOperations $machineOperations,
+        MaintenanceQueue $maintenanceQueue,
+        AccountSecurityEmails $accountSecurityEmails,
+        BookingConfirmation $bookingConfirmation,
     ): Response
     {
         $proposal = $proposals->find($slug) ?? throw $this->createNotFoundException();
@@ -99,6 +105,9 @@ final class DesignProposalController extends AbstractController
             'prets-admin' => ['loans' => $loansCounter->build($request->query->getString('tuile'), $request->query->getString('q'))],
             'fiche-lecteur' => ['sheet' => $readerSheet->build($request->query->getInt('lecteur') ?: null)],
             'exploitation-machine' => ['ops' => $machineOperations->for($request->query->getInt('machine') ?: null)],
+            'maintenance' => ['queue' => $maintenanceQueue->build($request->query->getString('tuile'))],
+            'profil-securite-emails' => ['account' => $user === null ? null : $accountSecurityEmails->for($user)],
+            'parcours-reservation' => ['booking' => $bookingConfirmation->build($request, $user)],
             default => [],
         };
 

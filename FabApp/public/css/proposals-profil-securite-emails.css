@@ -1,0 +1,19 @@
+/* Proposition `profil-securite-emails` — préfixe pp-se-. Les lignes de sécurité
+   réutilisent `.pp-todo` (proposals.css) ; seul le groupe d'e-mails est neuf. */
+.pp-se-sec h2, .pp-se-mail h2 { margin: 0 0 var(--spacing-sm); font-size: var(--font-size-lg); }
+.pp-se-lede { margin: 0 0 var(--spacing-md); color: var(--color-text-light); }
+.pp-se-tag { display: inline-block; margin-left: var(--spacing-sm); padding: 1px 10px; border-radius: 999px; font-size: var(--font-size-sm); font-weight: 600; background: color-mix(in srgb, var(--color-primary) 12%, var(--theme-surface)); }
+.pp-se-danger { margin: var(--spacing-md) 0 0; padding-top: var(--spacing-md); border-top: 1px solid var(--border-color); font-size: var(--font-size-sm); color: var(--color-text-light); }
+.pp-se-groups { display: flex; flex-direction: column; gap: var(--spacing-md); }
+.pp-se-group { background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: var(--spacing-md); }
+.pp-se-group h3 { display: flex; align-items: center; gap: var(--spacing-sm); margin: 0 0 var(--spacing-sm); font-size: var(--font-size-lg); }
+.pp-se-group h3 svg { width: 20px; height: 20px; color: var(--color-primary-text, var(--color-primary)); }
+.pp-se-group ul { list-style: none; margin: 0; padding: 0; }
+.pp-se-group li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--spacing-md); align-items: center; padding: 10px 0; }
+.pp-se-group li + li { border-top: 1px solid var(--border-color); }
+.pp-se-group li b { display: block; }
+.pp-se-group li small { display: block; color: var(--color-text-light); font-size: var(--font-size-sm); }
+.pp-se-state { font-weight: 600; white-space: nowrap; }
+.pp-se-state.is-off { color: var(--color-text-light); }
+.pp-se-foot { margin: var(--spacing-md) 0 0; display: flex; align-items: center; gap: var(--spacing-md); flex-wrap: wrap; }
+@media (max-width: 700px) { .pp-se-group li { grid-template-columns: minmax(0, 1fr); } }

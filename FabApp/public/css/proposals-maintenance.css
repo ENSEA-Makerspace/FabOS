@@ -1,0 +1,40 @@
+/* Proposition `maintenance` — préfixe pp-mq-, jetons du thème seulement.
+   🅿️ Se supprime avec la proposition. */
+
+.pp-mq { display: grid; gap: var(--spacing-md); padding-block: var(--spacing-md); }
+
+.pp-mq-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--spacing-sm); }
+.pp-mq-tile {
+    display: grid; gap: var(--spacing-xs); padding: var(--spacing-md);
+    text-decoration: none; color: var(--color-text);
+    background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: var(--border-radius);
+}
+.pp-mq-tile:hover { border-color: var(--color-primary); }
+.pp-mq-tile.is-active { border-color: var(--color-primary); box-shadow: 0 0 0 1px var(--color-primary); }
+.pp-mq-count { font-size: var(--font-size-xl); color: var(--color-text); }
+.pp-mq-tile.is-stop .pp-mq-count { color: var(--color-stop); }
+.pp-mq-tile.is-caution .pp-mq-count { color: var(--color-warn); }
+.pp-mq-label { color: var(--color-text-light); font-size: var(--font-size-sm); }
+
+.pp-mq-table { width: 100%; }
+.pp-mq-machine { display: flex; align-items: center; gap: var(--spacing-sm); }
+.pp-mq-thumb {
+    flex: 0 0 auto; width: 36px; height: 36px; display: grid; place-items: center; overflow: hidden;
+    background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: var(--border-radius);
+    color: var(--color-text-light);
+}
+.pp-mq-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.pp-mq-thumb svg { width: 18px; height: 18px; }
+.pp-mq-link { color: var(--color-primary-text); font-weight: var(--font-weight-semibold); }
+.pp-mq-name { color: var(--color-text); font-weight: var(--font-weight-semibold); }
+.pp-mq-meta { color: var(--color-text-light); font-size: var(--font-size-sm); }
+.pp-mq-due { color: var(--color-text); white-space: nowrap; }
+
+.pp-mq-actions { display: flex; align-items: center; gap: var(--spacing-md); flex-wrap: wrap; }
+.pp-mq-verb { color: var(--color-primary-text); font-weight: var(--font-weight-semibold); white-space: nowrap; }
+.pp-mq-secondary { color: var(--color-text-light); font-size: var(--font-size-sm); }
+.pp-mq-empty { margin: 0; color: var(--color-text-light); }
+
+@media (max-width: 640px) {
+    .pp-mq-table th:nth-child(3), .pp-mq-table td:nth-child(3) { display: none; }
+}

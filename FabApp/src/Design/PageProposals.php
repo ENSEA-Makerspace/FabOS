@@ -243,6 +243,58 @@ final class PageProposals
                 ],
                 'demo' => [],
             ],
+            [
+                'slug' => 'maintenance',
+                'title' => 'Maintenance : une file d’intervention',
+                'planche' => 'productwide/04-maintenance.png',
+                'current' => ['route' => 'app_admin_maintenance', 'params' => [], 'label' => '/admin/maintenance'],
+                'shell' => 'admin',
+                'take' => [
+                    'Des tuiles À faire / En retard / Cette semaine / Fait, cliquables : on ouvre la file par ce qui presse.',
+                    'Chaque ligne dit la machine (photo ou pictogramme, lien vers sa fiche), la tâche, l’échéance et l’état.',
+                    'Le verbe principal d’une tâche ouverte est « Marquer faite » ; « Modifier » passe en lien secondaire.',
+                ],
+                'keep' => [
+                    'Mêmes données et même statut effectif que la liste actuelle ; « Cette semaine » = échéance dans 7 jours.',
+                    'Pas de pourcentage de disponibilité, pas de panneau de détail ni de checklist : FabOS n’a pas ces données.',
+                ],
+                'demo' => ['?tuile=overdue' => 'En retard', '?tuile=week' => 'Cette semaine', '?tuile=done' => 'Fait'],
+            ],
+            [
+                'slug' => 'profil-securite-emails',
+                'title' => 'Sécurité et e-mails du profil',
+                'planche' => 'users/05-profil-securite.png',
+                'current' => ['route' => 'app_profile', 'params' => [], 'label' => '/profil#settings'],
+                'shell' => 'public',
+                'take' => [
+                    'Une section « Sécurité » à part, UNE ligne par chose avec son état et son verbe : mot de passe, adresse vérifiée ou non, double authentification (« Recommandé » tant qu’elle n’est pas active), sessions ouvertes. « Supprimer mon compte » en bas, discret.',
+                    'Les e-mails regroupés par domaine (planche `coordination/06-preferences-email.png`) ; les essentiels en « Toujours envoyé », les optionnels avec une phrase qui dit ce qu’on reçoit.',
+                ],
+                'keep' => [
+                    'Les états viennent des vrais services du profil (`MfaService`, `SessionRegistry`, `NotificationPreferences`).',
+                    '« Essentiel » = hors `NotificationCategory::OPTOUTABLE`, pas un libellé inventé ; l’interrupteur général d’e-mail est respecté.',
+                    'Fermer une session, activer la double authentification et supprimer le compte restent chacun sur leur page.',
+                ],
+                'demo' => ['?membre=45' => 'alice', '?membre=48' => 'bob'],
+            ],
+            [
+                'slug' => 'parcours-reservation',
+                'title' => 'Réserver un espace (confirmation)',
+                'planche' => 'espaces/03-parcours-reservation.png',
+                'current' => ['route' => 'app_places', 'params' => [], 'label' => '/places/{id} (panneau de réservation)'],
+                'shell' => 'public',
+                'take' => [
+                    'Une confirmation courte avant d’envoyer : l’espace, le jour, l’horaire, la durée et la capacité côte à côte.',
+                    'La politique d’annulation dite AVANT de réserver (« Annulable jusqu’au … »), et ce que le badge ouvrira (« de HH:MM à HH:MM »).',
+                    'L’écran d’après : « C’est réservé » avec les prochaines étapes.',
+                ],
+                'keep' => [
+                    'Le calendrier semaine/mois et le panneau ouvert au clic sur un créneau libre : pas de parcours « étape 1 sur 2 ».',
+                    'Le motif reste optionnel. Pas de « nombre de participants » : il n’existe pas en base.',
+                    'Politique et porte ne s’affichent que si la donnée existe.',
+                ],
+                'demo' => ['?membre=45' => 'avec alice (délai d’annulation, iCal)'],
+            ],
         ];
     }
 
