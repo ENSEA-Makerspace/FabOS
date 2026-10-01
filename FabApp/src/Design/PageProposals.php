@@ -65,6 +65,23 @@ final class PageProposals
                 ],
                 'demo' => ['?membre=45' => 'avec les réservations d’alice'],
             ],
+            [
+                'slug' => 'accueil-membre',
+                'title' => 'Accueil d’un membre connecté',
+                'planche' => 'users/04-accueil-membre.png',
+                'current' => ['route' => 'app_home', 'params' => [], 'label' => '/'],
+                'shell' => 'public',
+                'take' => [
+                    '« À faire » en tête : ce qui bloque ou attend (objet à rendre, formation à terminer, demande en attente, premier badge), chacun avec le verbe qui le règle.',
+                    '« Ma prochaine réservation » à un clic, et « Mes accès » à côté.',
+                ],
+                'keep' => [
+                    '« Mes accès » est le composant du profil (`_badge_reach`), pas une copie : ce que le badge ouvre se dit à un seul endroit.',
+                    'L’accueil actuel (événements, horaires, personnalisation) reste dessous, inchangé. La planche n’a que le bloc personnel.',
+                    'Pas d’« adhésion valide jusqu’au » : FabOS n’a pas d’adhésion payante.',
+                ],
+                'demo' => ['?membre=45' => 'alice', '?membre=55' => 'frank'],
+            ],
         ];
     }
 

@@ -11,6 +11,7 @@ use App\Repository\MachineRepository;
 use App\Repository\UtilisateurRepository;
 use App\Reservation\ReservableType;
 use App\Design\PageProposals;
+use App\Home\MemberToday;
 use App\Entity\Utilisateur;
 use App\Service\MarkdownDocService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -49,6 +50,7 @@ final class DesignProposalController extends AbstractController
         MachineRepository $machines,
         AccessPointRepository $doors,
         UtilisateurRepository $users,
+        MemberToday $memberToday,
     ): Response
     {
         $proposal = $proposals->find($slug) ?? throw $this->createNotFoundException();
@@ -64,6 +66,7 @@ final class DesignProposalController extends AbstractController
         $data = match ($slug) {
             'espaces-catalogue' => $places->build($request, $user),
             'mes-reservations' => $user === null ? [] : $this->withVisuals($myReservations->build($request, $user), $machines, $doors),
+            'accueil-membre' => ['member' => $user, 'today' => $user === null ? null : $memberToday->for($user)],
             default => [],
         };
 

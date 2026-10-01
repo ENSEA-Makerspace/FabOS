@@ -1,0 +1,93 @@
+{% extends 'site/base_public.html.twig' %}
+
+{# PROPOSITION — l'accueil d'un membre connecté, d'après `users/04-accueil-membre.png`.
+   Données : `MemberToday` (que des sources que le profil lit déjà). Posé AU-DESSUS
+   de l'accueil actuel, qui reste dessous inchangé (événements, horaires…) :
+   1. « À faire » — ce qui bloque ou attend, chacun avec le verbe qui le règle ;
+   2. « Ma prochaine réservation » — quand et quoi, un clic vers sa page ;
+   3. « Mes accès » — le composant `_badge_reach` du profil, tel quel.
+   🅿️ À la décision : retirer ce gabarit, son entrée, la branche du contrôleur
+   et le bloc `accueil-membre` de `proposals.css` (le service `MemberToday` reste
+   s'il sert la vraie page). #}
+
+{% block title %}Proposition — Accueil - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+{% include 'site/proposals/_banner.html.twig' %}
+<main id="main-content" tabindex="-1" class="main-content">
+    <section class="machine-detail-section">
+        <div class="container pp-home">
+            {% if member is null %}
+                <p>Cette proposition se regarde avec un compte membre : <a href="?membre=45">voir avec alice</a>.</p>
+            {% else %}
+                <header class="pp-home-head">
+                    <h1>Bonjour {{ member.firstName ?: member.displayName }}</h1>
+                    <p>Voici ce qui compte aujourd’hui.</p>
+                </header>
+
+                <section class="detail-card pp-todo" aria-labelledby="pp-todo-title">
+                    <h2 id="pp-todo-title" class="detail-card-title">À faire</h2>
+                    {% if today.todo is empty %}
+                        <p class="pp-todo-done"><span class="md-verdict md-verdict--go" aria-hidden="true">✓</span> Rien ne vous attend : vous pouvez réserver et venir.</p>
+                    {% else %}
+                        <ul>
+                            {% for t in today.todo %}
+                                <li class="pp-todo-{{ t.tone }}">
+                                    <span class="pp-todo-ic" aria-hidden="true">{% include 'site/_icon.html.twig' with { name: t.icon } only %}</span>
+                                    {% if t.kind == 'loan' %}
+                                        <span><b>Rendre « {{ t.loan.item.name }} »</b><small>{{ t.overdue ? 'En retard — à rendre depuis le ' : 'À rendre le ' }}{{ t.loan.expectedReturnDate ? t.loan.expectedReturnDate|date('d/m/Y') : '—' }}</small></span>
+                                        <a class="btn btn-secondary" href="{{ path('app_loans_item', {id: t.loan.item.id}) }}">Voir l’objet</a>
+                                    {% elseif t.kind == 'training' %}
+                                        <span><b>Terminer « {{ t.progression.formation.titre }} »</b><small>Commencée le {{ t.progression.dateDebut|date('d/m/Y') }}</small></span>
+                                        <a class="btn btn-primary" href="{{ path('app_formation_detail', {id: t.progression.formation.id}) }}">Continuer</a>
+                                    {% elseif t.kind == 'pending' %}
+                                        {% set rr = reservable(t.reservation) %}
+                                        <span><b>Demande en attente : {{ rr.name }}</b><small>{{ t.reservation.dateDebut|loc_date('EEEE d MMMM') }} · {{ t.reservation.dateDebut|date('H:i') }}–{{ t.reservation.dateFin|date('H:i') }} — l’équipe doit la confirmer</small></span>
+                                        <a class="btn btn-secondary" href="{{ path('app_reservation_detail', {id: t.reservation.id}) }}">Voir</a>
+                                    {% elseif t.kind == 'first_badge' %}
+                                        <span><b>Obtenir votre premier badge</b><small>Une formation vous le donne ; c’est lui qui ouvre les machines et les salles.</small></span>
+                                        <a class="btn btn-primary" href="{{ path('app_formations') }}">{{ 'machine.see_trainings'|trans }}</a>
+                                    {% elseif t.kind == 'card' %}
+                                        <span><b>Faire enregistrer votre carte</b><small>Vos formations vous donnent des droits, mais aucun lecteur ne connaît encore votre carte. Passez à l’accueil du FabLab.</small></span>
+                                        <a class="btn btn-secondary" href="{{ path('app_home') }}#horaires">Voir les horaires</a>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </section>
+
+                <div class="pp-home-grid">
+                    <section class="detail-card pp-home-next" aria-labelledby="pp-home-next-title">
+                        <h2 id="pp-home-next-title" class="detail-card-title">{{ today.nextIsNow ? 'En cours' : 'Ma prochaine réservation' }}</h2>
+                        {% if today.next %}
+                            {% set r = today.next %}
+                            {% set res = reservable(r) %}
+                            <a class="pp-home-next-link" href="{{ path('app_reservation_detail', {id: r.id}) }}">
+                                <b>{{ res.name }}</b>
+                                <span>{% include 'site/_icon.html.twig' with { name: 'calendar' } only %} {{ r.dateDebut|loc_date('EEEE d MMMM')|capitalize }} · {{ r.dateDebut|date('H:i') }}–{{ r.dateFin|date('H:i') }}</span>
+                                {% if r.motif %}<small>{{ r.motif }}</small>{% endif %}
+                                <span class="pp-home-next-go" aria-hidden="true">›</span>
+                            </a>
+                            <p class="md-note"><a href="{{ path('app_my_reservations') }}">Toutes mes réservations</a></p>
+                        {% else %}
+                            <p class="md-note">Aucune réservation à venir.</p>
+                            {% if has_calendar_layer() %}<a class="btn btn-primary" href="{{ path('app_calendar') }}">{{ 'resv.book_slot'|trans }}</a>{% endif %}
+                        {% endif %}
+                    </section>
+
+                    <div class="pp-home-access">
+                        {% include 'site/_badge_reach.html.twig' with { explained: today.explained, audience: 'self', id_prefix: 'pp-home-reach' } only %}
+                    </div>
+                </div>
+
+                <p class="pp-home-rest"><a href="{{ path('app_home') }}">↓ Puis l’accueil actuel, inchangé (événements, horaires, …)</a></p>
+            {% endif %}
+        </div>
+    </section>
+</main>
+{% endblock %}

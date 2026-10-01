@@ -110,3 +110,26 @@
     .pp-rows li { grid-template-columns: 70px minmax(0, 1fr) auto; }
     .pp-row-motif, .pp-rows li > .ml-state, .pp-rows li > span:empty { display: none; }
 }
+
+/* ---- accueil-membre ---------------------------------------------------------- */
+.pp-home { display: flex; flex-direction: column; gap: var(--spacing-lg); }
+.pp-home-head h1 { margin: 0; }
+.pp-home-head p { margin: 4px 0 0; color: var(--color-text-light); }
+.pp-todo ul { list-style: none; margin: 0; padding: 0; }
+.pp-todo li { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: var(--spacing-md); align-items: center; padding: 12px 0; }
+.pp-todo li + li { border-top: 1px solid var(--border-color); }
+.pp-todo li b { display: block; }
+.pp-todo li small { display: block; color: var(--color-text-light); font-size: var(--font-size-sm); }
+.pp-todo-ic { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: color-mix(in srgb, var(--color-primary) 12%, var(--theme-surface)); color: var(--color-primary-text, var(--color-primary)); }
+.pp-todo-ic svg { width: 20px; height: 20px; }
+.pp-todo-stop .pp-todo-ic { background: color-mix(in srgb, var(--color-stop, #b91c1c) 14%, var(--theme-surface)); color: var(--color-stop, #b91c1c); }
+.pp-todo-caution .pp-todo-ic { background: color-mix(in srgb, var(--color-warn) 16%, var(--theme-surface)); color: var(--color-warn); }
+.pp-todo-done { display: flex; align-items: center; gap: var(--spacing-md); margin: 0; }
+.pp-home-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: var(--spacing-lg); align-items: start; }
+.pp-home-next-link { position: relative; display: flex; flex-direction: column; gap: 4px; text-decoration: none; color: inherit; padding: 12px 36px 12px 0; }
+.pp-home-next-link b { font-size: var(--font-size-lg); }
+.pp-home-next-link svg { width: 16px; height: 16px; vertical-align: -3px; }
+.pp-home-next-link small { color: var(--color-text-light); }
+.pp-home-next-go { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); font-size: 32px; color: var(--color-primary); }
+.pp-home-rest { margin: 0; padding: var(--spacing-md); border: 1px dashed var(--border-color); border-radius: var(--border-radius); text-align: center; }
+@media (max-width: 900px) { .pp-home-grid { grid-template-columns: minmax(0, 1fr); } .pp-todo li { grid-template-columns: 36px minmax(0, 1fr); } .pp-todo li > .btn { grid-column: 2; justify-self: start; } }
