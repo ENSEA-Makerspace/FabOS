@@ -1,0 +1,119 @@
+{% extends 'base.html.twig' %}
+
+{#
+   PROPOSITION `admin-attention` — l'accueil admin qui ORIENTE au lieu de compter.
+
+   Ce qui change par rapport à `/admin` (admin-dashboard.html.twig) :
+   - EN TÊTE « N éléments demandent votre attention », puis un groupe par
+     chose à faire (machines indisponibles, maintenance, lecteurs hors ligne,
+     refus d'accès, réservations à valider, prêts en retard, validations
+     pratiques, comptes en attente), chacun avec son compteur dans le titre,
+     une ligne par élément et UN verbe qui mène à la bonne fiche ou liste ;
+   - un groupe vide ne s'affiche pas ; tout vide : « Rien ne demande votre attention » ;
+   - les sept compteurs descendent en UNE ligne compacte, les « écrans dédiés »
+     (kiosques) en une ligne de liens. Le flux d'activité n'est pas repris ici.
+   Données : `AdminAttention::build()` (lecture seule). Styles : `pp-aa-*`.
+
+   ⚠️ Dans `.admin-panel`, `style.css` repeint tout <span> en gris `!important` :
+   le texte coloré ou gras ici est en <b>, <div> ou <p>, jamais en <span>
+   (les composants partagés `_state_chip` et `_cell_fix` portent leurs propres règles).
+
+   🅿️ À la décision : retirer ce gabarit, son entrée, la branche du contrôleur,
+   `AdminAttention` et `proposals-admin-attention.css`.
+#}
+
+{% block title %}Proposition — Ce qui demande votre attention{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals-admin-attention.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+{% embed 'site/_admin_list.html.twig' with {
+    panel_title: 'Tableau de bord',
+} %}
+    {% block content %}
+        {% include 'site/proposals/_banner.html.twig' %}
+
+        <div class="pp-aa">
+            {% if attention.total > 0 %}
+                <p class="pp-aa-lead">
+                    {% include 'site/_icon.html.twig' with { name: 'warning' } only %}
+                    <b>{{ attention.total }} {{ attention.total == 1 ? 'élément demande' : 'éléments demandent' }} votre attention.</b>
+                </p>
+            {% else %}
+                <p class="pp-aa-lead is-calm">
+                    {% include 'site/_icon.html.twig' with { name: 'check' } only %}
+                    <b>Rien ne demande votre attention.</b>
+                </p>
+            {% endif %}
+
+            {% for group in attention.groups %}
+                <section class="pp-aa-group" aria-labelledby="pp-aa-{{ group.key }}">
+                    <h2 class="pp-aa-title" id="pp-aa-{{ group.key }}">
+                        {% include 'site/_icon.html.twig' with { name: group.icon } only %}
+                        {{ group.title }} · {{ group.count }}
+                    </h2>
+                    <div class="admin-table-wrap">
+                        <table class="admin-table pp-aa-table">
+                            <thead>
+                                <tr><th>Quoi</th><th>Où / quand</th><th>État</th><th>Action</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for row in group.rows %}
+                                    <tr>
+                                        <td><b class="pp-aa-name">{{ row.title }}</b></td>
+                                        <td>
+                                            <div class="pp-aa-meta">
+                                                {{ row.where }}
+                                                {% if row.when %}
+                                                    {% if row.where %}<br>{% endif %}
+                                                    {{ row.whenPrefix|default('') }}{% if row.whenKind == 'utc' %}{{ row.when|lab_date('d/m H:i') }}{% elseif row.whenKind == 'date' %}{{ row.when|date('d/m/Y') }}{% else %}{{ row.when|date('d/m H:i') }}{% endif %}
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td>{% include 'site/_state_chip.html.twig' with { label: row.state.label, signal: row.state.signal } only %}</td>
+                                        <td>
+                                            {% if row.fix|default(null) %}
+                                                {% include 'site/_cell_fix.html.twig' with {
+                                                    fix: row.fix.fix, route: row.fix.route, params: row.fix.params,
+                                                } only %}
+                                            {% else %}
+                                                <a class="pp-aa-verb" href="{{ path(row.route, row.params) }}">{{ row.verb }}</a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="pp-aa-all">
+                        {% if group.count > group.rows|length %}{{ group.count - group.rows|length }} de plus · {% endif %}
+                        <a href="{{ path(group.all.route, group.all.params) }}">{{ group.all.label }}</a>
+                    </p>
+                </section>
+            {% endfor %}
+
+            {# Ce qui descend : les compteurs d'avant, en une ligne, et les écrans dédiés. #}
+            <footer class="pp-aa-foot">
+                <p class="pp-aa-stats">
+                    <b>{{ attention.stats.users }}</b> utilisateurs ·
+                    <b>{{ attention.stats.machines }}</b> machines ·
+                    <b>{{ attention.stats.formations }}</b> formations ·
+                    <b>{{ attention.stats.reservations }}</b> réservations ·
+                    <b>{{ attention.stats.rfidLogs }}</b> passages de badge ·
+                    <b>{{ attention.stats.badges }}</b> badges ·
+                    <b>{{ attention.stats.completedFormations }}</b> formations terminées
+                </p>
+                <p class="pp-aa-screens">
+                    <b>Écrans dédiés</b> :
+                    <a href="{{ path('app_kiosk_entries') }}" target="_blank" rel="noopener">Entrées</a> ·
+                    <a href="{{ path('app_kiosk_stats') }}" target="_blank" rel="noopener">Statistiques</a>
+                    {% if feature_enabled('events') %} · <a href="{{ path('app_kiosk_events') }}" target="_blank" rel="noopener">Événements</a>{% endif %}
+                </p>
+            </footer>
+        </div>
+    {% endblock %}
+{% endembed %}
+{% endblock %}

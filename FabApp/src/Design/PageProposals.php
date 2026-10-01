@@ -82,6 +82,40 @@ final class PageProposals
                 ],
                 'demo' => ['?membre=45' => 'alice', '?membre=55' => 'frank'],
             ],
+            [
+                'slug' => 'mes-formations',
+                'title' => 'Mes formations',
+                'planche' => 'formations/lms-my-trainings.png',
+                'current' => ['route' => 'app_profile', 'params' => [], 'label' => '/profil#stats'],
+                'shell' => 'public',
+                'take' => [
+                    'Une page à soi : « À reprendre » (la plus avancée, ses étapes en ligne, le verbe de l’étape suivante), « En cours », « Terminées ».',
+                    'Chaque ligne porte SON verbe (« Continuer le cours », « Passer les quiz »), au lieu d’un « Voir » identique partout.',
+                ],
+                'keep' => [
+                    'Les étapes et le verbe viennent de `LearnerJourney` (S179), les mêmes que la fiche formation : aucune seconde arithmétique.',
+                    'Pas de « Demander une évaluation pratique » : finir la théorie place déjà dans la file de l’équipe (S180).',
+                    'Pas de certificat PDF : il n’existe pas ; « Terminées » mène au badge obtenu.',
+                ],
+                'demo' => ['?membre=3' => 'un membre avec 4 formations', '?membre=2' => 'un autre'],
+            ],
+            [
+                'slug' => 'admin-attention',
+                'title' => 'Accueil admin : ce qui demande votre attention',
+                'planche' => 'equipement/equipment-operational-overview.png',
+                'current' => ['route' => 'app_admin_dashboard', 'params' => [], 'label' => '/admin'],
+                'shell' => 'admin',
+                'take' => [
+                    '« N éléments demandent votre attention » en tête, puis un groupe par chose à faire, avec son compteur dans le titre.',
+                    'Une ligne par élément (quoi, où/quand, état) et UN verbe qui mène à la bonne fiche ou liste.',
+                    'Un groupe vide disparaît ; tout vide, une ligne « Rien ne demande votre attention ».',
+                ],
+                'keep' => [
+                    'Les sept compteurs actuels et les écrans dédiés ne disparaissent pas : ils descendent, en une ligne chacun.',
+                    'Le verbe correctif des refus d’accès est le composant `_cell_fix` / `AccessIncident`, pas une copie.',
+                    'Pas de couleurs de la planche : états par `_state_chip`, icônes par `_icon`, jetons du thème.',
+                ],
+            ],
         ];
     }
 

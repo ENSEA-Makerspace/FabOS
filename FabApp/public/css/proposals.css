@@ -133,3 +133,29 @@
 .pp-home-next-go { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); font-size: 32px; color: var(--color-primary); }
 .pp-home-rest { margin: 0; padding: var(--spacing-md); border: 1px dashed var(--border-color); border-radius: var(--border-radius); text-align: center; }
 @media (max-width: 900px) { .pp-home-grid { grid-template-columns: minmax(0, 1fr); } .pp-todo li { grid-template-columns: 36px minmax(0, 1fr); } .pp-todo li > .btn { grid-column: 2; justify-self: start; } }
+
+/* ---- mes-formations ----------------------------------------------------------- */
+.pp-tr-resume-in { display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 300px); gap: var(--spacing-lg); align-items: center; }
+.pp-tr-resume-side { display: flex; flex-direction: column; gap: var(--spacing-sm); border-left: 1px solid var(--border-color); padding-left: var(--spacing-lg); }
+.pp-tr-badge { margin: 0; font-size: var(--font-size-sm); display: flex; gap: 6px; align-items: center; }
+.pp-tr-badge svg { width: 16px; height: 16px; color: var(--color-primary); }
+.pp-steps { list-style: none; margin: var(--spacing-md) 0 0; padding: 0; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: var(--spacing-sm); }
+.pp-steps li { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; }
+.pp-steps li::before { content: ""; position: absolute; top: 15px; left: calc(-50% + 18px); right: calc(50% + 18px); height: 2px; background: var(--border-color); }
+.pp-steps li:first-child::before { display: none; }
+.pp-steps li.is-done::before, .pp-steps li.is-next::before { background: var(--color-ok); }
+.pp-steps-mark { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; border: 2px solid var(--border-color); background: var(--theme-surface); }
+.pp-steps .is-done .pp-steps-mark { background: var(--color-ok); border-color: var(--color-ok); color: var(--color-text-inverse); }
+.pp-steps .is-next .pp-steps-mark { border-color: var(--color-primary); color: var(--color-primary-text, var(--color-primary)); }
+.pp-steps b { font-size: var(--font-size-sm); }
+.pp-steps small { color: var(--color-text-light); font-size: 12px; }
+.pp-tr-row { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.2fr) minmax(0, 1fr) auto !important; }
+.pp-tr-row a:not(.pp-row-go) { color: inherit; text-decoration: none; }
+@media (max-width: 900px) {
+    .pp-tr-resume-in { grid-template-columns: minmax(0, 1fr); }
+    .pp-tr-resume-side { border-left: 0; padding-left: 0; }
+    .pp-steps { grid-auto-flow: row; }
+    .pp-steps li { flex-direction: row; text-align: left; }
+    .pp-steps li::before { display: none; }
+    .pp-tr-row { grid-template-columns: minmax(0, 1fr) auto !important; }
+}

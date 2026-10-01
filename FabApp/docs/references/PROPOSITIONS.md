@@ -11,7 +11,7 @@ Tri du 2026-10-01 (lecture des planches et des gabarits ; la valeur /5 = gain po
 | `01-catalogue-espaces.png` | 🟡 [Proposition](/admin/propositions/espaces-catalogue) — « Libre maintenant » en tête, la carte dit quand, bouton « Réserver ». |
 | `02-detail-espace-reservation.png` | ✅ Appliqué (2026-10-01) — tête partagée `_detail_hero`. |
 | `03-parcours-reservation.png` | 🟡 à proposer (2/5) — politique d'annulation et nombre de participants (borné par la capacité) dans le panneau de réservation. |
-| `04-exploitation-espaces.png` | 🟡 à proposer (4/5) — fusionné avec « vue d'ensemble Équipement » : `/admin` en blocs « ce qui demande une action ». |
+| `04-exploitation-espaces.png` | 🟡 [Proposition](/admin/propositions/admin-attention) (4/5) — fusionné avec « vue d'ensemble Équipement » : `/admin` en blocs « ce qui demande une action ». |
 | `05-mise-en-service-point-acces.png` | 🟡 à proposer (2/5) — la checklist `_commissioning` sur la fiche du point d'accès. |
 | `06-incidents-acces.png` | 🟡 à proposer (3/5) — tuiles par cause avec compteur, « À traiter » par défaut ; santé des points. |
 | `07-kiosque-entree.png` | 🅿️ pas de page (2/5) — écran de porte « Badgez votre carte » par lieu. |
@@ -26,7 +26,7 @@ Tri du 2026-10-01 (lecture des planches et des gabarits ; la valeur /5 = gain po
 | `equipment-machine-member-detail.png` | ✅ Appliqué (2026-09-30) — fiche machine « tâche d’abord ». |
 | `equipment-machine-operations.png` | 🟡 à proposer (3/5) — zone Exploitation en cartes actionnables (hors service, prochaine vérification, lecteur, incidents). |
 | `equipment-material-detail.png` | ✅ Appliqué (2026-10-01) — tête partagée `_detail_hero`. |
-| `equipment-operational-overview.png` | 🟡 à proposer (5/5) — `/admin` : groupes d'action par domaine, chacun avec le verbe qui mène à la ligne. |
+| `equipment-operational-overview.png` | 🟡 [Proposition](/admin/propositions/admin-attention) (5/5) — `/admin` : groupes d'action par domaine, chacun avec le verbe qui mène à la ligne. |
 | `equipment-reader-commissioning.png` | 🟡 à proposer (2/5) — remonter la checklist de mise en service au-dessus du formulaire. |
 | `equipment-reader-health.png` | 🟡 à proposer (3/5) — en-tête d'état (prêt / hors ligne), machine associée, derniers événements. |
 
@@ -71,7 +71,7 @@ Tri du 2026-10-01 (lecture des planches et des gabarits ; la valeur /5 = gain po
 | Planche | Verdict |
 |---|---|
 | `lms-course-module.png` | 🅿️ pas de page (2/5) — pas de modèle de module. |
-| `lms-my-trainings.png` | 🟡 à proposer (4/5) — « Mes formations » : à reprendre, en cours, terminées. |
+| `lms-my-trainings.png` | 🟡 [Proposition](/admin/propositions/mes-formations) (4/5) — « Mes formations » : à reprendre, en cours, terminées. |
 | `lms-practical-exercise-file.png` | 🅿️ pas de page (1/5) — exercices pratiques non modélisés. |
 | `lms-practical-validations-queue.png` | 🟢 égal (1/5) — bâtie sur cette planche (S180). |
 | `lms-quiz-question-types.png` | 🟢 égal (1/5) — types de question et progression : déjà. |

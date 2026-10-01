@@ -10,6 +10,8 @@ use App\Repository\AccessPointRepository;
 use App\Repository\MachineRepository;
 use App\Repository\UtilisateurRepository;
 use App\Reservation\ReservableType;
+use App\Design\AdminAttention;
+use App\Design\MyTrainings;
 use App\Design\PageProposals;
 use App\Home\MemberToday;
 use App\Entity\Utilisateur;
@@ -51,6 +53,8 @@ final class DesignProposalController extends AbstractController
         AccessPointRepository $doors,
         UtilisateurRepository $users,
         MemberToday $memberToday,
+        MyTrainings $myTrainings,
+        AdminAttention $adminAttention,
     ): Response
     {
         $proposal = $proposals->find($slug) ?? throw $this->createNotFoundException();
@@ -67,6 +71,8 @@ final class DesignProposalController extends AbstractController
             'espaces-catalogue' => $places->build($request, $user),
             'mes-reservations' => $user === null ? [] : $this->withVisuals($myReservations->build($request, $user), $machines, $doors),
             'accueil-membre' => ['member' => $user, 'today' => $user === null ? null : $memberToday->for($user)],
+            'mes-formations' => ['trainings' => $user === null ? null : $myTrainings->for($user)],
+            'admin-attention' => ['attention' => $adminAttention->build()],
             default => [],
         };
 

@@ -1,0 +1,39 @@
+/* Proposition `admin-attention` — préfixe pp-aa-, jetons du thème seulement.
+   🅿️ Se supprime avec la proposition. */
+
+.pp-aa { display: grid; gap: var(--spacing-lg); padding-block: var(--spacing-md); }
+
+.pp-aa-lead {
+    display: flex; align-items: center; gap: var(--spacing-sm);
+    margin: 0; font-size: var(--font-size-lg); color: var(--color-text);
+}
+.pp-aa-lead svg { width: 22px; height: 22px; flex: 0 0 auto; color: var(--color-warn); }
+.pp-aa-lead.is-calm svg { color: var(--color-ok); }
+
+.pp-aa-group { display: grid; gap: var(--spacing-xs); }
+.pp-aa-title {
+    display: flex; align-items: center; gap: var(--spacing-sm);
+    margin: 0; font-size: var(--font-size-lg); color: var(--color-primary-text);
+}
+.pp-aa-title svg { width: 18px; height: 18px; flex: 0 0 auto; }
+
+.pp-aa-table { width: 100%; }
+.pp-aa-name { color: var(--color-text); font-weight: var(--font-weight-semibold); }
+.pp-aa-meta { color: var(--color-text-light); font-size: var(--font-size-sm); }
+.pp-aa-verb { color: var(--color-primary-text); font-weight: var(--font-weight-semibold); white-space: nowrap; }
+
+.pp-aa-all { margin: 0; color: var(--color-text-light); font-size: var(--font-size-sm); }
+.pp-aa-all a { color: var(--color-primary-text); }
+
+.pp-aa-foot {
+    display: grid; gap: var(--spacing-xs);
+    padding-top: var(--spacing-md); border-top: 1px solid var(--border-color);
+    color: var(--color-text-light); font-size: var(--font-size-sm);
+}
+.pp-aa-foot p { margin: 0; }
+.pp-aa-foot b { color: var(--color-text); }
+.pp-aa-foot a { color: var(--color-primary-text); }
+
+@media (max-width: 640px) {
+    .pp-aa-table th:nth-child(2), .pp-aa-table td:nth-child(2) { display: none; }
+}
