@@ -24,11 +24,11 @@ Tri du 2026-10-01 (lecture des planches et des gabarits ; la valeur /5 = gain po
 | `equipment-access-incidents.png` | 🟡 [Proposition](/admin/propositions/incidents-acces) (3/5) — même page que espaces/06. Notre verbe correctif (`_cell_fix`) fait déjà mieux que « Action recommandée ». |
 | `equipment-machine-kiosk.png` | 🟢 égal (1/5) — disponibilité, badge, prérequis, matériaux, horaires : déjà là. |
 | `equipment-machine-member-detail.png` | ✅ Appliqué (2026-09-30) — fiche machine « tâche d’abord ». |
-| `equipment-machine-operations.png` | 🟡 à proposer (3/5) — zone Exploitation en cartes actionnables (hors service, prochaine vérification, lecteur, incidents). |
+| `equipment-machine-operations.png` | 🟡 [Proposition](/admin/propositions/exploitation-machine) (3/5) — zone Exploitation en cartes actionnables (hors service, prochaine vérification, lecteur, incidents). |
 | `equipment-material-detail.png` | ✅ Appliqué (2026-10-01) — tête partagée `_detail_hero`. |
 | `equipment-operational-overview.png` | 🟡 [Proposition](/admin/propositions/admin-attention) (5/5) — `/admin` : groupes d'action par domaine, chacun avec le verbe qui mène à la ligne. |
-| `equipment-reader-commissioning.png` | 🟡 à proposer (2/5) — remonter la checklist de mise en service au-dessus du formulaire. |
-| `equipment-reader-health.png` | 🟡 à proposer (3/5) — en-tête d'état (prêt / hors ligne), machine associée, derniers événements. |
+| `equipment-reader-commissioning.png` | 🟡 [Proposition](/admin/propositions/fiche-lecteur) (2/5) — remonter la checklist de mise en service au-dessus du formulaire. |
+| `equipment-reader-health.png` | 🟡 [Proposition](/admin/propositions/fiche-lecteur) (3/5) — en-tête d'état (prêt / hors ligne), machine associée, derniers événements. |
 
 ## users
 
@@ -48,7 +48,7 @@ Tri du 2026-10-01 (lecture des planches et des gabarits ; la valeur /5 = gain po
 | Planche | Verdict |
 |---|---|
 | `01-evenements.png` | 🟡 [Proposition](/admin/propositions/evenements) (3/5) — « Mes inscriptions » avant la grille ; places restantes sur les cartes. |
-| `02-prets.png` | 🟡 à proposer (3/5) — « Enregistrer le retour » sur la fiche de l'objet ; tuile « À rendre aujourd'hui ». |
+| `02-prets.png` | 🟡 [Proposition](/admin/propositions/prets-admin) (3/5) — « Enregistrer le retour » sur la fiche de l'objet ; tuile « À rendre aujourd'hui ». |
 | `03-materiaux-equipement.png` | 🟢 égal (1/5) — pas de donnée de stock ; la fiche a les machines compatibles. |
 | `04-maintenance.png` | 🟡 à proposer (2/5) — verbe par ligne (« Démarrer » / « Terminer ») et tuile « Cette semaine ». |
 | `05-configuration.png` | 🟢 égal (1/5) — cartes par domaine avec état résumé : déjà (S132). |

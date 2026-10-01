@@ -14,6 +14,9 @@ use App\Design\AccessIncidentBoard;
 use App\Design\AdminAttention;
 use App\Design\AdminUserDirectory;
 use App\Design\EventsHub;
+use App\Design\LoansCounter;
+use App\Design\MachineOperations;
+use App\Design\ReaderSheet;
 use App\Design\MyTrainings;
 use App\Design\PageProposals;
 use App\Search\SiteSearch;
@@ -63,6 +66,9 @@ final class DesignProposalController extends AbstractController
         EventsHub $eventsHub,
         AccessIncidentBoard $accessIncidents,
         AdminUserDirectory $adminUserDirectory,
+        LoansCounter $loansCounter,
+        ReaderSheet $readerSheet,
+        MachineOperations $machineOperations,
     ): Response
     {
         $proposal = $proposals->find($slug) ?? throw $this->createNotFoundException();
@@ -90,6 +96,9 @@ final class DesignProposalController extends AbstractController
             'evenements' => $eventsHub->build($request, $user),
             'incidents-acces' => ['board' => $accessIncidents->build($request->query->getInt('days', 7), $request->query->getInt('reader') ?: null, $request->query->getInt('machine') ?: null, (string) $request->query->get('cause', 'todo'))],
             'annuaire-utilisateurs' => ['directory' => $adminUserDirectory->build($request->query->getString('tuile'), $request->query->getString('q'))],
+            'prets-admin' => ['loans' => $loansCounter->build($request->query->getString('tuile'), $request->query->getString('q'))],
+            'fiche-lecteur' => ['sheet' => $readerSheet->build($request->query->getInt('lecteur') ?: null)],
+            'exploitation-machine' => ['ops' => $machineOperations->for($request->query->getInt('machine') ?: null)],
             default => [],
         };
 

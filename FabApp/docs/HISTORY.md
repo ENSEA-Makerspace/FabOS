@@ -181,6 +181,22 @@ indisponible » — la page ne connaissait que `missing_badge`. Et la boîte pho
 était bornée à 200 px par une règle des vignettes de l'accueil. Popularité en
 étoiles abandonnée (absente de la planche).
 
+## Phase V — les pages revues d'après les planches (2026-10-01, en cours)
+
+Demande de l'opérateur (AFK) : revoir chaque planche face à notre page, en garder
+les bonnes idées, et poser des **propositions en sous-pages du menu Développement**
+(« pas des branches »). Socle : `PageProposals` (registre),
+`DesignProposalController` (`/admin/propositions`, une branche de données par
+proposition, `?membre=<id>` pour regarder avec un compte de test), un bandeau
+commun (`proposals/_banner` : planche, page actuelle, « pris / gardé », liens de
+démo) et `proposals.css` (`pp-*`). Le tri des 52 planches vit dans
+`docs/references/PROPOSITIONS.md`, rendu sur l'index. Chef de projet + sous-agents
+Sonnet sur un brief commun (fichiers neufs seulement ; intégration, rendu et
+déploiement faits ici). Trois calculs sortis des contrôleurs pour être lus par la
+page ET sa proposition : `PlaceCatalogue`, `MyReservations`. 🔴 Corrigé en vrai au
+passage : un espace, un prêt ou un matériau sans photo affichait l'imprimante 3D
+(`fallback_icon` sur `_catalogue_card`).
+
 ## Les fiches espace, matériau et objet prêté, même tête (2026-10-01)
 
 Suite de la précédente, à la demande de l'opérateur. La tête « tâche d'abord »

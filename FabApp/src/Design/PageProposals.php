@@ -190,6 +190,59 @@ final class PageProposals
                 ],
                 'demo' => ['?tuile=valider' => 'à valider', '?tuile=expire' => 'expire bientôt', '?tuile=sans-badge' => 'sans badge'],
             ],
+            [
+                'slug' => 'prets-admin',
+                'title' => 'Prêts (comptoir)',
+                'planche' => 'productwide/02-prets.png',
+                'current' => ['route' => 'app_admin_loans', 'params' => [], 'label' => '/admin/loans'],
+                'shell' => 'admin',
+                'take' => [
+                    'Des tuiles de TRAVAIL avec compteur : « À rendre aujourd’hui », « En retard », « En cours » (vue par défaut), « Rendus ».',
+                    'Le plus pressé en tête (retard le plus ancien, puis échéance la plus proche), avec « +N jours » sous l’échéance d’un retard.',
+                    'UN verbe par ligne non rendue : « Enregistrer le retour ». « Nouveau prêt » reste en haut à droite.',
+                ],
+                'keep' => [
+                    'Le retour se fait sur la fiche de l’objet, ancrée sur le prêt (S193) : on y voit qui l’a et depuis quand.',
+                    'La coquille `_admin_list`, `_data_table` et `_state_chip` : pas de seconde liste.',
+                    'Pas d’accessoires cochés au retour ni de « Relancer » : ni l’un ni l’autre n’existe (les rappels de retard partent seuls).',
+                ],
+                'demo' => ['?tuile=aujourdhui' => 'à rendre aujourd’hui', '?tuile=retard' => 'en retard', '?tuile=rendus' => 'rendus'],
+            ],
+            [
+                'slug' => 'fiche-lecteur',
+                'title' => 'Fiche d’un lecteur',
+                'planche' => 'equipement/equipment-reader-health.png',
+                'current' => ['route' => 'app_admin_rfid_readers', 'params' => [], 'label' => '/admin/rfid-readers/{id}/edit'],
+                'shell' => 'admin',
+                'take' => [
+                    'L’état d’abord : « Prêt » / « Hors ligne depuis … » / « À configurer », le dernier contact, et la machine ou le point d’accès commandé.',
+                    'Les 5 derniers événements du lecteur, avec un lien vers le journal filtré.',
+                    'Tant que le lecteur n’est pas en service, la mise en service monte en haut, étape bloquante dite en clair (planche `equipment-reader-commissioning.png`).',
+                    'Le formulaire d’édition descend : un lien « Modifier les réglages ».',
+                ],
+                'keep' => [
+                    'L’état calculé par `ReaderHealth` et la checklist `ReaderCommissioning`.',
+                    'Aucun secret ni jeton affiché ; pas de « Tester la connexion » ni de version du boîtier : rien ne les alimente.',
+                ],
+                'demo' => [],
+            ],
+            [
+                'slug' => 'exploitation-machine',
+                'title' => 'Exploitation d’une machine',
+                'planche' => 'equipement/equipment-machine-operations.png',
+                'current' => ['route' => 'app_machines', 'params' => [], 'label' => '/machines/{id} (zone staff)'],
+                'shell' => 'public',
+                'take' => [
+                    'Des cartes qui portent chacune un fait ET un verbe : « Mettre hors service » / « Remettre en service », « Ouvrir la tâche » / « Planifier », « Ouvrir le lecteur ».',
+                    'La prochaine maintenance avec son échéance, au lieu d’un compteur de lignes de journal.',
+                    'Le lecteur associé avec son état et son dernier contact, et les derniers refus de CETTE machine avec le verbe correctif.',
+                ],
+                'keep' => [
+                    'La zone reste réservée au personnel ; les boutons mènent aux pages réelles qui écrivent.',
+                    'L’état du lecteur vient de `ReaderHealth`, le verbe correctif d’`AccessIncident` / `_cell_fix`.',
+                ],
+                'demo' => [],
+            ],
         ];
     }
 
