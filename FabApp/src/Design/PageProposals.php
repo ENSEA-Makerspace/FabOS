@@ -91,6 +91,7 @@ final class PageProposals
                 'take' => [
                     'Une page à soi : « À reprendre » (la plus avancée, ses étapes en ligne, le verbe de l’étape suivante), « En cours », « Terminées ».',
                     'Chaque ligne porte SON verbe (« Continuer le cours », « Passer les quiz »), au lieu d’un « Voir » identique partout.',
+                    'En bas, « Découvrir d’autres formations » : les cartes du catalogue, dont le verbe dit « Commencer » (planche `lms-training-catalogue.png`).',
                 ],
                 'keep' => [
                     'Les étapes et le verbe viennent de `LearnerJourney` (S179), les mêmes que la fiche formation : aucune seconde arithmétique.',

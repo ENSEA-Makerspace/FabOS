@@ -78,7 +78,7 @@ Tri du 2026-10-01 (lecture des planches et des gabarits ; la valeur /5 = gain po
 | `lms-quiz-result-retry.png` | 🟢 égal (1/5) — score, points à revoir, rejouer : déjà. |
 | `lms-staff-practical-validation.png` | 🟡 à proposer (3/5) — checklist de compétences ; exige un modèle de checklist. |
 | `lms-training-builder.png` | 🟡 à proposer (2/5) — un seul parcours ordonné (modules, quiz, validation). |
-| `lms-training-catalogue.png` | 🟡 à proposer (3/5) — verbe de carte selon l'état (Commencer / Continuer) et « À reprendre ». |
+| `lms-training-catalogue.png` | 🟡 [Dans « Mes formations »](/admin/propositions/mes-formations) (3/5) — verbe de carte selon l'état (Commencer / Continuer) et « À reprendre ». |
 | `lms-training-certificate-badge.png` | 🟡 à proposer (2/5) — page de réussite : « vous êtes autorisé à… ». |
 | `lms-training-overview.png` | 🟢 égal (1/5) — prochaine étape et parcours : déjà (S179). |
 

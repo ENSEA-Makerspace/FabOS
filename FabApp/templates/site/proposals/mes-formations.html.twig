@@ -16,6 +16,7 @@
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=' ~ css_version }}">
 {% endblock %}
 
 {% block body %}
@@ -89,6 +90,30 @@
                         </section>
                     {% endif %}
                 {% endfor %}
+            {% endif %}
+
+            {% if trainings and trainings.discover|length %}
+                {# La carte du catalogue dit le verbe de SON état : « Commencer » ici,
+                   « Continuer » pour une formation en cours (planche
+                   `lms-training-catalogue.png`), au lieu d'un « Voir » partout. #}
+                <section class="pp-tr-discover">
+                    <h2>Découvrir d’autres formations</h2>
+                    <div class="ml-grid">
+                        {% for f in trainings.discover %}
+                            {% include 'site/_catalogue_card.html.twig' with {
+                                url: path('app_formation_detail', {id: f.id}),
+                                title: f.titre,
+                                type: f.categorie,
+                                meta: f.badge ? 'state.unlocks_badge'|trans ~ ' ' ~ f.badge.nom : '',
+                                note: f.duree,
+                                icon_slug: f.categorie|default(''),
+                                foot: 'state.todo'|trans,
+                                foot_tone: 'muted',
+                                action: 'Commencer',
+                            } only %}
+                        {% endfor %}
+                    </div>
+                </section>
             {% endif %}
         </div>
     </section>
