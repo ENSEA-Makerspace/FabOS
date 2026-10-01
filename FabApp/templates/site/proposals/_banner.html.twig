@@ -14,6 +14,7 @@
             <a href="{{ asset('images/references/' ~ proposal.planche) }}" target="_blank" rel="noopener">Voir la planche</a>
             · <a href="{{ path(proposal.current.route, proposal.current.params) }}">Page actuelle ({{ proposal.current.label }})</a>
             · <a href="{{ path('app_admin_proposals') }}">Toutes les propositions</a>
+            {% for query, label in proposal.demo|default({}) %} · Démo : <a href="{{ query }}">{{ label }}</a>{% endfor %}
         </p>
         <div class="pp-banner-cols">
             <div>

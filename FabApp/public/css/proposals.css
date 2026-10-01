@@ -63,3 +63,50 @@
 .pp-triage { max-width: 110ch; }
 .pp-triage table { width: 100%; border-collapse: collapse; display: block; overflow-x: auto; font-size: var(--font-size-sm); }
 .pp-triage th, .pp-triage td { border-bottom: 1px solid var(--border-color); padding: 6px 10px; text-align: left; vertical-align: top; }
+
+/* ---- mes-reservations ------------------------------------------------------- */
+.pp-resv { display: flex; flex-direction: column; gap: var(--spacing-lg); }
+.pp-resv-head { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-md); flex-wrap: wrap; }
+.pp-resv-head h1 { margin: 0; }
+.pp-next {
+    display: grid; grid-template-columns: 180px minmax(0, 1.3fr) minmax(260px, 1fr); gap: var(--spacing-lg); align-items: stretch;
+    background: var(--theme-surface); border: 1px solid color-mix(in srgb, var(--color-ok) 45%, var(--border-color));
+    border-radius: var(--border-radius); box-shadow: var(--shadow-card); padding: var(--spacing-lg);
+}
+.pp-next-media { border-radius: calc(var(--border-radius) - 4px); overflow: hidden; background: color-mix(in srgb, var(--color-primary) 6%, var(--theme-surface)); display: grid; place-items: center; color: var(--color-primary); min-height: 150px; }
+.pp-next-media img { width: 100%; height: 100%; object-fit: cover; }
+.pp-next-media svg { width: 40%; height: auto; }
+.pp-next-main { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; min-width: 0; }
+.pp-next-when { margin: 0; font-size: var(--font-size-lg); }
+.pp-next-when b { color: var(--color-ok); }
+.pp-next-title { margin: 0; font-size: clamp(1.5rem, 2.4vw, 2rem); line-height: 1.15; }
+.pp-next-title a { color: inherit; text-decoration: none; }
+.pp-next-title a:hover { text-decoration: underline; }
+.pp-next-motif { margin: 0; color: var(--color-text-light); }
+.pp-next-side { display: flex; flex-direction: column; gap: var(--spacing-md); justify-content: space-between; border-left: 1px solid var(--border-color); padding-left: var(--spacing-lg); }
+.pp-next-access { border: 1px solid var(--border-color); border-radius: var(--border-radius); overflow: hidden; }
+.pp-next-access p { margin: 0; padding: 8px 12px; }
+.pp-next-access-title { background: color-mix(in srgb, var(--color-ok) 12%, var(--theme-surface)); color: var(--color-ok); font-weight: 700; display: flex; align-items: center; gap: 6px; }
+.pp-next-access-title svg { width: 16px; height: 16px; }
+.pp-next-access-time { background: color-mix(in srgb, var(--color-ok) 12%, var(--theme-surface)); padding-top: 0 !important; font-size: var(--font-size-lg); font-weight: 800; }
+.pp-next-door { border-top: 1px solid var(--border-color); }
+.pp-next-actions { display: flex; gap: var(--spacing-sm); flex-wrap: wrap; }
+.pp-rows h2, .pp-rows > summary { margin: 0 0 var(--spacing-sm); font-size: var(--font-size-lg); }
+.pp-rows > summary { cursor: pointer; font-weight: 700; }
+.pp-rows ul { list-style: none; margin: 0; padding: 0; background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: var(--border-radius); }
+.pp-rows li { display: grid; grid-template-columns: 90px minmax(0, 1.2fr) minmax(0, 1fr) auto 90px; gap: var(--spacing-md); align-items: center; padding: 12px 16px; }
+.pp-rows li + li { border-top: 1px solid var(--border-color); }
+.pp-rows small { display: block; color: var(--color-text-light); font-size: var(--font-size-sm); }
+.pp-row-date, .pp-row-what { font-weight: 600; }
+.pp-row-motif { color: var(--color-text-light); font-size: var(--font-size-sm); }
+.pp-row-go { justify-self: end; font-weight: 700; text-decoration: none; border: 1px solid var(--border-color); border-radius: 999px; padding: 4px 14px; }
+.pp-row-go:hover { border-color: var(--color-primary); }
+.pp-rows.is-past li { opacity: .7; }
+.pp-rows-more { margin: 6px 0 0; font-size: var(--font-size-sm); }
+@media (max-width: 900px) {
+    .pp-next { grid-template-columns: minmax(0, 1fr); }
+    .pp-next-media { min-height: 160px; }
+    .pp-next-side { border-left: 0; padding-left: 0; }
+    .pp-rows li { grid-template-columns: 70px minmax(0, 1fr) auto; }
+    .pp-row-motif, .pp-rows li > .ml-state, .pp-rows li > span:empty { display: none; }
+}

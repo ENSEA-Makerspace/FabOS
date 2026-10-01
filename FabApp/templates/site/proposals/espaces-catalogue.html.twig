@@ -56,7 +56,7 @@
         {% set featured = venueOpenNow ? cards|filter(c => c.freeNow) : [] %}
         <section class="pp-now" aria-labelledby="pp-now-title">
             {% if not venueOpenNow %}
-                <p class="pp-closed"><a href="?vue=ouvert" style="margin-left:auto;order:2">Démo : voir labo ouvert</a>{% include 'site/_icon.html.twig' with { name: 'lock' } only %}
+                <p class="pp-closed">{% include 'site/_icon.html.twig' with { name: 'lock' } only %}
                     <span><b>{{ 'state.closed'|trans }}{% if venueClosureReason %} — {{ venueClosureReason }}{% endif %}.</b>
                     {% if soonest|length %}Réouverture : {{ whenOf['p' ~ (soonest|first).place.id]|lower }}.{% endif %}</span></p>
             {% endif %}

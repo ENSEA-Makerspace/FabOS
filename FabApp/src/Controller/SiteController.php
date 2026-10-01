@@ -534,152 +534,15 @@ final class SiteController extends AbstractController
 
     #[Route('/mes-reservations', name: 'app_my_reservations', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
-    public function myReservations(Request $request, ReservationRepository $reservations, ReservableResolver $reservables, SiteSettingService $siteSettings, TranslatorInterface $translator, LabClock $clock, BookingVerbService $bookingVerbs): Response
+    public function myReservations(Request $request, \App\Catalogue\MyReservations $mine): Response
     {
         $user = $this->getUser();
         if (!$user instanceof Utilisateur) {
             throw $this->createAccessDeniedException('Authentification requise');
         }
 
-        $items = $reservations->findForUser($user, ['dateDebut' => 'DESC']);
-        $reservables->warm($items);
-
-        // ⚠️ `$now` is a real instant, and every stored booking date is put on the
-        // same footing with `instantOf()` before being compared to it. The old
-        // shape — a lab-zoned `now` against a raw hydrated column — was out by the
-        // lab's UTC offset, always in the permissive direction: a finished
-        // booking sat in "À venir" for two more hours and stayed cancellable
-        // after it had started. See LabClock for why the digits look right anyway.
-        $now = $clock->now();
-        $current = [];
-        $upcoming = [];
-        $past = [];
-        $cancelled = [];
-        $nextReservation = null;
-
-        foreach ($items as $reservation) {
-            // Declined requests group with cancellations — both are bookings the
-            // user no longer has, and neither holds its slot any more.
-            if (!$reservation->isActive()) {
-                $cancelled[] = $reservation;
-                continue;
-            }
-
-            $start = $clock->instantOf($reservation->getDateDebut());
-            $end = $clock->instantOf($reservation->getDateFin());
-
-            if ($end < $now) {
-                $past[] = $reservation;
-                continue;
-            }
-
-            if ($start <= $now && $end >= $now) {
-                $current[] = $reservation;
-                continue;
-            }
-
-            $upcoming[] = $reservation;
-            if ($nextReservation === null || $reservation->getDateDebut() < $nextReservation->getDateDebut()) {
-                $nextReservation = $reservation;
-            }
-        }
-
-        usort($current, static fn ($a, $b): int => $a->getDateDebut() <=> $b->getDateDebut());
-        usort($upcoming, static fn ($a, $b): int => $a->getDateDebut() <=> $b->getDateDebut());
-        usort($past, static fn ($a, $b): int => $b->getDateDebut() <=> $a->getDateDebut());
-        usort($cancelled, static fn ($a, $b): int => $b->getDateDebut() <=> $a->getDateDebut());
-
-
-        $groups = [
-            'current' => $current,
-            'upcoming' => $upcoming,
-            'past' => $past,
-            'cancelled' => $cancelled,
-        ];
-
-        // Tiles are the four states, and their counts are computed over the whole
-        // set — picking one state must not blank the others, which is the shell's
-        // stated expectation.
-        //
-        // ⚠️ Translated HERE. The shell prints `tile.label` raw, because every other
-        // catalogue hands it a finished word; passing a message key instead puts
-        // "resv.f_current" on the screen, which is exactly what happened.
-        $labels = [
-            'current' => $translator->trans('resv.f_current'),
-            'upcoming' => $translator->trans('resv.f_upcoming'),
-            'past' => $translator->trans('resv.f_past'),
-            'cancelled' => $translator->trans('resv.f_cancelled'),
-        ];
-
-        $state = (string) $request->query->get('etat', '');
-        $search = trim((string) $request->query->get('q', ''));
-
-        $visible = array_key_exists($state, $groups)
-            ? [$state => $groups[$state]]
-            : $groups;
-
-        if ($search !== '') {
-            $needle = mb_strtolower($search);
-            foreach ($visible as $key => $rows) {
-                $visible[$key] = array_values(array_filter($rows, function ($r) use ($reservables, $needle): bool {
-                    $name = (string) ($reservables->resolve($r)->name ?? '');
-
-                    return $name !== '' && str_contains(mb_strtolower($name), $needle);
-                }));
-            }
-        }
-
-        // S77's verbs, resolved once per visible card by the same service the
-        // endpoints ask. ⚠️ The template must never re-derive one of these: the
-        // page hiding a control the endpoint would have honoured (or drawing one
-        // it refuses) is precisely the drift this replaces. Cheap today — no
-        // lock window is configured, so none of it queries.
-        $verbs = [];
-        foreach ($visible as $rows) {
-            foreach ($rows as $reservation) {
-                $verbs[$reservation->getId()] = $bookingVerbs->verdicts($reservation, $user, $now);
-            }
-        }
-
-        // The undo offer, arriving as `?undo=<id>` from the cancel redirect. It is
-        // re-checked here rather than trusted: the parameter is in the member's
-        // own URL bar, so it has to prove itself like any other input, and the
-        // slot may well have been taken in the seconds since.
-        $undo = null;
-        $undoId = (int) $request->query->get('undo', 0);
-        if ($undoId > 0) {
-            $candidate = $reservations->find($undoId);
-
-            // ⚠️ Ownership is checked here and not left to the verb alone. The
-            // verb lets an admin act on anyone's booking, which is right for the
-            // endpoint and wrong for this bar: the id comes from the URL, and an
-            // admin pasting `?undo=1234` would be shown a stranger's resource
-            // label on their own page. That is the class of leak S38 spent a
-            // session closing. This page only ever offers you your own bookings.
-            $mine = $candidate?->getUtilisateur()?->getId() === $user->getId();
-
-            if ($candidate !== null && $mine && $bookingVerbs->verdict(BookingVerb::Restore, $candidate, $user, $now)->allowed) {
-                $undo = $candidate;
-            }
-        }
-
-        return $this->render('site/mes-reservations.html.twig', [
-            'reservations' => $items,
-            'groupsInOrder' => $visible,
-            'groupLabels' => $labels,
-            'verbs' => $verbs,
-            'undo' => $undo,
-            'tiles' => array_map(
-                static fn (string $key): array => ['slug' => $key, 'label' => $labels[$key], 'total' => count($groups[$key])],
-                array_keys($groups),
-            ),
-            'activeState' => array_key_exists($state, $groups) ? $state : '',
-            'search' => $search,
-            'totalShown' => array_sum(array_map('count', $visible)),
-            'totalAll' => array_sum(array_map('count', $groups)),
-            'nextReservation' => $nextReservation,
-            'now' => $now,
-        ]);
+        // 2026-10-01 — le calcul vit dans `MyReservations`, lu aussi par sa proposition.
+        return $this->render('site/mes-reservations.html.twig', $mine->build($request, $user));
     }
 
     #[Route('/machines', name: 'app_machines', methods: ['GET'])]

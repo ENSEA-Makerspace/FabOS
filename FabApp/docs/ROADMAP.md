@@ -35,6 +35,7 @@ de références et cinq phases neuves ont rendu la lecture linéaire impossible.
 | **T** | Surfaces restantes : prêts, recherche, rapports, créations | S193–S195 |
 | **U** | **Identité : des modules de connexion** (LDAP, AD, CAS, SAML/Shibboleth, OIDC) — pour TOUTES les installations | S196–S201 — ⏳ ordre à fixer quand l'opérateur saura ce qu'utilise l'ENSEA |
 | **R** | Commerce — **la dernière**, et bloquée par J | S184–S188 |
+| **V** | **Pages revues d'après les planches** — propositions en sous-pages du menu Développement (`/admin/propositions`), l'opérateur choisit | 2026-10-01 → en cours |
 
 ⚠️ **R garde ses numéros bas en passant après S et T** : un numéro de session est
 une étiquette, pas un rang — la note ci-dessous vaut pour elle aussi.
@@ -42,6 +43,21 @@ une étiquette, pas un rang — la note ci-dessous vaut pour elle aussi.
 🔴 **K, L, M et R gardent leurs numéros bas alors qu'elles passent après O–Q** : un
 numéro de session est une ÉTIQUETTE, pas un rang. Les renuméroter chaque fois que
 l'ordre change ferait mentir chaque commit qui les cite.
+
+## Phase V — les pages revues d'après les planches (2026-10-01)
+
+Demande de l'opérateur : comparer chaque planche de `public/images/references/` à
+notre page, en garder les bonnes idées (jamais une copie), et poser une
+**proposition** en sous-page du menu Développement. Le tri vit dans
+`docs/references/PROPOSITIONS.md`, rendu sur `/admin/propositions`.
+
+### Ce que l'opérateur vérifie
+- Menu Développement → « Propositions de pages » : le tri des planches, une
+  vignette par proposition, et chaque proposition en sous-page.
+- Chaque proposition : un bandeau « Proposition — pas un écran réel », la
+  planche et la page actuelle à un clic, « pris de la planche » / « gardé de
+  chez nous ». Dire **retenue** ou **refusée** pour chacune.
+- 🅿️ Une proposition tranchée se supprime (gabarit, entrée, CSS `pp-*`).
 
 ## Cap produit
 

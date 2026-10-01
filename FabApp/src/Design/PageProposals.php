@@ -16,6 +16,7 @@ namespace App\Design;
  *
  * ⚠️ Une proposition ne copie pas la planche : elle en garde les bonnes idées
  * (contenu, ordre, mise en page) et les pose sur NOS composants et NOS jetons.
+ * `demo` = des liens de démonstration (paramètres lus par la seule proposition).
  * `take` = ce qu'on reprend de la planche ; `keep` = ce qu'on garde de chez nous
  * parce que c'est mieux.
  *
@@ -25,7 +26,7 @@ namespace App\Design;
 final class PageProposals
 {
     /**
-     * @return list<array{slug: string, title: string, planche: string, current: array{route: string, params: array<string, mixed>, label: string}, shell: string, take: list<string>, keep: list<string>}>
+     * @return list<array{slug: string, title: string, planche: string, current: array{route: string, params: array<string, mixed>, label: string}, shell: string, take: list<string>, keep: list<string>, demo?: array<string, string>}>
      */
     public function all(): array
     {
@@ -45,11 +46,29 @@ final class PageProposals
                     'La séparation par POSITION : la tête dit l’état de la salle, le pied dit votre droit. La planche met « Indisponible » sur un bouton sans dire si c’est la salle ou vous.',
                     'Une image par défaut propre à un espace (le plan), plus l’icône d’imprimante empruntée aux machines.',
                 ],
+                'demo' => ['?vue=ouvert' => 'labo ouvert'],
+            ],
+            [
+                'slug' => 'mes-reservations',
+                'title' => 'Mes réservations',
+                'planche' => 'espaces/08-mes-reservations.png',
+                'current' => ['route' => 'app_my_reservations', 'params' => [], 'label' => '/mes-reservations'],
+                'shell' => 'public',
+                'take' => [
+                    'LA prochaine réservation (ou celle en cours) en tête : quand (« Aujourd’hui · 14:00–17:00 »), quoi, et pour un espace, la fenêtre où votre badge ouvre la porte.',
+                    'Le reste en lignes datées — « À venir », puis « Passées » estompées : une réservation se lit par sa date, pas par une affiche.',
+                    'Un seul verbe par ligne (« Gérer »).',
+                ],
+                'keep' => [
+                    'Le détail d’une réservation (déplacer, annuler, rétablir) reste sur sa page : pas de mur de boutons dans la liste.',
+                    'Les annulées et refusées restent consultables, repliées en bas — la planche les oublie.',
+                ],
+                'demo' => ['?membre=45' => 'avec les réservations d’alice'],
             ],
         ];
     }
 
-    /** @return array{slug: string, title: string, planche: string, current: array{route: string, params: array<string, mixed>, label: string}, shell: string, take: list<string>, keep: list<string>}|null */
+    /** @return array{slug: string, title: string, planche: string, current: array{route: string, params: array<string, mixed>, label: string}, shell: string, take: list<string>, keep: list<string>, demo?: array<string, string>}|null */
     public function find(string $slug): ?array
     {
         foreach ($this->all() as $proposal) {

@@ -15,7 +15,7 @@ Légende : ✅ déjà appliqué · 🟡 proposition à regarder · 🟢 notre pa
 | `05-mise-en-service-point-acces.png` | ⏳ à comparer |
 | `06-incidents-acces.png` | ⏳ à comparer |
 | `07-kiosque-entree.png` | ⏳ à comparer |
-| `08-mes-reservations.png` | ⏳ à comparer |
+| `08-mes-reservations.png` | 🟡 [Proposition](/admin/propositions/mes-reservations) — la prochaine en tête (quand, quoi, fenêtre de porte), le reste en lignes datées. |
 
 ## equipement
 
