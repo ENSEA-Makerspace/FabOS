@@ -1969,6 +1969,8 @@ final class SiteController extends AbstractController
             'place' => $place,
             // S204 — les badges qui ouvrent la pièce (vide = libre, comme avant).
             'requiredBadges' => $placeBadges->requiredNames($place),
+            // …et si la personne connectée en détient un (null : anonyme).
+            'placeQualifies' => $currentUser instanceof Utilisateur ? $placeBadges->qualifies($place, $currentUser) : null,
             /*
              * 🔴 **S177 — « comment j'entre ? », la question qu'aucun écran ne
              * pouvait poser avant S175.** Une porte n'existait pas comme objet :

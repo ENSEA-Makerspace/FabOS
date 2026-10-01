@@ -85,12 +85,15 @@
                    formation voyait « Machine indisponible » (vu le 2026-09-30). #}
                 {% set trainingMissing = authorizationStatus in ['missing_badge', 'training_required', 'physical_training_required'] %}
                 {% set bookTone = canReserve ? 'go' : (not app.user or usageRight.reason|default('') == 'signin_required' ? 'wait' : 'stop') %}
-                <div class="md-hero">
-                    <div class="md-hero-main">
-                        <p class="md-kicker">{{ categoryLabel }}{% if levelLabel %} · {{ levelLabel }}{% endif %}</p>
-                        <h1 class="machine-detail-title">{{ machine.nom }}{{ admin_actions([
-                            { route: 'app_admin_machine_edit', params: { id: machine.id }, label: 'admin_inline.edit'|trans }
-                        ]) }}</h1>
+                {% embed 'site/_detail_hero.html.twig' with {
+                    kicker: categoryLabel ~ (levelLabel ? ' · ' ~ levelLabel : ''),
+                    title: machine.nom,
+                    title_actions: admin_actions([
+                        { route: 'app_admin_machine_edit', params: { id: machine.id }, label: 'admin_inline.edit'|trans }
+                    ]),
+                    photo: machine.photo,
+                } %}
+                    {% block main %}
                         {# S151, R7 — le panneau de droits reste pour tout verdict sauf « connectez-vous ». #}
                         {% if usageRight.enforced and not usageRight.allowed and usageRight.reason != 'signin_required' %}
                             {% include 'site/_usage_right_state.html.twig' with {
@@ -198,22 +201,11 @@
                                    (formations, connexion) — pas deux fois la même action. #}
                             </section>
                         </div>
-                    </div>
-
-                    {# La photo, ou l'icône de la catégorie quand rien n'est saisi : le
-                       MÊME repli que les cartes du catalogue (`_category_icon`), plus les
-                       cinq pictogrammes recopiés qui vivaient ici. #}
-                    <div class="machine-detail-image md-hero-photo">
-                        <div class="machine-image-placeholder large">
-                            {% if machine.photo %}
-                                <img class="pt-photo" src="{{ machine.photo starts with 'http' or machine.photo starts with '/' ? machine.photo : asset(machine.photo) }}" alt="{{ machine.nom }}">
-                            {% else %}
-                                <span class="md-fallback-icon">{% include 'site/_category_icon.html.twig' with { slug: category|default(icon) } only %}</span>
-                            {% endif %}
-                        </div>
-                        <div class="machine-status-badge large {{ statusClass }}">{{ statusLabel }}</div>
-                    </div>
-                </div>
+                    {% endblock %}
+                    {# Rien de saisi : l'icône de la catégorie, le MÊME repli que les cartes du catalogue. #}
+                    {% block fallback %}{% include 'site/_category_icon.html.twig' with { slug: category|default(icon) } only %}{% endblock %}
+                    {% block badge %}<div class="machine-status-badge large {{ statusClass }}">{{ statusLabel }}</div>{% endblock %}
+                {% endembed %}
 
                 <div class="detail-tabs">
                     <button class="detail-tab active" data-tab="overview">{{ 'machine.tab_overview'|trans }}</button>

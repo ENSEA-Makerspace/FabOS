@@ -1,0 +1,32 @@
+{#
+   La tête « tâche d'abord » des fiches (machine, espace, matériau, objet prêté).
+
+   D'après les planches de référence : ce qu'on vient décider — puis-je réserver,
+   emprunter, où m'en servir ? — en tête, à côté de la photo ; le reste dessous.
+   UNE tête pour les quatre fiches : les cartes du bloc `main` sont des
+   `.detail-card` et la mise en page (`.md-*`) vit dans `details.css`.
+
+   Variables : `title` ; `kicker` (facultatif) ; `title_actions` (le crayon admin,
+   déjà rendu) ; `photo` (chemin ou URL, facultatif).
+   Blocs : `main` (sous le titre), `fallback` (l'image par défaut quand rien
+   n'est saisi — obligatoire à remplir : une fiche n'a jamais de trou),
+   `badge` (pastille posée sur la photo).
+#}
+<div class="md-hero">
+    <div class="md-hero-main">
+        {% if kicker|default('') %}<p class="md-kicker">{{ kicker }}</p>{% endif %}
+        <h1 class="machine-detail-title">{{ title }}{{ title_actions|default('') }}</h1>
+        {% block main %}{% endblock %}
+    </div>
+
+    <div class="machine-detail-image md-hero-photo">
+        <div class="machine-image-placeholder large">
+            {% if photo|default('') %}
+                <img class="pt-photo" src="{{ photo starts with 'http' or photo starts with '/' ? photo : asset(photo) }}" alt="{{ title }}">
+            {% else %}
+                <span class="md-fallback-icon">{% block fallback %}{% endblock %}</span>
+            {% endif %}
+        </div>
+        {% block badge %}{% endblock %}
+    </div>
+</div>

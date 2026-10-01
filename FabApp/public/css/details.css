@@ -2116,6 +2116,15 @@ html[data-theme="dark"] .required-badge.machine-category-badge-card.is-unlocked 
 .md-state > summary { display: flex; align-items: center; gap: var(--spacing-sm); }
 .md-staff { margin-left: auto; font-size: var(--font-size-sm); font-weight: 600; color: var(--color-text-light); }
 .md-state-part { margin-top: var(--spacing-md); }
+/* Les mêmes pièces servent aux fiches espace, matériau et objet prêté
+   (`_detail_hero.html.twig`). */
+.md-lede { margin: 0; color: var(--color-text-light); line-height: 1.6; max-width: 62ch; }
+.md-note { margin: var(--spacing-sm) 0 0; color: var(--color-text-light); font-size: var(--font-size-sm); }
+.md-cards > :only-child { grid-column: 1 / -1; }
+.md-access-mark svg { width: 16px; height: 16px; vertical-align: -2px; color: var(--color-primary-text, var(--color-primary)); }
+/* Un glyphe saisi (l'émoji d'un matériau) tient lieu d'image par défaut. */
+.md-late { color: var(--color-stop, #b91c1c); }
+.md-fallback-glyph { font-size: clamp(64px, 9vw, 120px); line-height: 1; }
 
 @media (max-width: 1024px) {
     .md-hero { grid-template-columns: minmax(0, 1fr); }

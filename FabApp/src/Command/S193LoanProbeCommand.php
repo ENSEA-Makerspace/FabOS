@@ -120,9 +120,9 @@ final class S193LoanProbeCommand extends Command
             }
 
             $io->section('4. Le membre lit SON prêt ; un autre, non');
-            $this->check($io, $failures, 'l\'emprunteur voit « Vous l\'avez depuis… »', str_contains($this->get('/prets/' . $itemId, new Session(new MockArraySessionStorage()), $member->getEmail()), 'loan-item__mine'));
+            $this->check($io, $failures, 'l\'emprunteur voit « Vous l\'avez depuis… »', str_contains($this->get('/prets/' . $itemId, new Session(new MockArraySessionStorage()), $member->getEmail()), 'data-my-loan'));
             if ($other instanceof Utilisateur) {
-                $this->check($io, $failures, 'un autre membre, non', !str_contains($this->get('/prets/' . $itemId, new Session(new MockArraySessionStorage()), $other->getEmail()), 'loan-item__mine'));
+                $this->check($io, $failures, 'un autre membre, non', !str_contains($this->get('/prets/' . $itemId, new Session(new MockArraySessionStorage()), $other->getEmail()), 'data-my-loan'));
             }
 
             $io->section('5. Rendre depuis la fiche');

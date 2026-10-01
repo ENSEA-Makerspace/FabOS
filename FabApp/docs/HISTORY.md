@@ -180,3 +180,20 @@ supprimées. 🔴 Trouvé en route : un membre à qui manquait la formation
 indisponible » — la page ne connaissait que `missing_badge`. Et la boîte photo
 était bornée à 200 px par une règle des vignettes de l'accueil. Popularité en
 étoiles abandonnée (absente de la planche).
+
+## Les fiches espace, matériau et objet prêté, même tête (2026-10-01)
+
+Suite de la précédente, à la demande de l'opérateur. La tête « tâche d'abord »
+sort de la fiche machine dans **un** gabarit partagé, `_detail_hero.html.twig`
+(titre, crayon admin, cartes, photo ou image par défaut), que les quatre fiches
+emploient. **Espace** (planche `02-detail-espace-reservation.png`) : « Vous
+pouvez réserver cet espace » / connexion / formation, bouton vers le calendrier,
+lieu · capacité ; carte « Comment on y entre » = badges S204 cochés ou non + portes
+S177. **Matériau** : « Où on l'utilise » et « Où le trouver » en tête, cotes
+dessous. **Objet prêté** : disponible / emprunté, compteur, son prêt, note du
+comptoir ; il quitte `machines-list.css` (22 règles `.loan-item*` supprimées) pour
+`details.css`. Image par défaut quand rien n'est saisi : plan (espace), émoji puis
+boîte (matériau), boîte (objet). ⚠️ Un espace n'a **pas** de champ photo — à
+ajouter le jour où l'on veut une vraie bannière. Clé morte `loans.manage_item`
+retirée (le crayon admin la remplace). Sondes S193 (crochet `data-my-loan`) et
+S204 vertes.

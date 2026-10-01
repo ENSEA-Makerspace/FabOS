@@ -23,11 +23,6 @@
 
 {% block page_styles %}
     <style>
-        .mat-head { display: flex; align-items: center; gap: var(--spacing-lg); flex-wrap: wrap; margin-bottom: var(--spacing-lg); }
-        .mat-visual { width: 84px; height: 84px; border-radius: 50%; flex: none; display: inline-flex; align-items: center; justify-content: center; font-size: 40px; overflow: hidden; background: var(--theme-surface); border: 1px solid var(--border-color); }
-        .mat-visual img { width: 100%; height: 100%; object-fit: cover; }
-        .mat-title { margin: 0; }
-        .mat-sub { color: var(--color-text-light); margin: 4px 0 0; }
         .mat-specs { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
         .mat-machines { display: flex; flex-wrap: wrap; gap: 10px; }
         /* La pastille machine est la même que la pastille matériau de la fiche
@@ -48,57 +43,57 @@
                     {label: material.name},
                 ]} only %}
 
-                <div class="mat-head">
-                    <span class="mat-visual">
-                        {%- if material.imageUrl -%}
-                            <img class="pt-photo" src="{{ material.imageUrl }}" alt="{{ material.name }}" onerror="this.style.display='none'">
-                        {%- elseif material.icon -%}
-                            {{ material.icon }}
-                        {%- else -%}
-                            {% include 'site/_icon.html.twig' with { name: 'box' } only %}
-                        {%- endif -%}
-                    </span>
-                    <div>
-                        <h1 class="mat-title">{{ material.name }}{{ admin_actions([
-                            { route: 'app_admin_material_edit', params: { id: material.id }, label: 'admin_inline.edit'|trans }
-                        ]) }}</h1>
-                        {% if material.category or material.color %}
-                            <p class="mat-sub">{{ material.category }}{% if material.category and material.color %} · {% endif %}{{ material.color }}</p>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <div class="detail-tab-grid">
-                    {# 🔴 **Les machines d'abord.** C'est la question qu'on se pose en
-                       arrivant sur un matériau : « où est-ce que je peux m'en servir ? ».
-                       La description et les cotes servent une fois qu'on a la réponse. #}
-                    <div class="detail-card full-width">
-                        <h3 class="detail-card-title">{{ 'materials.machines_heading'|trans }}</h3>
-                        {% if machines is empty %}
-                            {# ⚠️ Une absence se DIT. La version d'avant de ce produit
-                               remplissait le vide avec une liste codée en dur, et une
-                               découpeuse laser annonçait du PLA. #}
-                            {% include 'site/_cell_empty.html.twig' with {reason: 'materials.no_machines'} only %}
-                        {% else %}
-                            <div class="mat-machines">
-                                {% for machine in machines %}
-                                    <a class="mat-machine-chip" href="{{ path('app_machine_detail', {id: machine.id}) }}">
-                                        {{ machine.nom }} <em>{{ machine.categoryLabel }}</em>
-                                    </a>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-
-                    {% if material.description %}
-                        <div class="detail-card full-width">
-                            <h3 class="detail-card-title">{{ 'form.description'|trans }}</h3>
-                            <div class="detail-card-content"><p>{{ material.description }}</p></div>
+                {# 2026-09-30 — la tête partagée des fiches (`_detail_hero`), d'après la
+                   planche `equipment-material-detail.png` : où m'en servir et où le
+                   trouver en tête, à côté de la photo ; les cotes dessous. #}
+                {% embed 'site/_detail_hero.html.twig' with {
+                    kicker: material.category ~ (material.category and material.color ? ' · ' : '') ~ material.color,
+                    title: material.name,
+                    title_actions: admin_actions([
+                        { route: 'app_admin_material_edit', params: { id: material.id }, label: 'admin_inline.edit'|trans }
+                    ]),
+                    photo: material.imageUrl,
+                } %}
+                    {% block main %}
+                        {% if material.description %}<p class="md-lede">{{ material.description }}</p>{% endif %}
+                        <div class="md-cards">
+                            {# 🔴 **Les machines d'abord** : « où est-ce que je peux m'en servir ? ». #}
+                            <section class="detail-card">
+                                <h2 class="detail-card-title">{{ 'materials.machines_heading'|trans }}</h2>
+                                {% if machines is empty %}
+                                    {# ⚠️ Une absence se DIT : la version d'avant remplissait le
+                                       vide d'une liste codée en dur, et une laser annonçait du PLA. #}
+                                    {% include 'site/_cell_empty.html.twig' with {reason: 'materials.no_machines'} only %}
+                                {% else %}
+                                    <div class="mat-machines">
+                                        {% for machine in machines %}
+                                            <a class="mat-machine-chip" href="{{ path('app_machine_detail', {id: machine.id}) }}">
+                                                {{ machine.nom }} <em>{{ machine.categoryLabel }}</em>
+                                            </a>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </section>
+                            {% if material.storageLocation or material.purchaseUrl %}
+                                <section class="detail-card">
+                                    <h2 class="detail-card-title">{{ 'form.storage_location'|trans }}</h2>
+                                    <ul class="md-access-list">
+                                        {% if material.storageLocation %}<li><span class="md-access-mark" aria-hidden="true">{% include 'site/_icon.html.twig' with { name: 'pin' } only %}</span><span>{{ material.storageLocation }}</span></li>{% endif %}
+                                        {% if material.purchaseUrl %}
+                                            <li><span class="md-access-mark" aria-hidden="true">{% include 'site/_icon.html.twig' with { name: 'open' } only %}</span><a href="{{ material.purchaseUrl }}" target="_blank" rel="noopener noreferrer">{{ 'materials.buy'|trans }}</a></li>
+                                        {% endif %}
+                                    </ul>
+                                </section>
+                            {% endif %}
                         </div>
-                    {% endif %}
+                    {% endblock %}
+                    {# Rien de saisi : l'émoji du matériau, sinon la boîte. #}
+                    {% block fallback %}{% if material.icon %}<span class="md-fallback-glyph">{{ material.icon }}</span>{% else %}{% include 'site/_icon.html.twig' with { name: 'box' } only %}{% endif %}{% endblock %}
+                {% endembed %}
 
-                    {% if material.specs %}
-                        <div class="detail-card">
+                {% if material.specs %}
+                    <div class="detail-tab-grid">
+                        <div class="detail-card full-width">
                             <h3 class="detail-card-title">{{ 'materials_form.specs'|trans }}</h3>
                             <ul class="mat-specs">
                                 {% for line in material.specs|split('\n') %}
@@ -106,20 +101,8 @@
                                 {% endfor %}
                             </ul>
                         </div>
-                    {% endif %}
-
-                    {% if material.storageLocation or material.purchaseUrl %}
-                        <div class="detail-card">
-                            <h3 class="detail-card-title">{{ 'form.storage_location'|trans }}</h3>
-                            <ul class="feature-list">
-                                {% if material.storageLocation %}<li>{{ material.storageLocation }}</li>{% endif %}
-                                {% if material.purchaseUrl %}
-                                    <li><a href="{{ material.purchaseUrl }}" target="_blank" rel="noopener noreferrer">{{ 'materials.buy'|trans }}</a></li>
-                                {% endif %}
-                            </ul>
-                        </div>
-                    {% endif %}
-                </div>
+                    </div>
+                {% endif %}
             </div>
         </section>
     </main>

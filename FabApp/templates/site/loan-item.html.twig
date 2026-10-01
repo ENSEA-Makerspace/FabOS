@@ -1,5 +1,7 @@
 {% extends 'site/base_public.html.twig' %}
 
+{% from 'site/_admin_inline.html.twig' import admin_actions %}
+
 {# THE CANONICAL PAGE FOR ONE LOAN OBJECT (S133).
 
    Every card on `/prets` used to link to `/prets` — clicking an object reloaded
@@ -19,96 +21,76 @@
    ⚠️ Les trois blocs utilisés ici — `title`, `stylesheets`, `body` — existent des
    deux côtés, donc le changement de parent n'en oriente aucun ailleurs.
 
-   ⚠️ **No local `<style>`.** `_breadcrumb`, `_cell_state` and `_cell_meter` come
-   from `components.css`, which the shell emits everywhere; `.ml-page` /
-   `.ml-wrap` and the four `.loan-item*` rules live in `machines-list.css`, linked
-   below exactly as `/places` and `/materials` link it. ⚠️ **Not
-   `.readonly-grid`** — that grid is defined in `admin.css`, which a public page
-   never loads, and using it here would have printed an unstyled definition list.
-   That is the shared-partial cascade trap, three times found and recorded in
-   `/admin/design#recherche`. #}
+   ⚠️ **No local `<style>`.** Since 2026-09-30 the page is built on the shared
+   head of every detail page (`_detail_hero.html.twig`, styled in `details.css`);
+   `_breadcrumb`, `_cell_state` and `_cell_meter` come from `components.css`. #}
 
 {% block title %}{{ item.name }} - FabOS{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
 {% endblock %}
 
 {% block body %}
-<main id="main-content" tabindex="-1" class="ml-page">
-    <div class="ml-wrap">
-        {% include 'site/_breadcrumb.html.twig' with {trail: [
-            {label: 'nav.home'|trans, url: path('app_home')},
-            {label: 'nav.loans'|trans, url: path('app_loans')},
-            {label: item.name},
-        ]} only %}
+<main id="main-content" tabindex="-1" class="main-content">
+    <section class="machine-detail-section">
+        <div class="container">
+            {% include 'site/_breadcrumb.html.twig' with {trail: [
+                {label: 'nav.home'|trans, url: path('app_home')},
+                {label: 'nav.loans'|trans, url: path('app_loans')},
+                {label: item.name},
+            ]} only %}
 
-        <article class="loan-item">
-            {% if item.imageUrl %}
-                <img class="loan-item__photo pt-photo" src="{{ item.imageUrl }}" alt="{{ item.name }}">
-            {% endif %}
-
-            <div class="loan-item__body">
-                <h1>{{ item.name }}</h1>
-
-                <p class="loan-item__states">
-                    {% if item.archived %}
-                        {# Not a 404. Someone arriving from their own loan history is
-                           asking about a thing that existed; saying "retired" is an
-                           answer, and "no such page" is not. #}
-                        {% include 'site/_cell_state.html.twig' with {
-                            label: 'loans.item_archived'|trans, signal: 'muted',
-                        } only %}
-                    {% else %}
-                        {% include 'site/_cell_state.html.twig' with {
-                            label: (free > 0 ? 'state.available' : 'state.borrowed')|trans,
-                            signal: free > 0 ? 'go' : 'wait',
-                        } only %}
-                    {% endif %}
-                    {% if item.category %}
-                        {% include 'site/_cell_state.html.twig' with {label: item.category, signal: 'muted'} only %}
-                    {% endif %}
-                </p>
-
-                {# S193 — SON prêt, pour la personne qui l'a ; personne d'autre ne voit qui. #}
-                {% if myLoan %}
-                    <p class="loan-item__mine{{ myLoan.effectiveStatus == 'overdue' ? ' is-overdue' : '' }}">
-                        {{ 'loans.you_have_it'|trans({'%date%': myLoan.dateTaken|date('d/m/Y')}) }}
-                        {% if myLoan.expectedReturnDate %}· {{ 'loans.due_back'|trans({'%date%': myLoan.expectedReturnDate|date('d/m/Y')}) }}{% endif %}
-                    </p>
-                {% endif %}
-                {% if item.description %}<p class="loan-item__desc">{{ item.description }}</p>{% endif %}
-
-                <dl class="loan-item__facts">
-                    <div>
-                        <dt>{{ 'adm.col_available'|trans }}</dt>
-                        <dd>{% include 'site/_cell_meter.html.twig' with {
-                            value: free, max: item.quantity, signal: free > 0 ? 'go' : 'stop',
-                        } only %}</dd>
+            {# 2026-09-30 — la tête partagée des fiches (`_detail_hero`) : « est-il
+               libre, et comment l'emprunter ? » en tête, à côté de la photo. #}
+            {% set tone = item.archived ? 'stop' : (free > 0 ? 'go' : 'wait') %}
+            {% embed 'site/_detail_hero.html.twig' with {
+                kicker: item.category,
+                title: item.name,
+                title_actions: admin_actions([
+                    { route: 'app_admin_loanable_item_edit', params: { id: item.id }, label: 'admin_inline.edit'|trans }
+                ]),
+                photo: item.imageUrl,
+            } %}
+                {% block main %}
+                    {% if item.description %}<p class="md-lede">{{ item.description }}</p>{% endif %}
+                    <div class="md-cards">
+                        <section class="detail-card md-book" aria-labelledby="md-book-title">
+                            <div class="md-book-head">
+                                <span class="md-verdict md-verdict--{{ tone }}" aria-hidden="true">{{ tone == 'go' ? '✓' : (tone == 'wait' ? '…' : '!') }}</span>
+                                {# Not a 404 when archived: someone arriving from their own loan
+                                   history is asking about a thing that existed. #}
+                                <h2 id="md-book-title" class="md-book-title">{{ (item.archived ? 'loans.item_archived' : (free > 0 ? 'state.available' : 'state.borrowed'))|trans }}</h2>
+                            </div>
+                            {% if not item.archived %}
+                                {% include 'site/_cell_meter.html.twig' with {
+                                    value: free, max: item.quantity, signal: free > 0 ? 'go' : 'stop',
+                                } only %}
+                            {% endif %}
+                            {# S193 — SON prêt, pour la personne qui l'a ; personne d'autre ne voit qui. #}
+                            {% if myLoan %}
+                                <p class="md-lede" data-my-loan>
+                                    {{ 'loans.you_have_it'|trans({'%date%': myLoan.dateTaken|date('d/m/Y')}) }}
+                                    {% if myLoan.expectedReturnDate %}· {% if myLoan.effectiveStatus == 'overdue' %}<b class="md-late">{% endif %}{{ 'loans.due_back'|trans({'%date%': myLoan.expectedReturnDate|date('d/m/Y')}) }}{% if myLoan.effectiveStatus == 'overdue' %}</b>{% endif %}{% endif %}
+                                </p>
+                            {% endif %}
+                            {# ⚠️ No "borrow" button, and that is not an omission: checkouts are
+                               recorded by staff at the desk (`/admin/prets/nouveau`). A control
+                               here would be the dead affordance this page exists to remove. #}
+                            <p class="md-note">{{ 'loans.item_desk_note'|trans }}</p>
+                            {% if item.storageLocation or item.venue %}
+                                <p class="md-book-foot">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                                    {{ item.storageLocation }}{% if item.storageLocation and item.venue %}<span aria-hidden="true">·</span>{% endif %}
+                                    {% if item.venue %}{{ item.venue.name }}{% endif %}
+                                </p>
+                            {% endif %}
+                        </section>
                     </div>
-                    {% if item.storageLocation %}
-                        <div>
-                            <dt>{{ 'adm.col_storage'|trans }}</dt>
-                            <dd>{{ item.storageLocation }}</dd>
-                        </div>
-                    {% endif %}
-                    {% if item.venue %}
-                        <div>
-                            <dt>{{ 'venue_context.menu'|trans }}</dt>
-                            <dd>{{ item.venue.name }}</dd>
-                        </div>
-                    {% endif %}
-                </dl>
-
-                {# ⚠️ No "borrow" button, and that is not an omission: checkouts are
-                   recorded by staff at the desk (`/admin/prets/nouveau`). A control
-                   here would be the dead affordance this page exists to remove. #}
-                <p class="loan-item__note">{{ 'loans.item_desk_note'|trans }}</p>
-                {% if is_granted('ROLE_ADMIN') %}
-                    <p class="loan-item__note"><a href="{{ path('app_admin_loanable_item_edit', {id: item.id}) }}">{{ 'loans.manage_item'|trans }}</a></p>
-                {% endif %}
-            </div>
-        </article>
-    </div>
+                {% endblock %}
+                {% block fallback %}{% include 'site/_icon.html.twig' with { name: 'box' } only %}{% endblock %}
+            {% endembed %}
+        </div>
+    </section>
 </main>
 {% endblock %}
