@@ -87,7 +87,7 @@ final class S195ReportProbeCommand extends Command
         $rate = $all > 0 ? $cancelled / $all : 0;
         $expectCancelFinding = $all >= 10 && $rate >= 0.2;
         $this->check($io, $failures, sprintf('le constat « annulations » (%d %%) %s, avec son action', (int) round($rate * 100), $expectCancelFinding ? 'apparaît' : 'n\'apparaît pas'), str_contains($page, 'pp-rp-find-verb" href="/admin/quotas-reservation"') === $expectCancelFinding);
-        $topLinked = preg_match_all('~<tr><td><a class="pp-rp-name" href="/machines/\d+">~', $page);
+        $topLinked = preg_match_all('~<td><a class="pp-rp-name" href="/machines/\d+">~', $page);
         $this->check($io, $failures, sprintf('les ressources du classement ouvrent leur fiche (%d)', $topLinked), $active === 0 || $topLinked > 0);
 
         $io->section('2. Chaque création publiée a sa fiche');
