@@ -21,6 +21,12 @@ twig:
     # changement de leur fichier. Vérifié le 2026-09-03 — c'est la discipline qui
     # marche, pas de la dérive.
     globals:
+        # 2026-10-02 — le numéro de version de FabOS, À UN SEUL ENDROIT : ici.
+        # 0.MINEUR.CORRECTIF tant que le produit n'est pas en service à l'ENSEA
+        # (1.0.0 = la mise en service). MINEUR = un lot visible, livré et testé
+        # ensemble ; CORRECTIF = des corrections entre deux lots. Chaque version
+        # a son étiquette git `vX.Y.Z` et sa ligne dans `docs/VERSIONS.md`.
+        app_version: '0.4.0'
         css_version: '20261001-pp1'
         # ⚠️ Même raison, un cran plus petit : `main.js`, `section-journey.js` et
         # `quiz.js` partageaient déjà cette valeur dans 19 gabarits. Séparée du
