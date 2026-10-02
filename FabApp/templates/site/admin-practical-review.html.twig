@@ -1,0 +1,105 @@
+{% extends 'base.html.twig' %}
+
+{#
+   LE DOSSIER D'UNE VALIDATION PRATIQUE — une personne × une formation.
+
+   La file (`app_admin_practical_queue`) mène ici. Le dossier dit QUI (avatar,
+   nom), QUELLE formation, CE QU'ELLE A DÉJÀ FAIT (théorie, quiz x/y, depuis
+   quand), CE QU'IL FAUT OBSERVER, CE QUE LA VALIDATION OUVRE (badge + machines).
+
+   ⚠️ Cet écran n'ÉCRIT RIEN. « Valider » est un LIEN vers la fiche de la personne,
+   à l'ancre du vrai bouton (le POST `app_admin_validate_physical_training` y
+   vit, avec son jeton CSRF) ; « Pas encore » revient à la file.
+
+   ⚠️ « À observer sur la machine » : AUCUN modèle de checklist n'existe. On
+   découpe en lignes le champ texte `objectifs` de la formation ; à défaut on
+   montre ses SECTIONS. Une liste à lire, pas à cocher.
+
+   Données : `PracticalValidation::for()` (lecture seule). Styles : `pp-vp-*`.
+   ⚠️ Dans `.admin-panel`, pas de <span> coloré : <b>, <div>, <p>.
+#}
+
+{% block title %}{{ 'practical_review.browser_title'|trans({'%name%': dossier.user.displayName}) }}{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/pages.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/page-validation-pratique.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+{% embed 'site/_admin_list.html.twig' with {
+    panel_title: 'practical_review.panel_title'|trans,
+} %}
+    {% block content %}
+        <div class="pp-vp" data-practical-review>
+            {% set journey = dossier.journey %}
+            <div class="pp-vp-grid">
+                <div class="pp-vp-main">
+                    <section class="detail-card">
+                        <div class="pp-vp-who">
+                            {% include 'site/_user_avatar.html.twig' with { user: dossier.user, size: 64 } only %}
+                            <div>
+                                <p class="pp-vp-name">{{ dossier.user.displayName }}</p>
+                                <p class="pp-vp-meta">{{ dossier.formation.titre }}{% if dossier.physical != dossier.formation %} · {{ dossier.physical.titre }}{% endif %}</p>
+                                <div class="pp-vp-done">
+                                    {% include 'site/_state_chip.html.twig' with { label: 'practical_review.theory_done'|trans, signal: 'go' } only %}
+                                    {% include 'site/_state_chip.html.twig' with {
+                                        label: 'practical_review.quiz'|trans({'%done%': journey.quizValidated, '%total%': journey.quizTotal}),
+                                        signal: journey.quizValidated == journey.quizTotal ? 'go' : 'wait',
+                                    } only %}
+                                    {% if dossier.since %}
+                                        <p class="pp-vp-meta">{{ 'practical_review.waiting_since'|trans({'%date%': dossier.since|lab_date('d/m H:i')}) }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="detail-card">
+                        <h2 class="pp-vp-title">{{ 'practical_review.observe_title'|trans }}</h2>
+                        {% if dossier.points|length %}
+                            <ul class="pp-vp-list">
+                                {% for point in dossier.points %}
+                                    <li class="pp-vp-item">
+                                        <b class="pp-vp-num">{{ loop.index }}</b>
+                                        <div class="pp-vp-txt">{{ point }}</div>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                            <p class="pp-vp-note">{{ (dossier.pointsSource == 'objectifs' ? 'practical_review.source_objectives' : 'practical_review.source_sections')|trans }}</p>
+                        {% else %}
+                            <p class="pp-vp-note">{{ 'practical_review.observe_empty'|trans }}</p>
+                        {% endif %}
+                    </section>
+
+                    <div class="pp-vp-actions">
+                        <a class="btn" href="{{ path('app_admin_practical_queue') }}">{{ 'practical_review.not_yet'|trans }}</a>
+                        <a class="btn btn-primary-admin" data-practical-validate href="{{ path('app_admin_user_detail', {id: dossier.user.id}) }}#physical-validation-{{ dossier.formation.id }}">{{ 'practical_review.validate'|trans }}</a>
+                    </div>
+                    <p class="pp-vp-note">{{ 'practical_review.validate_note'|trans }}</p>
+                </div>
+
+                <aside class="pp-vp-side">
+                    <section class="detail-card pp-vp-open">
+                        <h2 class="pp-vp-title">{{ 'practical_review.opens_title'|trans }}</h2>
+                        {% if journey.badge %}
+                            <p><b>{{ 'practical_review.badge'|trans({'%name%': journey.badge.nom}) }}</b></p>
+                        {% endif %}
+                        {% if journey.machines|length %}
+                            <ul>
+                                {% for machine in journey.machines %}
+                                    <li>{{ machine.nom }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="pp-vp-note">{{ 'practical_review.opens_nothing'|trans }}</p>
+                        {% endif %}
+                    </section>
+                </aside>
+            </div>
+        </div>
+    {% endblock %}
+{% endembed %}
+{% endblock %}

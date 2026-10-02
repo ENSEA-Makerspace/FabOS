@@ -1,6 +1,6 @@
 {% extends 'site/base_public.html.twig' %}
 
-{# La page d'un badge selon qui la regarde : détenu (« Vous êtes autorisé·e à… », ce qu'il ouvre, comment on l'a obtenu) ou non (« Ce que ce badge ouvrirait »). Données : `App\Design\BadgeHeld`. Dessous, infos pratiques et chaîne de badges. #}
+{# La page d'un badge selon qui la regarde : détenu (« Vous êtes autorisé·e à… », ce qu'il ouvre, comment on l'a obtenu) ou non (« Ce que ce badge ouvrirait »). Données : `App\Page\BadgeHeld`. Dessous, infos pratiques et chaîne de badges. #}
 
 {% from 'site/_admin_inline.html.twig' import admin_actions %}
 
@@ -8,8 +8,8 @@
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
-    <link rel="stylesheet" href="{{ asset('css/proposals.css') ~ '?v=' ~ css_version }}">
-    <link rel="stylesheet" href="{{ asset('css/proposals-badge-obtenu.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/pages.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/page-badge-obtenu.css') ~ '?v=' ~ css_version }}">
 {% endblock %}
 
 {% block page_styles %}

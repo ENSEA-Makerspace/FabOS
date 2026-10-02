@@ -1,0 +1,105 @@
+{% extends 'base.html.twig' %}
+
+{#
+   LA FICHE D'UN LECTEUR RFID — l'état d'abord.
+
+   Destination naturelle d'un lecteur : le nom, dans la liste, mène ici ; l'édition
+   (formulaire, bloc de configuration) reste à « Modifier les réglages ».
+   - EN TÊTE l'état calculé (`ReaderHealth` : Prêt / Hors ligne depuis … /
+     À configurer), le dernier contact, et ce que le lecteur commande ;
+   - tant que le lecteur n'est pas en service, la mise en service
+     (`_commissioning`) monte juste sous l'en-tête, l'étape BLOQUANTE dite en clair ;
+   - les derniers événements du journal RFID de CE lecteur, avec un lien vers
+     le journal filtré ;
+   - AUCUN secret : ni `readerToken`, ni UID de badge. Le jeton n'est montré qu'à
+     l'édition, juste après la création du lecteur.
+   Données : `ReaderSheet::build()` (lecture seule). Styles : `pp-fl-*`.
+
+   ⚠️ Dans `.admin-panel`, `style.css` repeint tout <span> en gris `!important` :
+   texte coloré ou gras ici en <b>, <div>, <p>, jamais en <span>.
+#}
+
+{% block title %}{{ sheet.reader.name }} - {{ 'rfid_readers.title'|trans }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/pages.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/page-fiche-lecteur.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+{% embed 'site/_admin_list.html.twig' with {
+    panel_title: 'rfid_readers.title'|trans,
+} %}
+    {% block content %}
+        <div class="pp-fl" data-reader-sheet="{{ sheet.reader.id }}">
+            {% set reader = sheet.reader %}
+
+            <header class="pp-fl-head">
+                <div>
+                    <h2 class="pp-fl-state is-{{ sheet.health.signal }}">
+                        {% include 'site/_icon.html.twig' with { name: sheet.health.signal == 'go' ? 'check' : (sheet.health.signal == 'stop' ? 'warning' : 'hourglass') } only %}
+                        <b>{{ sheet.headline }}{% if sheet.health.state == 'offline' and reader.lastSeenAt %} {{ 'reader_sheet.since'|trans({'%date%': reader.lastSeenAt|lab_date('d/m H:i')}) }}{% endif %}</b>
+                    </h2>
+                    <p class="pp-fl-sub">
+                        {{ reader.name }} ·
+                        {% if reader.lastSeenAt %}{{ 'reader_sheet.last_contact'|trans({'%date%': reader.lastSeenAt|lab_date('d/m H:i')}) }}{% else %}{{ 'reader_sheet.never_contacted'|trans }}{% endif %}
+                    </p>
+                </div>
+                <div class="pp-fl-target">
+                    {% if reader.machine %}
+                        <b>{{ reader.machine.nom }}</b><br>
+                        <a href="{{ path('app_admin_machine_edit', {id: reader.machine.id}) }}">{{ 'reader_sheet.open_machine'|trans }}</a>
+                    {% elseif reader.accessPoint %}
+                        <b>{{ reader.accessPoint.nom }}</b><br>
+                        <a href="{{ path('app_admin_access_point_show', {id: reader.accessPoint.id}) }}">{{ 'reader_sheet.open_door'|trans }}</a>
+                    {% else %}
+                        <b>{{ 'reader_sheet.controls_nothing'|trans }}</b>
+                        <p class="pp-fl-sub">{{ 'reader_sheet.controls_nothing_hint'|trans }}</p>
+                    {% endif %}
+                </div>
+            </header>
+
+            {% if sheet.commissioning %}
+                {% if not reader.lastSeenAt %}
+                    <p class="pp-fl-wait"><b>{{ 'reader_sheet.waiting'|trans }}</b> {{ 'reader_sheet.waiting_note'|trans }}</p>
+                {% endif %}
+                {% if sheet.blockingStep %}
+                    <p class="pp-fl-block"><b>{{ 'reader_sheet.blocking'|trans }}</b> {{ ('rfid_form.step_' ~ sheet.blockingStep)|trans }} — {{ ('rfid_form.step_' ~ sheet.blockingStep ~ '_note')|trans }}</p>
+                {% endif %}
+                {% include 'site/_commissioning.html.twig' with {
+                    steps: sheet.steps, label_ns: 'rfid_form.step_', title: 'rfid_form.commissioning_title',
+                } only %}
+            {% endif %}
+
+            <div class="pp-fl-grid">
+                <section class="pp-fl-card" aria-labelledby="pp-fl-events">
+                    <h2 id="pp-fl-events">{{ 'reader_sheet.events_title'|trans }}</h2>
+                    {% if sheet.events %}
+                        <ul class="pp-fl-events">
+                            {% for e in sheet.events %}
+                                <li>
+                                    <div>
+                                        <b>{{ e.outcome }}</b>
+                                        <small>{{ e.who }}{% if e.detail %} · {{ e.detail }}{% endif %}</small>
+                                    </div>
+                                    <div>{{ e.at|lab_date('d/m H:i') }}</div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="pp-fl-empty">{{ 'reader_sheet.events_empty'|trans }}</p>
+                    {% endif %}
+                    <a href="{{ path('app_admin_access_rfid_logs', {reader: reader.id, days: 0}) }}">{{ 'reader_sheet.events_all'|trans }}</a>
+                </section>
+
+                <section class="pp-fl-card" aria-labelledby="pp-fl-edit">
+                    <h2 id="pp-fl-edit">{{ 'reader_sheet.settings_title'|trans }}</h2>
+                    <p class="pp-fl-sub">{{ 'reader_sheet.settings_note'|trans }}</p>
+                    <a href="{{ path('app_admin_rfid_reader_edit', {id: reader.id}) }}">{{ 'reader_sheet.settings_edit'|trans }}</a>
+                </section>
+            </div>
+        </div>
+    {% endblock %}
+{% endembed %}
+{% endblock %}

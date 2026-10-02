@@ -1,5 +1,7 @@
 # Propositions de pages — le tri des planches
 
+✅ **Mises en place dans la 0.5.0 (2026-10-02)** et retirées du menu Développement : l'opérateur les a validées (« tout a l'air très bien »), sauf l'accueil, où il garde le hero, les horaires et les événements en tête, complétés par le nouveau format. Non mise en place : « Valider une inscription » (aucun compte n'est créé « en attente »). Ce document reste le tri des 52 planches.
+
 Demande de l’opérateur (2026-10-01) : revoir chaque planche de `public/images/references/` face à la page qui existe, en garder les bonnes idées (contenu, ordre, mise en page) — **jamais une copie** — et poser une proposition en sous-page du menu Développement quand la planche fait mieux.
 
 Tri du 2026-10-01 (lecture des planches et des gabarits ; la valeur /5 = gain pour l'utilisateur). Légende : ✅ déjà appliqué · 🟡 proposition à regarder · 🟢 notre page fait déjà aussi bien ou mieux · ⏳ pas encore comparée · 🅿️ pas de page en face (fonction absente).

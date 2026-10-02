@@ -3,7 +3,7 @@
 {# « Rendez-vous avec une personne » : en tête le prochain créneau, une bande de 14 jours,
    les créneaux du jour choisi (`?jour=`) et, à droite, « Votre rendez-vous » (`?creneau=`)
    qui porte le VRAI formulaire de confirmation (POST `app_person_book`, jeton CSRF,
-   droit d'usage). Les créneaux viennent de `App\Design\PersonAppointment`, donc de
+   droit d'usage). Les créneaux viennent de `App\Page\PersonAppointment`, donc de
    `PersonAvailabilityService::dailySlots()`. Une demande libre (autre moment) reste
    possible sous les créneaux (POST `app_person_request`). #}
 
@@ -11,8 +11,8 @@
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
-    <link rel="stylesheet" href="{{ asset('css/proposals.css') ~ '?v=' ~ css_version }}">
-    <link rel="stylesheet" href="{{ asset('css/proposals-rendez-vous.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/pages.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/page-rendez-vous.css') ~ '?v=' ~ css_version }}">
 {% endblock %}
 
 {% block body %}

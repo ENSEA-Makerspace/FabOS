@@ -4,11 +4,11 @@ namespace App\Controller;
 
 use App\Feature\FeatureAdvice;
 use App\Feature\FeatureSurfaces;
-use App\Design\AccessIncidentBoard;
-use App\Design\AdminAttention;
-use App\Design\AdminUserDirectory;
-use App\Design\MaintenanceQueue;
-use App\Design\ReportingBrief;
+use App\Page\AccessIncidentBoard;
+use App\Page\AdminAttention;
+use App\Page\AdminUserDirectory;
+use App\Page\MaintenanceQueue;
+use App\Page\ReportingBrief;
 use App\Feature\FirstRun;
 use App\Feature\SetupHealth;
 use App\Feature\SiteFeatureRegistry;
@@ -30,6 +30,9 @@ use App\Entity\EventCategory;
 use App\Entity\MachineCategory;
 use App\Entity\MaintenanceTask;
 use App\Entity\Material;
+use App\Page\DoorSheet;
+use App\Page\PracticalValidation;
+use App\Page\ReaderSheet;
 use App\Entity\AccessPoint;
 use App\Entity\Place;
 use App\Entity\MachineBadge;
@@ -2002,6 +2005,23 @@ final class AdminController extends AbstractController
 
         return $this->render('site/admin-practical-queue.html.twig', [
             'rows' => $queue->pending(),
+        ]);
+    }
+
+    /**
+     * Le dossier d'UNE validation pratique : qui, quelle formation, ce qu'il a
+     * déjà fait, quoi observer, ce que la validation ouvre. ⚠️ Il n'écrit RIEN :
+     * le geste « Valider » reste le POST de la fiche utilisateur
+     * (`app_admin_validate_physical_training`), vers lequel l'écran mène.
+     * 404 si cette personne n'attend pas de validation pour cette formation.
+     */
+    #[Route('/validations-pratiques/{userId}/{formationId}', name: 'app_admin_practical_review', requirements: ['userId' => '\\d+', 'formationId' => '\\d+'], methods: ['GET'])]
+    public function practicalReview(int $userId, int $formationId, PracticalValidation $validation): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        return $this->render('site/admin-practical-review.html.twig', [
+            'dossier' => $validation->for($userId, $formationId) ?? throw $this->createNotFoundException(),
         ]);
     }
 
@@ -4531,7 +4551,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/loans', name: 'app_admin_loans', methods: ['GET'])]
-    public function loans(Request $request, \App\Design\LoansCounter $loansCounter): Response
+    public function loans(Request $request, \App\Page\LoansCounter $loansCounter): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
@@ -4972,6 +4992,20 @@ final class AdminController extends AbstractController
         ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
     }
 
+    /** La fiche d'une porte : l'état d'abord, puis la mise en service. Lecture seule. */
+    #[Route('/access-points/{id}', name: 'app_admin_access_point_show', requirements: ['id' => '\\d+'], methods: ['GET'])]
+    public function showAccessPoint(int $id, DoorSheet $sheet): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $door = $sheet->build($id);
+        if ($door['point']?->getId() !== $id) {
+            throw $this->createNotFoundException();
+        }
+
+        return $this->render('site/admin-access-point-show.html.twig', ['door' => $door]);
+    }
+
     #[Route('/access-points/{id}/edit', name: 'app_admin_access_point_edit', requirements: ['id' => '\\d+'], methods: ['GET', 'POST'])]
     public function editAccessPoint(AccessPoint $point, Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -5094,6 +5128,22 @@ final class AdminController extends AbstractController
             // liste est passée vide plutôt que pas passée.
             'steps' => [],
         ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
+    }
+
+    /**
+     * La fiche d'un lecteur : l'état d'abord, la mise en service tant qu'elle
+     * n'est pas finie, les derniers événements. Lecture seule, AUCUN secret : le
+     * jeton n'est montré qu'à l'édition juste après la création.
+     */
+    #[Route('/rfid-readers/{id}', name: 'app_admin_rfid_reader_show', requirements: ['id' => '\\d+'], methods: ['GET'])]
+    public function showRfidReader(int $id, ReaderSheet $sheet): Response
+    {
+        $data = $sheet->build($id);
+        if ($data['reader']?->getId() !== $id) {
+            throw $this->createNotFoundException();
+        }
+
+        return $this->render('site/admin-rfid-reader-show.html.twig', ['sheet' => $data]);
     }
 
     #[Route('/rfid-readers/{id}/edit', name: 'app_admin_rfid_reader_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]

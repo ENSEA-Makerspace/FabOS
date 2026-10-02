@@ -37,7 +37,6 @@ final class NavBuilder
         private readonly SiteSettingService $settings,
         private readonly RouteAccessChecker $access,
         private readonly RequestStack $requests,
-        private readonly \App\Design\PageProposals $proposals,
     ) {
     }
 
@@ -401,14 +400,6 @@ final class NavBuilder
                 // qu'elle s'annonce comme une planche et n'enregistre rien ; elle
                 // part le jour où la phase est écrite. Voir `ROADMAP.md`.
                 $this->adminItem('admin_nav.entry.app_admin_references', 'app_admin_references', 'formations'),
-                // 2026-10-01 — les pages revues d'après ces planches : l'index, puis
-                // une sous-page par proposition (demande de l'opérateur). Libellés
-                // non traduits, comme le reste de ce menu d'outillage.
-                $this->adminItem('admin_nav.entry.app_admin_proposals', 'app_admin_proposals', 'dashboard'),
-                ...array_map(
-                    fn (array $p): ?array => $this->adminItem('↳ ' . $p['title'], 'app_admin_proposal', 'dashboard', [], null, ['slug' => $p['slug']]),
-                    $this->proposals->all(),
-                ),
             ]);
         }
 
@@ -540,6 +531,7 @@ final class NavBuilder
                 $this->adminItem('admin_nav.entry.app_admin_usage_logs', 'app_admin_usage_logs', 'usage', feature: 'machines'),
                 $this->adminItem('admin_nav.entry.app_admin_access_rfid_logs', 'app_admin_access_rfid_logs', 'logs', feature: 'machines'),
                 $this->adminItem('admin_nav.entry.app_admin_rfid_readers', 'app_admin_rfid_readers', 'logs', [
+                    'app_admin_rfid_reader_show',
                     'app_admin_rfid_reader_new', 'app_admin_rfid_reader_edit',
                 ], feature: 'machines'),
                 $this->adminItem('admin_nav.entry.app_admin_reporting', 'app_admin_reporting', 'usage', feature: 'machines', params: ['workspace' => 'equipment']),
@@ -560,6 +552,7 @@ final class NavBuilder
                  * n'en est pas une.
                  */
                 $this->adminItem('admin_nav.entry.app_admin_access_points', 'app_admin_access_points', 'machines', [
+                    'app_admin_access_point_show',
                     'app_admin_access_point_new', 'app_admin_access_point_edit',
                 ]),
                 $this->adminItem('admin_nav.entry.app_admin_reservations', 'app_admin_reservations', 'reservations', feature: 'bookings', params: ['reservableType' => 'place']),
@@ -597,7 +590,7 @@ final class NavBuilder
                  * l'atteindre sans savoir d'avance qui ouvrir. Une file
                  * qu'aucun menu ne nomme est une file que personne ne relève.
                  */
-                $this->adminItem('admin_nav.entry.app_admin_practical_queue', 'app_admin_practical_queue', 'formations'),
+                $this->adminItem('admin_nav.entry.app_admin_practical_queue', 'app_admin_practical_queue', 'formations', ['app_admin_practical_review']),
             ]],
             'badges' => ['label' => 'admin_nav.section.badges', 'items' => [
                 $this->adminItem('admin_nav.entry.app_admin_badges', 'app_admin_badges', 'badges', [

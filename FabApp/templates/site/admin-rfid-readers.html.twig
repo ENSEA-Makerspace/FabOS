@@ -87,10 +87,10 @@
         } %}
             {% block rows %}
                 {% for reader in readers %}
-                    <tr data-admin-list-filter-row data-admin-list-filter-category="{{ reader.active ? 'active' : 'inactive' }}" data-admin-list-filter-row-href="{{ path('app_admin_rfid_reader_edit', {id: reader.id}) }}">
+                    <tr data-admin-list-filter-row data-admin-list-filter-category="{{ reader.active ? 'active' : 'inactive' }}" data-admin-list-filter-row-href="{{ path('app_admin_rfid_reader_show', {id: reader.id}) }}">
                         <td>{% include 'site/_cell_title.html.twig' with {
                             title: reader.name,
-                            href: path('app_admin_rfid_reader_edit', {id: reader.id}),
+                            href: path('app_admin_rfid_reader_show', {id: reader.id}),
                             subtitle: reader.archived ? 'adm.archived'|trans : reader.readerToken,
                             media: include('site/_cell_media.html.twig', {initials: reader.name, shape: 'square'}, with_context = false),
                         } only %}</td>
@@ -106,7 +106,7 @@
                                 subtitle: reader.machine.machineToken,
                             } only %}{% elseif reader.accessPoint %}{% include 'site/_cell_title.html.twig' with {
                                 title: reader.accessPoint.nom,
-                                href: path('app_admin_access_point_edit', {id: reader.accessPoint.id}),
+                                href: path('app_admin_access_point_show', {id: reader.accessPoint.id}),
                                 subtitle: reader.accessPoint.kindKey|trans,
                             } only %}{% else %}{% include 'site/_cell_empty.html.twig' with {reason: 'rfid_readers.no_target'} only %}{% endif %}</td>
                         {# 🔴 **Sept états, pas deux.** Cette cellule rendait `isActive`,

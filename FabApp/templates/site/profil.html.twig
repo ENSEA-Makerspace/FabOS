@@ -22,8 +22,8 @@
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=' ~ css_version }}">
     <link rel="stylesheet" href="{{ asset('css/badges.css') ~ '?v=' ~ css_version }}">
-    <link rel="stylesheet" href="{{ asset('css/proposals.css') ~ '?v=' ~ css_version }}">
-    <link rel="stylesheet" href="{{ asset('css/proposals-profil-securite-emails.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/pages.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/page-profil-securite-emails.css') ~ '?v=' ~ css_version }}">
 {% endblock %}
 
 {% block body %}
@@ -637,7 +637,7 @@
                         <form method="post" action="{{ path('app_profile') }}" class="settings-form">
                             <input type="hidden" name="_token" value="{{ csrf_token('profile_preferences') }}">
                             <div class="settings-grid">
-                            {# E-mails : regroupés par domaine (`App\Design\AccountSecurityEmails`).
+                            {# E-mails : regroupés par domaine (`App\Page\AccountSecurityEmails`).
                                Les essentiels n'ont pas d'interrupteur ; chaque optionnel garde son
                                `notify_<catégorie>` — le POST de `/profil` lit ces noms et le jeton. #}
                             <div class="settings-section pp-se-mail">

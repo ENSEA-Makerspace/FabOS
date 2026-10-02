@@ -35,7 +35,7 @@ de références et cinq phases neuves ont rendu la lecture linéaire impossible.
 | **T** | Surfaces restantes : prêts, recherche, rapports, créations | S193–S195 |
 | **U** | **Identité : des modules de connexion** (LDAP, AD, CAS, SAML/Shibboleth, OIDC) — pour TOUTES les installations | S196–S201 — ⏳ ordre à fixer quand l'opérateur saura ce qu'utilise l'ENSEA |
 | **R** | Commerce — **la dernière**, et bloquée par J | S184–S188 |
-| **V** | **Pages revues d'après les planches** — propositions en sous-pages du menu Développement (`/admin/propositions`), l'opérateur choisit | 2026-10-01 → en cours |
+| **V** ✅ | Pages revues d'après les planches — **0.5.0**, en test usagers | 2026-10-01 → 2026-10-02 |
 
 ⚠️ **R garde ses numéros bas en passant après S et T** : un numéro de session est
 une étiquette, pas un rang — la note ci-dessous vaut pour elle aussi.
@@ -44,47 +44,31 @@ une étiquette, pas un rang — la note ci-dessous vaut pour elle aussi.
 numéro de session est une ÉTIQUETTE, pas un rang. Les renuméroter chaque fois que
 l'ordre change ferait mentir chaque commit qui les cite.
 
-## Phase V — les pages revues d'après les planches (2026-10-01)
+## Phase V — les pages revues d'après les planches → ✅ **0.5.0 (2026-10-02)**
 
-Demande de l'opérateur : comparer chaque planche de `public/images/references/` à
-notre page, en garder les bonnes idées (jamais une copie), et poser une
-**proposition** en sous-page du menu Développement. Le tri vit dans
-`docs/references/PROPOSITIONS.md`, rendu sur `/admin/propositions`.
+Mises en place pour les **tests usagers** de l'opérateur ; le tri des 52 planches
+reste dans `docs/references/PROPOSITIONS.md`, le contenu de la version dans
+`docs/VERSIONS.md`.
 
-### Ce que l'opérateur vérifie
-- Menu Développement → « Propositions de pages » : le tri des planches, une
-  vignette par proposition, et chaque proposition en sous-page.
-- Chaque proposition : un bandeau « Proposition — pas un écran réel », la
-  planche et la page actuelle à un clic, « pris de la planche » / « gardé de
-  chez nous ». Dire **retenue** ou **refusée** pour chacune.
-- 🅿️ Une proposition tranchée se supprime (gabarit, entrée, CSS `pp-*`).
-- **Les 25 propositions à trancher** (retenue / refusée / à revoir) :
-  - [ ] `espaces-catalogue` — Catalogue des espaces
-  - [ ] `mes-reservations` — Mes réservations
-  - [ ] `accueil-membre` — Accueil d’un membre connecté
-  - [ ] `mes-formations` — Mes formations
-  - [ ] `admin-attention` — Accueil admin : ce qui demande votre attention
-  - [ ] `recherche` — Recherche
-  - [ ] `evenements` — Événements
-  - [ ] `incidents-acces` — Incidents d’accès
-  - [ ] `annuaire-utilisateurs` — Annuaire des utilisateurs
-  - [ ] `prets-admin` — Prêts (comptoir)
-  - [ ] `fiche-lecteur` — Fiche d’un lecteur
-  - [ ] `exploitation-machine` — Exploitation d’une machine
-  - [ ] `maintenance` — Maintenance : une file d’intervention
-  - [ ] `profil-securite-emails` — Sécurité et e-mails du profil
-  - [ ] `parcours-reservation` — Réserver un espace (confirmation)
-  - [ ] `badge-obtenu` — Badge obtenu
-  - [ ] `rendez-vous` — Rendez-vous avec une personne
-  - [ ] `rapports` — Rapports : ce qu’il faut retenir, puis agir
-  - [ ] `validation-pratique` — Validation pratique
-  - [ ] `accueil-public` — Accueil d’un visiteur
-  - [ ] `point-acces` — Fiche d’un point d’accès
-  - [ ] `module-cours` — Lire une section d’une formation
-  - [ ] `kiosque-accueil` — Accueil de borne
-  - [ ] `constructeur-formation` — Construire une formation
-  - [ ] `validation-inscription` — Valider une inscription
-- Le tri complet (dont les 🟢 « on fait déjà aussi bien ») : `docs/references/PROPOSITIONS.md`.
+### Ce que l'opérateur vérifie (avec ses usagers)
+- Accueil : hero, horaires et événements en tête ; dessous, pour un membre « À
+  faire » / prochaine réservation / ce que ses badges ouvrent ; pour tous, les
+  espaces et machines libres (une machine par catégorie).
+- `/places`, `/mes-reservations`, `/recherche`, `/events`, `/mes-formations`
+  (menu Apprendre), une étape de formation (« Lire cette étape sur sa page »),
+  `/badges/{id}`, `/profil#settings`, la fiche d'un espace (panneau de réservation),
+  `/personnes/{id}/reserver`, `/kiosk`.
+- Admin : `/admin`, incidents d'accès (journal complet : `?vue=journal`), annuaire,
+  maintenance, rapports, prêts, fiche d'un lecteur, d'un point d'accès, dossier de
+  validation pratique, contenu d'une formation.
+
+### 🅿️ Reste ouvert
+- « Mes réservations » a perdu ses tuiles d'état et sa recherche (lignes datées
+  à la place) : à confirmer avec les usagers.
+- L'écran « C'est réservé » après une réservation n'existe pas (le panneau JS
+  ferme et la page se met à jour) ; le délai d'annulation s'écrit en durée.
+- « Valider une inscription » : décider d'abord si une inscription se valide.
+- Le préfixe CSS `pp-` (motifs de `pages.css`) est historique.
 
 ## Cap produit
 

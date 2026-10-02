@@ -62,10 +62,10 @@
         } %}
             {% block rows %}
                 {% for point in points %}
-                    <tr data-admin-list-filter-row data-admin-list-filter-row-href="{{ path('app_admin_access_point_edit', {id: point.id}) }}">
+                    <tr data-admin-list-filter-row data-admin-list-filter-row-href="{{ path('app_admin_access_point_show', {id: point.id}) }}">
                         <td>{% include 'site/_cell_title.html.twig' with {
                             title: point.nom,
-                            href: path('app_admin_access_point_edit', {id: point.id}),
+                            href: path('app_admin_access_point_show', {id: point.id}),
                             subtitle: point.localisation,
                             media: include('site/_cell_media.html.twig', {initials: point.nom, shape: 'square'}, with_context = false),
                         } only %}</td>

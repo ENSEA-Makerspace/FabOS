@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Design\ModuleReading;
-use App\Design\MyTrainings;
+use App\Page\ModuleReading;
+use App\Page\MyTrainings;
 use App\Entity\Utilisateur;
 use App\Repository\FormationRepository;
 use App\Service\TrainingQualificationService;

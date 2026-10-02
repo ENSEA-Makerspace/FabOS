@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Design\PersonAppointment;
+use App\Page\PersonAppointment;
 use App\Service\SiteSettingService;
 use App\Entity\UserAvailability;
 use App\Entity\Utilisateur;

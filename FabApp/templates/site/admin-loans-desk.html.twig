@@ -13,7 +13,7 @@
    - le nom de l'objet mène à sa fiche publique (`/prets/{id}`) ; « Nouveau prêt »
      reste en haut à droite.
    Lit `?tuile=<aujourdhui|retard|en-cours|rendus>` et `?q=`.
-   Données : `App\Design\LoansCounter::build()`.
+   Données : `App\Page\LoansCounter::build()`.
 
    ⚠️ Un commentaire Twig entre deux clés d'un hash d'arguments est une erreur
    de syntaxe : celui-ci reste hors des `with { … }`.
@@ -24,8 +24,8 @@
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">
-    <link rel="stylesheet" href="{{ asset('css/proposals.css') ~ '?v=' ~ css_version }}">
-    <link rel="stylesheet" href="{{ asset('css/proposals-prets-admin.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/pages.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/page-prets-admin.css') ~ '?v=' ~ css_version }}">
 {% endblock %}
 
 {% block body %}

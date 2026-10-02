@@ -117,7 +117,7 @@ final class SiteController extends AbstractController
         EventRepository $events,
         EventArtwork $artwork,
         \App\Home\MemberToday $memberToday,
-        \App\Design\PublicHome $publicHome,
+        \App\Page\PublicHome $publicHome,
     ): Response
     {
         $currentUser = $this->getUser();
@@ -705,7 +705,7 @@ final class SiteController extends AbstractController
     public function machineDetail(
         Request $request,
         MachineRepository $machines,
-        \App\Design\MachineOperations $machineOperations,
+        \App\Page\MachineOperations $machineOperations,
         ReservationRepository $reservations,
         MachineQualificationService $machineAccess,
         MachineFavoriteRepository $favorites,
@@ -1637,7 +1637,7 @@ final class SiteController extends AbstractController
     }
 
     #[Route('/badges/{id}', name: 'app_badge_detail', requirements: ['id' => '\d+'], methods: ['GET'])]
-    public function badgeDetail(Badge $badge, FormationRepository $formations, \App\Design\BadgeHeld $badgeHeld): Response
+    public function badgeDetail(Badge $badge, FormationRepository $formations, \App\Page\BadgeHeld $badgeHeld): Response
     {
         $user = $this->getUser();
 
@@ -1834,7 +1834,7 @@ final class SiteController extends AbstractController
      * only thing that differs, and it is a number, not a second stylesheet.
      */
     #[Route('/events', name: 'app_events', methods: ['GET'])]
-    public function events(Request $request, \App\Design\EventsHub $hub): Response
+    public function events(Request $request, \App\Page\EventsHub $hub): Response
     {
         // Le calcul (filtres « quand », lieu, catégorie, cartes, « Mes inscriptions »)
         // vit dans `EventsHub` : une seule vérité. Voir ses notes sur les deux horloges
@@ -2051,7 +2051,7 @@ final class SiteController extends AbstractController
         UsageRightsService $usageRights,
         UsageAllowanceService $usageBudgets,
         RightsExplainer $explainer,
-        \App\Design\AccountSecurityEmails $accountSecurityEmails,
+        \App\Page\AccountSecurityEmails $accountSecurityEmails,
         VenueRepository $venues,
         LocaleCatalog $locales,
         BadgeGrants $badgeGrants,

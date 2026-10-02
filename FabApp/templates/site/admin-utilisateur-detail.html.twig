@@ -296,7 +296,7 @@
                                    la forme d'un contrôle qui ne fait rien. #}
                                 {% if status.physicalCompleted %}
                                 {% else %}
-                                    <form method="post" action="{{ path('app_admin_validate_physical_training', {userId: user.id, formationId: formation.id}) }}">
+                                    <form method="post" id="physical-validation-{{ formation.id }}" action="{{ path('app_admin_validate_physical_training', {userId: user.id, formationId: formation.id}) }}">
                                         <input type="hidden" name="_token" value="{{ csrf_token('validate_physical_training_' ~ user.id ~ '_' ~ formation.id) }}">
                                         <button type="submit" class="physical-validation-action">{{ 'admin_user_detail.physical_validate'|trans }}</button>
                                     </form>

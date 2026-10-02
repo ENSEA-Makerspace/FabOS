@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Design\KioskHome;
+use App\Page\KioskHome;
 use App\Repository\AccessRfidLogRepository;
 use App\Repository\EventRegistrationRepository;
 use App\Repository\EventRepository;

@@ -1,13 +1,13 @@
 {% extends 'site/base_public.html.twig' %}
 
-{# « Mes formations » : à reprendre (la plus avancée, ses étapes et LE verbe de l'étape suivante), en cours, terminées (le badge à un clic), puis le catalogue moins ce qu'on a commencé. Données : `App\Design\MyTrainings`. #}
+{# « Mes formations » : à reprendre (la plus avancée, ses étapes et LE verbe de l'étape suivante), en cours, terminées (le badge à un clic), puis le catalogue moins ce qu'on a commencé. Données : `App\Page\MyTrainings`. #}
 
 {% block title %}{{ 'mytr.title'|trans }} - FabOS{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
     <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=' ~ css_version }}">
-    <link rel="stylesheet" href="{{ asset('css/proposals.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/pages.css') ~ '?v=' ~ css_version }}">
 {% endblock %}
 
 {% block body %}

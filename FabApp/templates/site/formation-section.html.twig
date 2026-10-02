@@ -1,14 +1,14 @@
 {% extends 'site/base_public.html.twig' %}
 
-{# Lire une étape du parcours guidé : fil d'Ariane, « Étape n sur N · environ X min », le contenu, le sommaire du module à droite, précédente / suivante / quiz en pied. Données : `App\Design\ModuleReading` (celles de la fiche formation). #}
+{# Lire une étape du parcours guidé : fil d'Ariane, « Étape n sur N · environ X min », le contenu, le sommaire du module à droite, précédente / suivante / quiz en pied. Données : `App\Page\ModuleReading` (celles de la fiche formation). #}
 
 {% block title %}{{ reading.item.section.titre }} - FabOS{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
     <link rel="stylesheet" href="{{ asset('css/section-journey.css') ~ '?v=' ~ css_version }}">
-    <link rel="stylesheet" href="{{ asset('css/proposals.css') ~ '?v=' ~ css_version }}">
-    <link rel="stylesheet" href="{{ asset('css/proposals-module-cours.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/pages.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/page-module-cours.css') ~ '?v=' ~ css_version }}">
 {% endblock %}
 
 {% block body %}

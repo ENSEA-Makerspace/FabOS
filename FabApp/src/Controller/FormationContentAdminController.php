@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Design\TrainingBuilder;
+use App\Page\TrainingBuilder;
 use App\Entity\Choix;
 use App\Entity\Formation;
 use App\Entity\Question;

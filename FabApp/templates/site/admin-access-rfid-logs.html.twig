@@ -11,8 +11,8 @@
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">
-    <link rel="stylesheet" href="{{ asset('css/proposals.css') ~ '?v=' ~ css_version }}">
-    <link rel="stylesheet" href="{{ asset('css/proposals-incidents-acces.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/pages.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/page-incidents-acces.css') ~ '?v=' ~ css_version }}">
 {% endblock %}
 
 {% block body %}
@@ -145,7 +145,7 @@
                                     {% if r.lastSeen %}<div class="pp-ai-reader-meta">{{ 'access_incidents.last_seen'|trans }} {{ r.lastSeen|lab_date('d/m H:i') }}</div>{% endif %}
                                 </div>
                                 <div>{% include 'site/_state_chip.html.twig' with { label: r.label|trans, signal: r.signal } only %}</div>
-                                <a class="pp-ai-verb" href="{{ path('app_admin_rfid_reader_edit', {id: r.id}) }}">{{ 'access_incidents.open_reader'|trans }}</a>
+                                <a class="pp-ai-verb" href="{{ path('app_admin_rfid_reader_show', {id: r.id}) }}">{{ 'access_incidents.open_reader'|trans }}</a>
                             </li>
                         {% endfor %}
                     </ul>

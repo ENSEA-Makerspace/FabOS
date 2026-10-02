@@ -1,0 +1,131 @@
+{% extends 'base.html.twig' %}
+
+{#
+   LA FICHE D'UN POINT D'ACCÈS — l'état d'abord (`DoorSheet`, lecture seule).
+
+   Destination naturelle d'une porte : le nom, dans la liste, mène ici ; l'édition
+   reste à « Modifier les réglages ».
+   - EN TÊTE l'état : « En service » / « À mettre en service » ;
+   - tant que ce n'est pas fini, les étapes réelles montent sous l'en-tête
+     (pièce, lecteur en ligne, badge exigé, horaires, premier passage) ; l'étape
+     BLOQUANTE est dite en clair. Les étapes facultatives ne retardent pas le
+     « En service » ;
+   - « Ce que fait cette porte » : la règle effective en une phrase ;
+   - les derniers passages / refus des lecteurs de cette porte.
+   - Aucun secret ni jeton affiché : le secret « affiché une fois » est celui du
+     LECTEUR, et reste sur sa propre page.
+   Classes `commissioning__*` du composant `_commissioning` (ses libellés sont
+   ceux des lecteurs : ici les étapes sont celles d'une porte, d'où la liste
+   écrite ici). Styles : `pp-pa-*`.
+
+   ⚠️ Dans `.admin-panel`, `style.css` repeint tout <span> en gris `!important` :
+   texte coloré ou gras ici en <b>, <div>, <p>, jamais en <span>.
+#}
+
+{% block title %}{{ door.point.nom }} - {{ 'access_points.list_panel'|trans }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/pages.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/page-point-acces.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+{% embed 'site/_admin_list.html.twig' with {
+    panel_title: 'access_points.list_panel'|trans,
+} %}
+    {% block content %}
+        <div class="pp-pa" data-door-sheet="{{ door.point.id }}">
+            {% set point = door.point %}
+
+            <header class="pp-pa-head">
+                <div>
+                    <h2 class="pp-pa-state is-{{ door.signal }}">
+                        {% include 'site/_icon.html.twig' with { name: door.inService ? 'check' : (door.signal == 'stop' ? 'warning' : 'hourglass') } only %}
+                        <b>{{ door.headline }}</b>
+                    </h2>
+                    <p class="pp-pa-sub">
+                        {{ point.nom }}
+                        {% if point.place %} · {{ point.place.nom }}{% endif %}
+                        {% if point.localisation %} · {{ point.localisation }}{% endif %}
+                    </p>
+                </div>
+                <div class="pp-pa-edit">
+                    <a href="{{ path('app_admin_access_point_edit', {id: point.id}) }}">{{ 'door_sheet.settings_edit'|trans }}</a>
+                </div>
+            </header>
+
+            {% if not door.inService %}
+                {% if door.blocking %}
+                    <p class="pp-pa-block"><b>{{ 'door_sheet.blocking'|trans({'%step%': door.blocking.label}) }}</b> {{ door.blocking.note }}</p>
+                {% endif %}
+                <section class="commissioning" aria-labelledby="pp-pa-steps">
+                    <h3 class="commissioning__title" id="pp-pa-steps">{{ 'door_sheet.steps_title'|trans }}</h3>
+                    <ol class="commissioning__list">
+                        {% for step in door.steps %}
+                            <li class="commissioning__step{{ step.done ? ' is-done' : (step.blocking ? ' is-blocking' : '') }}">
+                                <span class="commissioning__mark" aria-hidden="true">{{ step.done ? '✓' : '•' }}</span>
+                                <span class="commissioning__body">
+                                    <span class="sr-only">{{ (step.done ? 'door_sheet.done' : 'door_sheet.todo')|trans }} — </span>
+                                    <b>{{ step.label }}{% if step.optional and not step.done %} {{ 'door_sheet.optional'|trans }}{% endif %}</b>
+                                    <span class="commissioning__note">{{ step.note }}</span>
+                                </span>
+                            </li>
+                        {% endfor %}
+                    </ol>
+                </section>
+            {% endif %}
+
+            <section class="pp-pa-card" aria-labelledby="pp-pa-rule">
+                <h2 id="pp-pa-rule">{{ 'door_sheet.rule_title'|trans }}</h2>
+                <p class="pp-pa-rule">{{ door.rule }}</p>
+                {% if door.hoursToday %}
+                    <p class="pp-pa-sub">{{ 'door_sheet.hours_today'|trans({'%hours%': door.hoursToday}) }}</p>
+                {% endif %}
+            </section>
+
+            <div class="pp-pa-grid">
+                <section class="pp-pa-card" aria-labelledby="pp-pa-events">
+                    <h2 id="pp-pa-events">{{ 'door_sheet.events_title'|trans }}</h2>
+                    {% if door.events %}
+                        <ul class="pp-pa-events">
+                            {% for e in door.events %}
+                                <li>
+                                    <div>
+                                        <b class="{{ e.authorized ? 'is-ok' : 'is-refused' }}">{{ e.outcome }}</b>
+                                        <small>{{ e.who }}{% if e.detail %} · {{ e.detail }}{% endif %}</small>
+                                    </div>
+                                    <div>{{ e.at|lab_date('d/m H:i') }}</div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="pp-pa-empty">{{ 'door_sheet.events_empty'|trans }}</p>
+                    {% endif %}
+                    {% for row in door.readers %}
+                        {% if loop.first %}<p class="pp-pa-sub"><a href="{{ path('app_admin_access_rfid_logs', {reader: row.reader.id, days: 0}) }}">{{ 'door_sheet.events_all'|trans }}</a></p>{% endif %}
+                    {% endfor %}
+                </section>
+
+                <section class="pp-pa-card" aria-labelledby="pp-pa-readers">
+                    <h2 id="pp-pa-readers">{{ 'door_sheet.readers_title'|trans }}</h2>
+                    {% if door.readers %}
+                        <ul class="pp-pa-readers">
+                            {% for row in door.readers %}
+                                <li>
+                                    {% include 'site/_state_chip.html.twig' with { label: row.stateLabel|capitalize, signal: row.health.signal } only %}
+                                    <a href="{{ path('app_admin_rfid_reader_show', {id: row.reader.id}) }}">{{ row.reader.name }}</a>
+                                    <small>{% if row.reader.lastSeenAt %}{{ 'reader_sheet.last_contact'|trans({'%date%': row.reader.lastSeenAt|lab_date('d/m H:i')}) }}{% else %}{{ 'reader_sheet.never_contacted'|trans }}{% endif %}</small>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="pp-pa-empty">{{ 'door_sheet.readers_empty'|trans }}</p>
+                        <a href="{{ path('app_admin_rfid_reader_new') }}">{{ 'door_sheet.readers_add'|trans }}</a>
+                    {% endif %}
+                </section>
+            </div>
+        </div>
+    {% endblock %}
+{% endembed %}
+{% endblock %}

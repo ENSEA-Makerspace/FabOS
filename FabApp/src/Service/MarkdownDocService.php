@@ -52,9 +52,6 @@ final class MarkdownDocService
         'finalsurface-references' => 'references/finalsurface/README.md',
         'finalsurface-review' => 'references/finalsurface/REVIEW.md',
         'references-master' => 'references/MASTER.md',
-        // 2026-10-01 — le tri des 52 planches face à nos pages, rendu sur
-        // `/admin/propositions`.
-        'proposals' => 'references/PROPOSITIONS.md',
     ];
 
     public function __construct(private readonly string $projectDir)

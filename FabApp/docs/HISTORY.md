@@ -181,7 +181,7 @@ indisponible » — la page ne connaissait que `missing_badge`. Et la boîte pho
 était bornée à 200 px par une règle des vignettes de l'accueil. Popularité en
 étoiles abandonnée (absente de la planche).
 
-## Phase V — les pages revues d'après les planches (2026-10-01) — 25 propositions posées
+## Phase V — les pages revues d'après les planches (2026-10-01 → 0.5.0 le 2026-10-02)
 
 Demande de l'opérateur (AFK) : revoir chaque planche face à notre page, en garder
 les bonnes idées, et poser des **propositions en sous-pages du menu Développement**
@@ -196,6 +196,14 @@ déploiement faits ici). Trois calculs sortis des contrôleurs pour être lus pa
 page ET sa proposition : `PlaceCatalogue`, `MyReservations`. 🔴 Corrigé en vrai au
 passage : un espace, un prêt ou un matériau sans photo affichait l'imprimante 3D
 (`fallback_icon` sur `_catalogue_card`).
+
+**0.5.0 (2026-10-02).** L'opérateur valide (« tout a l'air très bien »), sauf
+l'accueil : il garde le hero avec horaires et événements, que le nouveau format
+complète. Mise en place par lots parallèles de sous-agents, un contrôleur chacun,
+clés i18n écrites à part puis appliquées (≈ 490 clés, 5 langues). Puis l'échafaudage
+des propositions est retiré (contrôleur, registre, gabarits, menu) ; les services
+deviennent `App\Page\*`, les feuilles `pages.css` + `page-<page>.css`. Versions
+nommées à partir d'ici (`docs/VERSIONS.md`, étiquettes `v0.4.0`, `v0.5.0`).
 
 ## Les fiches espace, matériau et objet prêté, même tête (2026-10-01)
 

@@ -51,10 +51,10 @@
         } %}
             {% block rows %}
                 {% for row in rows %}
-                    <tr data-admin-list-filter-row data-admin-list-filter-row-href="{{ path('app_admin_user_detail', {id: row.user.id}) }}">
+                    <tr data-admin-list-filter-row data-admin-list-filter-row-href="{{ path('app_admin_practical_review', {userId: row.user.id, formationId: row.formation.id}) }}">
                         <td>{% include 'site/_cell_title.html.twig' with {
                             title: row.user.displayName,
-                            href: path('app_admin_user_detail', {id: row.user.id}),
+                            href: path('app_admin_practical_review', {userId: row.user.id, formationId: row.formation.id}),
                             subtitle: row.user.email,
                             media: include('site/_cell_media.html.twig', {initials: row.user.displayName, shape: 'circle'}, with_context = false),
                         } only %}</td>
@@ -73,9 +73,9 @@
                             value: row.percent, max: 100, label: '%', signal: 'go',
                         } only %}</td>
                         <td class="is-actions">{% include 'site/_cell_fix.html.twig' with {
-                            fix: 'practical_queue.fix_validate',
-                            route: 'app_admin_user_detail',
-                            params: {id: row.user.id},
+                            fix: 'practical_review.fix_open',
+                            route: 'app_admin_practical_review',
+                            params: {userId: row.user.id, formationId: row.formation.id},
                         } only %}</td>
                     </tr>
                 {% endfor %}

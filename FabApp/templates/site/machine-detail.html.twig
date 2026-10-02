@@ -9,8 +9,8 @@
     <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=' ~ css_version }}">
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
     <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=' ~ css_version }}">
-    <link rel="stylesheet" href="{{ asset('css/proposals.css') ~ '?v=' ~ css_version }}">
-    <link rel="stylesheet" href="{{ asset('css/proposals-exploitation-machine.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/pages.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/page-exploitation-machine.css') ~ '?v=' ~ css_version }}">
 {% endblock %}
 
 {% block page_styles %}
@@ -354,7 +354,7 @@
                            des boîtiers (`/api/rfid/machines/{machineToken}/authorization`).
                            Il n'a sa place que sur un écran `/admin`. #}
                         {% if seesOperations and ops %}
-                        {# Quatre cartes qui portent chacune un FAIT et un VERBE (`App\Design\MachineOperations`),
+                        {# Quatre cartes qui portent chacune un FAIT et un VERBE (`App\Page\MachineOperations`),
                            au lieu de compter des lignes de journal. Les verbes mènent aux pages réelles. #}
                         <div class="detail-card full-width pp-xm-new" data-machine-ops>
                             <h3 class="detail-card-title">{{ 'machine.ops_zone'|trans }}</h3>

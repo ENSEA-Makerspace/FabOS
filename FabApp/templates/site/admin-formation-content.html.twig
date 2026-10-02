@@ -45,8 +45,8 @@
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">
     <link rel="stylesheet" href="{{ asset('css/formation-content-admin.css') ~ '?v=' ~ css_version }}">
-    <link rel="stylesheet" href="{{ asset('css/proposals.css') ~ '?v=' ~ css_version }}">
-    <link rel="stylesheet" href="{{ asset('css/proposals-constructeur-formation.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/pages.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/page-constructeur-formation.css') ~ '?v=' ~ css_version }}">
 {% endblock %}
 
 {% block body %}
@@ -103,7 +103,7 @@
 
             {# **Le parcours d'abord.** Une liste ordonnée dans l'ordre où l'apprenant le vit (chaque
                section suivie de SES quiz, puis les quiz de fin, la validation pratique, le badge),
-               et à droite ce que la validation ouvre. Données : `App\Design\TrainingBuilder`.
+               et à droite ce que la validation ouvre. Données : `App\Page\TrainingBuilder`.
                Chaque ligne mène à sa page d'édition ou, quand c'est un bloc de CETTE page, à sa
                carte plus bas (ancre : pas de rechargement, la saisie en cours n'est pas perdue).
                ⚠️ Les neuf cartes ci-dessous restent la seule porte vers les formulaires. #}
