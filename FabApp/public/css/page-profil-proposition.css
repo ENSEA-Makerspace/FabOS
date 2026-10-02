@@ -1,0 +1,35 @@
+/* Proposition « Mon compte » (2026-10-02) — part avec elle. Jetons du thème seulement. */
+.pp-pf-banner { border-bottom: 2px dashed var(--color-primary); background: color-mix(in srgb, var(--color-primary) 6%, var(--theme-surface)); padding: 8px 0; font-size: var(--font-size-sm); }
+.pp-pf { display: flex; flex-direction: column; gap: var(--spacing-lg); }
+.pp-pf-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--spacing-lg); align-items: center;
+    background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: var(--border-radius); box-shadow: var(--shadow-card); padding: var(--spacing-md) var(--spacing-lg); }
+.pp-pf-avatar { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; }
+.pp-pf-id h1 { margin: 0; font-size: var(--font-size-xl); }
+.pp-pf-id p { margin: 2px 0 8px; color: var(--color-text-light); font-size: var(--font-size-sm); }
+.pp-pf-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.pp-pf-tabs { margin: 0; }
+.pp-pf-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--spacing-md); }
+.pp-pf-tile { display: flex; flex-direction: column; gap: 4px; padding: var(--spacing-md); text-decoration: none; color: inherit;
+    background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: var(--border-radius); }
+.pp-pf-tile:hover { border-color: var(--color-primary); }
+.pp-pf-tile-k { font-size: 12px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--color-primary-text, var(--color-primary)); }
+.pp-pf-tile b { font-size: var(--font-size-md); line-height: 1.35; }
+.pp-pf-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--spacing-md); }
+.pp-pf-grid .detail-card p { margin: 0 0 6px; }
+.pp-pf-set dl, .pp-pf-tech dl { margin: 0; }
+.pp-pf-set dl > div, .pp-pf-tech dl > div { display: grid; grid-template-columns: 200px minmax(0, 1fr) auto; gap: var(--spacing-md); align-items: center; padding: 10px 0; }
+.pp-pf-set dl > div + div, .pp-pf-tech dl > div + div { border-top: 1px solid var(--border-color); }
+.pp-pf-set dt, .pp-pf-tech dt { font-weight: 700; }
+.pp-pf-set dd, .pp-pf-tech dd { margin: 0; }
+.pp-pf-set dd:last-child a { font-weight: 700; text-decoration: none; }
+.pp-pf-tech > summary { cursor: pointer; font-weight: 700; }
+.pp-pf-tech dl > div { grid-template-columns: 200px minmax(0, 1fr); }
+.pp-pf-delete { text-align: right; }
+.pp-pf .home-member { padding: 0; }
+.pp-pf .home-member .container { padding: 0; }
+@media (max-width: 720px) {
+    .pp-pf-head { grid-template-columns: auto minmax(0, 1fr); }
+    .pp-pf-head > .btn { grid-column: 1 / -1; }
+    .pp-pf-set dl > div { grid-template-columns: minmax(0, 1fr) auto; }
+    .pp-pf-set dt { grid-column: 1 / -1; }
+}

@@ -2,14 +2,16 @@
    Accueil (0.5) — le bloc d'un membre connecté, sous le hero : « À faire » (ce
    qui bloque ou attend, chacun avec son verbe), sa prochaine réservation, et ce
    que ses badges ouvrent (`_badge_reach`, le composant du profil).
-   Données : `App\Home\MemberToday`. Paramètres : member, today.
+   Données : `App\Home\MemberToday`. Paramètres : member, today, greet (false : sans « Bonjour », quand un en-tête le dit déjà).
 #}
 <section class="home-member" aria-label="{{ 'home.member_label'|trans }}">
     <div class="container pp-home">
-                <header class="pp-home-head">
+                {% if greet|default(true) %}
+        <header class="pp-home-head">
             <h2>{{ 'home.member_hello'|trans({'%name%': member.firstName ?: member.displayName}) }}</h2>
             <p>{{ 'home.member_today'|trans }}</p>
         </header>
+        {% endif %}
 
         <section class="detail-card pp-todo" aria-labelledby="pp-todo-title">
             <h2 id="pp-todo-title" class="detail-card-title">{{ 'home.todo_title'|trans }}</h2>
