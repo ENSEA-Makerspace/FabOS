@@ -99,7 +99,7 @@ final class S147FormProbeCommand extends Command
 
         $session = new Session(new MockArraySessionStorage());
 
-        $get = Request::create('/profil');
+        $get = Request::create('/profil?onglet=reglages');
         $get->setSession($session);
         $html = (string) $this->kernel->handle($get, HttpKernelInterface::MAIN_REQUEST, false)->getContent();
 
@@ -134,7 +134,7 @@ final class S147FormProbeCommand extends Command
 
         // Follow the redirect the way a browser would, and look for the value there.
         if ($status >= 300 && $status < 400) {
-            $follow = Request::create('/profil');
+            $follow = Request::create('/profil?onglet=reglages');
             $follow->setSession($session);
             $after = (string) $this->kernel->handle($follow, HttpKernelInterface::MAIN_REQUEST, false)->getContent();
             $io->definitionList(

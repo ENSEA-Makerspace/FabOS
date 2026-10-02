@@ -6,7 +6,7 @@
 #}
 <section class="home-member" aria-label="{{ 'home.member_label'|trans }}">
     <div class="container pp-home">
-                {% if greet|default(true) %}
+                {% if greet is not defined or greet %}
         <header class="pp-home-head">
             <h2>{{ 'home.member_hello'|trans({'%name%': member.firstName ?: member.displayName}) }}</h2>
             <p>{{ 'home.member_today'|trans }}</p>

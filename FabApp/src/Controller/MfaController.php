@@ -82,7 +82,7 @@ final class MfaController extends AbstractController
     {
         $user = $this->currentUser();
         if (!$mfa->isReady()) {
-            return $this->redirectToRoute('app_profile');
+            return $this->redirectToRoute('app_profile', ['onglet' => 'reglages']);
         }
         $status = $mfa->status($user);
         $secret = $status === MfaService::PENDING ? $mfa->pendingSecret($user) : null;

@@ -1,5 +1,6 @@
-/* Proposition « Mon compte » (2026-10-02) — part avec elle. Jetons du thème seulement. */
-.pp-pf-banner { border-bottom: 2px dashed var(--color-primary); background: color-mix(in srgb, var(--color-primary) 6%, var(--theme-surface)); padding: 8px 0; font-size: var(--font-size-sm); }
+/* « Mon compte » (/profil). Ne garde que ce qui n'existe nulle part ailleurs : l'en-tête compact,
+   la grille de tuiles, les lignes de réglages. Cartes, listes, onglets, puces : details.css,
+   machines-list.css, pages.css. Jetons du thème seulement. */
 .pp-pf { display: flex; flex-direction: column; gap: var(--spacing-lg); }
 .pp-pf-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--spacing-lg); align-items: center;
     background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: var(--border-radius); box-shadow: var(--shadow-card); padding: var(--spacing-md) var(--spacing-lg); }
@@ -16,20 +17,23 @@
 .pp-pf-tile b { font-size: var(--font-size-md); line-height: 1.35; }
 .pp-pf-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--spacing-md); }
 .pp-pf-grid .detail-card p { margin: 0 0 6px; }
-.pp-pf-set dl, .pp-pf-tech dl { margin: 0; }
-.pp-pf-set dl > div, .pp-pf-tech dl > div { display: grid; grid-template-columns: 200px minmax(0, 1fr) auto; gap: var(--spacing-md); align-items: center; padding: 10px 0; }
-.pp-pf-set dl > div + div, .pp-pf-tech dl > div + div { border-top: 1px solid var(--border-color); }
-.pp-pf-set dt, .pp-pf-tech dt { font-weight: 700; }
-.pp-pf-set dd, .pp-pf-tech dd { margin: 0; }
-.pp-pf-set dd:last-child a { font-weight: 700; text-decoration: none; }
-.pp-pf-tech > summary { cursor: pointer; font-weight: 700; }
-.pp-pf-tech dl > div { grid-template-columns: 200px minmax(0, 1fr); }
-.pp-pf-delete { text-align: right; }
+/* Réglages : une ligne = libellé, valeur, verbe. La ligne est un <div> (lecture seule) ou le <summary>
+   d'un <details> (le verbe ouvre le formulaire sur place). */
+.pp-pf-line { display: grid; grid-template-columns: 200px minmax(0, 1fr) auto; gap: var(--spacing-md); align-items: center; padding: 10px 0; list-style: none; }
+.pp-pf-line::-webkit-details-marker { display: none; }
+summary.pp-pf-line { cursor: pointer; }
+.pp-pf-set > .pp-pf-line, .pp-pf-set > details { border-top: 1px solid var(--border-color); }
+.pp-pf-set > .detail-card-title + * { border-top: 0; }
+.pp-pf-verb { font-weight: 700; text-decoration: none; color: var(--color-primary-text, var(--color-primary)); }
+.pp-pf-body { display: flex; flex-direction: column; align-items: flex-start; gap: var(--spacing-sm); padding: 0 0 var(--spacing-md); }
+.pp-pf-body .profile-banner-preview-image { max-width: 100%; max-height: 120px; border-radius: var(--border-radius); }
+.pp-pf-tile .md-access-list { margin-top: 2px; }
+.pp-pf-wide { grid-column: 1 / -1; }
 .pp-pf .home-member { padding: 0; }
 .pp-pf .home-member .container { padding: 0; }
 @media (max-width: 720px) {
     .pp-pf-head { grid-template-columns: auto minmax(0, 1fr); }
     .pp-pf-head > .btn { grid-column: 1 / -1; }
-    .pp-pf-set dl > div { grid-template-columns: minmax(0, 1fr) auto; }
-    .pp-pf-set dt { grid-column: 1 / -1; }
+    .pp-pf-line { grid-template-columns: minmax(0, 1fr) auto; }
+    .pp-pf-line > b { grid-column: 1 / -1; }
 }

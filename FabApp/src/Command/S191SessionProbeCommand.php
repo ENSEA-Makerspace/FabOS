@@ -82,7 +82,7 @@ final class S191SessionProbeCommand extends Command
                 $io->section('Table USER_SESSION absente — migration S191 en attente : RIEN ne doit casser');
                 $a = $this->login($email, 'Firefox');
                 $this->check($io, $failures, 'la connexion marche', $this->status('/profil', $a) === 200);
-                $this->check($io, $failures, 'le profil ne propose pas « Sessions ouvertes »', !str_contains($this->get('/profil', $a), '/profil/sessions'));
+                $this->check($io, $failures, 'le profil ne propose pas « Sessions ouvertes »', !str_contains($this->get('/profil?onglet=reglages', $a), '/profil/sessions'));
                 $this->check($io, $failures, '/profil/sessions renvoie au profil au lieu de planter', $this->status('/profil/sessions', $a) === 302);
                 $io->note('Lancer la migration, redémarrer le service, puis relancer cette sonde pour éprouver les sessions.');
             } else {

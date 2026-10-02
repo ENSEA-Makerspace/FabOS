@@ -137,11 +137,6 @@
     padding-right: 26px;
 }
 
-.profile-content-section .badge-card.obtained .badge-name {
-    text-align: left;
-    font-size: 1rem;
-}
-
 @media (max-width: 640px) {
     .formation-badge-showcase {
         grid-template-columns: minmax(0, 1fr);
@@ -396,7 +391,6 @@
         justify-self: start;
     }
 }
-
 
 /* Variante pour les formations ne demandant pas de validation en présentiel. */
 .physical-training-card.is-optional {

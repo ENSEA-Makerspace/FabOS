@@ -1235,16 +1235,6 @@ img, svg {
     opacity: 0.6;
 }
 
-.badge-icon {
-    font-size: var(--font-size-2xl);
-}
-
-.badge-name {
-    font-size: var(--font-size-sm);
-    color: var(--color-text);
-    text-align: center;
-}
-
 /* ===================================================================
    FORMATIONS LIST SECTION
    =================================================================== */
@@ -2220,8 +2210,6 @@ img, svg {
    de rétrécir elle se recentre et déborde sous le logo et le champ de recherche sur
    toutes les largeurs d'écran courantes (1280/1366/1440px) tant qu'elle reste sur une
    seule ligne. On repasse donc sur la disposition "nav en dessous" bien plus tôt. */
-@media (max-width: 1550px) {
-}
 
 /* Tablettes (768px - 992px) */
 @media (max-width: 992px) {
@@ -2481,7 +2469,6 @@ img, svg {
     transform: translateY(0);
 }
 
-
 /* ===================================================================
    AUDIT V1 UX FIXES
    =================================================================== */
@@ -2606,12 +2593,6 @@ body {
 .admin-rfid-layout,
 .admin-rfid-panel {
     min-width: 0;
-}
-
-@media (max-width: 1180px) {
-}
-
-@media (max-width: 900px) {
 }
 
 /* ===================================================================
@@ -2890,7 +2871,6 @@ body,
 .detail-card,
 .stat-card,
 .leaderboard-card,
-.profile-stat-card,
 .badge-card,
 .calendar-panel,
 .quiz-card,
@@ -3118,7 +3098,6 @@ html[data-theme="dark"] ::-webkit-scrollbar-thumb {
     .detail-card,
     .stat-card,
     .leaderboard-card,
-    .profile-stat-card,
     .badge-card,
     .calendar-panel,
     .quiz-card,
@@ -3253,7 +3232,6 @@ html[data-theme="dark"] body :is(
     border-color: var(--border-color) !important;
 }
 
-
 /* Ajustements dark mode globaux - lisibilité et contraste adoucis */
 html[data-theme="dark"] body :is(
     table,
@@ -3316,7 +3294,6 @@ html[data-theme="dark"] body :is(
 ) {
     color: var(--color-text-light) !important;
 }
-
 
 /* ===================================================================
    DARK MODE FIXES - détail formations/machines, suivi, quiz, admin
@@ -3571,37 +3548,6 @@ html[data-theme="dark"] .badge-unlock-overlay {
     box-shadow: 0 8px 24px rgba(17, 24, 39, .18);
 }
 
-.profile-avatar-settings {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: var(--spacing-lg);
-    padding: var(--spacing-lg);
-    margin-bottom: var(--spacing-lg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    background: var(--color-bg-light);
-}
-
-.profile-avatar-preview {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
-    min-width: 0;
-}
-
-.profile-avatar-preview h3 {
-    margin: 0 0 var(--spacing-xs);
-    font-size: var(--font-size-lg);
-    color: var(--color-text);
-}
-
-.profile-avatar-preview p {
-    margin: 0;
-    color: var(--color-text-light);
-    font-size: var(--font-size-sm);
-}
-
 .profile-avatar-form {
     display: flex;
     align-items: center;
@@ -3625,10 +3571,7 @@ html[data-theme="dark"] .badge-unlock-overlay {
 }
 
 @media (max-width: 768px) {
-    .profile-avatar-settings {
-        align-items: flex-start;
-        flex-direction: column;
-    }
+    
 
     .profile-avatar-form {
         justify-content: flex-start;
@@ -3771,7 +3714,6 @@ html[data-theme="dark"] .badge-unlock-overlay {
         min-height: 210px;
     }
 }
-
 
 /* ===================================================================
    UI DARK MODE CONSOLIDATION - header, admin, shared surfaces
@@ -4138,39 +4080,6 @@ html[data-theme="dark"] body :is(.badge-no, .status-badge.warning) {
     }
 }
 
-
-
-.profile-avatar-settings {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: var(--spacing-lg);
-    padding: var(--spacing-lg);
-    margin-bottom: var(--spacing-lg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    background: var(--color-bg-light);
-}
-
-.profile-avatar-preview {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
-    min-width: 0;
-}
-
-.profile-avatar-preview h3 {
-    margin: 0 0 var(--spacing-xs);
-    font-size: var(--font-size-lg);
-    color: var(--color-text);
-}
-
-.profile-avatar-preview p {
-    margin: 0;
-    color: var(--color-text-light);
-    font-size: var(--font-size-sm);
-}
-
 .profile-avatar-form {
     display: flex;
     align-items: center;
@@ -4188,12 +4097,7 @@ html[data-theme="dark"] body :is(.badge-no, .status-badge.warning) {
     font-size: var(--font-size-sm);
 }
 
-.profile-banner-settings {
-    align-items: flex-start;
-}
-
-.profile-banner-preview-image,
-.profile-banner-preview-default {
+.profile-banner-preview-image {
     width: 160px;
     aspect-ratio: 16 / 7;
     border-radius: var(--border-radius-sm);
@@ -4206,57 +4110,24 @@ html[data-theme="dark"] body :is(.badge-no, .status-badge.warning) {
     object-position: center;
 }
 
-.profile-banner-preview-default {
-    background: linear-gradient(135deg, var(--color-primary) 0%, #b7286f 100%);
-    position: relative;
-    overflow: hidden;
-}
-
-.profile-banner-preview-default::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: url('../images/hero-bg.jpg') center/cover;
-    opacity: 0.15;
-}
-
-.profile-banner-actions {
-    display: flex;
-    align-items: flex-end;
-    justify-content: flex-end;
-    gap: var(--spacing-sm);
-    flex-wrap: wrap;
-}
-
 .user-avatar-cell {
     align-items: center;
     justify-content: center;
 }
 
 @media (max-width: 768px) {
-    .profile-avatar-settings {
-        align-items: flex-start;
-        flex-direction: column;
-    }
+    
 
     .profile-avatar-form {
         justify-content: flex-start;
         width: 100%;
     }
 
-    .profile-banner-actions {
-        align-items: flex-start;
-        justify-content: flex-start;
-        width: 100%;
-    }
+    
 
-    .profile-banner-preview {
-        align-items: flex-start;
-        flex-direction: column;
-    }
+    
 
-    .profile-banner-preview-image,
-    .profile-banner-preview-default {
+    .profile-banner-preview-image {
         width: 100%;
         max-width: 320px;
     }
@@ -4266,10 +4137,6 @@ html[data-theme="dark"] body :is(.badge-no, .status-badge.warning) {
         width: 100%;
     }
 }
-
-
-
-
 
 /* ===================================================================
    PATCH 20260710 - Modale personnalisation accueil reliée au bouton
@@ -4449,7 +4316,6 @@ html[data-theme="dark"] .homepage-sort-handle {
     }
 }
 
-
 /* ===================================================================
    MERGE DARK HOME RATING FIXES
    =================================================================== */
@@ -4463,24 +4329,18 @@ html[data-theme="dark"] .steps-panel,
 html[data-theme="dark"] .homepage-modal-card,
 html[data-theme="dark"] .homepage-sort-item,
 html[data-theme="dark"] .admin-homepage-card,
-html[data-theme="dark"] .admin-homepage-table,
-html[data-theme="dark"] .profile-banner-settings {
+html[data-theme="dark"] .admin-homepage-table {
     background: var(--theme-surface, #2b2335) !important;
     color: var(--color-text) !important;
     border-color: var(--border-color) !important;
 }
 html[data-theme="dark"] .home-panel-title,
 html[data-theme="dark"] .homepage-modal-header h2,
-html[data-theme="dark"] .homepage-sort-label,
-html[data-theme="dark"] .profile-banner-settings h3 {
+html[data-theme="dark"] .homepage-sort-label {
     color: var(--color-text) !important;
 }
-html[data-theme="dark"] .homepage-modal-intro,
-html[data-theme="dark"] .profile-banner-settings p {
+html[data-theme="dark"] .homepage-modal-intro {
     color: var(--color-text-light) !important;
-}
-html[data-theme="dark"] .profile-cover-image {
-    filter: brightness(.82) saturate(.95);
 }
 
 /* Header language toggle */
@@ -4623,7 +4483,6 @@ h3 .admin-inline__action {
     font-size: 12px;
     font-weight: 600;
 }
-
 
 /* ===================================================================
    TOUCH TARGETS (S52)
@@ -4965,44 +4824,12 @@ html[data-theme="dark"] .home-action-btn.btn-secondary:focus-visible {
 }
 
 /* Profile upload controls polish - 20260710 */
-.profile-content-section#info .section-card-header .edit-btn {
-    min-height: 42px;
-    padding: 0 18px;
-    border: 1px solid rgba(15, 48, 70, 0.14);
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.92);
-    color: #0b2f48;
-    font-weight: 800;
-    box-shadow: 0 4px 0 rgba(15, 48, 70, 0.10);
-    opacity: 1;
-}
 
-.profile-content-section#info .section-card-header .edit-btn svg {
-    width: 18px;
-    height: 18px;
-}
-
-.profile-content-section#info .profile-avatar-settings {
-    gap: 28px;
-}
-
-.profile-content-section#info .profile-avatar-form,
-.profile-content-section#info .profile-banner-actions {
+.pp-pf-set .pp-pf-body .profile-avatar-form {
     align-items: center;
 }
 
-.profile-content-section#info .profile-banner-actions {
-    justify-content: flex-end;
-    flex-wrap: nowrap;
-    gap: 12px;
-}
-
-.profile-content-section#info .profile-banner-actions .profile-avatar-form {
-    margin: 0;
-    flex-wrap: nowrap;
-}
-
-.profile-content-section#info .profile-avatar-form input[type="file"] {
+.pp-pf-set .pp-pf-body .profile-avatar-form input[type="file"] {
     height: 44px;
     min-width: 300px;
     max-width: 340px;
@@ -5016,7 +4843,7 @@ html[data-theme="dark"] .home-action-btn.btn-secondary:focus-visible {
     cursor: pointer;
 }
 
-.profile-content-section#info .profile-avatar-form input[type="file"]::file-selector-button {
+.pp-pf-set .pp-pf-body .profile-avatar-form input[type="file"]::file-selector-button {
     height: 30px;
     margin-right: 12px;
     padding: 0 14px;
@@ -5030,14 +4857,13 @@ html[data-theme="dark"] .home-action-btn.btn-secondary:focus-visible {
     transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
 }
 
-.profile-content-section#info .profile-avatar-form input[type="file"]:hover::file-selector-button {
+.pp-pf-set .pp-pf-body .profile-avatar-form input[type="file"]:hover::file-selector-button {
     transform: translateY(-1px);
     background: var(--theme-surface, #ffffff);
     box-shadow: 0 5px 12px rgba(15, 48, 70, 0.16);
 }
 
-.profile-content-section#info .profile-avatar-form .btn,
-.profile-content-section#info .profile-banner-actions .btn {
+.pp-pf-set .pp-pf-body .profile-avatar-form .btn {
     min-height: 44px;
     display: inline-flex;
     align-items: center;
@@ -5054,80 +4880,63 @@ html[data-theme="dark"] .home-action-btn.btn-secondary:focus-visible {
     transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
 }
 
-.profile-content-section#info .profile-avatar-form .btn-primary,
-.profile-content-section#info .profile-banner-actions .btn-primary {
+.pp-pf-set .pp-pf-body .profile-avatar-form .btn-primary {
     background: linear-gradient(135deg, #b01863 0%, #8f164f 100%);
     color: #ffffff;
 }
 
-.profile-content-section#info .profile-avatar-form .btn-danger,
-.profile-content-section#info .profile-banner-actions .btn-danger {
+.pp-pf-set .pp-pf-body .profile-avatar-form .btn-danger {
     background: linear-gradient(135deg, #d72727 0%, #a81616 100%);
     color: #ffffff;
 }
 
-.profile-content-section#info .profile-avatar-form .btn:hover,
-.profile-content-section#info .profile-avatar-form .btn:focus-visible,
-.profile-content-section#info .profile-banner-actions .btn:hover,
-.profile-content-section#info .profile-banner-actions .btn:focus-visible {
+.pp-pf-set .pp-pf-body .profile-avatar-form .btn:hover,
+.pp-pf-set .pp-pf-body .profile-avatar-form .btn:focus-visible {
     transform: translateY(-2px);
     filter: brightness(1.04);
     box-shadow: 0 7px 0 rgba(15, 48, 70, 0.20), 0 16px 28px rgba(15, 48, 70, 0.14);
 }
 
-.profile-content-section#info .profile-avatar-form .btn:active,
-.profile-content-section#info .profile-banner-actions .btn:active {
+.pp-pf-set .pp-pf-body .profile-avatar-form .btn:active {
     transform: translateY(2px);
     box-shadow: 0 2px 0 rgba(15, 48, 70, 0.18), 0 8px 16px rgba(15, 48, 70, 0.10);
 }
 
-html[data-theme="dark"] .profile-content-section#info .section-card-header .edit-btn,
-html[data-theme="dark"] .profile-content-section#info .profile-avatar-form input[type="file"] {
+html[data-theme="dark"] .pp-pf-set .pp-pf-body .profile-avatar-form input[type="file"] {
     background: rgba(20, 30, 44, 0.94);
     color: #f8fafc;
     border-color: rgba(255, 255, 255, 0.12);
 }
 
-html[data-theme="dark"] .profile-content-section#info .profile-avatar-form input[type="file"]::file-selector-button {
+html[data-theme="dark"] .pp-pf-set .pp-pf-body .profile-avatar-form input[type="file"]::file-selector-button {
     background: rgba(255, 255, 255, 0.10);
     color: #f8fafc;
 }
 
 @media (max-width: 1100px) {
-    .profile-content-section#info .profile-avatar-settings,
-    .profile-content-section#info .profile-banner-settings {
-        align-items: flex-start;
-        flex-direction: column;
-    }
+    
 
-    .profile-content-section#info .profile-avatar-form,
-    .profile-content-section#info .profile-banner-actions,
-    .profile-content-section#info .profile-banner-actions .profile-avatar-form {
+    .pp-pf-set .pp-pf-body .profile-avatar-form {
         justify-content: flex-start;
         width: 100%;
     }
 
-    .profile-content-section#info .profile-banner-actions {
-        flex-wrap: wrap;
-    }
+    
 }
 
 @media (max-width: 640px) {
-    .profile-content-section#info .profile-avatar-form,
-    .profile-content-section#info .profile-banner-actions .profile-avatar-form {
+    .pp-pf-set .pp-pf-body .profile-avatar-form {
         align-items: stretch;
         flex-direction: column;
     }
 
-    .profile-content-section#info .profile-avatar-form input[type="file"],
-    .profile-content-section#info .profile-avatar-form .btn,
-    .profile-content-section#info .profile-banner-actions .btn {
+    .pp-pf-set .pp-pf-body .profile-avatar-form input[type="file"],
+    .pp-pf-set .pp-pf-body .profile-avatar-form .btn {
         width: 100%;
         min-width: 0;
         max-width: none;
     }
 }
-
 
 /* ===================================================================
    DARK MODE ADMIN — couche de lisibilité globale
@@ -5504,11 +5313,10 @@ html[data-theme="dark"] .home-machine-card:focus-within {
     }
 }
 
-
 /* ===================================================================
    PROFILE UPLOAD INPUT DARK FIX - supprime le trait clair natif
    =================================================================== */
-.profile-content-section#info .profile-avatar-form input[type="file"] {
+.pp-pf-set .pp-pf-body .profile-avatar-form input[type="file"] {
     -webkit-appearance: none;
     appearance: none;
     background-image: none !important;
@@ -5517,8 +5325,8 @@ html[data-theme="dark"] .home-machine-card:focus-within {
     outline: none !important;
 }
 
-.profile-content-section#info .profile-avatar-form input[type="file"]::file-selector-button,
-.profile-content-section#info .profile-avatar-form input[type="file"]::-webkit-file-upload-button {
+.pp-pf-set .pp-pf-body .profile-avatar-form input[type="file"]::file-selector-button,
+.pp-pf-set .pp-pf-body .profile-avatar-form input[type="file"]::-webkit-file-upload-button {
     -webkit-appearance: none;
     appearance: none;
     border: 0 !important;
@@ -5526,7 +5334,7 @@ html[data-theme="dark"] .home-machine-card:focus-within {
     box-shadow: none !important;
 }
 
-html[data-theme="dark"] .profile-content-section#info .profile-avatar-form input[type="file"] {
+html[data-theme="dark"] .pp-pf-set .pp-pf-body .profile-avatar-form input[type="file"] {
     border: 0 !important;
     background: #152235 !important;
     color: #f8fafc !important;
@@ -5535,15 +5343,15 @@ html[data-theme="dark"] .profile-content-section#info .profile-avatar-form input
         0 10px 24px rgba(0, 0, 0, 0.18) !important;
 }
 
-html[data-theme="dark"] .profile-content-section#info .profile-avatar-form input[type="file"]:hover,
-html[data-theme="dark"] .profile-content-section#info .profile-avatar-form input[type="file"]:focus-visible {
+html[data-theme="dark"] .pp-pf-set .pp-pf-body .profile-avatar-form input[type="file"]:hover,
+html[data-theme="dark"] .pp-pf-set .pp-pf-body .profile-avatar-form input[type="file"]:focus-visible {
     box-shadow:
         inset 0 0 0 1px rgba(190, 215, 245, 0.46),
         0 12px 28px rgba(0, 0, 0, 0.24) !important;
 }
 
-html[data-theme="dark"] .profile-content-section#info .profile-avatar-form input[type="file"]::file-selector-button,
-html[data-theme="dark"] .profile-content-section#info .profile-avatar-form input[type="file"]::-webkit-file-upload-button {
+html[data-theme="dark"] .pp-pf-set .pp-pf-body .profile-avatar-form input[type="file"]::file-selector-button,
+html[data-theme="dark"] .pp-pf-set .pp-pf-body .profile-avatar-form input[type="file"]::-webkit-file-upload-button {
     background: rgba(255, 255, 255, 0.11) !important;
     color: #ffffff !important;
     text-shadow: none !important;

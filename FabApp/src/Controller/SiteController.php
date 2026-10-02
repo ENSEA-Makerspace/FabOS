@@ -2048,10 +2048,8 @@ final class SiteController extends AbstractController
         SiteFeatureService $modules,
         NotificationPreferences $notificationPreferences,
         EventRegistrationRepository $eventRegistrations,
-        UsageRightsService $usageRights,
         UsageAllowanceService $usageBudgets,
-        RightsExplainer $explainer,
-        \App\Page\AccountSecurityEmails $accountSecurityEmails,
+        \App\Page\ProfileOverview $overview,
         VenueRepository $venues,
         LocaleCatalog $locales,
         BadgeGrants $badgeGrants,
@@ -2066,40 +2064,40 @@ final class SiteController extends AbstractController
             if (!$this->isCsrfTokenValid('profile_avatar', (string) $request->request->get('_token'))) {
                 $this->addFlash('error', 'flash.avatar_refuse_rechargez');
 
-                return $this->redirectToRoute('app_profile');
+                return $this->redirectToRoute('app_profile', ['onglet' => 'reglages']);
             }
 
             $avatarFile = $request->files->get('avatar');
             if (!$avatarFile instanceof UploadedFile || $avatarFile->getError() === UPLOAD_ERR_NO_FILE) {
                 $this->addFlash('error', 'flash.image_png_jpg_jpeg_webp');
 
-                return $this->redirectToRoute('app_profile');
+                return $this->redirectToRoute('app_profile', ['onglet' => 'reglages']);
             }
 
             if (!$avatarFile->isValid()) {
                 $this->addFlash('error', 'flash.upload_image_echoue');
 
-                return $this->redirectToRoute('app_profile');
+                return $this->redirectToRoute('app_profile', ['onglet' => 'reglages']);
             }
 
             if ($avatarFile->getSize() !== null && $avatarFile->getSize() > 2 * 1024 * 1024) {
                 $this->addFlash('error', 'flash.image_max_2mo');
 
-                return $this->redirectToRoute('app_profile');
+                return $this->redirectToRoute('app_profile', ['onglet' => 'reglages']);
             }
 
             $mimeType = $avatarFile->getMimeType();
             if (!in_array($mimeType, ['image/png', 'image/jpeg', 'image/webp'], true)) {
                 $this->addFlash('error', 'flash.image_png_jpg_jpeg_webp');
 
-                return $this->redirectToRoute('app_profile');
+                return $this->redirectToRoute('app_profile', ['onglet' => 'reglages']);
             }
 
             $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/avatars';
             if (!is_dir($uploadDir) && !mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
                 $this->addFlash('error', 'flash.dossier_avatars_impossible');
 
-                return $this->redirectToRoute('app_profile');
+                return $this->redirectToRoute('app_profile', ['onglet' => 'reglages']);
             }
 
             $baseName = strtolower($slugger->slug($user->getDisplayName() ?: $user->getUsername())->toString());
@@ -2126,7 +2124,7 @@ final class SiteController extends AbstractController
             } catch (FileException) {
                 $this->addFlash('error', 'flash.copie_image_profil_impossible');
 
-                return $this->redirectToRoute('app_profile');
+                return $this->redirectToRoute('app_profile', ['onglet' => 'reglages']);
             }
 
             $user->setAvatarFilename($fileName);
@@ -2134,47 +2132,47 @@ final class SiteController extends AbstractController
             $this->deleteUnusedPreviousAvatar($previousAvatarFilename, $uploadDir, $users);
             $this->addFlash('success', 'flash.photo_profil_mise_a_jour');
 
-            return $this->redirectToRoute('app_profile');
+            return $this->redirectToRoute('app_profile', ['onglet' => 'reglages']);
         }
 
         if ($request->isMethod('POST') && $request->request->get('_profile_form') === 'banner') {
             if (!$this->isCsrfTokenValid('profile_banner', (string) $request->request->get('_token'))) {
                 $this->addFlash('error', 'flash.banniere_refusee_rechargez');
 
-                return $this->redirectToRoute('app_profile');
+                return $this->redirectToRoute('app_profile', ['onglet' => 'reglages']);
             }
 
             $bannerFile = $request->files->get('banner');
             if (!$bannerFile instanceof UploadedFile || $bannerFile->getError() === UPLOAD_ERR_NO_FILE) {
                 $this->addFlash('error', 'flash.image_png_jpg_jpeg_webp_gif');
 
-                return $this->redirectToRoute('app_profile');
+                return $this->redirectToRoute('app_profile', ['onglet' => 'reglages']);
             }
 
             if (!$bannerFile->isValid()) {
                 $this->addFlash('error', 'flash.upload_banniere_echoue');
 
-                return $this->redirectToRoute('app_profile');
+                return $this->redirectToRoute('app_profile', ['onglet' => 'reglages']);
             }
 
             if ($bannerFile->getSize() !== null && $bannerFile->getSize() > 5 * 1024 * 1024) {
                 $this->addFlash('error', 'flash.banniere_max_5mo');
 
-                return $this->redirectToRoute('app_profile');
+                return $this->redirectToRoute('app_profile', ['onglet' => 'reglages']);
             }
 
             $mimeType = $bannerFile->getMimeType();
             if (!in_array($mimeType, ['image/png', 'image/jpeg', 'image/webp', 'image/gif'], true)) {
                 $this->addFlash('error', 'flash.image_png_jpg_jpeg_webp_gif');
 
-                return $this->redirectToRoute('app_profile');
+                return $this->redirectToRoute('app_profile', ['onglet' => 'reglages']);
             }
 
             $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/profile-banners';
             if (!is_dir($uploadDir) && !mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
                 $this->addFlash('error', 'flash.dossier_bannieres_impossible');
 
-                return $this->redirectToRoute('app_profile');
+                return $this->redirectToRoute('app_profile', ['onglet' => 'reglages']);
             }
 
             $baseName = strtolower($slugger->slug($user->getDisplayName() ?: $user->getUsername())->toString());
@@ -2197,7 +2195,7 @@ final class SiteController extends AbstractController
             } catch (FileException) {
                 $this->addFlash('error', 'flash.copie_banniere_impossible');
 
-                return $this->redirectToRoute('app_profile');
+                return $this->redirectToRoute('app_profile', ['onglet' => 'reglages']);
             }
 
             $user->setBannerFilename($fileName);
@@ -2205,14 +2203,14 @@ final class SiteController extends AbstractController
             $this->deleteUnusedPreviousBanner($previousBannerFilename, $uploadDir, $users);
             $this->addFlash('success', 'flash.banniere_mise_a_jour');
 
-            return $this->redirectToRoute('app_profile');
+            return $this->redirectToRoute('app_profile', ['onglet' => 'reglages']);
         }
 
         if ($request->isMethod('POST') && $request->request->get('_profile_form') === 'delete_banner') {
             if (!$this->isCsrfTokenValid('profile_banner_delete', (string) $request->request->get('_token'))) {
                 $this->addFlash('error', 'flash.suppression_banniere_refusee');
 
-                return $this->redirectToRoute('app_profile');
+                return $this->redirectToRoute('app_profile', ['onglet' => 'reglages']);
             }
 
             $previousBannerFilename = $user->getBannerFilename();
@@ -2221,7 +2219,7 @@ final class SiteController extends AbstractController
             $this->deleteUnusedPreviousBanner($previousBannerFilename, $this->getParameter('kernel.project_dir') . '/public/uploads/profile-banners', $users);
             $this->addFlash('success', 'flash.banniere_supprimee');
 
-            return $this->redirectToRoute('app_profile');
+            return $this->redirectToRoute('app_profile', ['onglet' => 'reglages']);
         }
 
         // 🔴 **J-8, le dernier écran prouvé défaillant** (revue S147, réglé en
@@ -2270,7 +2268,7 @@ final class SiteController extends AbstractController
                 $entityManager->flush();
                 $this->addFlash('success', 'flash.profil_public_mis_a_jour');
 
-                return $this->redirectToRoute('app_profile', ['_fragment' => 'public-profile']);
+                return $this->redirectToRoute('app_profile', ['onglet' => 'reglages', '_fragment' => 'public-profile']);
             }
         }
 
@@ -2285,7 +2283,7 @@ final class SiteController extends AbstractController
 
                 $this->addFlash('error', 'flash.preferences_refusees_rechargez');
 
-                return $this->redirectToRoute('app_profile');
+                return $this->redirectToRoute('app_profile', ['onglet' => 'reglages']);
             }
 
             $theme = (string) $request->request->get('theme', '');
@@ -2300,7 +2298,7 @@ final class SiteController extends AbstractController
 
                 $this->addFlash('error', 'flash.theme_invalide');
 
-                return $this->redirectToRoute('app_profile');
+                return $this->redirectToRoute('app_profile', ['onglet' => 'reglages']);
             }
 
             // Le bouton animé du profil enregistre uniquement le thème, sans
@@ -2316,7 +2314,7 @@ final class SiteController extends AbstractController
                     ]);
                 }
 
-                return $this->redirectToRoute('app_profile');
+                return $this->redirectToRoute('app_profile', ['onglet' => 'reglages']);
             }
 
             $langue = (string) $request->request->get('langue', '');
@@ -2326,7 +2324,7 @@ final class SiteController extends AbstractController
             if (!$locales->supports($langue)) {
                 $this->addFlash('error', 'flash.langue_invalide');
 
-                return $this->redirectToRoute('app_profile');
+                return $this->redirectToRoute('app_profile', ['onglet' => 'reglages']);
             }
 
             $preferredVenueSlug = trim((string) $request->request->get('preferredVenue', ''));
@@ -2336,7 +2334,7 @@ final class SiteController extends AbstractController
                 if ($preferredVenue === null) {
                     $this->addFlash('error', 'flash.lieu_prefere_invalide');
 
-                    return $this->redirectToRoute('app_profile');
+                    return $this->redirectToRoute('app_profile', ['onglet' => 'reglages']);
                 }
             }
 
@@ -2361,93 +2359,88 @@ final class SiteController extends AbstractController
             $entityManager->flush();
             $this->addFlash('success', 'flash.preferences_mises_a_jour');
 
-            return $this->redirectToRoute('app_profile');
+            return $this->redirectToRoute('app_profile', ['onglet' => 'reglages']);
         }
 
-        $userProgressions = $progressions->findVisibleByUser($user);
-        $completedProgressions = array_values(array_filter($userProgressions, static fn ($progression): bool => $progression->isCompleted()));
+        // Un seul onglet est rendu (`?onglet=`), et ne calcule que ce qu'il affiche.
+        // Une saisie de profil public refusée (J-8) ramène aux Réglages, où le brouillon vit.
+        $tab = (string) $request->query->get('onglet', 'apercu');
+        if (!\in_array($tab, ['apercu', 'acces', 'activite', 'reglages'], true)) {
+            $tab = 'apercu';
+        }
+        if ($publicDraft !== null) {
+            $tab = 'reglages';
+        }
 
-        // 🔴 S192b — « Mes badges » montre TOUS les badges détenus (décision de
-        // l'opérateur, 2026-09-23). Il ne gardait que ceux dont la formation est
-        // validée, alors que le lecteur ouvre à quiconque POSSÈDE le badge : un
-        // badge qui ouvrait la découpeuse restait invisible ici. Un badge peut
-        // s'obtenir autrement que par une formation — et, demain, venir d'un
-        // autre FabOS. Chaque carte dit donc son ORIGINE au lieu d'être cachée.
-        $heldUserBadges = [];
-        $badgeOrigins = [];
-        $manualGrants = $badgeGrants->manualGrantsFor($user);
-        foreach ($userBadges->findBy(['utilisateur' => $user], ['dateObtention' => 'DESC']) as $userBadge) {
-            $badge = $userBadge->getBadge();
-            if ($badge === null) {
-                continue;
+        // En-tête, Aperçu, accès, activité : un seul résumé, `ProfileOverview`.
+        $page = $overview->for($user);
+        $data = ['user' => $user, 'tab' => $tab, 'p' => $page, 'publicDraft' => $publicDraft];
+
+        if ($tab === 'acces') {
+            // 🔴 S192b — « Mes badges » montre TOUS les badges détenus (décision de
+            // l'opérateur, 2026-09-23) : le lecteur ouvre à quiconque POSSÈDE le badge.
+            // Chaque ligne dit son ORIGINE (formation validée, ou donné à la main — S202).
+            $heldUserBadges = [];
+            $badgeOrigins = [];
+            $manualGrants = $badgeGrants->manualGrantsFor($user);
+            foreach ($userBadges->findBy(['utilisateur' => $user], ['dateObtention' => 'DESC']) as $userBadge) {
+                $badge = $userBadge->getBadge();
+                if ($badge === null) {
+                    continue;
+                }
+                $heldUserBadges[] = $userBadge;
+                $badgeFormation = $formations->findVisibleByBadge($badge);
+                $badgeOrigins[(int) $badge->getId()] = [
+                    'formation' => $badgeFormation,
+                    'validated' => $badgeFormation !== null && $qualification->getStatus($badgeFormation, $user)['badgeUnlocked'],
+                    'grant' => $manualGrants[(int) $badge->getId()] ?? null,
+                ];
             }
-            $heldUserBadges[] = $userBadge;
-            $badgeFormation = $formations->findVisibleByBadge($badge);
-            $badgeOrigins[(int) $badge->getId()] = [
-                'formation' => $badgeFormation,
-                'validated' => $badgeFormation !== null && $qualification->getStatus($badgeFormation, $user)['badgeUnlocked'],
-                // S202 — donné à la main : c'est CE chemin-là qu'on raconte.
-                'grant' => $manualGrants[(int) $badge->getId()] ?? null,
+            $data += [
+                'userBadges' => $heldUserBadges,
+                'badgeOrigins' => $badgeOrigins,
+                'usageRightsSummary' => $page['today']['explained']['capabilities'],
+                // ⚠️ Ce qu'un forfait MESURE, à côté de ce qu'il permet (S144c).
+                'usageBudgets' => $usageBudgets->summaryFor($user),
+            ];
+        } elseif ($tab === 'activite') {
+            $userProgressions = $progressions->findVisibleByUser($user);
+            $userUsageLogs = $usageLogs->findBy(['utilisateur' => $user], ['dateDebut' => 'DESC']);
+            $userRfidLogs = $rfidLogs->findBy(['utilisateur' => $user], ['createdAt' => 'DESC']);
+            $machineIds = [];
+            foreach ([...$userUsageLogs, ...$userRfidLogs] as $log) {
+                $machine = $log->getMachine();
+                if ($machine?->getId() !== null) {
+                    $machineIds[$machine->getId()] = true;
+                }
+            }
+            $data += [
+                'progressions' => $userProgressions,
+                'reservations' => $reservations->findBy(['utilisateur' => $user], ['dateDebut' => 'DESC']),
+                'rfidLogs' => $userRfidLogs,
+                'usageLogs' => $userUsageLogs,
+                'loansEnabled' => $modules->isEnabled('loans'),
+                'myLoans' => $loans->findForBorrower($user),
+                'eventsEnabled' => $modules->isEnabled('events'),
+                'myEventRegistrations' => $eventRegistrations->findForUser($user),
+                'profileStats' => [
+                    'completedFormations' => \count(array_filter($userProgressions, static fn ($progression): bool => $progression->isCompleted())),
+                    'badges' => \count($userBadges->findBy(['utilisateur' => $user])),
+                    'reservations' => $page['reservationCount'],
+                    'rfidLogs' => \count($userRfidLogs),
+                    'usageLogs' => \count($userUsageLogs),
+                    'machinesUsed' => \count($machineIds),
+                ],
+            ];
+        } elseif ($tab === 'reglages') {
+            $data += [
+                // ⚠️ `publicDraft` est `null` en temps normal : le gabarit lit alors l'entité.
+                'availableLocales' => $locales->choices(),
+                'activeVenues' => $venues->findBy(['active' => true], ['name' => 'ASC']),
             ];
         }
 
-        $userUsageLogs = $usageLogs->findBy(['utilisateur' => $user], ['dateDebut' => 'DESC']);
-        $userRfidLogs = $rfidLogs->findBy(['utilisateur' => $user], ['createdAt' => 'DESC']);
-
-        $machineIds = [];
-        foreach ($userUsageLogs as $usageLog) {
-            $machine = $usageLog->getMachine();
-            if ($machine?->getId() !== null) {
-                $machineIds[$machine->getId()] = true;
-            }
-        }
-        foreach ($userRfidLogs as $rfidLog) {
-            $machine = $rfidLog->getMachine();
-            if ($machine?->getId() !== null) {
-                $machineIds[$machine->getId()] = true;
-            }
-        }
-
-        return $this->render('site/profil.html.twig', [
-            'user' => $user,
-            // ⚠️ `null` en temps normal : le gabarit lit alors l'entité. Rempli
-            // uniquement quand une saisie vient d'être refusée (J-8).
-            'publicDraft' => $publicDraft,
-            'availableLocales' => $locales->choices(),
-            'progressions' => $userProgressions,
-            'completedProgressions' => $completedProgressions,
-            'userBadges' => $heldUserBadges,
-            'badgeOrigins' => $badgeOrigins,
-            'reservations' => $reservations->findBy(['utilisateur' => $user], ['dateDebut' => 'DESC']),
-            'rfidLogs' => $userRfidLogs,
-            'usageLogs' => $userUsageLogs,
-            'loansEnabled' => $modules->isEnabled('loans'),
-            'myLoans' => $loans->findForBorrower($user),
-            'eventsEnabled' => $modules->isEnabled('events'),
-            'myEventRegistrations' => $eventRegistrations->findForUser($user),
-            // S192 — « mon badge » et d'où viennent mes droits, par le même
-            // explicateur que la fiche admin : les deux écrans ne peuvent pas
-            // raconter deux histoires.
-            'explained' => $explained = $explainer->explain($user),
-            'usageRightsSummary' => $explained['capabilities'],
-            // Sécurité (mot de passe, e-mail, double authentification, sessions) et e-mails
-            // par domaine : une seule source, `AccountSecurityEmails`. Les liens de session et de
-            // MFA y restent nuls tant que leurs migrations ne sont pas passées.
-            'account' => $accountSecurityEmails->for($user),
-            // ⚠️ What a package METERS, beside what it allows (S144c). A member
-            // who only learns their limit at the moment of refusal reads a
-            // budget they were sold as an arbitrary rule.
-            'usageBudgets' => $usageBudgets->summaryFor($user),
-            'activeVenues' => $venues->findBy(['active' => true], ['name' => 'ASC']),
-            'profileStats' => [
-                'completedFormations' => count($completedProgressions),
-                'badges' => count($heldUserBadges),
-                'reservations' => $reservations->count(['utilisateur' => $user]),
-                'rfidLogs' => count($userRfidLogs),
-                'usageLogs' => count($userUsageLogs),
-                'machinesUsed' => count($machineIds),
-            ],
-        ]);
+        return $this->render('site/profil.html.twig', $data);
     }
 
 
@@ -2601,7 +2594,7 @@ final class SiteController extends AbstractController
 
                 $this->addFlash('success', 'flash.mot_de_passe_mis_a_jour');
 
-                return $this->redirectToRoute('app_profile');
+                return $this->redirectToRoute('app_profile', ['onglet' => 'reglages']);
             }
         }
 

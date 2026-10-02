@@ -400,8 +400,6 @@ final class NavBuilder
                 // qu'elle s'annonce comme une planche et n'enregistre rien ; elle
                 // part le jour où la phase est écrite. Voir `ROADMAP.md`.
                 $this->adminItem('admin_nav.entry.app_admin_references', 'app_admin_references', 'formations'),
-                // 🅿️ 2026-10-02 — proposition « Mon compte » (refonte de /profil), à trancher.
-                $this->adminItem('Proposition : Mon compte', 'app_admin_proposal_profile', 'dashboard'),
             ]);
         }
 

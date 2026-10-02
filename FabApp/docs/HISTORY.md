@@ -205,6 +205,17 @@ des propositions est retiré (contrôleur, registre, gabarits, menu) ; les servi
 deviennent `App\Page\*`, les feuilles `pages.css` + `page-<page>.css`. Versions
 nommées à partir d'ici (`docs/VERSIONS.md`, étiquettes `v0.4.0`, `v0.5.0`).
 
+## 0.5.1 — « Mon compte » (2026-10-02)
+
+`/profil` refait d'après la proposition validée : en-tête compact, onglets serveur
+(`?onglet=apercu|acces|activite|reglages`, anciens liens `#ancre` redirigés), « Je
+peux » en liste (demande de l'opérateur), réglages en lignes qui ouvrent leur
+formulaire sur place. 🔴 Inventaire contrôlé : tous les `name=`, jetons CSRF et
+liens de l'ancienne page sont présents. CSS : `.detail-card`, `.md-access-list`,
+`ml-tile`, `pages.css` réutilisés ; `page-profil.css` ne garde que l'introuvable ;
+CSS mort de l'ancien profil purgé. Piège rencontré : `false|default(true)` vaut
+true (le « Bonjour » de `_home_member` restait).
+
 ## Les fiches espace, matériau et objet prêté, même tête (2026-10-01)
 
 Suite de la précédente, à la demande de l'opérateur. La tête « tâche d'abord »

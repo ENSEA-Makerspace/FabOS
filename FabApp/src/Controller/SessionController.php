@@ -25,7 +25,7 @@ final class SessionController extends AbstractController
     {
         $user = $this->currentUser();
         if (!$registry->isReady()) {
-            return $this->redirectToRoute('app_profile');
+            return $this->redirectToRoute('app_profile', ['onglet' => 'reglages']);
         }
 
         return $this->render('site/profile-sessions.html.twig', [

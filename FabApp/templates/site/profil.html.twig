@@ -1,8 +1,19 @@
 {% extends 'site/base_public.html.twig' %}
 
-{# Server-rendered so the member's preference is on the document before the
-   script below runs — the script only resolves 'system' into light or dark. #}
+{# « Mon compte » (0.5) — la page `/profil`. Un en-tête compact, de VRAIS onglets
+   serveur (`?onglet=apercu|acces|activite|reglages`, un seul panneau rendu), et des
+   réglages en lignes « valeur + verbe » dont le verbe OUVRE le formulaire sur place.
+   Données : `App\Page\ProfileOverview` (en-tête, Aperçu, accès, activité) + ce que
+   chaque onglet ajoute dans `SiteController::profile()`.
+   ⚠️ Le formulaire des préférences est UN seul POST (`#profile-prefs`) ; ses champs
+   vivent dans plusieurs `<details>` et s'y rattachent par `form="profile-prefs"`
+   (un champ d'un `<details>` replié part quand même avec le formulaire). #}
+
+{# Rendu côté serveur : la préférence du membre est sur le document avant le script
+   ci-dessous — qui ne fait que résoudre « système » en clair ou sombre. #}
 {% set html_attrs = 'data-theme-preference="' ~ user.theme|e('html_attr') ~ '"' %}
+{% set explained = p.today.explained %}
+{% set safeBannerFilename = user.bannerFilename and user.bannerFilename matches '/^[A-Za-z0-9._-]+$/' ? user.bannerFilename : null %}
 
 {% block title %}{{ 'profile.browser_title'|trans({'%name%': user.displayName}) }}{% endblock %}
 
@@ -22,249 +33,84 @@
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=' ~ css_version }}">
     <link rel="stylesheet" href="{{ asset('css/badges.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
     <link rel="stylesheet" href="{{ asset('css/pages.css') ~ '?v=' ~ css_version }}">
     <link rel="stylesheet" href="{{ asset('css/page-profil-securite-emails.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/page-profil.css') ~ '?v=' ~ css_version }}">
 {% endblock %}
 
 {% block body %}
+<main id="main-content" tabindex="-1" class="main-content">
+    <section class="machine-detail-section">
+        <div class="container pp-pf" data-profile-tab="{{ tab }}">
+            {# S51 toasts — success fades, error persists. See index.html.twig. #}
+            <div class="fab-toasts">
+                {% for message in app.flashes('success') %}
+                    <div class="fab-toast fab-toast--success" role="status">{{ message|flash_text }}</div>
+                {% endfor %}
+                {% for message in app.flashes('error') %}
+                    <div class="fab-toast fab-toast--error" role="alert">{{ message|flash_text }}</div>
+                {% endfor %}
+            </div>
 
-    <!-- ========================================
-         CONTENU PRINCIPAL - PROFIL UTILISATEUR
-         ======================================== -->
-    <main id="main-content" tabindex="-1" class="main-content">
-        <section class="profile-section">
-            <div class="container">
-                {# S51 toasts — success fades, error persists. See index.html.twig. #}
-                <div class="fab-toasts">
-                    {% for message in app.flashes('success') %}
-                        <div class="fab-toast fab-toast--success" role="status">{{ message|flash_text }}</div>
-                    {% endfor %}
-                    {% for message in app.flashes('error') %}
-                        <div class="fab-toast fab-toast--error" role="alert">{{ message|flash_text }}</div>
-                    {% endfor %}
+            {# ---- L'en-tête : qui, et l'état du compte en puces ---- #}
+            <header class="pp-pf-head">
+                {% include 'site/_user_avatar.html.twig' with {user: user, size: 72, class: 'pp-pf-avatar', alt: user.displayName} only %}
+                <div class="pp-pf-id">
+                    <h1>{{ user.displayName }}</h1>
+                    <p>{{ user.email }} · {{ 'account_page.member_since'|trans({'%date%': user.createdAt|lab_date('d/m/Y')}) }}</p>
+                    <ul class="pp-pf-chips">
+                        <li>{% include 'site/_state_chip.html.twig' with { label: (user.verified ? 'account_page.chip_verified' : 'account_page.chip_unverified')|trans, signal: user.verified ? 'go' : 'caution' } only %}</li>
+                        <li>{% include 'site/_state_chip.html.twig' with { label: (explained.badges|length == 1 ? 'account_page.chip_badges_one' : 'account_page.chip_badges_many')|trans({'%n%': explained.badges|length}), signal: explained.badges|length ? 'go' : 'muted' } only %}</li>
+                        <li>{% include 'site/_state_chip.html.twig' with { label: explained.badge.registered ? 'account_page.chip_card_on'|trans({'%hint%': explained.badge.hint}) : 'account_page.chip_card_off'|trans, signal: explained.badge.registered ? 'go' : 'caution' } only %}</li>
+                    </ul>
                 </div>
-                <!-- En-tête de profil -->
-                {% set bannerFilename = user.bannerFilename %}
-                {% set safeBannerFilename = bannerFilename and bannerFilename matches '/^[A-Za-z0-9._-]+$/' ? bannerFilename : null %}
-                <div class="profile-header">
-                    <div class="section-badge profile-badge">{{ 'profile.title'|trans }}</div>
-                    <div class="profile-banner {{ safeBannerFilename ? 'has-custom-banner' : '' }}">
-                        <div class="profile-theme-control">
-                            <button
-                                type="button"
-                                class="day-night-switch"
-                                data-theme-switch
-                                data-save-url="{{ path('app_profile') }}"
-                                data-csrf-token="{{ csrf_token('profile_preferences') }}"
-                                {# main.js has no catalogue: its six theme labels ride in here. #}
-                                data-label-to-light="{{ 'profile.switch_to_light'|trans }}"
-                                data-label-to-dark="{{ 'profile.switch_to_dark'|trans }}"
-                                data-label-system-dark="{{ 'profile.theme_system_dark'|trans }}"
-                                data-label-system-light="{{ 'profile.theme_system_light'|trans }}"
-                                data-label-mode-dark="{{ 'profile.mode_dark'|trans }}"
-                                data-label-mode-light="{{ 'profile.mode_light'|trans }}"
-                                role="switch"
-                                aria-checked="{{ user.theme == 'dark' ? 'true' : 'false' }}"
-                                aria-label="{{ 'profile.dark_toggle'|trans }}"
-                                title="{{ 'profile.change_theme'|trans }}"
-                            >
-                                <span class="day-night-switch__track" aria-hidden="true">
-                                    <span class="day-night-switch__stars">
-                                        <i></i><i></i><i></i><i></i><i></i>
-                                    </span>
-                                    <span class="day-night-switch__clouds">
-                                        <i></i><i></i><i></i>
-                                    </span>
-                                    <span class="day-night-switch__orb">
-                                        <i class="day-night-switch__crater day-night-switch__crater--one"></i>
-                                        <i class="day-night-switch__crater day-night-switch__crater--two"></i>
-                                        <i class="day-night-switch__crater day-night-switch__crater--three"></i>
-                                    </span>
-                                </span>
-                                <span class="sr-only">{{ 'profile.theme_toggle_desc'|trans }}</span>
-                            </button>
-                            <span class="theme-switch-caption" data-theme-switch-label aria-live="polite"></span>
-                        </div>
-                        <div class="profile-cover">
-                            {% if safeBannerFilename %}
-                                <img src="{{ asset('uploads/profile-banners/' ~ safeBannerFilename) }}" alt="{{ 'profile.banner_alt'|trans({'%name%': user.displayName}) }}" class="profile-cover-image">
-                            {% endif %}
-                            <div class="cover-overlay"></div>
-                        </div>
-                        <div class="profile-avatar-large">
-                            {% include 'site/_user_avatar.html.twig' with {user: user, size: 96, class: 'profile-user-avatar', alt: user.displayName} only %}
-                            <div class="avatar-status online"></div>
-                        </div>
-                        <div class="profile-info-main">
-                            <h1 class="profile-name">{{ user.displayName }}</h1>
-                            <p class="profile-email">{{ user.email }}</p>
-                            <p class="profile-student-id">{{ 'profile.id_number'|trans }}: {{ user.numeroId ?? 'profile.not_set'|trans }}</p>
-                        </div>
-                    </div>
+                <a class="btn btn-secondary" href="{{ path('app_profile', {onglet: 'reglages'}) }}#info">{{ 'account_page.edit_info'|trans }}</a>
+            </header>
 
-                    {# Navigation profil. The first five are anchors into this page; the
-                       last two are the personal pages that left the main menu — they live
-                       here now, so this strip is the account's whole index. The
-                       `is-page` ones carry an arrow so a jump off the page doesn't look
-                       like a jump down it. #}
-                    <div class="profile-nav">
-                        <a href="#info" class="profile-nav-link active">{{ 'profile.tab_personal'|trans }}</a>
-                        <a href="#usage-rights" class="profile-nav-link">{{ 'usage_rights.profile_tab'|trans }}</a>
-                        <a href="#badges" class="profile-nav-link">{{ 'profile.tab_badges'|trans }}</a>
-                        <a href="#reservations" class="profile-nav-link">{{ 'profile.tab_history'|trans }}</a>
-                        <a href="#stats" class="profile-nav-link">{{ 'profile.tab_stats'|trans }}</a>
-                        <a href="#settings" class="profile-nav-link">{{ 'profile.tab_settings'|trans }}</a>
-                        <a href="{{ path('app_my_reservations') }}" class="profile-nav-link is-page">{{ 'resv.title'|trans }}</a>
-                        {% if feature_enabled('person_booking') %}
-                            <a href="{{ path('app_person_my_availability') }}" class="profile-nav-link is-page">{{ 'booking.my_availability'|trans }}</a>
+            {# ---- De vrais onglets : un seul panneau à la fois ---- #}
+            <nav class="ml-cats pp-pf-tabs" aria-label="{{ 'account_page.tabs_label'|trans }}">
+                {% for key in ['apercu', 'acces', 'activite', 'reglages'] %}
+                    <a class="ml-tile{{ tab == key ? ' is-on' : '' }}" href="{{ path('app_profile', {onglet: key}) }}"{% if tab == key %} aria-current="page"{% endif %}>{{ ('account_page.tab_' ~ key)|trans }}</a>
+                {% endfor %}
+            </nav>
+
+            {% if tab == 'apercu' %}
+                {# À faire, prochaine réservation, ce que le badge ouvre : le bloc de l'accueil, tel quel. #}
+                {% include 'site/_home_member.html.twig' with { member: user, today: p.today, greet: false } only %}
+
+                <div class="pp-pf-tiles">
+                    <a class="pp-pf-tile" href="{{ path('app_profile', {onglet: 'acces'}) }}">
+                        <span class="pp-pf-tile-k">{{ 'account_page.tile_can'|trans }}</span>
+                        {% if p.rights.allowed %}
+                            <ul class="md-access-list">
+                                {% for key in p.rights.allowed %}
+                                    <li class="is-ok"><span class="md-access-mark" aria-hidden="true">✓</span><span>{{ key|trans }}</span></li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <b>{{ 'account_page.tile_can_none'|trans }}</b>
                         {% endif %}
-                    </div>
+                    </a>
+                    {% set trainingsOngoing = p.trainings.ongoing|length + (p.trainings.resume ? 1 : 0) %}
+                    <a class="pp-pf-tile" href="{{ path('app_my_trainings') }}">
+                        <span class="pp-pf-tile-k">{{ 'account_page.tile_trainings'|trans }}</span>
+                        <b>{{ 'account_page.tile_trainings_ongoing'|trans({'%n%': trainingsOngoing}) }} · {{ (p.trainings.done|length == 1 ? 'account_page.tile_trainings_done_one' : 'account_page.tile_trainings_done_many')|trans({'%n%': p.trainings.done|length}) }}</b>
+                    </a>
+                    <a class="pp-pf-tile" href="{{ path('app_profile', {onglet: 'activite'}) }}#loans">
+                        <span class="pp-pf-tile-k">{{ 'account_page.tile_loans'|trans }}</span>
+                        <b>{{ p.loans|length ? (p.loans|length == 1 ? 'account_page.tile_loans_one' : 'account_page.tile_loans_many')|trans({'%n%': p.loans|length}) : 'account_page.tile_loans_none'|trans }}</b>
+                    </a>
+                    <a class="pp-pf-tile" href="{{ path('app_profile', {onglet: 'activite'}) }}#event-registrations">
+                        <span class="pp-pf-tile-k">{{ 'account_page.tile_events'|trans }}</span>
+                        <b>{{ p.events|length ? (p.events|length == 1 ? 'account_page.tile_events_one' : 'account_page.tile_events_many')|trans({'%n%': p.events|length}) : 'account_page.tile_events_none'|trans }}</b>
+                    </a>
                 </div>
 
-                <!-- Section Informations Personnelles -->
-                <section class="profile-content-section" id="info">
-                    <div class="section-card">
-                        <div class="section-card-header">
-                            <h2 class="section-card-title">{{ 'profile.tab_personal'|trans }}</h2>
-                        </div>
-                        
-
-                        <div class="profile-avatar-settings">
-                            <div class="profile-avatar-preview">
-                                {% include 'site/_user_avatar.html.twig' with {user: user, size: 88, class: 'profile-settings-avatar', alt: user.displayName} only %}
-                                <div>
-                                    <h3>{{ 'profile.photo'|trans }}</h3>
-                                    <p>{{ 'profile.photo_formats'|trans }}</p>
-                                </div>
-                            </div>
-                            <form method="post" action="{{ path('app_profile') }}" enctype="multipart/form-data" class="profile-avatar-form">
-                                <input type="hidden" name="_profile_form" value="avatar">
-                                <input type="hidden" name="_token" value="{{ csrf_token('profile_avatar') }}">
-                                <input type="file" name="avatar" accept="image/png,image/jpeg,image/webp" required aria-label="{{ 'profile.photo'|trans }}">
-                                <button type="submit" class="btn btn-sm btn-primary">{{ 'profile.update_photo'|trans }}</button>
-                            </form>
-                        </div>
-
-                        <div class="profile-avatar-settings profile-banner-settings">
-                            <div class="profile-avatar-preview profile-banner-preview">
-                                {% if safeBannerFilename %}
-                                    <img src="{{ asset('uploads/profile-banners/' ~ safeBannerFilename) }}" alt="{{ 'profile.banner_current_alt'|trans }}" class="profile-banner-preview-image">
-                                {% else %}
-                                    <div class="profile-banner-preview-default"></div>
-                                {% endif %}
-                                <div>
-                                    <h3>{{ 'profile.banner'|trans }}</h3>
-                                    <p>{{ 'profile.banner_formats'|trans }}</p>
-                                </div>
-                            </div>
-                            <div class="profile-banner-actions">
-                                <form method="post" action="{{ path('app_profile') }}" enctype="multipart/form-data" class="profile-avatar-form">
-                                    <input type="hidden" name="_profile_form" value="banner">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('profile_banner') }}">
-                                    <input type="file" name="banner" accept="image/png,image/jpeg,image/webp,image/gif" required aria-label="{{ 'profile.banner'|trans }}">
-                                    <button type="submit" class="btn btn-sm btn-primary">{{ 'profile.update_banner'|trans }}</button>
-                                </form>
-                                {% if safeBannerFilename %}
-                                    <form method="post" action="{{ path('app_profile') }}" class="profile-avatar-form">
-                                        <input type="hidden" name="_profile_form" value="delete_banner">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('profile_banner_delete') }}">
-                                        <button type="submit" class="btn btn-sm btn-danger">{{ 'profile.delete_banner'|trans }}</button>
-                                    </form>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="info-grid">
-                            <div class="info-item">
-                                <div class="info-label">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                                        <circle cx="12" cy="7" r="4"/>
-                                    </svg>
-                                    {{ 'profile.first_name'|trans }}
-                                </div>
-                                <div class="info-value">{{ user.firstName ?? 'fallback.not_set_m'|trans }}</div>
-                            </div>
-                            <div class="info-item">
-                                <div class="info-label">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                                        <circle cx="12" cy="7" r="4"/>
-                                    </svg>
-                                    {{ 'profile.last_name'|trans }}
-                                </div>
-                                <div class="info-value">{{ user.lastName ?? 'fallback.not_set_m'|trans }}</div>
-                            </div>
-                            <div class="info-item">
-                                <div class="info-label">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                                        <polyline points="22,6 12,13 2,6"/>
-                                    </svg>
-                                    {{ 'profile.email'|trans }}
-                                </div>
-                                <div class="info-value">{{ user.email }}</div>
-                            </div>
-                            <div class="info-item">
-                                <div class="info-label">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                                        <circle cx="9" cy="7" r="4"/>
-                                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                                    </svg>
-                                    {{ 'profile.status'|trans }}
-                                </div>
-                                <div class="info-value">
-                                    <span class="status-badge {{ user.verified ? 'verified' : 'inactive' }}">{{ (user.verified ? 'profile.account_verified' : 'profile.account_unverified')|trans }}</span>
-                                    {# 🔴 Was `status-badge active` whatever the value, and printed the stored
-                                       word (`actif`) rather than a label. Third page with the same
-                                       pair of bugs after S84's two lists. #}
-                                    <span class="status-badge {{ (user.statut ?? '')|lower|replace({' ': '-', '_': '-'}) }}">{{ user.statusKey|trans }}</span>
-                                </div>
-                            </div>
-                            <div class="info-item">
-                                <div class="info-label">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                                        <line x1="16" y1="2" x2="16" y2="6"/>
-                                        <line x1="8" y1="2" x2="8" y2="6"/>
-                                        <line x1="3" y1="10" x2="21" y2="10"/>
-                                    </svg>
-                                    {{ 'profile.id_number'|trans }}
-                                </div>
-                                <div class="info-value">{{ user.numeroId ?? 'profile.not_set'|trans }}</div>
-                            </div>
-                            <div class="info-item">
-                                <div class="info-label">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-                                        <line x1="3" y1="6" x2="21" y2="6"/>
-                                        <path d="M16 10a4 4 0 0 1-8 0"/>
-                                    </svg>
-                                    {{ 'profile.registered_on'|trans }}
-                                </div>
-                                <div class="info-value">{{ user.createdAt|lab_date('d/m/Y H:i') }}</div>
-                            </div>
-                            <div class="info-item">
-                                <div class="info-label">{{ 'profile.username'|trans }}</div>
-                                <div class="info-value">{{ user.username }}</div>
-                            </div>
-                            <div class="info-item">
-                                <div class="info-label">{{ 'profile.rfid_uid'|trans }}</div>
-                                {# S192 — jamais l'identifiant en clair : « ••••A1F2 » suffit à reconnaître SA carte. #}
-                                <div class="info-value">{{ explained.badge.hint ?? 'fallback.not_set_m'|trans }}</div>
-                            </div>
-                            <div class="info-item">
-                                <div class="info-label">{{ 'profile.last_login'|trans }}</div>
-                                <div class="info-value">{{ user.derniereConnexion ? user.derniereConnexion|lab_date('d/m/Y H:i') : 'fallback.never_connected'|trans }}</div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Section Mes Badges -->
-                <section class="profile-content-section" id="usage-rights">
+            {% elseif tab == 'acces' %}
+                <section id="usage-rights">
+                    {# 🔴 Les droits et, à côté, ce qu'un forfait MESURE (S144c : `allowances`). #}
                     {% include 'site/_usage_rights_summary.html.twig' with {
                         overview: usageRightsSummary,
                         title: 'usage_rights.profile_section'|trans,
@@ -272,117 +118,53 @@
                         id_prefix: 'profile-usage-rights',
                         allowances: usageBudgets,
                     } only %}
-
-                    {% include 'site/_badge_reach.html.twig' with {
-                        explained: explained,
-                        audience: 'self',
-                        id_prefix: 'profile-badge-reach',
-                    } only %}
                 </section>
 
-                <section class="profile-content-section" id="badges">
-                    <div class="section-card">
-                        <div class="section-card-header">
-                            <h2 class="section-card-title">{{ 'profile.tab_badges'|trans }}</h2>
-                            <div class="badges-stats">
-                                <span class="stat-pill">
-                                    <span class="pill-value">{{ profileStats.badges }}</span>
-                                    <span class="pill-label">{{ 'profile.badges_earned'|trans }}</span>
-                                </span>
-                                <span class="stat-pill">
-                                    <span class="pill-value">{{ profileStats.completedFormations }}</span>
-                                    <span class="pill-label">{{ 'profile.formations_validated'|trans }}</span>
-                                </span>
-                            </div>
-                        </div>
+                {# S192b — TOUS les badges détenus, chacun avec son ORIGINE : un badge détenu ouvre au lecteur, il se voit ici. #}
+                {% if userBadges is not empty %}
+                    <section class="detail-card" id="badges">
+                        <h2 class="detail-card-title">{{ 'profile.tab_badges'|trans }}</h2>
+                        <ul class="md-access-list">
+                            {% for userBadge in userBadges %}
+                                {% set badge = userBadge.badge %}
+                                {% set origin = badgeOrigins[badge.id]|default(null) %}
+                                <li class="is-ok"><span class="md-access-mark" aria-hidden="true">✓</span><span class="profile-badge-visual-shell">{% include 'site/_badge_visual.html.twig' with { badge: badge, formation: null, size: 'sm' } only %}</span><span>
+                                    <a href="{{ path('app_badge_detail', {id: badge.id}) }}">{{ badge.nom }}</a> #{{ badge.id }} — {{ 'profile.obtained_on'|trans({'%date%': userBadge.dateObtention|lab_date('d/m/Y H:i')}) }}
+                                    {% if badge.description %}<span class="md-note">{{ badge.description }}</span>{% endif %}
+                                    <span class="md-note">
+                                        {% if origin and origin.grant %}
+                                            {{ (origin.grant.reason ? 'badge_grants.profile_granted_by_reason' : 'badge_grants.profile_granted_by')|trans({'%by%': origin.grant.by ?? '—', '%date%': origin.grant.at|lab_date('d/m/Y'), '%reason%': origin.grant.reason}) }}
+                                        {% elseif origin and origin.validated %}
+                                            {{ 'profile.badge_via_formation'|trans({'%formation%': origin.formation.titre}) }}
+                                        {% else %}
+                                            {{ 'profile.badge_without_formation'|trans }}
+                                        {% endif %}
+                                    </span>
+                                </span></li>
+                            {% endfor %}
+                        </ul>
+                        <p class="md-note">{{ 'account_page.badges_note'|trans }} <a href="{{ path('app_formations') }}">{{ 'profile.see_all_trainings'|trans }}</a></p>
+                    </section>
+                {% endif %}
+                {% include 'site/_badge_reach.html.twig' with { explained: explained, audience: 'self', id_prefix: 'profile-badge-reach' } only %}
 
-                        <div class="badges-grid">
-                            {% if userBadges is empty %}
-                                <div class="badge-card locked">
-                                    <div class="badge-info">
-                                        <h3 class="badge-name">{{ 'profile.no_badges'|trans }}</h3>
-                                        <p class="badge-description">{{ 'profile.badges_empty'|trans }}</p>
-                                    </div>
+            {% elseif tab == 'activite' %}
+                <div class="pp-pf-grid">
+                    {# Les réservations : l'historique s'ouvre à la demande, « Annuler » reste sur chaque ligne à venir. #}
+                    <details class="detail-card detail-disclosure pp-pf-wide" id="reservations"{% if reservations|length <= 5 %} open{% endif %}>
+                        <summary class="detail-card-title">{{ 'profile.reservations_history'|trans }}</summary>
+                        {% if reservations is empty %}
+                            <p class="md-note">{{ 'profile.no_reservations'|trans }}</p>
+                        {% else %}
+                            <div class="reservations-table">
+                                <div class="reservation-row header">
+                                    <div class="res-col machine">{{ 'profile.col_machine'|trans }}</div>
+                                    <div class="res-col date">{{ 'profile.col_date'|trans }}</div>
+                                    <div class="res-col time">{{ 'profile.col_time'|trans }}</div>
+                                    <div class="res-col duration">{{ 'profile.col_reason'|trans }}</div>
+                                    <div class="res-col status">{{ 'home.col_status'|trans }}</div>
+                                    <div class="res-col actions">{{ 'profile.col_actions'|trans }}</div>
                                 </div>
-                            {% else %}
-                                {% for userBadge in userBadges %}
-                                    {% set badge = userBadge.badge %}
-                                    <div class="badge-card obtained">
-                                        <div class="badge-icon large profile-badge-visual-shell">
-                                            {% include 'site/_badge_visual.html.twig' with {
-                                                badge: badge,
-                                                formation: null,
-                                                size: 'md'
-                                            } only %}
-                                        </div>
-                                        <div class="badge-info">
-                                            <h3 class="badge-name">{{ badge.nom }}</h3>
-                                            <p class="badge-description">{{ badge.description ?: 'fallback.no_description'|trans }}</p>
-                                            <div class="badge-meta">
-                                                <span class="badge-level">#{{ badge.id }}</span>
-                                                <span class="badge-date">{{ 'profile.obtained_on'|trans({'%date%': userBadge.dateObtention|lab_date('d/m/Y H:i')}) }}</span>
-                                            </div>
-                                            {# S192b — l'origine, jamais un filtre : un badge détenu ouvre au lecteur, il se voit ici. #}
-                                            {% set origin = badgeOrigins[badge.id]|default(null) %}
-                                            <p class="badge-origin">
-                                                {% if origin and origin.grant %}
-                                                    {{ (origin.grant.reason ? 'badge_grants.profile_granted_by_reason' : 'badge_grants.profile_granted_by')|trans({'%by%': origin.grant.by ?? '—', '%date%': origin.grant.at|lab_date('d/m/Y'), '%reason%': origin.grant.reason}) }}
-                                                {% elseif origin and origin.validated %}
-                                                    {{ 'profile.badge_via_formation'|trans({'%formation%': origin.formation.titre}) }}
-                                                {% else %}
-                                                    {{ 'profile.badge_without_formation'|trans }}
-                                                {% endif %}
-                                            </p>
-                                        </div>
-                                        <div class="badge-checkmark">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="3">
-                                                <polyline points="20,6 9,17 4,12"/>
-                                            </svg>
-                                        </div>
-                                    </div>
-                                {% endfor %}
-                            {% endif %}
-                        </div>
-
-                        <div class="section-link">
-                            <a href="{{ path('app_formations') }}" class="btn btn-text">
-                                {{ 'profile.see_all_trainings'|trans }}
-                            </a>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Section Historique des Réservations -->
-                {# Essential-first (S48): identity, badges and what is coming next stay open;
-                   the back-catalogue of past bookings is volume, not consequence, so it is
-                   disclosed on request. Native <details> — the rows stay in the DOM, so
-                   in-page search and "expand all" in print still find them. #}
-                <section class="profile-content-section" id="reservations">
-                    <details class="section-card profile-disclosure"{% if reservations|default([])|length <= 5 %} open{% endif %}>
-                        <summary class="section-card-header">
-                            <h2 class="section-card-title">{{ 'profile.reservations_history'|trans }}</h2>
-                        </summary>
-
-                        <div class="reservations-table">
-                            <div class="reservation-row header">
-                                <div class="res-col machine">{{ 'profile.col_machine'|trans }}</div>
-                                <div class="res-col date">{{ 'profile.col_date'|trans }}</div>
-                                <div class="res-col time">{{ 'profile.col_time'|trans }}</div>
-                                <div class="res-col duration">{{ 'profile.col_reason'|trans }}</div>
-                                <div class="res-col status">{{ 'home.col_status'|trans }}</div>
-                                <div class="res-col actions">{{ 'profile.col_actions'|trans }}</div>
-                            </div>
-
-                            {% if reservations is empty %}
-                                <div class="reservation-row">
-                                    <div class="res-col machine">{{ 'profile.no_reservations'|trans }}</div>
-                                    <div class="res-col date"></div>
-                                    <div class="res-col time"></div>
-                                    <div class="res-col duration"></div>
-                                    <div class="res-col status"></div>
-                                    <div class="res-col actions"></div>
-                                </div>
-                            {% else %}
                                 {% for reservation in reservations %}
                                     {% set reservationCancelled = reservation.cancelled %}
                                     {% set reservationFuture = reservation.dateDebut > date() %}
@@ -397,9 +179,7 @@
                                         <div class="res-col date">{{ reservation.dateDebut|date('d/m/Y') }}</div>
                                         <div class="res-col time">{{ reservation.dateDebut|date('H:i') }} - {{ reservation.dateFin|date('H:i') }}</div>
                                         <div class="res-col duration">{{ reservation.motif ?: '-' }}</div>
-                                        <div class="res-col status">
-                                            <span class="status-tag {{ reservationStatusClass }}">{{ reservationStatusLabel }}</span>
-                                        </div>
+                                        <div class="res-col status"><span class="status-tag {{ reservationStatusClass }}">{{ reservationStatusLabel }}</span></div>
                                         <div class="res-col actions">
                                             {% if not reservationCancelled and reservationFuture %}
                                                 <form method="post" action="{{ path('api_reservation_cancel', {id: reservation.id}) }}">
@@ -412,403 +192,378 @@
                                         </div>
                                     </div>
                                 {% endfor %}
+                            </div>
+                        {% endif %}
+                        <p class="md-note"><a href="{{ path('app_my_reservations') }}">{{ 'profile.manage_reservations'|trans }}</a>{% if feature_enabled('person_booking') %} · <a href="{{ path('app_person_my_availability') }}">{{ 'booking.my_availability'|trans }}</a>{% endif %}</p>
+                    </details>
+
+                    <section class="detail-card">
+                        <h2 class="detail-card-title">{{ 'account_page.tile_trainings'|trans }}</h2>
+                        {% if p.trainings.resume %}<p>{{ 'account_page.training_resume'|trans }} <b>{{ p.trainings.resume.formation.titre }}</b></p>{% endif %}
+                        <p class="md-note">{{ 'account_page.tile_trainings_ongoing'|trans({'%n%': p.trainings.ongoing|length + (p.trainings.resume ? 1 : 0)}) }} · {{ (p.trainings.done|length == 1 ? 'account_page.tile_trainings_done_one' : 'account_page.tile_trainings_done_many')|trans({'%n%': p.trainings.done|length}) }} · <a href="{{ path('app_my_trainings') }}">{{ 'account_page.my_trainings'|trans }}</a></p>
+                    </section>
+
+                    {% if loansEnabled and myLoans is not empty %}
+                        <section class="detail-card" id="loans">
+                            <h2 class="detail-card-title">{{ 'loans.my_loans'|trans }}</h2>
+                            <ul class="md-access-list">
+                                {% for loan in myLoans %}
+                                    {% set st = loan.effectiveStatus %}
+                                    <li>
+                                        {# S193 — l'objet ouvre sa fiche. #}
+                                        <span>{% if loan.item %}<a href="{{ path('app_loans_item', {id: loan.item.id}) }}">{{ loan.item.name }}</a>{% else %}—{% endif %}
+                                        {% include 'site/_state_chip.html.twig' with { label: (st == 'returned' ? 'loans.status_returned' : (st == 'overdue' ? 'loans.status_overdue' : 'loans.status_out'))|trans, signal: st == 'returned' ? 'muted' : (st == 'overdue' ? 'stop' : 'wait') } only %}
+                                        <span class="md-note">{{ loan.dateTaken|date('d/m/Y') }}{% if loan.expectedReturnDate %} → {{ loan.expectedReturnDate|date('d/m/Y') }}{% endif %}</span></span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </section>
+                    {% endif %}
+
+                    {% if eventsEnabled and myEventRegistrations is not empty %}
+                        <section class="detail-card" id="event-registrations">
+                            <h2 class="detail-card-title">{{ 'event.registration.title'|trans }}</h2>
+                            <ul class="md-access-list">
+                                {% for reg in myEventRegistrations %}
+                                    <li>
+                                        <span><a href="{{ path('app_event_detail', {id: reg.event.id}) }}">{{ reg.event.titre }}</a>
+                                        {% include 'site/_state_chip.html.twig' with { label: (reg.waitlisted ? 'event.registration.state_waitlisted' : 'event.registration.state_registered')|trans, signal: reg.waitlisted ? 'caution' : 'go' } only %}
+                                        <span class="md-note">{{ reg.event.dateDebut|date('d/m/Y H:i') }}{% if reg.event.cancelled %} · {{ 'event.called_off.banner'|trans }}{% endif %}</span></span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </section>
+                    {% endif %}
+
+                    {# Statistiques : seulement ce qui n'est pas nul — l'absence se tait. #}
+                    {% set statLines = [
+                        {n: user.tempsPresenceTotal, k: 'profile.total_presence'},
+                        {n: profileStats.completedFormations, k: 'home.stat_completed'},
+                        {n: profileStats.badges, k: 'profile.badges_earned'},
+                        {n: profileStats.reservations, k: 'home.stat_reservations'},
+                        {n: profileStats.rfidLogs, k: 'home.stat_rfid'},
+                        {n: profileStats.machinesUsed, k: 'profile.machines_used'},
+                    ]|filter(l => l.n) %}
+                    {% if statLines|length %}
+                        <section class="detail-card" id="stats">
+                            <h2 class="detail-card-title">{{ 'profile.my_stats'|trans }}</h2>
+                            <ul class="md-access-list">
+                                {% for line in statLines %}
+                                    <li><b>{{ line.n }}</b><span>{{ line.k|trans }}</span></li>
+                                {% endfor %}
+                            </ul>
+                        </section>
+                    {% endif %}
+                </div>
+
+                {% if progressions is not empty %}
+                    <details class="detail-card detail-disclosure">
+                        <summary class="detail-card-title">{{ 'profile.formations_progress'|trans }}</summary>
+                        <div class="reservations-table">
+                            <div class="reservation-row header">
+                                <div class="res-col machine">{{ 'profile.col_formation'|trans }}</div>
+                                <div class="res-col date">{{ 'profile.col_score'|trans }}</div>
+                                <div class="res-col time">{{ 'home.col_status'|trans }}</div>
+                                <div class="res-col duration">{{ 'profile.col_start'|trans }}</div>
+                                <div class="res-col status">{{ 'profile.col_end'|trans }}</div>
+                                <div class="res-col actions">{{ 'profile.col_badge'|trans }}</div>
+                            </div>
+                            {% for progression in progressions %}
+                                <div class="reservation-row">
+                                    <div class="res-col machine">{{ progression.formation ? progression.formation.titre : 'fallback.formation'|trans }}</div>
+                                    <div class="res-col date">{{ progression.score }}</div>
+                                    <div class="res-col time">{{ progression.completed ? 'state.completed_f'|trans : 'state.doing'|trans }}</div>
+                                    <div class="res-col duration">{{ progression.dateDebut|lab_date('d/m/Y H:i') }}</div>
+                                    <div class="res-col status">{{ progression.dateEnd ? progression.dateEnd|lab_date('d/m/Y H:i') : '-' }}</div>
+                                    <div class="res-col actions">{{ progression.formation and progression.formation.badge ? progression.formation.badge.nom : '-' }}</div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </details>
+                {% endif %}
+
+                {% if rfidLogs is not empty %}
+                    <details class="detail-card detail-disclosure">
+                        <summary class="detail-card-title">{{ 'profile.rfid_activity'|trans }}</summary>
+                        <div class="reservations-table">
+                            <div class="reservation-row header">
+                                <div class="res-col machine">{{ 'profile.col_date'|trans }}</div>
+                                <div class="res-col date">{{ 'profile.col_badge_uid'|trans }}</div>
+                                <div class="res-col time">{{ 'profile.col_machine'|trans }}</div>
+                                <div class="res-col duration">{{ 'profile.col_authorized'|trans }}</div>
+                                <div class="res-col status">{{ 'home.col_status'|trans }}</div>
+                                <div class="res-col actions">{{ 'profile.col_message'|trans }}</div>
+                            </div>
+                            {% for log in rfidLogs|slice(0, 10) %}
+                                <div class="reservation-row">
+                                    <div class="res-col machine">{{ log.createdAt|lab_date('d/m/Y H:i') }}</div>
+                                    <div class="res-col date">{{ log.badgeUid|rfid_mask }}</div>
+                                    <div class="res-col time">{{ log.machine ? log.machine.nom : 'fallback.machine'|trans }}</div>
+                                    <div class="res-col duration">{{ log.authorized ? 'common.yes'|trans : 'common.no'|trans }}</div>
+                                    <div class="res-col status"><span class="status-tag {{ log.authorized ? 'completed' : 'cancelled' }}">{{ log.status }}</span></div>
+                                    <div class="res-col actions">{{ log.message ?: log.reason ?: '-' }}</div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </details>
+                {% endif %}
+
+                {% if usageLogs is not empty %}
+                    <details class="detail-card detail-disclosure">
+                        <summary class="detail-card-title">{{ 'profile.usage_logs'|trans }}</summary>
+                        <div class="reservations-table">
+                            <div class="reservation-row header">
+                                <div class="res-col machine">{{ 'profile.col_machine'|trans }}</div>
+                                <div class="res-col date">{{ 'profile.col_start'|trans }}</div>
+                                <div class="res-col time">{{ 'profile.col_end'|trans }}</div>
+                                <div class="res-col duration">{{ 'profile.col_duration'|trans }}</div>
+                                <div class="res-col status">{{ 'profile.col_source'|trans }}</div>
+                                <div class="res-col actions">{{ 'profile.col_created'|trans }}</div>
+                            </div>
+                            {% for usageLog in usageLogs %}
+                                <div class="reservation-row">
+                                    <div class="res-col machine">{{ usageLog.machine ? usageLog.machine.nom : 'fallback.machine'|trans }}</div>
+                                    <div class="res-col date">{{ usageLog.dateDebut|lab_date('d/m/Y H:i') }}</div>
+                                    <div class="res-col time">{{ usageLog.dateFin ? usageLog.dateFin|lab_date('d/m/Y H:i') : '-' }}</div>
+                                    <div class="res-col duration">{{ usageLog.duree is not null ? usageLog.duree ~ ' min' : '-' }}</div>
+                                    <div class="res-col status">{{ usageLog.source ?: '-' }}</div>
+                                    <div class="res-col actions">{{ usageLog.createdAt|lab_date('d/m/Y H:i') }}</div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </details>
+                {% endif %}
+
+            {% else %}
+                {# Réglages : une ligne = une chose, sa valeur, et UN verbe. Le verbe ouvre
+                   le formulaire réel sur place (`<details>`), jamais une ancre ailleurs. #}
+                {% set pd = publicDraft|default(null) %}
+                <form id="profile-prefs" method="post" action="{{ path('app_profile') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('profile_preferences') }}">
+                </form>
+
+                <section class="detail-card pp-pf-set" id="info">
+                    <h2 class="detail-card-title">{{ 'profile.tab_personal'|trans }}</h2>
+                    <div class="pp-pf-line"><b>{{ 'profile.first_name'|trans }}</b><span>{{ user.firstName ?? 'fallback.not_set_m'|trans }}</span><span></span></div>
+                    <div class="pp-pf-line"><b>{{ 'profile.last_name'|trans }}</b><span>{{ user.lastName ?? 'fallback.not_set_m'|trans }}</span><span></span></div>
+                    <details>
+                        <summary class="pp-pf-line"><b>{{ 'profile.photo'|trans }}</b><span>{{ (user.avatarFilename and user.avatarFilename != 'default-avatar.svg' ? 'account_page.photo_custom' : 'account_page.photo_default')|trans }}</span><span class="pp-pf-verb">{{ 'account_page.verb_change'|trans }}</span></summary>
+                        <div class="pp-pf-body">
+                            <p class="md-note">{{ 'profile.photo_formats'|trans }}</p>
+                            <form method="post" action="{{ path('app_profile') }}" enctype="multipart/form-data" class="profile-avatar-form">
+                                <input type="hidden" name="_profile_form" value="avatar">
+                                <input type="hidden" name="_token" value="{{ csrf_token('profile_avatar') }}">
+                                <input type="file" name="avatar" accept="image/png,image/jpeg,image/webp" required aria-label="{{ 'profile.photo'|trans }}">
+                                <button type="submit" class="btn btn-sm btn-primary">{{ 'profile.update_photo'|trans }}</button>
+                            </form>
+                        </div>
+                    </details>
+                    <details>
+                        <summary class="pp-pf-line"><b>{{ 'profile.banner'|trans }}</b><span>{{ (safeBannerFilename ? 'account_page.banner_custom' : 'account_page.banner_none')|trans }}</span><span class="pp-pf-verb">{{ 'account_page.verb_change'|trans }}</span></summary>
+                        <div class="pp-pf-body">
+                            {% if safeBannerFilename %}
+                                <img src="{{ asset('uploads/profile-banners/' ~ safeBannerFilename) }}" alt="{{ 'profile.banner_current_alt'|trans }}" class="profile-banner-preview-image">
+                            {% endif %}
+                            <p class="md-note">{{ 'profile.banner_formats'|trans }}</p>
+                            <form method="post" action="{{ path('app_profile') }}" enctype="multipart/form-data" class="profile-avatar-form">
+                                <input type="hidden" name="_profile_form" value="banner">
+                                <input type="hidden" name="_token" value="{{ csrf_token('profile_banner') }}">
+                                <input type="file" name="banner" accept="image/png,image/jpeg,image/webp,image/gif" required aria-label="{{ 'profile.banner'|trans }}">
+                                <button type="submit" class="btn btn-sm btn-primary">{{ 'profile.update_banner'|trans }}</button>
+                            </form>
+                            {% if safeBannerFilename %}
+                                <form method="post" action="{{ path('app_profile') }}" class="profile-avatar-form">
+                                    <input type="hidden" name="_profile_form" value="delete_banner">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('profile_banner_delete') }}">
+                                    <button type="submit" class="btn btn-sm btn-danger">{{ 'profile.delete_banner'|trans }}</button>
+                                </form>
                             {% endif %}
                         </div>
-
-                        <div class="section-link">
-                            <a href="{{ path('app_my_reservations') }}" class="btn btn-primary">{{ 'profile.manage_reservations'|trans }}</a>
+                    </details>
+                    <div class="pp-pf-line"><b>{{ 'profile.email'|trans }}</b><span>{{ user.email }} {% include 'site/_state_chip.html.twig' with { label: (user.verified ? 'accsec.verified' : 'accsec.not_verified')|trans, signal: user.verified ? 'go' : 'caution' } only %}</span><span></span></div>
+                    <details id="public-profile"{% if pd %} open{% endif %}>
+                        <summary class="pp-pf-line"><b>{{ 'public_profile.settings'|trans }}</b><span>{{ (user.publicProfileEnabled ? 'account_page.public_on' : 'account_page.public_off')|trans }}</span><span class="pp-pf-verb">{{ 'account_page.verb_set'|trans }}</span></summary>
+                        <div class="pp-pf-body">
+                            {% if user.publicProfileEnabled and user.publicSlug %}<p><a class="btn btn-sm" href="{{ path('app_public_member', {slug: user.publicSlug}) }}">{{ 'public_profile.preview'|trans }}</a></p>{% endif %}
+                            <form method="post" action="{{ path('app_profile') }}" class="settings-form">
+                                <input type="hidden" name="_profile_form" value="public_profile"><input type="hidden" name="_token" value="{{ csrf_token('public_profile') }}">
+                                <p>{{ 'public_profile.private_default'|trans }}</p>
+                                {# 🔴 J-8 — une saisie refusée reste à l'écran : `publicDraft` porte ce qui vient d'être
+                                   soumis (`null` en temps normal : le formulaire lit alors l'entité). ⚠️ Le brouillon
+                                   vit À CÔTÉ de l'entité, jamais dessus (un `flush()` le ferait persister). #}
+                                <label><input type="checkbox" name="publicProfileEnabled" value="1"{{ (pd ? pd.enabled : user.publicProfileEnabled) ? ' checked' : '' }}> {{ 'public_profile.enable'|trans }}</label>
+                                <div class="form-field"><label for="public-slug">{{ 'public_profile.slug'|trans }}</label><input id="public-slug" name="publicSlug" value="{{ pd ? pd.slug : user.publicSlug }}" maxlength="80" placeholder="prenom-nom"></div>
+                                <div class="form-field"><label for="public-bio">{{ 'public_profile.bio'|trans }}</label><textarea id="public-bio" name="publicBio" maxlength="500">{{ pd ? pd.bio : user.publicBio }}</textarea></div>
+                                <fieldset><legend>{{ 'public_profile.visible_fields'|trans }}</legend>{% for field in ['name', 'avatar', 'bio', 'badges', 'trainings'] %}<label><input type="checkbox" name="publicFields[]" value="{{ field }}"{{ field in (pd ? pd.fields : user.publicFields) ? ' checked' : '' }}> {{ ('public_profile.field.' ~ field)|trans }}</label>{% endfor %}</fieldset>
+                                <div class="settings-footer"><button class="btn btn-primary" type="submit">{{ 'common.save'|trans }}</button></div>
+                            </form>
+                        </div>
+                    </details>
+                    <details>
+                        <summary class="pp-pf-line"><b>{{ 'network.exchange'|trans }}</b><span></span><span class="pp-pf-verb">{{ 'account_page.verb_open'|trans }}</span></summary>
+                        <div class="pp-pf-body">
+                            <form method="post" action="{{ path('app_profile_network_qr') }}" class="form-grid">
+                                <input type="hidden" name="_token" value="{{ csrf_token('network_exchange') }}">
+                                <div class="form-field"><label>{{ 'network.destination'|trans }}</label><input name="audienceUuid" required aria-label="{{ 'network.destination'|trans }}" placeholder="00000000-0000-4000-8000-000000000000"></div>
+                                <label><input type="checkbox" name="consent" value="1" required> {{ 'network.exchange_consent'|trans }}</label>
+                                <button class="btn btn-primary">{{ 'network.download_qr'|trans }}</button>
+                            </form>
                         </div>
                     </details>
                 </section>
 
-                {% if loansEnabled and myLoans is not empty %}
-                <section class="profile-content-section" id="loans">
-                    <div class="section-card">
-                        <div class="section-card-header">
-                            <h2 class="section-card-title">{{ 'loans.my_loans'|trans }}</h2>
-                        </div>
-                        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;">
-                            {% for loan in myLoans %}
-                                {% set st = loan.effectiveStatus %}
-                                {% set label = st == 'returned' ? 'loans.status_returned' : (st == 'overdue' ? 'loans.status_overdue' : 'loans.status_out') %}
-                                <li style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:1px solid var(--border-color);border-radius:10px;flex-wrap:wrap;">
-                                    {# S193 — l'objet ouvre sa fiche. #}
-                                    <span style="font-weight:700;">{% if loan.item %}<a href="{{ path('app_loans_item', {id: loan.item.id}) }}">{{ loan.item.name }}</a>{% else %}—{% endif %}</span>
-                                    <span style="padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;{{ st == 'overdue' ? 'background:#fee2e2;color:#991b1b;' : (st == 'returned' ? 'background:#dcfce7;color:#166534;' : 'background:#dbeafe;color:#1e40af;') }}">{{ label|trans }}</span>
-                                    <span style="color:var(--color-text-light);font-size:13px;">{{ loan.dateTaken|date('d/m/Y') }}{% if loan.expectedReturnDate %} → {{ loan.expectedReturnDate|date('d/m/Y') }}{% endif %}</span>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </section>
-                {% endif %}
-
-                {% if eventsEnabled and myEventRegistrations is not empty %}
-                <section class="profile-content-section" id="event-registrations">
-                    <div class="section-card">
-                        <div class="section-card-header">
-                            <h2 class="section-card-title">{{ 'event.registration.title'|trans }}</h2>
-                        </div>
-                        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;">
-                            {% for reg in myEventRegistrations %}
-                                <li style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:1px solid var(--border-color);border-radius:10px;flex-wrap:wrap;">
-                                    <a href="{{ path('app_event_detail', {id: reg.event.id}) }}" style="font-weight:700;">{{ reg.event.titre }}</a>
-                                    <span style="padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;{{ reg.waitlisted ? 'background:rgba(245,158,11,.16);color:#b45309;' : 'background:rgba(34,197,94,.16);color:#15803d;' }}">
-                                        {{ (reg.waitlisted ? 'event.registration.state_waitlisted' : 'event.registration.state_registered')|trans }}
-                                    </span>
-                                    <span style="color:var(--color-text-light);font-size:13px;">
-                                        {{ reg.event.dateDebut|date('d/m/Y H:i') }}{% if reg.event.cancelled %} · {{ 'event.called_off.banner'|trans }}{% endif %}
-                                    </span>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </section>
-                {% endif %}
-
-                <!-- Section Statistiques -->
-                <section class="profile-content-section" id="stats">
-                    <div class="section-card">
-                        <div class="section-card-header">
-                            <h2 class="section-card-title">{{ 'profile.my_stats'|trans }}</h2>
-                            <div class="stats-period">
-                                <span class="period-label">{{ 'profile.all_period'|trans }}</span>
+                {# E-mails : regroupés par domaine (`AccountSecurityEmails`). Les essentiels n'ont pas
+                   d'interrupteur ; chaque optionnel garde son `notify_<catégorie>`, et les catégories
+                   non affichées sont rejouées (`keptCategories`) pour ne rien désabonner en silence. #}
+                <section class="detail-card pp-pf-set" id="settings">
+                    <h2 class="detail-card-title">{{ 'profile.notif_prefs'|trans }}</h2>
+                    <div class="pp-pf-line"><b>{{ 'accsec.essential'|trans }}</b><span>{{ 'account_page.essential_note'|trans }}</span><span></span></div>
+                    <details>
+                        <summary class="pp-pf-line"><b>{{ 'accsec.optional'|trans }}</b><span>{{ 'account_page.optional_count'|trans({'%on%': p.emails.optionalOn, '%total%': p.emails.optional}) }}</span><span class="pp-pf-verb">{{ 'account_page.verb_choose'|trans }}</span></summary>
+                        <div class="pp-pf-body">
+                            <p class="pp-se-lede">{{ (p.account.masterOn ? 'accsec.mail_lede_on' : 'accsec.mail_lede_off')|trans }}</p>
+                            <div class="setting-item">
+                                <div class="setting-info"><h4>{{ 'profile.notif_email'|trans }}</h4><p>{{ 'profile.notif_email_desc'|trans }}</p></div>
+                                <div class="setting-toggle"><label class="switch"><input type="checkbox" form="profile-prefs" name="notificationEmail" value="1" {{ user.notificationEmail ? 'checked' : '' }}><span class="slider round"></span></label></div>
                             </div>
-                        </div>
-
-                        <div class="profile-stats-grid">
-                            <div class="profile-stat-card">
-                                <div class="profile-stat-info">
-                                    <span class="profile-stat-value">{{ user.tempsPresenceTotal }}</span>
-                                    <span class="profile-stat-label">{{ 'profile.total_presence'|trans }}</span>
-                                </div>
+                            <div class="setting-item">
+                                <div class="setting-info"><h4>{{ 'profile.notif_push'|trans }}</h4><p>{{ 'profile.notif_push_desc'|trans }}</p></div>
+                                <div class="setting-toggle"><label class="switch"><input type="checkbox" form="profile-prefs" name="notificationPush" value="1" {{ user.notificationPush ? 'checked' : '' }}><span class="slider round"></span></label></div>
                             </div>
-                            <div class="profile-stat-card">
-                                <div class="profile-stat-info">
-                                    <span class="profile-stat-value">{{ profileStats.completedFormations }}</span>
-                                    <span class="profile-stat-label">{{ 'home.stat_completed'|trans }}</span>
-                                </div>
-                            </div>
-                            <div class="profile-stat-card">
-                                <div class="profile-stat-info">
-                                    <span class="profile-stat-value">{{ profileStats.badges }}</span>
-                                    <span class="profile-stat-label">{{ 'profile.badges_earned'|trans }}</span>
-                                </div>
-                            </div>
-                            <div class="profile-stat-card">
-                                <div class="profile-stat-info">
-                                    <span class="profile-stat-value">{{ profileStats.reservations }}</span>
-                                    <span class="profile-stat-label">{{ 'home.stat_reservations'|trans }}</span>
-                                </div>
-                            </div>
-                            <div class="profile-stat-card">
-                                <div class="profile-stat-info">
-                                    <span class="profile-stat-value">{{ profileStats.rfidLogs }}</span>
-                                    <span class="profile-stat-label">{{ 'home.stat_rfid'|trans }}</span>
-                                </div>
-                            </div>
-                            <div class="profile-stat-card">
-                                <div class="profile-stat-info">
-                                    <span class="profile-stat-value">{{ profileStats.machinesUsed }}</span>
-                                    <span class="profile-stat-label">{{ 'profile.machines_used'|trans }}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="activity-chart">
-                            <h3 class="chart-title">{{ 'profile.formations_progress'|trans }}</h3>
-                            <div class="reservations-table">
-                                <div class="reservation-row header">
-                                    <div class="res-col machine">{{ 'profile.col_formation'|trans }}</div>
-                                    <div class="res-col date">{{ 'profile.col_score'|trans }}</div>
-                                    <div class="res-col time">{{ 'home.col_status'|trans }}</div>
-                                    <div class="res-col duration">{{ 'profile.col_start'|trans }}</div>
-                                    <div class="res-col status">{{ 'profile.col_end'|trans }}</div>
-                                    <div class="res-col actions">{{ 'profile.col_badge'|trans }}</div>
-                                </div>
-                                {% if progressions is empty %}
-                                    <div class="reservation-row"><div class="res-col machine">{{ 'profile.no_progress'|trans }}</div></div>
-                                {% else %}
-                                    {% for progression in progressions %}
-                                        <div class="reservation-row">
-                                            <div class="res-col machine">{{ progression.formation ? progression.formation.titre : 'fallback.formation'|trans }}</div>
-                                            <div class="res-col date">{{ progression.score }}</div>
-                                            <div class="res-col time">{{ progression.completed ? 'state.completed_f'|trans : 'state.doing'|trans }}</div>
-                                            <div class="res-col duration">{{ progression.dateDebut|lab_date('d/m/Y H:i') }}</div>
-                                            <div class="res-col status">{{ progression.dateEnd ? progression.dateEnd|lab_date('d/m/Y H:i') : '-' }}</div>
-                                            <div class="res-col actions">{{ progression.formation and progression.formation.badge ? progression.formation.badge.nom : '-' }}</div>
-                                        </div>
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="activity-chart">
-                            <h3 class="chart-title">{{ 'profile.rfid_activity'|trans }}</h3>
-                            <div class="reservations-table">
-                                <div class="reservation-row header">
-                                    <div class="res-col machine">{{ 'profile.col_date'|trans }}</div>
-                                    <div class="res-col date">{{ 'profile.col_badge_uid'|trans }}</div>
-                                    <div class="res-col time">{{ 'profile.col_machine'|trans }}</div>
-                                    <div class="res-col duration">{{ 'profile.col_authorized'|trans }}</div>
-                                    <div class="res-col status">{{ 'home.col_status'|trans }}</div>
-                                    <div class="res-col actions">{{ 'profile.col_message'|trans }}</div>
-                                </div>
-                                {% if rfidLogs is empty %}
-                                    <div class="reservation-row"><div class="res-col machine">{{ 'profile.no_rfid'|trans }}</div></div>
-                                {% else %}
-                                    {% for log in rfidLogs|slice(0, 10) %}
-                                        <div class="reservation-row">
-                                            <div class="res-col machine">{{ log.createdAt|lab_date('d/m/Y H:i') }}</div>
-                                            <div class="res-col date">{{ log.badgeUid|rfid_mask }}</div>
-                                            <div class="res-col time">{{ log.machine ? log.machine.nom : 'fallback.machine'|trans }}</div>
-                                            <div class="res-col duration">{{ log.authorized ? 'common.yes'|trans : 'common.no'|trans }}</div>
-                                            <div class="res-col status"><span class="status-tag {{ log.authorized ? 'completed' : 'cancelled' }}">{{ log.status }}</span></div>
-                                            <div class="res-col actions">{{ log.message ?: log.reason ?: '-' }}</div>
-                                        </div>
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="activity-chart">
-                            <h3 class="chart-title">{{ 'profile.usage_logs'|trans }}</h3>
-                            <div class="reservations-table">
-                                <div class="reservation-row header">
-                                    <div class="res-col machine">{{ 'profile.col_machine'|trans }}</div>
-                                    <div class="res-col date">{{ 'profile.col_start'|trans }}</div>
-                                    <div class="res-col time">{{ 'profile.col_end'|trans }}</div>
-                                    <div class="res-col duration">{{ 'profile.col_duration'|trans }}</div>
-                                    <div class="res-col status">{{ 'profile.col_source'|trans }}</div>
-                                    <div class="res-col actions">{{ 'profile.col_created'|trans }}</div>
-                                </div>
-                                {% if usageLogs is empty %}
-                                    <div class="reservation-row"><div class="res-col machine">{{ 'profile.no_usage'|trans }}</div></div>
-                                {% else %}
-                                    {% for usageLog in usageLogs %}
-                                        <div class="reservation-row">
-                                            <div class="res-col machine">{{ usageLog.machine ? usageLog.machine.nom : 'fallback.machine'|trans }}</div>
-                                            <div class="res-col date">{{ usageLog.dateDebut|lab_date('d/m/Y H:i') }}</div>
-                                            <div class="res-col time">{{ usageLog.dateFin ? usageLog.dateFin|lab_date('d/m/Y H:i') : '-' }}</div>
-                                            <div class="res-col duration">{{ usageLog.duree is not null ? usageLog.duree ~ ' min' : '-' }}</div>
-                                            <div class="res-col status">{{ usageLog.source ?: '-' }}</div>
-                                            <div class="res-col actions">{{ usageLog.createdAt|lab_date('d/m/Y H:i') }}</div>
-                                        </div>
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="profile-content-section" id="public-profile">
-                    <div class="section-card">
-                        <div class="section-card-header"><h2 class="section-card-title">{{ 'public_profile.settings'|trans }}</h2>{% if user.publicProfileEnabled and user.publicSlug %}<a class="btn btn-sm" href="{{ path('app_public_member', {slug: user.publicSlug}) }}">{{ 'public_profile.preview'|trans }}</a>{% endif %}</div>
-                        <form method="post" action="{{ path('app_profile') }}" class="settings-form">
-                            <input type="hidden" name="_profile_form" value="public_profile"><input type="hidden" name="_token" value="{{ csrf_token('public_profile') }}">
-                            <p>{{ 'public_profile.private_default'|trans }}</p>
-                            {# 🔴 **J-8 — une saisie refusée reste à l'écran.** Les deux
-                               refus de ce formulaire redirigeaient : adresse, bio et
-                               cases étaient jetées, et corriger un caractère
-                               obligeait à tout retaper. `publicDraft` porte ce qui
-                               vient d'être soumis ; il vaut `null` en temps normal,
-                               et le formulaire lit alors l'entité comme avant.
-                               ⚠️ Le brouillon vit À CÔTÉ de l'entité, jamais dessus :
-                               poser des valeurs refusées sur un objet géré par
-                               Doctrine les ferait persister au premier `flush()`. #}
-                            {% set pd = publicDraft|default(null) %}
-                            <label><input type="checkbox" name="publicProfileEnabled" value="1"{{ (pd ? pd.enabled : user.publicProfileEnabled) ? ' checked' : '' }}> {{ 'public_profile.enable'|trans }}</label>
-                            <div class="form-field"><label for="public-slug">{{ 'public_profile.slug'|trans }}</label><input id="public-slug" name="publicSlug" value="{{ pd ? pd.slug : user.publicSlug }}" maxlength="80" placeholder="prenom-nom"></div>
-                            <div class="form-field"><label for="public-bio">{{ 'public_profile.bio'|trans }}</label><textarea id="public-bio" name="publicBio" maxlength="500">{{ pd ? pd.bio : user.publicBio }}</textarea></div>
-                            <fieldset><legend>{{ 'public_profile.visible_fields'|trans }}</legend>{% for field in ['name', 'avatar', 'bio', 'badges', 'trainings'] %}<label><input type="checkbox" name="publicFields[]" value="{{ field }}"{{ field in (pd ? pd.fields : user.publicFields) ? ' checked' : '' }}> {{ ('public_profile.field.' ~ field)|trans }}</label>{% endfor %}</fieldset>
-                            <div class="settings-footer"><button class="btn btn-primary" type="submit">{{ 'common.save'|trans }}</button></div>
-                        </form>
-                        <details><summary>{{ 'network.exchange'|trans }}</summary><form method="post" action="{{ path('app_profile_network_qr') }}" class="form-grid"><input type="hidden" name="_token" value="{{ csrf_token('network_exchange') }}"><div class="form-field"><label>{{ 'network.destination'|trans }}</label><input name="audienceUuid" required aria-label="{{ 'network.destination'|trans }}" placeholder="00000000-0000-4000-8000-000000000000"></div><label><input type="checkbox" name="consent" value="1" required> {{ 'network.exchange_consent'|trans }}</label><button class="btn btn-primary">{{ 'network.download_qr'|trans }}</button></form></details>
-                    </div>
-                </section>
-
-                <!-- Section Paramètres -->
-                <section class="profile-content-section" id="settings">
-                    <div class="section-card">
-                        <div class="section-card-header">
-                            <h2 class="section-card-title">{{ 'profile.account_settings'|trans }}</h2>
-                        </div>
-                        
-                        <form method="post" action="{{ path('app_profile') }}" class="settings-form">
-                            <input type="hidden" name="_token" value="{{ csrf_token('profile_preferences') }}">
-                            <div class="settings-grid">
-                            {# E-mails : regroupés par domaine (`App\Page\AccountSecurityEmails`).
-                               Les essentiels n'ont pas d'interrupteur ; chaque optionnel garde son
-                               `notify_<catégorie>` — le POST de `/profil` lit ces noms et le jeton. #}
-                            <div class="settings-section pp-se-mail">
-                                <h3 class="settings-subtitle">{{ 'profile.notif_prefs'|trans }}</h3>
-                                <p class="pp-se-lede">{{ (account.masterOn ? 'accsec.mail_lede_on' : 'accsec.mail_lede_off')|trans }}</p>
-                                <div class="setting-item">
-                                    <div class="setting-info">
-                                        <h4>{{ 'profile.notif_email'|trans }}</h4>
-                                        <p>{{ 'profile.notif_email_desc'|trans }}</p>
-                                    </div>
-                                    <div class="setting-toggle">
-                                        <label class="switch">
-                                            <input type="checkbox" name="notificationEmail" value="1" {{ user.notificationEmail ? 'checked' : '' }}>
-                                            <span class="slider round"></span>
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <div class="setting-item">
-                                    <div class="setting-info">
-                                        <h4>{{ 'profile.notif_push'|trans }}</h4>
-                                        <p>{{ 'profile.notif_push_desc'|trans }}</p>
-                                    </div>
-                                    <div class="setting-toggle">
-                                        <label class="switch">
-                                            <input type="checkbox" name="notificationPush" value="1" {{ user.notificationPush ? 'checked' : '' }}>
-                                            <span class="slider round"></span>
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <div class="pp-se-groups">
-                                    {% for group in account.groups %}
-                                        <article class="pp-se-group" data-mail-group>
-                                            <h4>{% include 'site/_icon.html.twig' with {name: group.icon} only %}{{ group.title }}</h4>
-                                            <ul>
-                                                {% for line in group.lines %}
-                                                    <li>
-                                                        <div>
-                                                            <b>{{ (line.essential ? 'accsec.essential' : 'accsec.optional')|trans }}</b>
-                                                            <small>{{ line.what }}</small>
-                                                        </div>
-                                                        {% if line.essential %}
-                                                            <div class="pp-se-state">{{ 'accsec.always_sent'|trans }}</div>
-                                                        {% else %}
-                                                            <div class="setting-toggle">
-                                                                <label class="switch">
-                                                                    <input type="checkbox" name="notify_{{ line.category }}" value="1" aria-label="{{ line.what }}" {{ line.received ? 'checked' : '' }}>
-                                                                    <span class="slider round"></span>
-                                                                </label>
-                                                            </div>
-                                                        {% endif %}
-                                                    </li>
-                                                {% endfor %}
-                                            </ul>
-                                        </article>
-                                    {% endfor %}
-                                </div>
-                                {% for category in account.keptCategories %}<input type="hidden" name="notify_{{ category }}" value="1">{% endfor %}
-                            </div>
-
-                            {# Sécurité : UNE ligne par chose, son état et son verbe. Des LIENS (jamais
-                               un bouton qui écrit) : cette section vit dans le formulaire des réglages. #}
-                            <div class="settings-section pp-se-sec pp-todo">
-                                <h3 class="settings-subtitle">{{ 'accsec.sec_title'|trans }}</h3>
-                                <p class="pp-se-lede">{{ 'accsec.sec_lede'|trans }}</p>
-                                <ul>
-                                    <li>
-                                        <span class="pp-todo-ic" aria-hidden="true">{% include 'site/_icon.html.twig' with {name: 'lock'} only %}</span>
-                                        <div><b>{{ 'accsec.password'|trans }}</b><small>{{ 'accsec.password_note'|trans }}</small></div>
-                                        <a class="btn btn-secondary" href="{{ path('app_profile_password') }}">{{ 'accsec.password_btn'|trans }}</a>
-                                    </li>
-                                    <li>
-                                        <span class="pp-todo-ic" aria-hidden="true">{% include 'site/_icon.html.twig' with {name: 'mail'} only %}</span>
-                                        <div>
-                                            <b>{{ 'accsec.email_addr'|trans }}</b>
-                                            <small>{{ account.email }}</small>
-                                        </div>
-                                        <div>{% include 'site/_state_chip.html.twig' with {label: (account.verified ? 'accsec.verified' : 'accsec.not_verified')|trans, signal: account.verified ? 'go' : 'caution'} only %}</div>
-                                    </li>
-                                    {% if account.mfa is not null %}
-                                        <li>
-                                            <span class="pp-todo-ic" aria-hidden="true">{% include 'site/_icon.html.twig' with {name: 'key'} only %}</span>
-                                            <div>
-                                                <b>{{ 'mfa.title'|trans }}{% if account.mfa != 'enabled' %}<span class="pp-se-tag">{{ 'accsec.mfa_recommended'|trans }}</span>{% endif %}</b>
-                                                <small>{{ (account.mfa == 'enabled' ? 'accsec.mfa_on' : (account.mfa == 'pending' ? 'accsec.mfa_pending' : 'accsec.mfa_off'))|trans }}</small>
-                                            </div>
-                                            <a class="btn {{ account.mfa == 'enabled' ? 'btn-secondary' : 'btn-primary' }}" href="{{ path('app_profile_mfa') }}">{{ (account.mfa == 'enabled' ? 'accsec.mfa_manage' : (account.mfa == 'pending' ? 'accsec.mfa_finish' : 'accsec.mfa_enable'))|trans }}</a>
-                                        </li>
-                                    {% endif %}
-                                    {% if account.sessions is not null %}
-                                        <li>
-                                            <span class="pp-todo-ic" aria-hidden="true">{% include 'site/_icon.html.twig' with {name: 'history'} only %}</span>
-                                            <div>
-                                                <b>{{ 'sessions.title'|trans }}</b>
-                                                <small>{{ 'sessions.profile_hint'|trans({'count': account.sessions}) }}</small>
-                                            </div>
-                                            <a class="btn btn-secondary" href="{{ path('app_profile_sessions') }}">{{ 'accsec.sessions_view'|trans }}</a>
-                                        </li>
-                                    {% endif %}
-                                </ul>
-                                {# ⚠️ A LINK, not a form : l'effacement est le seul geste irréversible d'un
-                                   membre ; il ouvre une page qui dit ce qui part et ce qui reste. #}
-                                <p class="pp-se-danger">{{ 'accsec.delete_note'|trans }} <a href="{{ path('app_profile_delete') }}">{{ 'accsec.delete_link'|trans }}</a> — {{ 'accsec.delete_after'|trans }}</p>
-                            </div>
-
-                            <div class="settings-section">
-                                <h3 class="settings-subtitle">{{ 'profile.display_prefs'|trans }}</h3>
-                                <div class="setting-item">
-                                    <div class="setting-info">
-                                        <h4>{{ 'profile.preferred_venue'|trans }}</h4>
-                                        <p>{{ 'profile.preferred_venue_help'|trans }}</p>
-                                    </div>
-                                    <div class="setting-action">
-                                        <select name="preferredVenue">
-                                            <option value="">{{ 'profile.all_venues'|trans }}</option>
-                                            {% for venue in activeVenues %}
-                                                <option value="{{ venue.slug }}"{{ user.preferredVenue and user.preferredVenue.id == venue.id ? ' selected' : '' }}>{{ venue.name }}</option>
+                            <div class="pp-se-groups">
+                                {% for group in p.account.groups %}
+                                    <article class="pp-se-group" data-mail-group>
+                                        <h4>{% include 'site/_icon.html.twig' with {name: group.icon} only %}{{ group.title }}</h4>
+                                        <ul>
+                                            {% for line in group.lines %}
+                                                <li>
+                                                    <div><b>{{ (line.essential ? 'accsec.essential' : 'accsec.optional')|trans }}</b><small>{{ line.what }}</small></div>
+                                                    {% if line.essential %}
+                                                        <div class="pp-se-state">{{ 'accsec.always_sent'|trans }}</div>
+                                                    {% else %}
+                                                        <div class="setting-toggle"><label class="switch"><input type="checkbox" form="profile-prefs" name="notify_{{ line.category }}" value="1" aria-label="{{ line.what }}" {{ line.received ? 'checked' : '' }}><span class="slider round"></span></label></div>
+                                                    {% endif %}
+                                                </li>
                                             {% endfor %}
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="setting-item">
-                                    <div class="setting-info">
-                                        <h4>{{ 'profile.theme'|trans }}</h4>
-                                        <p>{{ 'profile.theme_desc'|trans }}</p>
-                                    </div>
-                                    <div class="setting-action">
-                                        <select class="theme-select" name="theme" data-theme-select required>
-                                            <option value="light" {{ user.theme == 'light' ? 'selected' : '' }}>{{ 'profile.theme_light'|trans }}</option>
-                                            <option value="dark" {{ user.theme == 'dark' ? 'selected' : '' }}>{{ 'profile.theme_dark'|trans }}</option>
-                                            <option value="system" {{ user.theme == 'system' ? 'selected' : '' }}>{{ 'profile.theme_system'|trans }}</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="setting-item">
-                                    <div class="setting-info">
-                                        <h4>{{ 'profile.language'|trans }}</h4>
-                                        <p>{{ 'profile.language_desc'|trans }}</p>
-                                    </div>
-                                    <div class="setting-action">
-                                        <select class="lang-select" name="langue" required>
-                                            {# Was a hardcoded fr/en pair while the app enables
-                                               five languages, so three of them were unreachable
-                                               from a member's own profile. #}
-                                            {% for code, label in availableLocales %}
-                                                <option value="{{ code }}" {{ user.langue == code ? 'selected' : '' }}>{{ label }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                </div>
+                                        </ul>
+                                    </article>
+                                {% endfor %}
                             </div>
-
+                            {% for category in p.account.keptCategories %}<input type="hidden" form="profile-prefs" name="notify_{{ category }}" value="1">{% endfor %}
+                            <div class="settings-footer"><button type="submit" form="profile-prefs" class="btn btn-primary">{{ 'profile.save_prefs'|trans }}</button></div>
                         </div>
-
-                            <div class="settings-footer">
-                                <button type="submit" class="btn btn-primary">{{ 'profile.save_prefs'|trans }}</button>
-                            </div>
-                        </form>
-                    </div>
+                    </details>
                 </section>
-            </div>
-        </section>
-    </main>
 
-    <!-- ========================================
-         FOOTER
-         ======================================== -->
+                {# Sécurité : des LIENS vers les pages qui écrivent (jamais un bouton ici). #}
+                <section class="detail-card pp-pf-set">
+                    <h2 class="detail-card-title">{{ 'accsec.sec_title'|trans }}</h2>
+                    <div class="pp-pf-line"><b>{{ 'accsec.password'|trans }}</b><span>••••••••<small class="md-note"> {{ 'accsec.password_note'|trans }}</small></span><a class="pp-pf-verb" href="{{ path('app_profile_password') }}">{{ 'accsec.password_btn'|trans }}</a></div>
+                    {% if p.account.mfa is not null %}
+                        <div class="pp-pf-line"><b>{{ 'mfa.title'|trans }}</b><span>{% if p.account.mfa != 'enabled' %}<small class="pp-se-tag">{{ 'accsec.mfa_recommended'|trans }}</small> {% endif %}{% include 'site/_state_chip.html.twig' with { label: (p.account.mfa == 'enabled' ? 'accsec.mfa_on' : (p.account.mfa == 'pending' ? 'accsec.mfa_pending' : 'accsec.mfa_off'))|trans, signal: p.account.mfa == 'enabled' ? 'go' : 'caution' } only %}</span><a class="pp-pf-verb" href="{{ path('app_profile_mfa') }}">{{ (p.account.mfa == 'enabled' ? 'accsec.mfa_manage' : (p.account.mfa == 'pending' ? 'accsec.mfa_finish' : 'accsec.mfa_enable'))|trans }}</a></div>
+                    {% endif %}
+                    {% if p.account.sessions is not null %}
+                        <div class="pp-pf-line"><b>{{ 'sessions.title'|trans }}</b><span>{{ 'sessions.profile_hint'|trans({'count': p.account.sessions}) }}</span><a class="pp-pf-verb" href="{{ path('app_profile_sessions') }}">{{ 'accsec.sessions_view'|trans }}</a></div>
+                    {% endif %}
+                    {# ⚠️ UN LIEN : l'effacement est le seul geste irréversible d'un membre ; il ouvre une page qui dit ce qui part et ce qui reste. #}
+                    <p class="pp-se-danger">{{ 'accsec.delete_note'|trans }} <a href="{{ path('app_profile_delete') }}">{{ 'accsec.delete_link'|trans }}</a> — {{ 'accsec.delete_after'|trans }}</p>
+                </section>
+
+                <section class="detail-card pp-pf-set">
+                    <h2 class="detail-card-title">{{ 'profile.display_prefs'|trans }}</h2>
+                    <details>
+                        <summary class="pp-pf-line"><b>{{ 'profile.language'|trans }}</b><span>{{ availableLocales[user.langue]|default(user.langue|upper) }}</span><span class="pp-pf-verb">{{ 'account_page.verb_change'|trans }}</span></summary>
+                        <div class="pp-pf-body">
+                            <p class="md-note">{{ 'profile.language_desc'|trans }}</p>
+                            <select class="lang-select" form="profile-prefs" name="langue" required aria-label="{{ 'profile.language'|trans }}">
+                                {% for code, label in availableLocales %}
+                                    <option value="{{ code }}" {{ user.langue == code ? 'selected' : '' }}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" form="profile-prefs" class="btn btn-primary">{{ 'profile.save_prefs'|trans }}</button>
+                        </div>
+                    </details>
+                    <details>
+                        <summary class="pp-pf-line"><b>{{ 'profile.theme'|trans }}</b><span>{{ ('profile.theme_' ~ user.theme)|trans }}</span><span class="pp-pf-verb">{{ 'account_page.verb_change'|trans }}</span></summary>
+                        <div class="pp-pf-body">
+                            <p class="md-note">{{ 'profile.theme_desc'|trans }}</p>
+                            <div class="profile-theme-control">
+                                <button type="button" class="day-night-switch" data-theme-switch data-save-url="{{ path('app_profile') }}" data-csrf-token="{{ csrf_token('profile_preferences') }}"
+                                    data-label-to-light="{{ 'profile.switch_to_light'|trans }}" data-label-to-dark="{{ 'profile.switch_to_dark'|trans }}"
+                                    data-label-system-dark="{{ 'profile.theme_system_dark'|trans }}" data-label-system-light="{{ 'profile.theme_system_light'|trans }}"
+                                    data-label-mode-dark="{{ 'profile.mode_dark'|trans }}" data-label-mode-light="{{ 'profile.mode_light'|trans }}"
+                                    role="switch" aria-checked="{{ user.theme == 'dark' ? 'true' : 'false' }}" aria-label="{{ 'profile.dark_toggle'|trans }}" title="{{ 'profile.change_theme'|trans }}">
+                                    <span class="day-night-switch__track" aria-hidden="true">
+                                        <span class="day-night-switch__stars"><i></i><i></i><i></i><i></i><i></i></span>
+                                        <span class="day-night-switch__clouds"><i></i><i></i><i></i></span>
+                                        <span class="day-night-switch__orb"><i class="day-night-switch__crater day-night-switch__crater--one"></i><i class="day-night-switch__crater day-night-switch__crater--two"></i><i class="day-night-switch__crater day-night-switch__crater--three"></i></span>
+                                    </span>
+                                    <span class="sr-only">{{ 'profile.theme_toggle_desc'|trans }}</span>
+                                </button>
+                                <span class="theme-switch-caption" data-theme-switch-label aria-live="polite"></span>
+                            </div>
+                            <select class="theme-select" form="profile-prefs" name="theme" data-theme-select required aria-label="{{ 'profile.theme'|trans }}">
+                                <option value="light" {{ user.theme == 'light' ? 'selected' : '' }}>{{ 'profile.theme_light'|trans }}</option>
+                                <option value="dark" {{ user.theme == 'dark' ? 'selected' : '' }}>{{ 'profile.theme_dark'|trans }}</option>
+                                <option value="system" {{ user.theme == 'system' ? 'selected' : '' }}>{{ 'profile.theme_system'|trans }}</option>
+                            </select>
+                            <button type="submit" form="profile-prefs" class="btn btn-primary">{{ 'profile.save_prefs'|trans }}</button>
+                        </div>
+                    </details>
+                    <details>
+                        <summary class="pp-pf-line"><b>{{ 'profile.preferred_venue'|trans }}</b><span>{{ user.preferredVenue ? user.preferredVenue.name : 'profile.all_venues'|trans }}</span><span class="pp-pf-verb">{{ 'account_page.verb_change'|trans }}</span></summary>
+                        <div class="pp-pf-body">
+                            <p class="md-note">{{ 'profile.preferred_venue_help'|trans }}</p>
+                            <select form="profile-prefs" name="preferredVenue" aria-label="{{ 'profile.preferred_venue'|trans }}">
+                                <option value="">{{ 'profile.all_venues'|trans }}</option>
+                                {% for venue in activeVenues %}
+                                    <option value="{{ venue.slug }}"{{ user.preferredVenue and user.preferredVenue.id == venue.id ? ' selected' : '' }}>{{ venue.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" form="profile-prefs" class="btn btn-primary">{{ 'profile.save_prefs'|trans }}</button>
+                        </div>
+                    </details>
+                </section>
+
+                {# Le technique, replié. ⚠️ S192 — jamais l'identifiant RFID en clair : « ••••A1F2 » suffit à reconnaître SA carte. #}
+                <details class="detail-card pp-pf-set">
+                    <summary class="detail-card-title">{{ 'account_page.tech_details'|trans }}</summary>
+                    <div class="pp-pf-line"><b>{{ 'profile.username'|trans }}</b><span>{{ user.username }}</span></div>
+                    <div class="pp-pf-line"><b>{{ 'profile.id_number'|trans }}</b><span>{{ user.numeroId ?? 'profile.not_set'|trans }}</span></div>
+                    <div class="pp-pf-line"><b>{{ 'profile.status'|trans }}</b><span>{{ user.statusKey|trans }}</span></div>
+                    <div class="pp-pf-line"><b>{{ 'profile.rfid_uid'|trans }}</b><span>{{ explained.badge.hint ?? 'fallback.not_set_m'|trans }}</span></div>
+                    <div class="pp-pf-line"><b>{{ 'profile.registered_on'|trans }}</b><span>{{ user.createdAt|lab_date('d/m/Y H:i') }}</span></div>
+                    <div class="pp-pf-line"><b>{{ 'profile.last_login'|trans }}</b><span>{{ user.derniereConnexion ? user.derniereConnexion|lab_date('d/m/Y H:i') : 'fallback.never_connected'|trans }}</span></div>
+                </details>
+            {% endif %}
+        </div>
+    </section>
+</main>
 {% endblock %}
 
 {% block javascripts %}
     <script src="{{ asset('js/main.js') ~ '?v=' ~ js_version }}"></script>
+    <script>
+        (() => {
+            // Anciens liens à ancre (`/profil#usage-rights`…) : on recharge sur l'onglet qui porte
+            // la section. Dès que `onglet` est présent, plus de redirection — pas de boucle.
+            const tabs = {
+                'usage-rights': 'acces', 'badges': 'acces',
+                'info': 'reglages', 'settings': 'reglages', 'public-profile': 'reglages',
+                'reservations': 'activite', 'stats': 'activite', 'loans': 'activite', 'event-registrations': 'activite',
+            };
+            const hash = location.hash.slice(1);
+            const query = new URLSearchParams(location.search);
+            if (hash && tabs[hash] && !query.has('onglet')) {
+                query.set('onglet', tabs[hash]);
+                location.replace(location.pathname + '?' + query.toString() + '#' + hash);
+                return;
+            }
+            // Une ancre qui vise un <details> replié l'ouvre.
+            const target = hash ? document.getElementById(hash) : null;
+            if (target && target.tagName === 'DETAILS') {
+                target.open = true;
+            }
+        })();
+    </script>
 {% endblock %}

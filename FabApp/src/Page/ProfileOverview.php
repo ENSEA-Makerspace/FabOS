@@ -11,8 +11,9 @@ use App\Repository\LoanRepository;
 use App\Repository\ReservationRepository;
 
 /**
- * « Mon compte » — proposition du 2026-10-02 (demande de l'opérateur : « il faut
- * scroller pour voir les infos utiles, trop de petit texte, pas assez utile »).
+ * « Mon compte » (`/profil`) : le résumé que rendent l'en-tête, l'Aperçu, Mes accès
+ * et Mon activité (demande de l'opérateur : « il faut scroller pour voir les infos
+ * utiles, trop de petit texte, pas assez utile »).
  *
  * ⚠️ Ne calcule rien de neuf : tout vient des services que `/profil` et l'accueil
  * lisent déjà (`MemberToday`, `MyTrainings`, `AccountSecurityEmails`, l'explicateur
@@ -37,19 +38,12 @@ final class ProfileOverview
         $today = $this->today->for($user);
         $explained = $today['explained'];
 
-        // Les droits : ce qui est permis, en UNE ligne, et d'où ça vient, une fois.
+        // Les droits : la liste de ce qui est permis (l'Aperçu). Le détail refusé,
+        // d'où il vient et les budgets : `_usage_rights_summary`, sur Mes accès.
         $allowed = [];
-        $denied = [];
-        $sources = [];
         foreach ($explained['capabilities'] as $row) {
             if ($row['verdict']->allowed) {
                 $allowed[] = $row['capability']->labelKey;
-            } else {
-                $denied[] = ['labelKey' => $row['capability']->labelKey, 'reason' => $row['verdict']->reason];
-            }
-            foreach ($row['paths'] as $path) {
-                $key = (string) $path['package'] . '|' . (string) ($path['group'] ?? '');
-                $sources[$key] ??= ['package' => $path['package'], 'group' => $path['group'] ?? null, 'until' => $path['until'] ?? null];
             }
         }
 
@@ -80,7 +74,7 @@ final class ProfileOverview
             'trainings' => $this->trainings->for($user),
             'account' => $account,
             'emails' => ['optional' => $optional, 'optionalOn' => $optionalOn],
-            'rights' => ['allowed' => $allowed, 'denied' => $denied, 'sources' => array_values($sources)],
+            'rights' => ['allowed' => $allowed],
             'loans' => $loans,
             'events' => $events,
             'reservationCount' => $this->reservations->count(['utilisateur' => $user]),

@@ -141,7 +141,7 @@ final class S202BadgeGrantProbeCommand extends Command
             $this->check($io, $failures, '🔴 le lecteur OUVRE la machine', $opens());
 
             $memberSession = $this->login($email, self::PASSWORD);
-            $profile = $this->page('/profil', $memberSession);
+            $profile = $this->page('/profil?onglet=acces', $memberSession);
             $this->check($io, $failures, '« Mes badges » : « Attribué par ' . $adminName . ' le … : motif »', $this->inAnyLocale($profile, 'badge_grants.profile_granted_by_reason', [
                 '%by%' => $adminName, '%date%' => (new \DateTimeImmutable())->format('d/m/Y'), '%reason%' => self::REASON,
             ]) || $this->inAnyLocale($profile, 'badge_grants.profile_granted_by_reason', [

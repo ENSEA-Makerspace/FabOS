@@ -540,31 +540,6 @@
    element is unsupported.
    ⚠️ Volume only. Badges held, identity and anything explaining a refusal stay
    open — disclosure is not for consequence. */
-.profile-disclosure > summary.section-card-header {
-    cursor: pointer;
-    list-style: none;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--spacing-sm);
-}
-
-.profile-disclosure > summary::-webkit-details-marker { display: none; }
-
-.profile-disclosure > summary.section-card-header::after {
-    content: '+';
-    font-weight: 700;
-    font-size: 1.2em;
-    line-height: 1;
-    color: var(--color-primary);
-}
-
-.profile-disclosure[open] > summary.section-card-header::after { content: '−'; }
-
-.profile-disclosure > summary:focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
-}
 
 /* Profile Content Sections */
 .profile-content-section {
@@ -602,37 +577,6 @@
 }
 
 /* Info Grid */
-.info-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: var(--spacing-md);
-    padding: var(--spacing-lg);
-}
-
-.info-item {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-xs);
-}
-
-.info-label {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    font-size: var(--font-size-sm);
-    color: var(--color-text-light);
-}
-
-.info-label svg {
-    width: 16px;
-    height: 16px;
-    flex-shrink: 0;
-}
-
-.info-value {
-    font-size: var(--font-size-base);
-    color: var(--color-text);
-}
 
 .status-badge {
     display: inline-block;
@@ -699,22 +643,6 @@
     opacity: 0.7;
 }
 
-.badge-icon.large {
-    width: 60px;
-    height: 60px;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--color-text-inverse);
-    border-radius: var(--border-radius-circle);
-    border: 2px solid var(--border-color);
-}
-
-.badge-icon.large.locked {
-    border-color: #ccc;
-}
-
 .badge-svg {
     width: 40px;
     height: 40px;
@@ -725,43 +653,11 @@
     min-width: 0;
 }
 
-.badge-name {
-    font-size: var(--font-size-base);
-    font-weight: 600;
-    color: var(--color-text);
-    margin-bottom: 4px;
-}
-
-.badge-description {
-    font-size: var(--font-size-sm);
-    color: var(--color-text-light);
-    margin-bottom: 4px;
-}
-
-.badge-meta {
-    display: flex;
-    gap: var(--spacing-sm);
-    font-size: 11px;
-}
-
-.badge-level {
-    background: var(--color-bg-light);
-    padding: 2px 6px;
-    border-radius: 4px;
-    color: var(--color-primary);
-    font-weight: 500;
-}
-
-.badge-date {
-    color: var(--color-text-light);
-}
-
 .badge-requirement {
     color: #FF9800;
     font-style: italic;
 }
 
-.badge-checkmark,
 .badge-lock {
     position: absolute;
     top: var(--spacing-md);
@@ -773,43 +669,13 @@
     justify-content: center;
 }
 
-.badge-checkmark {
-    color: #4CAF50;
-}
-
 .badge-lock {
     color: #999;
 }
 
-.badge-checkmark svg,
 .badge-lock svg {
     width: 20px;
     height: 20px;
-}
-
-.badges-stats {
-    display: flex;
-    gap: var(--spacing-md);
-}
-
-.stat-pill {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: var(--spacing-sm) var(--spacing-md);
-    background: var(--color-bg-light);
-    border-radius: var(--border-radius);
-}
-
-.pill-value {
-    font-size: var(--font-size-xl);
-    font-weight: 700;
-    color: var(--color-primary);
-}
-
-.pill-label {
-    font-size: 11px;
-    color: var(--color-text-light);
 }
 
 /* Reservations Table */
@@ -928,22 +794,6 @@
 }
 
 /* Profile Stats Grid */
-.profile-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: var(--spacing-lg);
-    padding: var(--spacing-lg);
-}
-
-.profile-stat-card {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
-    padding: var(--spacing-lg);
-    background: var(--color-bg-light);
-    border-radius: var(--border-radius);
-    border: 1px solid var(--border-color);
-}
 
 .profile-stat-icon {
     width: 48px;
@@ -962,33 +812,7 @@
     height: 24px;
 }
 
-.profile-stat-info {
-    display: flex;
-    flex-direction: column;
-}
-
-.profile-stat-value {
-    font-size: var(--font-size-2xl);
-    font-weight: 700;
-    color: var(--color-text);
-}
-
-.profile-stat-label {
-    font-size: var(--font-size-sm);
-    color: var(--color-text-light);
-}
-
 /* Activity Chart */
-.activity-chart {
-    padding: var(--spacing-lg);
-    border-top: 1px solid var(--border-color);
-}
-
-.chart-title {
-    font-size: var(--font-size-lg);
-    color: var(--color-text);
-    margin-bottom: var(--spacing-lg);
-}
 
 .chart-container {
     background: var(--color-bg-light);
@@ -1171,9 +995,6 @@
 }
 
 /* Stats Period Select */
-.stats-period {
-    flex-shrink: 0;
-}
 
 .period-select,
 .theme-select,
@@ -1265,9 +1086,7 @@
         grid-template-columns: 1fr;
     }
     
-    .profile-stats-grid {
-        grid-template-columns: 1fr;
-    }
+    
     
     .settings-grid {
         grid-template-columns: 1fr;
@@ -1295,16 +1114,12 @@
         text-align: center;
     }
     
-    .badge-checkmark,
     .badge-lock {
         position: static;
         margin-top: var(--spacing-sm);
     }
     
-    .profile-stat-card {
-        flex-direction: column;
-        text-align: center;
-    }
+    
     
     .sessions-list .session-item {
         flex-direction: column;
@@ -1321,10 +1136,6 @@
 }
 
 .profile-theme-control {
-    position: absolute;
-    top: 22px;
-    right: 24px;
-    z-index: 20;
     display: flex;
     pointer-events: auto;
     flex-direction: column;
@@ -1593,7 +1404,6 @@ html[data-theme="dark"] .profile-nav {
 }
 
 html[data-theme="dark"] .badge-card,
-html[data-theme="dark"] .profile-stat-card,
 html[data-theme="dark"] .chart-container {
     background: var(--theme-surface-elevated);
     border-color: var(--border-color);
@@ -1637,11 +1447,6 @@ html[data-theme="dark"] .profile-banner {
 }
 
 @media (max-width: 768px) {
-    .profile-theme-control {
-        top: 14px;
-        right: 14px;
-    }
-
     .day-night-switch {
         width: 104px;
         height: 50px;
@@ -1820,34 +1625,10 @@ html[data-theme="dark"] .section-badge {
     z-index: 0;
 }
 
-.profile-banner.has-custom-banner .profile-cover-image {
-    position: absolute;
-    inset: 0;
-    display: block;
-    width: 100%;
-    height: 100%;
-    max-width: none;
-    object-fit: cover;
-    object-position: center;
-    opacity: 1;
-    filter: none !important;
-    transform: none;
-}
-
 .profile-banner.has-custom-banner .cover-overlay {
     display: none;
     background: transparent;
     opacity: 0;
-}
-
-.profile-banner.has-custom-banner .profile-theme-control {
-    position: absolute;
-    top: 24px;
-    right: 28px;
-    left: auto;
-    bottom: auto;
-    transform: none;
-    z-index: 30;
 }
 
 .profile-banner.has-custom-banner .profile-avatar-large,
@@ -1871,22 +1652,12 @@ html[data-theme="dark"] .profile-banner.has-custom-banner {
     background: #111827;
 }
 
-html[data-theme="dark"] .profile-banner.has-custom-banner .profile-cover-image {
-    filter: none !important;
-}
-
 @media (max-width: 768px) {
     .profile-banner.has-custom-banner {
         min-height: 360px;
         padding-top: 104px;
     }
-
-    .profile-banner.has-custom-banner .profile-theme-control {
-        top: 14px;
-        right: 14px;
-    }
 }
-
 
 /* ===================================================================
    LA CARTE D'AUTHENTIFICATION (S148, J-5)
@@ -2030,11 +1801,6 @@ html[data-theme="dark"] .profile-banner.has-custom-banner .profile-cover-image {
 .auth-alert a { color: inherit; font-weight: 700; text-decoration: underline; }
 
 /* S192b — d'où vient un badge (formation, ou autrement). */
-.badge-origin {
-    margin: 6px 0 0;
-    color: var(--color-text-light);
-    font-size: 0.82rem;
-}
 
 /* S191a — sessions ouvertes. */
 .sessions-card { max-width: 640px; }
