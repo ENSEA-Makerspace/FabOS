@@ -127,7 +127,8 @@ final class S193LoanProbeCommand extends Command
 
             $io->section('5. Rendre depuis la fiche');
             $list = $this->get('/admin/loans', $admin);
-            $this->check($io, $failures, 'la liste des prêts ne rend plus en ligne : elle mène à la fiche', !str_contains($list, 'return-inline') && str_contains($list, '/admin/loanable-items/' . $itemId . '/edit#loan-'));
+            // 0.5 — la liste du comptoir porte le VRAI retour (POST), plus un détour par la fiche.
+            $this->check($io, $failures, 'la liste du comptoir propose « Enregistrer le retour » (POST)', str_contains($list, 'data-loan-row') && (bool) preg_match('#action="/admin/loans/\d+/return"#', $list));
             $sheet = $this->get('/admin/loanable-items/' . $itemId . '/edit', $admin);
             preg_match('#action="/admin/loans/(\d+)/return">\s*<input type="hidden" name="_token" value="([^"]+)"#', $sheet, $m);
             $back = $this->handle(Request::create('/admin/loans/' . ($m[1] ?? 0) . '/return', 'POST', ['_token' => $m[2] ?? '', 'conditionReturn' => 'rayure sonde']), $admin);

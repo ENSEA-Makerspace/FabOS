@@ -1,0 +1,96 @@
+{% extends 'base.html.twig' %}
+
+{#
+   Prêts — la liste de travail du comptoir (`/admin/loans`).
+
+   - les tuiles trient par TRAVAIL, chacune avec son compteur : « À rendre
+     aujourd'hui », « En retard », « En cours » (vue par défaut), « Rendus » ;
+   - le plus pressé en tête (retard le plus ancien, puis échéance la plus proche) ;
+     un retard dit « +N jours » sous l'échéance ;
+   - UN verbe par ligne non rendue : « Enregistrer le retour » — le vrai POST
+     `app_admin_loan_return` (jeton CSRF `return_loan_<id>`), qui ramène sur la fiche
+     de l'objet, ancrée sur la circulation ;
+   - le nom de l'objet mène à sa fiche publique (`/prets/{id}`) ; « Nouveau prêt »
+     reste en haut à droite.
+   Lit `?tuile=<aujourdhui|retard|en-cours|rendus>` et `?q=`.
+   Données : `App\Design\LoansCounter::build()`.
+
+   ⚠️ Un commentaire Twig entre deux clés d'un hash d'arguments est une erreur
+   de syntaxe : celui-ci reste hors des `with { … }`.
+   ⚠️ Dans `.admin-panel`, tout <span> est repeint en gris : texte coloré en <div>/<b>.
+#}
+
+{% block title %}{{ 'admin_loans.browser_title'|trans }}{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals-prets-admin.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+{% embed 'site/_admin_list.html.twig' with {
+    action_label: 'admin_loans.action_label'|trans,
+    action_route: 'app_admin_loan_new',
+    panel_title: 'admin_loans.panel_title'|trans,
+    list_count: loans.rows|length,
+    list_total: loans.total,
+    list_route: 'app_admin_loans',
+    list_route_params: {},
+    list_search: loans.q,
+    list_search_placeholder: 'common.search_placeholder'|trans,
+    list_query: {tuile: loans.tile},
+    list_tiles_label: 'loans_desk.tiles_label'|trans,
+    list_tiles: loans.tiles,
+} %}
+    {% block content %}
+        {% embed 'site/_data_table.html.twig' with {
+            pin_actions: true,
+            columns: [
+                {label: 'admin_loans.col_item'|trans, class: 'is-grow'},
+                {label: 'admin_loans.col_taken'|trans, class: 'is-tight'},
+                {label: 'loans_desk.col_due'|trans, class: 'is-tight'},
+                {label: 'admin_loans.col_status'|trans, class: 'is-tight'},
+                {label: 'admin_loans.col_action'|trans, class: 'is-actions'},
+            ],
+            rows: loans.rows,
+            empty: 'loans_desk.empty'|trans,
+        } %}
+            {% block rows %}
+                {% for row in loans.rows %}
+                    <tr data-loan-row="{{ row.id }}">
+                        <td>{% include 'site/_cell_title.html.twig' with {
+                            title: row.item,
+                            href: row.itemId ? path('app_loans_item', {id: row.itemId}) : '',
+                            subtitle: row.borrower,
+                        } only %}</td>
+                        <td><div class="pp-pa-date">{{ row.taken|date('d/m/Y') }}</div></td>
+                        <td>
+                            {% if row.due %}
+                                <div class="pp-pa-date">{{ row.due|date('d/m/Y') }}</div>
+                                {% if row.overdue %}<div class="pp-pa-late">{{ (row.lateDays > 1 ? 'loans_desk.late_days_many' : 'loans_desk.late_days_one')|trans({'%n%': row.lateDays}) }}</div>{% endif %}
+                            {% else %}
+                                {% include 'site/_cell_empty.html.twig' with { reason: 'loans_desk.no_due' } only %}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% include 'site/_state_chip.html.twig' with { label: row.state.label, signal: row.state.signal } only %}
+                            {% if row.returnedOn %}<div class="pp-pa-note">{{ 'admin_loans.returned_on'|trans({'%date%': row.returnedOn|date('d/m/Y')}) }}</div>{% endif %}
+                        </td>
+                        <td class="is-actions">
+                            {% if not row.returned and row.itemId %}
+                                <form class="pp-pa-return" method="post" action="{{ path('app_admin_loan_return', {id: row.id}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('return_loan_' ~ row.id) }}">
+                                    <button class="btn-action btn-primary-admin" type="submit">{{ 'loans_desk.record_return'|trans }}</button>
+                                </form>
+                            {% else %}
+                                {% include 'site/_cell_empty.html.twig' with { reason: 'admin_loans.status_returned' } only %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% endblock %}
+        {% endembed %}
+    {% endblock %}
+{% endembed %}
+{% endblock %}

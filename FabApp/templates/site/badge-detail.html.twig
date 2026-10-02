@@ -1,20 +1,19 @@
 {% extends 'site/base_public.html.twig' %}
 
+{# La page d'un badge selon qui la regarde : détenu (« Vous êtes autorisé·e à… », ce qu'il ouvre, comment on l'a obtenu) ou non (« Ce que ce badge ouvrirait »). Données : `App\Design\BadgeHeld`. Dessous, infos pratiques et chaîne de badges. #}
+
 {% from 'site/_admin_inline.html.twig' import admin_actions %}
 
 {% block title %}{{ badge.nom }} - FabOS{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals-badge-obtenu.css') ~ '?v=' ~ css_version }}">
 {% endblock %}
 
 {% block page_styles %}
     <style>
-        .badge-detail-section { padding: 24px 0 48px; }
-        .badge-detail-header { display: flex; align-items: center; gap: 24px; margin-bottom: 28px; flex-wrap: wrap; }
-        .badge-detail-icon { width: 96px; height: 96px; object-fit: contain; flex-shrink: 0; }
-        .badge-detail-header h1 { margin: 0 0 6px; }
-        .badge-detail-header p { color: var(--color-text-light); margin: 0; }
         .badge-chain-list { display: flex; flex-wrap: wrap; gap: 12px; }
         .badge-chain-item {
             display: flex; align-items: center; gap: 10px; padding: 8px 14px 8px 8px;
@@ -25,51 +24,113 @@
         .badge-chain-item img { width: 32px; height: 32px; object-fit: contain; }
         .badge-chain-item span { font-weight: 600; font-size: 14px; }
         .empty-note { color: var(--color-text-light); font-style: italic; }
+        .badge-detail-more { margin-top: 24px; }
     </style>
 {% endblock %}
 
 {% block body %}
     <main id="main-content" tabindex="-1" class="main-content">
-        <section class="badge-detail-section">
-            <div class="container">
+        <section class="machine-detail-section">
+            <div class="container pp-home">
                 {% include 'site/_breadcrumb.html.twig' with {trail: [
                     {label: 'nav.home'|trans, url: path('app_home')},
                     {label: 'nav.badges'|trans, url: path('app_badges')},
-                    {label: badge.nom},
+                    {label: held.badge.nom},
                 ]} only %}
 
-                <div class="badge-detail-header">
-                    {% include 'site/_badge_image.html.twig' with {badge: badge, class: 'badge-detail-icon'} only %}
-                    <div>
-                        <h1>{{ badge.nom }}{{ admin_actions([
-                            { route: 'app_admin_badge_edit', params: { id: badge.id }, label: 'admin_inline.edit'|trans }
-                        ]) }}</h1>
-                        {% if badge.description %}<p>{{ badge.description }}</p>{% endif %}
-                    </div>
-                </div>
+                {% set badge = held.badge %}
+                {% set hasAny = held.machines|length + held.places|length > 0 %}
+                {% set names = (held.machines|map(m => m.nom))|merge(held.places|map(p => p.nom)) %}
+                <header class="pp-resv-head">
+                    <h1>{{ (held.owned ? 'badgeheld.title_owned' : 'badgeheld.title')|trans }}{{ admin_actions([
+                        { route: 'app_admin_badge_edit', params: { id: badge.id }, label: 'admin_inline.edit'|trans }
+                    ]) }}</h1>
+                </header>
 
-                <div class="detail-tab-grid">
-                    <div class="detail-card">
-                        <h2 class="detail-card-title">{{ 'badge_detail.unlocks_title'|trans }}</h2>
-                        <div class="detail-card-content">
-                            {% if machineAccess is empty %}
-                                <p class="empty-note">{{ 'badge_detail.unlocks_empty'|trans }}</p>
+                <section class="detail-card" aria-labelledby="pp-bo-title">
+                    <div class="pp-bo-head">
+                        {% include 'site/_badge_image.html.twig' with {badge: badge} only %}
+                        <div>
+                            {% if held.owned %}
+                                <p class="pp-bo-lead">{% if hasAny and names|length > 3 %}{{ 'badgeheld.authorised_count'|trans({'%n%': names|length}) }}{% elseif hasAny %}{{ 'badgeheld.authorised'|trans({'%names%': names|join(', ', ' ' ~ 'badgeheld.and'|trans ~ ' ')}) }}{% else %}{{ 'badgeheld.yours'|trans }}{% endif %}</p>
                             {% else %}
-                                <ul class="feature-list">
-                                    {% for entry in machineAccess %}
-                                        <li>
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-                                            <span>
-                                                <a href="{{ path('app_machine_detail', {id: entry.machine.id}) }}">{{ entry.machine.nom }}</a>
-                                                {{ (entry.requiredForAccess ? 'badge_detail.required_for' : 'badge_detail.optional_for')|trans }}
-                                            </span>
-                                        </li>
-                                    {% endfor %}
-                                </ul>
+                                <p class="pp-bo-lead is-wish">{{ 'badgeheld.not_yet'|trans }}</p>
                             {% endif %}
+                            <h2 id="pp-bo-title" class="pp-bo-title">{{ badge.nom }}</h2>
+                            <p class="pp-bo-meta">
+                                {% if held.owned and held.obtainedAt %}
+                                    <b>{% include 'site/_icon.html.twig' with { name: 'check' } only %} {{ 'badgeheld.obtained_on'|trans({'%date%': held.obtainedAt|lab_date('d/m/Y')}) }}</b>
+                                {% endif %}
+                                {% if held.trainings|length %}
+                                    <b>{% include 'site/_icon.html.twig' with { name: 'history' } only %} {{ 'badgeheld.training'|trans }} {% for t in held.trainings %}<a href="{{ path('app_formation_detail', {id: t.formation.id}) }}">{{ t.formation.titre }}</a>{% if not loop.last %}, {% endif %}{% endfor %}</b>
+                                {% endif %}
+                            </p>
+                            {% if badge.description %}<p class="pp-bo-meta">{{ badge.description }}</p>{% endif %}
+                            <div class="pp-bo-actions">
+                                {% if held.owned %}
+                                    {% if held.machines|length %}<a class="btn btn-primary" href="#pp-bo-opens">{{ 'badgeheld.see_opens'|trans }}</a>{% endif %}
+                                {% elseif held.trainings|length %}
+                                    <a class="btn btn-primary" href="{{ path('app_formation_follow', {id: held.trainings[0].formation.id}) }}">{{ 'badgeheld.start_training'|trans }}</a>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
+                </section>
 
+                <section id="pp-bo-opens" class="pp-bo-opens" aria-labelledby="pp-bo-opens-title">
+                    <h2 id="pp-bo-opens-title">{{ (held.owned ? 'badgeheld.can_book' : 'badgeheld.would_open')|trans }}</h2>
+                    {% if not hasAny %}
+                        <p class="pp-bo-empty">{{ 'badgeheld.opens_nothing'|trans }}</p>
+                    {% else %}
+                        <ul class="pp-bo-grid">
+                            {% for machine in held.machines %}
+                                <li class="pp-bo-item">
+                                    <div class="pp-bo-media">
+                                        {% set photo = machine.photo %}
+                                        {% if photo %}<img src="{{ photo starts with 'http' or photo starts with '/' ? photo : asset(photo) }}" alt="">
+                                        {% else %}{% include 'site/_icon.html.twig' with { name: 'tool' } only %}{% endif %}
+                                    </div>
+                                    <div>
+                                        <h3>{{ machine.nom }}</h3>
+                                        <p class="pp-bo-kind">{{ 'badgeheld.kind_machine'|trans }}</p>
+                                        <a class="btn {{ held.owned ? 'btn-primary' : 'btn-secondary' }}" href="{{ path('app_machine_detail', {id: machine.id}) }}">{{ (held.owned ? 'badgeheld.book' : 'badgeheld.see_machine')|trans }}</a>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                            {% for place in held.places %}
+                                <li class="pp-bo-item">
+                                    <div class="pp-bo-media">{% include 'site/_icon.html.twig' with { name: 'map' } only %}</div>
+                                    <div>
+                                        <h3>{{ place.nom }}</h3>
+                                        <p class="pp-bo-kind">{{ 'badgeheld.kind_place'|trans }}</p>
+                                        <a class="btn {{ held.owned ? 'btn-primary' : 'btn-secondary' }}" href="{{ path('app_place_detail', {id: place.id}) }}">{{ (held.owned ? 'badgeheld.book' : 'badgeheld.see_place')|trans }}</a>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </section>
+
+                {% for t in held.trainings|filter(t => t.journey.steps) %}
+                    <section class="detail-card pp-bo-path" aria-labelledby="pp-bo-path-{{ t.formation.id }}">
+                        <h2 id="pp-bo-path-{{ t.formation.id }}">{{ (held.owned ? 'badgeheld.how_obtained' : 'badgeheld.your_path')|trans }} — {{ t.formation.titre }}</h2>
+                        <ol class="pp-steps">
+                            {% for step in t.journey.steps %}
+                                <li class="{{ step.done ? 'is-done' : (step.key == t.journey.next ? 'is-next' : '') }}">
+                                    <span class="pp-steps-mark" aria-hidden="true">{{ step.done ? '✓' : loop.index }}</span>
+                                    <b>{{ ('fdet.step_' ~ step.key)|trans }}</b>
+                                    <small>{{ (step.done ? 'mytr.step_done' : (step.key == t.journey.next ? 'mytr.step_next' : (step.blocking ? 'mytr.step_team' : 'mytr.step_later')))|trans }}</small>
+                                </li>
+                            {% endfor %}
+                        </ol>
+                        {% if not held.owned and t.journey.next %}
+                            <p class="pp-bo-actions"><a class="btn btn-primary" href="{{ path('app_formation_follow', {id: t.formation.id}) }}">{{ ('fdet.next_' ~ t.journey.next)|trans }}</a></p>
+                        {% endif %}
+                    </section>
+                {% endfor %}
+
+
+                <div class="detail-tab-grid badge-detail-more">
                     <div class="detail-card">
                         <h2 class="detail-card-title">{{ 'badge_detail.practical_title'|trans }}</h2>
                         <div class="detail-card-content">

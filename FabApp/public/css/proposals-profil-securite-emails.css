@@ -6,8 +6,8 @@
 .pp-se-danger { margin: var(--spacing-md) 0 0; padding-top: var(--spacing-md); border-top: 1px solid var(--border-color); font-size: var(--font-size-sm); color: var(--color-text-light); }
 .pp-se-groups { display: flex; flex-direction: column; gap: var(--spacing-md); }
 .pp-se-group { background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: var(--spacing-md); }
-.pp-se-group h3 { display: flex; align-items: center; gap: var(--spacing-sm); margin: 0 0 var(--spacing-sm); font-size: var(--font-size-lg); }
-.pp-se-group h3 svg { width: 20px; height: 20px; color: var(--color-primary-text, var(--color-primary)); }
+.pp-se-group h3, .pp-se-group h4 { display: flex; align-items: center; gap: var(--spacing-sm); margin: 0 0 var(--spacing-sm); font-size: var(--font-size-lg); }
+.pp-se-group h3 svg, .pp-se-group h4 svg { width: 20px; height: 20px; color: var(--color-primary-text, var(--color-primary)); }
 .pp-se-group ul { list-style: none; margin: 0; padding: 0; }
 .pp-se-group li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--spacing-md); align-items: center; padding: 10px 0; }
 .pp-se-group li + li { border-top: 1px solid var(--border-color); }

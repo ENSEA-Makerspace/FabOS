@@ -1,483 +1,112 @@
 {% extends 'base.html.twig' %}
 
-{# S78 step 7 — this page owned its <!DOCTYPE> and <head>. With no layout
-   there was nowhere to put a stylesheet link, which is why every one of
-   these grew a <style> and every <style> grew literal colours. The shell
-   emits the doctype, style.css, the favicon and importmap('app').
-
-   ⚠️ It GAINS Stimulus — the shell emits `importmap('app')` and this page
-   did not, so `confirm_controller` and friends now actually run here. A
-   delete button wired to a controller that never loaded deletes without
-   asking, so that is the fix rather than a side effect. #}
+{#
+   Accueil admin : d'abord ce qui demande une action (AdminAttention), ensuite les compteurs
+   et les écrans dédiés en une ligne chacun. ⚠️ Dans `.admin-panel`, `style.css` repeint tout
+   <span> en gris : texte coloré ou gras en <b>/<div>/<p>.
+#}
 
 {% block title %}{{ 'admin_dashboard.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">
-    <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=' ~ css_version }}">
-    <style>
-        /* Styles spécifiques à l'admin */
-
-        /* Four per row, not auto-fit: with seven tiles auto-fit puts all of them on
-           one line on a wide screen, which reads as a strip of numbers rather than a
-           summary. Fixed columns give 4 + 3, and the last row stays left-aligned. */
-        /* 🔴 **`margin-top`, et pas `padding-top`** (S153b). Les tuiles
-           démarraient exactement là où la bande finissait — zéro pixel entre le
-           dégradé et la première carte, mesuré au navigateur. La cause est une
-           asymétrie d'`admin.css` : `.admin-panel > :first-child` reçoit
-           `padding-top: 24px`, mais ici le premier enfant est la bande, donc la
-           grille — deuxième enfant — n'en reçoit aucun.
-           ⚠️ Y répondre par un `padding-top` local ne marcherait pas : la
-           couverture `.admin-panel > :not(…)` pose `padding: 0 24px` à (0,6,0)
-           et gagnerait. La marge, elle, n'est disputée par personne.
-           ⚠️ `--spacing-lg`, la même valeur que la gouttière latérale de 24 px :
-           l'air au-dessus des tuiles est celui qu'elles ont déjà sur les côtés. */
-        .admin-stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: var(--spacing-lg);
-            margin-top: var(--spacing-lg);
-            margin-bottom: var(--spacing-xl);
-        }
-        
-        /* ⚠️ S143b: `white` was a literal — the tile was a white box on a dark
-           page until the `!important` blanket in style.css happened to repaint
-           it. The token says what it is. */
-        .admin-stat-card {
-            background: var(--theme-surface);
-            border-radius: var(--border-radius);
-            padding: var(--spacing-lg);
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-md);
-            transition: transform var(--transition), box-shadow var(--transition);
-        }
-        
-        .admin-stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-lg);
-        }
-        
-        /* ⚠️ S143b: the seven tiles carried their colour TWICE in the markup —
-           an inline `rgba(…, .1)` background and a literal `stroke="#hex"` on the
-           SVG, seven pairs of values the theme could never reach. The tone is a
-           class now and the icon inherits it through `currentColor`; the tint is
-           derived with `color-mix`, so dark mode needs no second rule. */
-        /* ⚠️ `--color-primary-text`, not `--color-primary`. The brand magenta as a
-           FOREGROUND measures about 1.97:1 on a dark panel — the same trap the RFID
-           log links and the metric cells already needed lifting for. The token is
-           the accent in light and a 50 % white mix in dark, so one declaration
-           answers both. */
-        .admin-stat-card.is-primary .admin-stat-icon { color: var(--color-primary-text); }
-        .admin-stat-card.is-ok      .admin-stat-icon { color: var(--color-ok); }
-        .admin-stat-card.is-warn    .admin-stat-icon { color: var(--color-warn); }
-        .admin-stat-card.is-stop    .admin-stat-icon { color: var(--color-stop); }
-        .admin-stat-card.is-info    .admin-stat-icon { color: var(--color-info); }
-        .admin-stat-icon {
-            background: color-mix(in srgb, currentColor 12%, transparent);
-            width: 60px;
-            height: 60px;
-            border-radius: var(--border-radius);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-        
-        .admin-stat-icon svg {
-            width: 28px;
-            height: 28px;
-        }
-        
-        .admin-stat-info h4 {
-            font-size: var(--font-size-xl);
-            font-weight: 700;
-            color: var(--color-primary);
-            margin-bottom: var(--spacing-xs);
-        }
-        
-        .admin-stat-info p {
-            color: var(--color-text-light);
-            font-size: var(--font-size-sm);
-        }
-
-        .admin-content {
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-lg);
-        }
-        
-        /* Même raison que la grille au-dessus : quand cette carte est là, c'est
-           ELLE qui suit la bande, et elle était collée pareil. */
-        .first-run-card { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.34); border-radius: 12px; padding: 14px 18px; margin-top: var(--spacing-lg); margin-bottom: 20px; }
-        .first-run-card strong { font-size: 15px; }
-        .first-run-card span { opacity: .9; font-size: 13px; flex: 1 1 260px; }
-
-        .admin-panel {
-            background: white;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border-color);
-        }
-        
-        .admin-panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: var(--spacing-lg);
-            padding-bottom: var(--spacing-md);
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .admin-panel-header h2 {
-            font-size: var(--font-size-xl);
-            font-weight: 600;
-            color: var(--color-text);
-        }
-        
-        .admin-actions {
-            display: flex;
-            gap: var(--spacing-sm);
-        }
-        
-        .quick-actions-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: var(--spacing-lg);
-        }
-        
-        .quick-action-card {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-md);
-            padding: var(--spacing-lg);
-            background: var(--color-bg-light);
-            border-radius: var(--border-radius);
-            border: 1px solid var(--border-color);
-            transition: all var(--transition);
-            cursor: pointer;
-        }
-        
-        .quick-action-card:hover {
-            background: var(--color-primary);
-            color: white;
-            border-color: var(--color-primary);
-        }
-
-        .quick-action-card:hover .quick-action-icon,
-        .quick-action-card:hover .quick-action-text {
-            color: white;
-        }
-        
-        .quick-action-icon {
-            width: 50px;
-            height: 50px;
-            background: color-mix(in srgb, var(--color-primary) 10%, transparent);
-            border-radius: var(--border-radius-circle);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            transition: all var(--transition);
-        }
-        
-        .quick-action-card:hover .quick-action-icon {
-            background: rgba(255, 255, 255, 0.2);
-        }
-        
-        .quick-action-icon svg {
-            width: 24px;
-            height: 24px;
-            color: var(--color-primary);
-            transition: all var(--transition);
-        }
-        
-        .quick-action-text h4 {
-            font-size: var(--font-size-base);
-            font-weight: 600;
-            margin-bottom: var(--spacing-xs);
-        }
-        
-        .quick-action-text p {
-            font-size: var(--font-size-sm);
-            opacity: 0.7;
-        }
-        
-        .recent-activity {
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-md);
-        }
-        
-        .activity-item {
-            display: flex;
-            align-items: flex-start;
-            gap: var(--spacing-md);
-            padding: var(--spacing-md);
-            background: var(--color-bg-light);
-            border-radius: var(--border-radius-sm);
-            border-left: 4px solid var(--color-primary);
-        }
-        
-        .activity-icon {
-            width: 36px;
-            height: 36px;
-            background: color-mix(in srgb, var(--color-primary) 10%, transparent);
-            border-radius: var(--border-radius-circle);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-        
-        .activity-icon svg {
-            width: 18px;
-            height: 18px;
-            color: var(--color-primary);
-        }
-        
-        .activity-content h5 {
-            font-size: var(--font-size-base);
-            font-weight: 600;
-            margin-bottom: var(--spacing-xs);
-        }
-        
-        .activity-content p {
-            font-size: var(--font-size-sm);
-            color: var(--color-text-light);
-        }
-        
-        .activity-time {
-            font-size: var(--font-size-sm);
-            color: var(--color-text-light);
-            margin-left: auto;
-        }
-        
-        /* Responsive */
-        @media (max-width: 992px) {
-            .admin-main-content {
-                grid-template-columns: 1fr;
-            }
-
-        }
-        
-        @media (max-width: 768px) {
-            .admin-stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .admin-stats-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .quick-actions-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="{{ asset('css/proposals.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals-admin-attention.css') ~ '?v=' ~ css_version }}">
 {% endblock %}
 
 {% block body %}
-    <!-- ========================================
-         BANDEAU D'ALERTE
-         ======================================== -->
+{% embed 'site/_admin_list.html.twig' with {
+    panel_title: 'admin_attention.panel_title'|trans,
+} %}
+    {% block content %}
+        <div class="pp-aa" data-admin-attention>
+            {#- Seul chemin vers l'assistant : aucune redirection (S25). -#}
+            {% if showFirstRun|default(false) %}
+                <div class="pp-aa-firstrun">
+                    <b>{{ 'admin_dashboard.setup_needed'|trans }}</b>
+                    <p>{{ 'admin_dashboard.setup_hint'|trans }}</p>
+                    <a class="btn-link btn-primary-admin" href="{{ path('app_admin_wizard') }}">{{ 'admin_dashboard.start'|trans }}</a>
+                </div>
+            {% endif %}
 
-    <!-- ========================================
-         HEADER
-         ======================================== -->
-    {% include 'site/_header.html.twig' %}
+            {% if attention.total > 0 %}
+                <p class="pp-aa-lead">
+                    {% include 'site/_icon.html.twig' with { name: 'warning' } only %}
+                    <b>{{ (attention.total == 1 ? 'admin_attention.lead_one' : 'admin_attention.lead_many')|trans({'%n%': attention.total}) }}</b>
+                </p>
+            {% else %}
+                <p class="pp-aa-lead is-calm">
+                    {% include 'site/_icon.html.twig' with { name: 'check' } only %}
+                    <b>{{ 'admin_attention.lead_calm'|trans }}</b>
+                </p>
+            {% endif %}
 
-    <!-- ========================================
-         CONTENU PRINCIPAL - TABLEAU DE BORD ADMIN
-         ======================================== -->
-    <main id="main-content" tabindex="-1" class="admin-page">
-        <!-- Contenu principal -->
-        <div class="admin-main-content">
-                {% include 'site/_admin_sidebar.html.twig' %}
-
-            <div class="admin-content">
-                {# ⚠️ **S143b: the welcome and the seven figures used to sit in a
-                   full-bleed `.admin-header` slab above everything**, which was
-                   the last coloured band in the admin after S142d. They are a
-                   card like every other card now, and the band inside it is the
-                   same `_admin_form_head` the twenty-six form pages use. #}
-                <section class="admin-panel admin-list-card admin-form-card">
-                    {#- ⚠️ **S153 — la bande respire et porte un fait** (proposition A,
-                        choisie par l'opérateur). Le fait vient de `openState`, donc du
-                        résolveur d'horaires : jamais une phrase écrite ici. Une bande
-                        qui affirme « Ouvert » un jour de fermeture est pire que pas de
-                        bande.
-                        ⚠️ `openState.open` et non `openState.open|default(...)` : le
-                        piège n°1 de la reprise, `false|default(x)` vaut `x`. -#}
-                    {% include 'site/_admin_form_head.html.twig' with {
-                        title: 'admin_dashboard.welcome'|trans({'%name%': app.user ? (app.user.firstName ?: app.user.username) : ''}),
-                        subtitle: 'admin_dashboard.subtitle'|trans,
-                        fact: openState.open ? 'admin_dashboard.fact_open'|trans : 'admin_dashboard.fact_closed'|trans,
-                        fact_note: openState.open
-                            ? 'admin_dashboard.fact_open_until'|trans({'%time%': openState.until})
-                            : (openState.from
-                                ? 'admin_dashboard.fact_closed_until'|trans({'%time%': openState.from})
-                                : openState.reason),
-                    } only %}
-                    {% if showFirstRun|default(false) %}
-                        {# Shown only on an install that has neither been configured nor
-                           used — see FirstRun. A card rather than a redirect: S25 flagged
-                           a global interceptor as a hazard on a live site, and a card
-                           cannot strand anybody. #}
-                        <div class="first-run-card">
-                            <strong>{{ 'admin_dashboard.setup_needed'|trans }}</strong>
-                            <span>{{ 'admin_dashboard.setup_hint'|trans }}</span>
-                            <a class="btn-link btn-primary-admin" href="{{ path('app_admin_wizard') }}">{{ 'admin_dashboard.start'|trans }}</a>
-                        </div>
-                    {% endif %}                
-                    <!-- Statistiques globales -->
-                    <div class="admin-stats-grid">
-                        <div class="admin-stat-card is-primary">
-                            <div class="admin-stat-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                            </div>
-                            <div class="admin-stat-info"><h4>{{ dashboardStats.users }}</h4><p>{{ 'admin_dashboard.stat_users'|trans }}</p></div>
-                        </div>
-                        <div class="admin-stat-card is-ok">
-                            <div class="admin-stat-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-                            </div>
-                            <div class="admin-stat-info"><h4>{{ dashboardStats.machines }}</h4><p>{{ 'admin_dashboard.stat_machines'|trans }}</p></div>
-                        </div>
-                        <div class="admin-stat-card is-warn">
-                            <div class="admin-stat-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-                            </div>
-                            <div class="admin-stat-info"><h4>{{ dashboardStats.formations }}</h4><p>{{ 'admin_dashboard.stat_trainings'|trans }}</p></div>
-                        </div>
-                        <div class="admin-stat-card is-stop">
-                            <div class="admin-stat-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                            </div>
-                            <div class="admin-stat-info"><h4>{{ dashboardStats.reservations }}</h4><p>{{ 'admin_dashboard.stat_reservations'|trans }}</p></div>
-                        </div>
-                        <div class="admin-stat-card is-info">
-                            <div class="admin-stat-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>
-                            </div>
-                            <div class="admin-stat-info"><h4>{{ dashboardStats.rfidLogs }}</h4><p>{{ 'admin_dashboard.stat_rfid_logs'|trans }}</p></div>
-                        </div>
-                        <div class="admin-stat-card is-info">
-                            <div class="admin-stat-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-                            </div>
-                            <div class="admin-stat-info"><h4>{{ dashboardStats.badges }}</h4><p>{{ 'admin_dashboard.stat_badges'|trans }}</p></div>
-                        </div>
-                        <div class="admin-stat-card is-ok">
-                            <div class="admin-stat-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
-                            </div>
-                            <div class="admin-stat-info"><h4>{{ dashboardStats.completedFormations }}</h4><p>{{ 'admin_dashboard.stat_formations'|trans }}</p></div>
-                        </div>
+            {% for group in attention.groups %}
+                <section class="pp-aa-group" aria-labelledby="pp-aa-{{ group.key }}">
+                    <h2 class="pp-aa-title" id="pp-aa-{{ group.key }}">
+                        {% include 'site/_icon.html.twig' with { name: group.icon } only %}
+                        {{ group.title }} · {{ group.count }}
+                    </h2>
+                    <div class="admin-table-wrap">
+                        <table class="admin-table pp-aa-table">
+                            <thead>
+                                <tr><th>{{ 'admin_attention.col_what'|trans }}</th><th>{{ 'admin_attention.col_where'|trans }}</th><th>{{ 'admin_attention.col_state'|trans }}</th><th>{{ 'admin_attention.col_action'|trans }}</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for row in group.rows %}
+                                    <tr>
+                                        <td><b class="pp-aa-name">{{ row.title }}</b></td>
+                                        <td>
+                                            <div class="pp-aa-meta">
+                                                {{ row.where }}
+                                                {% if row.when %}
+                                                    {% if row.where %}<br>{% endif %}
+                                                    {{ row.whenPrefix|default('') }}{% if row.whenKind == 'utc' %}{{ row.when|lab_date('d/m H:i') }}{% elseif row.whenKind == 'date' %}{{ row.when|date('d/m/Y') }}{% else %}{{ row.when|date('d/m H:i') }}{% endif %}
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td>{% include 'site/_state_chip.html.twig' with { label: row.state.label, signal: row.state.signal } only %}</td>
+                                        <td>
+                                            {% if row.fix|default(null) %}
+                                                {% include 'site/_cell_fix.html.twig' with {
+                                                    fix: row.fix.fix, route: row.fix.route, params: row.fix.params,
+                                                } only %}
+                                            {% else %}
+                                                <a class="pp-aa-verb" href="{{ path(row.route, row.params) }}">{{ row.verb }}</a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
+                    <p class="pp-aa-all">
+                        {% if group.count > group.rows|length %}{{ 'admin_attention.more'|trans({'%n%': group.count - group.rows|length}) }} · {% endif %}
+                        <a href="{{ path(group.all.route, group.all.params) }}">{{ group.all.label }}</a>
+                    </p>
                 </section>
+            {% endfor %}
 
-                <!-- Écrans dédiés (pages plein écran, non listées dans le menu) -->
-                <div class="admin-panel">
-                    <div class="admin-panel-header">
-                        <h2>{{ 'admin_dashboard.screens_heading'|trans }}</h2>
-                    </div>
-                    <p style="color: var(--color-text-light); margin: 0 0 var(--spacing-md);">{{ 'admin_dashboard.screens_hint'|trans }}</p>
-                    <div class="quick-actions-grid">
-                        {% set screen_icon %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>{% endset %}
-                        <a class="quick-action-card" href="{{ path('app_kiosk_entries') }}" target="_blank" rel="noopener">
-                            <div class="quick-action-icon">{{ screen_icon }}</div>
-                            <div class="quick-action-text"><h4>{{ 'admin_dashboard.kiosk_entries'|trans }}</h4><p>{{ 'admin_dashboard.kiosk_entries_hint'|trans }}</p></div>
-                        </a>
-                        <a class="quick-action-card" href="{{ path('app_kiosk_stats') }}" target="_blank" rel="noopener">
-                            <div class="quick-action-icon">{{ screen_icon }}</div>
-                            <div class="quick-action-text"><h4>{{ 'admin_dashboard.kiosk_stats'|trans }}</h4><p>{{ 'admin_dashboard.kiosk_stats_hint'|trans }}</p></div>
-                        </a>
-                        <a class="quick-action-card" href="{{ path('app_kiosk_machine', {id: 1}) }}" target="_blank" rel="noopener">
-                            <div class="quick-action-icon">{{ screen_icon }}</div>
-                            <div class="quick-action-text"><h4>{{ 'admin_dashboard.kiosk_machine'|trans }}</h4><p>{{ 'admin_dashboard.kiosk_machine_hint'|trans }}</p></div>
-                        </a>
-                        {% if feature_enabled('events') %}
-                        <a class="quick-action-card" href="{{ path('app_kiosk_events') }}" target="_blank" rel="noopener">
-                            <div class="quick-action-icon">{{ screen_icon }}</div>
-                            <div class="quick-action-text"><h4>{{ 'admin_dashboard.kiosk_events'|trans }}</h4><p>{{ 'admin_dashboard.kiosk_events_hint'|trans }}</p></div>
-                        </a>
-                        {% endif %}
-                    </div>
-                </div>
-                <!-- Activité récente -->
-                <div class="admin-panel">
-                    <div class="admin-panel-header">
-                        <h2>{{ 'admin_dashboard.activity_heading'|trans }}</h2>
-                        <div class="admin-actions">
-                            <a class="btn btn-text btn-small" href="{{ path('app_admin_access_rfid_logs') }}">{{ 'admin_dashboard.activity_logs_link'|trans }}</a>
-                        </div>
-                    </div>
-                    <div class="recent-activity">
-                        {% if recentActivities is empty %}
-                            <div class="activity-item">
-                                <div class="activity-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                                </div>
-                                <div class="activity-content"><h5>{{ 'admin_dashboard.activity_empty'|trans }}</h5><p>{{ 'admin_dashboard.activity_empty_hint'|trans }}</p></div>
-                                <span class="activity-time">-</span>
-                            </div>
-                        {% else %}
-                            {% for activity in recentActivities %}
-                                <div class="activity-item">
-                                    <div class="activity-icon">
-                                        {% if activity.type == 'reservation' %}
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                                        {% elseif activity.type == 'formation' %}
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-                                        {% elseif activity.type == 'usage' %}
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="#FF9800" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-                                        {% else %}
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>
-                                        {% endif %}
-                                    </div>
-                                    {# 🔴 S134c — the controller used to build both of these as
-                                        French sentences with `sprintf`. A literal in PHP is a
-                                        string no catalogue reaches, and the dashboard was
-                                        recorded as "at zero hardcoded strings" while its most
-                                        prominent panel was French in five languages. It hands
-                                        over keys and raw values now; the sentence is assembled
-                                        here, where `|trans` exists. #}
-                                    {% set actUser = activity.user|default(null) ?: 'admin_dashboard.act_unknown_user'|trans %}
-                                    <div class="activity-content">
-                                        <h5>{{ activity.title_key|trans }}</h5>
-                                        <p>
-                                            {%- if activity.type == 'rfid' -%}
-                                                {{ activity.message_key|trans({'%user%': actUser, '%machine%': activity.machine|default(null) ?: 'admin_dashboard.act_unknown_machine'|trans, '%badge%': activity.badge}) }}
-                                            {%- elseif activity.type == 'reservation' -%}
-                                                {{ activity.message_key|trans({'%user%': actUser, '%resource%': activity.resource|default(null) ?: 'admin_dashboard.act_unknown_resource'|trans}) }}
-                                            {%- elseif activity.type == 'formation' -%}
-                                                {{ activity.message_key|trans({'%user%': actUser, '%formation%': activity.formation|default(null) ?: 'admin_dashboard.act_unknown_formation'|trans, '%score%': activity.score}) }}
-                                            {%- else -%}
-                                                {{ activity.message_key|trans({'%user%': actUser, '%machine%': activity.machine|default(null) ?: 'admin_dashboard.act_unknown_machine'|trans, '%source%': activity.source|default(null) ?: 'admin_dashboard.act_unknown_source'|trans}) }}
-                                            {%- endif -%}
-                                        </p>
-                                    </div>
-                                    <span class="activity-time">{{ activity.date|date('d/m/Y H:i') }}</span>
-                                </div>
-                            {% endfor %}
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
+            {# Ce qui descend : les compteurs d'avant, en une ligne, et les écrans dédiés. #}
+            <footer class="pp-aa-foot">
+                <p class="pp-aa-stats">
+                    <b>{{ attention.stats.users }}</b> {{ 'admin_dashboard.stat_users'|trans }} ·
+                    <b>{{ attention.stats.machines }}</b> {{ 'admin_dashboard.stat_machines'|trans }} ·
+                    <b>{{ attention.stats.formations }}</b> {{ 'admin_dashboard.stat_trainings'|trans }} ·
+                    <b>{{ attention.stats.reservations }}</b> {{ 'admin_dashboard.stat_reservations'|trans }} ·
+                    <b>{{ attention.stats.rfidLogs }}</b> {{ 'admin_dashboard.stat_rfid_logs'|trans }} ·
+                    <b>{{ attention.stats.badges }}</b> {{ 'admin_dashboard.stat_badges'|trans }} ·
+                    <b>{{ attention.stats.completedFormations }}</b> {{ 'admin_dashboard.stat_formations'|trans }}
+                </p>
+                <p class="pp-aa-screens">
+                    <b>{{ 'admin_dashboard.screens_heading'|trans }}</b> :
+                    <a href="{{ path('app_kiosk_home') }}" target="_blank" rel="noopener">{{ 'admin_dashboard.kiosk_home'|trans }}</a> ·
+                    <a href="{{ path('app_kiosk_entries') }}" target="_blank" rel="noopener">{{ 'admin_dashboard.kiosk_entries'|trans }}</a> ·
+                    <a href="{{ path('app_kiosk_stats') }}" target="_blank" rel="noopener">{{ 'admin_dashboard.kiosk_stats'|trans }}</a>
+                    {% if feature_enabled('events') %} · <a href="{{ path('app_kiosk_events') }}" target="_blank" rel="noopener">{{ 'admin_dashboard.kiosk_events'|trans }}</a>{% endif %}
+                </p>
+            </footer>
         </div>
-    </main>
-
-    <!-- ========================================
-         FOOTER
-         ======================================== -->
-    {#  ⚠️ Was a hand-copied footer (S134c). It carried seven dead `href="#"` links —
-        Documentation, Support, API, Statut, Mentions légales, Politique,
-        Conditions — while every one of those routes exists and the shared partial
-        already links them. It also hardcoded `© 2026` and skipped the five
-        catalogues entirely. Same fault S84 removed from five other pages. #}
+    {% endblock %}
+{% endembed %}
 {% endblock %}

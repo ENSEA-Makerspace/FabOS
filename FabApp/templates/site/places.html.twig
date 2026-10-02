@@ -1,28 +1,29 @@
 {% extends 'site/base_public.html.twig' %}
 
-{#
-   Espaces, on the shared catalogue shells.
-
-   ⚠️ This page exists as much to TEST the shells as to list rooms. A room has
-   no category, no photo and no badge requirement, so it exercises the three
-   absences: no tile bar, no permission footer, icon fallback with no slug. If
-   the shells needed a special case for any of that, they would not be shells.
-
-   It also drops 20 lines of inline `<style>` that hardcoded `rgba(158,27,86,…)`
-   four times — the old brand pink, immune to both the portal accent (S27) and
-   dark mode. That is the class of thing S53 exists to delete.
-
-   The only thing this file decides is vocabulary, and it reuses the shared
-   `state.*` keys rather than inventing a second word for "libre".
-#}
+{# Catalogue des espaces : « libre maintenant » en tête (ou, labo fermé, une ligne qui le dit et la réouverture), la carte dit QUAND, le pied porte la capacité. Données : `PlaceCatalogue`. #}
 
 {% block title %}{{ 'nav.places'|trans }} - FabOS{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals.css') ~ '?v=' ~ css_version }}">
 {% endblock %}
 
 {% block body %}
+{% set people_svg %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>{% endset %}
+{# Le « quand » de chaque espace, calculé une fois (mêmes clés que `/places`). #}
+{% set whenOf = {} %}
+{% for c in cards %}
+    {% if c.slot %}
+        {% set label = c.slot.start|lab_date('Y-m-d') == 'now'|lab_date('Y-m-d')
+            ? 'state.free_at'|trans({'%time%': c.slot.start|lab_date('H:i')})
+            : 'state.free_on'|trans({'%day%': c.slot.start|lab_date('d/m'), '%time%': c.slot.start|lab_date('H:i')}) %}
+    {% else %}
+        {% set label = 'state.full'|trans %}
+    {% endif %}
+    {% set whenOf = whenOf|merge({('p' ~ c.place.id): label}) %}
+{% endfor %}
+{% set soonest = cards|filter(c => c.slot)|sort((a, b) => a.slot.start <=> b.slot.start) %}
 {% embed 'site/_catalogue.html.twig' with {
     venue_context: venueContext,
     route: 'app_places',
@@ -30,67 +31,64 @@
     search: search,
     total: totalCount,
     all: allCount,
-    unit: 'espace',
-    unit_plural: 'espaces',
+    unit: 'places.unit_one'|trans,
+    unit_plural: 'places.unit_many'|trans,
     headline_count: freeCount,
     headline_label: 'state.available_now'|trans,
     empty_text: 'places.no_places'|trans,
 } %}
+    {% block before_grid %}
+        {# Labo fermé : la ligne suffit, les cartes disent déjà QUAND — un bandeau de plus
+           répéterait trois fois le même créneau. #}
+        {% set featured = venueOpenNow ? cards|filter(c => c.freeNow) : [] %}
+        <section class="pp-now" aria-labelledby="pp-now-title">
+            {% if not venueOpenNow %}
+                <p class="pp-closed">{% include 'site/_icon.html.twig' with { name: 'lock' } only %}
+                    <span><b>{{ 'state.closed'|trans }}{% if venueClosureReason %} — {{ venueClosureReason }}{% endif %}.</b>
+                    {% if soonest|length %}{{ 'places.reopening'|trans({'%when%': whenOf['p' ~ (soonest|first).place.id]|lower}) }}{% endif %}</span></p>
+            {% endif %}
+            {% if featured|length %}
+                <div class="pp-now-head">
+                    <h2 id="pp-now-title">{{ 'places.free_now_title'|trans }}</h2>
+                    <p>{{ 'places.free_now_hint'|trans }}</p>
+                </div>
+                <div class="pp-now-list">
+                    {% for entry in featured|slice(0, 3) %}
+                        {% set p = entry.place %}
+                        <article class="pp-hcard">
+                            <div class="pp-hcard-media">{% include 'site/_icon.html.twig' with { name: 'map' } only %}</div>
+                            <div>
+                                <h3>{{ p.nom }}</h3>
+                                <p class="pp-hcard-meta">
+                                    {% if p.capacite %}<span>{{ people_svg }} {{ p.capacite }} {{ 'places.capacity_suffix'|trans }}</span>{% endif %}
+                                    {% if p.localisation %}<span>{% include 'site/_icon.html.twig' with { name: 'pin' } only %} {{ p.localisation }}</span>{% endif %}
+                                </p>
+                                <p class="pp-hcard-when{{ entry.freeNow ? '' : ' is-later' }}">● {{ entry.freeNow ? 'state.free'|trans : whenOf['p' ~ p.id] }}</p>
+                            </div>
+                            <a class="btn btn-primary" href="{{ path('app_place_detail', {id: p.id}) }}#place-calendar">{{ 'places.book'|trans }}</a>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </section>
+    {% endblock %}
     {% block cards %}
         {% for entry in cards %}
             {% set p = entry.place %}
-
-            {# Same ordering rule as the machines page: closed before busy,
-               because a shut venue is not an occupied room. #}
-            {# ⚠️ S134e — the REASON when there is one. A dated closure knows why
-               it is closed, and "fermé — jour férié" ends a question that "fermé"
-               only starts. #}
-            {# 🔴 **S177 — la pastille disait « Occupé », qui n'aide personne.**
-               La page CONNAÎT le prochain créneau libre — elle l'affichait déjà,
-               en petit, sous la carte — pendant que le mot le plus voyant de la
-               carte annonçait un problème sans sa sortie. Un membre qui cherche
-               une salle veut savoir À QUELLE HEURE, pas qu'il est trop tard.
-               ⚠️ **Le créneau du jour dit l'heure seule** (« Libre à 14:00 ») ;
-               un créneau d'un autre jour porte son jour, sinon « Libre à 09:00 »
-               un mardi soir désigne demain sans le dire — exactement la faute
-               que `/kiosk/entries` a payée en S151.
-               ⚠️ `lab_date` des DEUX côtés : comparer un instant à une date
-               locale change de résultat entre 00:00 et 02:00. #}
-            {% if not venueOpenNow %}
-                {% set state = venueClosureReason|default(null) ? 'state.closed'|trans ~ ' — ' ~ venueClosureReason : 'state.closed'|trans %}{% set tone = 'muted' %}
-            {% elseif entry.freeNow %}
-                {% set state = 'state.free'|trans %}{% set tone = 'go' %}
-            {% elseif entry.slot %}
-                {% set _sameDay = entry.slot.start|lab_date('Y-m-d') == 'now'|lab_date('Y-m-d') %}
-                {% set state = _sameDay
-                    ? 'state.free_at'|trans({'%time%': entry.slot.start|lab_date('H:i')})
-                    : 'state.free_on'|trans({'%day%': entry.slot.start|lab_date('d/m'), '%time%': entry.slot.start|lab_date('H:i')}) %}
-                {% set tone = 'wait' %}
-            {% else %}
-                {% set state = 'state.full'|trans %}{% set tone = 'wait' %}
-            {% endif %}
-
-            {# ⚠️ **La note ne redit plus l'heure** : la pastille la porte
-               désormais, et deux fois le même fait sur une carte de six lignes est
-               ce que le système de design refuse partout. Ce qui reste dans `note`
-               est la seule chose que la pastille ne dit pas — qu'il n'y a AUCUN
-               créneau.
-               🔴 **Et ce commentaire était DANS le littéral `with { … }`.** Twig
-               n'admet pas de commentaire à l'intérieur d'un hash. C'est la
-               TROISIÈME fois dans ce dépôt ; `tools/twig_balance.py` sait le voir
-               depuis aujourd'hui, plutôt que d'attendre `lint:twig` sur la boîte. #}
+            {% set blocked = entry.usageRight.enforced and not entry.usageRight.allowed %}
+            <div class="pp-cta" style="display: contents">
             {% include 'site/_catalogue_card.html.twig' with {
                 url: path('app_place_detail', {id: p.id}),
                 title: p.nom,
                 meta: p.localisation,
-                note: entry.slot ? '' : 'machines.no_slot'|trans,
-                state: state,
-                state_tone: tone,
-                foot: entry.usageRight.enforced and not entry.usageRight.allowed ? ('usage_rights.verdict.' ~ entry.usageRight.reason ~ '.label')|trans : (p.capacite ? p.capacite ~ ' ' ~ 'places.capacity_suffix'|trans : ''),
-                foot_tone: entry.usageRight.enforced and not entry.usageRight.allowed ? entry.usageRight.tone : 'muted',
-                action: 'machines.see'|trans,
+                state: entry.freeNow ? 'state.free'|trans : whenOf['p' ~ p.id],
+                state_tone: entry.freeNow ? 'go' : 'wait',
+                foot: blocked ? ('usage_rights.verdict.' ~ entry.usageRight.reason ~ '.label')|trans : (p.capacite ? p.capacite ~ ' ' ~ 'places.capacity_suffix'|trans : ''),
+                foot_tone: blocked ? entry.usageRight.tone : 'muted',
+                action: blocked ? 'machines.see'|trans : 'places.book'|trans,
                 fallback_icon: 'map',
             } only %}
+            </div>
         {% endfor %}
     {% endblock %}
 {% endembed %}

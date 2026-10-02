@@ -1,211 +1,83 @@
 {% extends 'site/base_public.html.twig' %}
 
+{# Recherche : accès rapides avant la saisie, types en filtre à un clic (`?type=`), résultats en lignes avec « Voir tout » vers le catalogue filtré. Données : `SiteSearch::groups()`. #}
+
 {% block title %}{{ 'search.title'|trans }} - FabOS{% endblock %}
 
-{% block page_styles %}
-    {# S139c — what is left here, and why.
-       This page carried 23 local rules for 15 classes of its own; it carries 20.
-       ⚠️ Three rules deleted is the honest count and it is not the point — the
-       point is that the result card's title, its quiet second line and its
-       category chip are no longer drawn here at all. They are `_cell_title` and
-       `_cell_state`, so they cannot drift from every other list in FabOS. A
-       shape that renders from the shared layer is fixed everywhere at once; a
-       rule count is just what fell out.
-
-       🔴 Before that, `.search-result-item` and `.tip-card` said `background:
-       white` outright, so every card stayed a white slab on the dark ground.
-       That was the operator's "results render badly in dark mode" — local CSS,
-       not the `style.css` sweep the note blamed.
-
-       ⚠️ What remains is a *panel* and a *hint card*, which nothing shared
-       expresses yet; they are documented in `/admin/design#recherche` so the
-       next page that needs one composes instead of reinventing. #}
-    <style>
-        .search-results-section { padding: var(--spacing-xl) 0; }
-        .search-results-container { display: flex; flex-direction: column; gap: var(--spacing-xl); }
-        .results-by-category { background: var(--surface-ground); border-radius: var(--border-radius); padding: var(--spacing-lg); }
-        .results-by-category h4 { margin-bottom: var(--spacing-md); color: var(--color-text); font-size: var(--font-size-lg); }
-        /* S194 — sauts par type. */
-        .search-jump { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 var(--spacing-md); }
-        .search-jump a { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 4px 12px; border: 1px solid var(--border-color); border-radius: 999px; color: var(--color-text); text-decoration: none; font-size: var(--font-size-sm); }
-        .search-jump a:hover, .search-jump a:focus-visible { border-color: var(--color-primary); }
-        .search-jump span, .search-count { color: var(--color-text-light); font-weight: 600; font-size: .85em; }
-        .results-by-category { scroll-margin-top: 90px; }
-        .results-list { display: flex; flex-direction: column; gap: var(--spacing-md); }
-        .search-result-item { background: var(--theme-surface); border-radius: var(--border-radius); padding: var(--spacing-md); box-shadow: var(--shadow-sm); transition: box-shadow var(--transition), transform var(--transition); }
-        .search-result-item:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
-        .search-result-link { display: block; text-decoration: none; color: inherit; cursor: pointer; }
-        .search-result-link:hover { text-decoration: none; }
-        .search-result-header { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--spacing-sm); }
-        .search-result-meta { margin: 6px 0 0; font-size: var(--font-size-sm); color: var(--color-text-light); line-height: 1.5; }
-        .search-tips { background: var(--surface-ground); border-radius: var(--border-radius); padding: var(--spacing-lg); }
-        .search-tips h4 { margin-bottom: var(--spacing-lg); color: var(--color-text); font-size: var(--font-size-lg); }
-        .tips-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--spacing-lg); }
-        .tip-card { display: flex; gap: var(--spacing-md); align-items: flex-start; background: var(--theme-surface); padding: var(--spacing-md); border-radius: var(--border-radius); box-shadow: var(--shadow-sm); }
-        /* ⚠️ The three tip icons carried `stroke="#9E1B56"` — the accent's literal
-           hex, so a themed install would keep FabOS's magenta. They inherit now. */
-        .tip-icon { flex-shrink: 0; color: var(--color-primary-text); }
-        .tip-icon svg { width: 40px; height: 40px; }
-        .tip-content h5 { margin: 0 0 var(--spacing-xs) 0; color: var(--color-text); font-size: var(--font-size-md); }
-        .tip-content p { margin: 0; font-size: var(--font-size-sm); color: var(--color-text-light); }
-        @media (max-width: 768px) { .tips-grid { grid-template-columns: 1fr; } }
-    </style>
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals.css') ~ '?v=' ~ css_version }}">
 {% endblock %}
 
 {% block body %}
-    <main id="main-content" tabindex="-1" class="main-content">
-        <section class="search-results-section">
-            <div class="container">
-                <div class="page-header">
-                    <div class="section-badge">{{ 'search.results'|trans }}</div>
-                    <p class="page-description">
-                        {{ 'search.try_hint'|trans }}
-                    </p>
+{% set icons = {destinations: 'compass', users: 'view', machines: 'tool', places: 'map', events: 'calendar', formations: 'ticket', badges: 'key', loans: 'box', materials: 'box', creations: 'image', lab_pages: 'open'} %}
+{% set catalogues = {machines: 'app_machines', places: 'app_places', events: 'app_events', formations: 'app_formations', badges: 'app_badges', loans: 'app_loans', materials: 'app_materials', creations: 'app_creations'} %}
+{% set type = app.request.query.get('type', '') %}
+{% set shown = type ? groups|filter(g => g.key == type) : groups %}
+<main id="main-content" tabindex="-1" class="main-content">
+    <section class="machine-detail-section">
+        <div class="container pp-search">
+            <h1>{{ 'search.title'|trans }}</h1>
+            <form class="pp-search-form" method="get" action="{{ path('app_recherche') }}" role="search">
+                {% include 'site/_icon.html.twig' with { name: 'search' } only %}
+                <label class="sr-only" for="pp-q">{{ 'common.search'|trans }}</label>
+                <input id="pp-q" type="search" name="q" value="{{ query }}" placeholder="{{ 'search.placeholder'|trans }}" {{ query is empty ? 'autofocus' : '' }}>
+                {% if type %}<input type="hidden" name="type" value="{{ type }}">{% endif %}
+            </form>
+
+            {% if query == '' %}
+                <h2 class="pp-search-h">{{ 'search.quick_title'|trans }}</h2>
+                <div class="pp-quick">
+                    {% set quick = [] %}
+                    {% if app.user %}{% set quick = quick|merge([{icon: 'calendar', title: 'search.dest.my_bookings'|trans, hint: 'search.quick_bookings_hint'|trans, url: path('app_my_reservations')}]) %}{% endif %}
+                    {% set quick = quick|merge([
+                        {icon: 'tool', title: 'nav.machines'|trans, hint: 'search.quick_machines_hint'|trans, url: path('app_machines')},
+                        {icon: 'ticket', title: 'nav.trainings'|trans, hint: 'search.quick_trainings_hint'|trans, url: path('app_formations')},
+                        {icon: 'bell', title: 'nav.events'|trans, hint: 'search.quick_events_hint'|trans, url: path('app_events')},
+                    ]) %}
+                    {% for q in quick %}
+                        <a class="pp-quick-tile" href="{{ q.url }}">
+                            <span class="pp-quick-ic" aria-hidden="true">{% include 'site/_icon.html.twig' with { name: q.icon } only %}</span>
+                            <b>{{ q.title }}</b><small>{{ q.hint }}</small>
+                        </a>
+                    {% endfor %}
                 </div>
-
-                {# 🔴 **S151 — la page de recherche n'avait AUCUN champ de recherche.**
-                   Elle disait « Saisissez une recherche pour commencer » et n'offrait
-                   nulle part où le faire : le seul `<input>` de la page entière était
-                   celui de l'en-tête — mesuré à **89 px de large à 375 px**, soit cinq
-                   caractères visibles. Chercher sur mobile était donc à peu près
-                   impossible, et c'est la seule page où l'on vient exprès pour ça.
-
-                   ⚠️ **`.advanced-search-box` et `.search-input-advanced` existaient
-                   déjà dans `style.css` et n'étaient utilisées NULLE PART** — la mise
-                   en forme avait été écrite puis jamais branchée. On la branche plutôt
-                   que d'en écrire une seconde.
-                   ⚠️ Son fond disait `--color-text-inverse`, qui vaut `#FFFFFF` et
-                   n'est jamais redéfini en sombre : corrigé en `--theme-surface` dans
-                   le même passage, sinon on rebranchait une plaque blanche.
-
-                   ⚠️ `autofocus` seulement quand la requête est vide : sur une page de
-                   résultats, voler le focus ferait sauter la lecture au champ. #}
-                <form class="advanced-search-box" method="get" action="{{ path('app_recherche') }}" role="search">
-                    <label class="sr-only" for="search-page-q">{{ 'search.title'|trans }}</label>
-                    <input class="search-input-advanced" id="search-page-q" type="search" name="q"
-                           value="{{ query|default('') }}" placeholder="{{ 'common.search_placeholder'|trans }}"
-                           {{ query is empty ? 'autofocus' : '' }}>
-                    <button class="btn btn-primary" type="submit">{{ 'common.search'|trans }}</button>
-                </form>
-
-                <div class="search-results-container">
-                    {% if query is empty %}
-                        <div class="results-by-category">
-                            <h4>{{ 'search.title'|trans }}</h4>
-                            <div class="results-list">
-                                <div class="search-result-item">
-                                    <p class="search-result-meta">{{ 'search.prompt'|trans }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    {% elseif totalResults == 0 %}
-                        <div class="results-by-category">
-                            <h4>{{ 'search.results_for'|trans({'%query%': query}) }}</h4>
-                            <div class="results-list">
-                                <div class="search-result-item">
-                                    <p class="search-result-meta">{{ 'search.none'|trans }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    {% else %}
-                        <div class="page-header" style="padding-top: 0;">
-                            <h2>{{ 'search.results_count_for'|trans({'count': totalResults, 'query': query}) }}</h2>
-                        </div>
-
-                        {# `SiteSearch` already dropped the empty groups and the ones whose
-                           feature is switched off, so every group here has results and a
-                           destination that exists. The heading is a `nav.*` key: a result
-                           is filed under the menu entry that would reach it. #}
-                        {# S194 — navigation rapide : un saut par type, avec son compte.
-                           Rien à afficher pour un seul groupe : on y est déjà. #}
-                        {% if groups|length > 1 %}
-                            <nav class="search-jump" aria-label="{{ 'search.jump_label'|trans }}">
-                                {% for group in groups %}
-                                    <a href="#results-{{ group.key }}">{{ group.label_key|trans }} <span>{{ group.items|length }}</span></a>
-                                {% endfor %}
-                            </nav>
-                        {% endif %}
-
-                        {% for group in groups %}
-                            {% set groupLabel = group.label_key|trans %}
-                            <div class="results-by-category" id="results-{{ group.key }}">
-                                <h4>{{ groupLabel }} <span class="search-count">{{ group.items|length }}</span></h4>
-                                <div class="results-list">
-                                    {% for item in group.items %}
-                                        {#- ⚠️ The whole card is the link, so `_cell_title` is
-                                            included WITHOUT `href`: an <a> inside an <a> is
-                                            invalid and the browser silently unnests it. The
-                                            list rule allows a fully clickable row precisely
-                                            because a search hit has exactly one destination. -#}
-                                        <div class="search-result-item">
-                                            <a href="{{ item.url }}" class="search-result-link">
-                                                <div class="search-result-header">
-                                                    {% include 'site/_cell_title.html.twig' with {
-                                                        title: item.title,
-                                                        subtitle: item.description ?: null,
-                                                    } only %}
-                                                    {% include 'site/_cell_state.html.twig' with {
-                                                        label: groupLabel, signal: 'muted',
-                                                    } only %}
-                                                </div>
-                                                {% if item.meta %}
-                                                    <p class="search-result-meta">{{ item.meta }}</p>
-                                                {% endif %}
-                                            </a>
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-
-                    <div class="search-tips">
-                        <h4>{{ 'search.tips'|trans }}</h4>
-                        <div class="tips-grid">
-                            <div class="tip-card">
-                                <div class="tip-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <circle cx="11" cy="11" r="8"/>
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                                    </svg>
-                                </div>
-                                <div class="tip-content">
-                                    <h5>{{ 'search.by_name'|trans }}</h5>
-                                    <p>{{ 'search.by_name_ex'|trans }}</p>
-                                </div>
-                            </div>
-                            <div class="tip-card">
-                                <div class="tip-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                                    </svg>
-                                </div>
-                                <div class="tip-content">
-                                    <h5>{{ 'search.by_category'|trans }}</h5>
-                                    <p>{{ 'search.by_category_ex'|trans }}</p>
-                                </div>
-                            </div>
-                            <div class="tip-card">
-                                <div class="tip-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
-                                    </svg>
-                                </div>
-                                <div class="tip-content">
-                                    <h5>{{ 'search.by_desc'|trans }}</h5>
-                                    <p>{{ 'search.by_desc_ex'|trans }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    
-{% endblock %}
-
-{% block javascripts %}
-<script src="{{ asset('js/main.js') ~ '?v=' ~ js_version }}"></script>
+            {% else %}
+                <nav class="ml-cats pp-search-types" aria-label="{{ 'search.jump_label'|trans }}">
+                    <a class="ml-tile{{ type == '' ? ' is-on' : '' }}" href="?q={{ query|url_encode }}">{{ 'search.all'|trans }} <span class="ml-tile-count">{{ totalResults }}</span></a>
+                    {% for g in groups %}
+                        <a data-search-type="{{ g.key }}" class="ml-tile{{ type == g.key ? ' is-on' : '' }}" href="?q={{ query|url_encode }}&amp;type={{ g.key }}">{{ g.label_key|trans }} <span class="ml-tile-count">{{ g.items|length }}</span></a>
+                    {% endfor %}
+                </nav>
+                {% if totalResults == 0 %}
+                    <p>{{ 'search.none'|trans }}</p>
+                {% elseif shown is empty %}
+                    <p>{{ 'search.none_of_type'|trans }}</p>
+                {% endif %}
+                {% for g in shown %}
+                    <section class="pp-rows pp-search-group" data-search-group="{{ g.key }}">
+                        <h2>
+                            {% include 'site/_icon.html.twig' with { name: icons[g.key]|default('open') } only %}
+                            {{ g.label_key|trans }} <small>{{ g.items|length }}</small>
+                            {% if catalogues[g.key] is defined %}<a class="pp-search-all" href="{{ path(catalogues[g.key], {q: query}) }}">{{ 'search.see_all'|trans }} ›</a>{% endif %}
+                        </h2>
+                        <ul>
+                            {% for item in g.items|slice(0, type ? 50 : 5) %}
+                                <li>
+                                    <a class="pp-search-row" href="{{ item.url }}">
+                                        <span class="pp-search-ic" aria-hidden="true">{% include 'site/_icon.html.twig' with { name: icons[g.key]|default('open') } only %}</span>
+                                        <span class="pp-search-what"><b>{{ item.title }}</b>{% if item.description %}<small>{{ item.description }}</small>{% endif %}</span>
+                                        <span class="pp-search-meta">{{ item.meta }}</span>
+                                        <span class="pp-search-go" aria-hidden="true">›</span>
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                        {% if not type and g.items|length > 5 %}<p class="pp-rows-more"><a href="?q={{ query|url_encode }}&amp;type={{ g.key }}">{{ 'search.all_results'|trans({'%n%': g.items|length}) }}</a></p>{% endif %}
+                    </section>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </section>
+</main>
 {% endblock %}

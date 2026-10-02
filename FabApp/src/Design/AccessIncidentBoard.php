@@ -10,6 +10,7 @@ use App\Repository\MachineRepository;
 use App\Repository\RfidReaderRepository;
 use App\Rfid\AccessIncident;
 use App\Rfid\ReaderHealth;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Données de la proposition `incidents-acces` (2026-10-01, d'après les planches
@@ -27,14 +28,14 @@ use App\Rfid\ReaderHealth;
  */
 final class AccessIncidentBoard
 {
-    /** @var array<string, array{label: string, statuses: list<string>}> */
+    /** @var array<string, array{label: string, statuses: list<string>}> `label` est une clé `access_incidents.*` */
     private const CAUSES = [
-        'badge' => ['label' => 'Badge manquant', 'statuses' => ['missing_badge', 'REQUIRED_BADGE_MISSING']],
-        'formation' => ['label' => 'Formation manquante', 'statuses' => ['NO_TRAINING', 'TRAINING_REQUIRED']],
-        'inconnu' => ['label' => 'Badge inconnu', 'statuses' => ['unknown_rfid']],
-        'lecteur' => ['label' => 'Lecteur ou machine', 'statuses' => ['reader_inactive', 'unknown_machine', 'unauthorized_device', 'invalid_payload', 'device_api_not_configured']],
-        'compte' => ['label' => 'Compte inactif', 'statuses' => ['account_inactive']],
-        'serveur' => ['label' => 'Erreur serveur', 'statuses' => ['server_error']],
+        'badge' => ['label' => 'cause_badge', 'statuses' => ['missing_badge', 'REQUIRED_BADGE_MISSING']],
+        'formation' => ['label' => 'cause_formation', 'statuses' => ['NO_TRAINING', 'TRAINING_REQUIRED']],
+        'inconnu' => ['label' => 'cause_unknown', 'statuses' => ['unknown_rfid']],
+        'lecteur' => ['label' => 'cause_device', 'statuses' => ['reader_inactive', 'unknown_machine', 'unauthorized_device', 'invalid_payload', 'device_api_not_configured']],
+        'compte' => ['label' => 'cause_account', 'statuses' => ['account_inactive']],
+        'serveur' => ['label' => 'cause_server', 'statuses' => ['server_error']],
     ];
 
     /** Lignes montrées ; le total réel est rendu à côté. */
@@ -46,6 +47,7 @@ final class AccessIncidentBoard
         private readonly RfidReaderRepository $readers,
         private readonly ReaderHealth $readerHealth,
         private readonly MachineRepository $machines,
+        private readonly TranslatorInterface $translator,
     ) {
     }
 
@@ -76,15 +78,15 @@ final class AccessIncidentBoard
             ++$counts[$this->causeOf($log)];
         }
 
-        $tiles = [['key' => 'todo', 'label' => 'À traiter', 'count' => count($refused)]];
+        $tiles = [['key' => 'todo', 'label' => $this->translator->trans('access_incidents.tile_todo'), 'count' => count($refused)]];
         foreach (self::CAUSES as $key => $def) {
-            $tiles[] = ['key' => $key, 'label' => $def['label'], 'count' => $counts[$key]];
+            $tiles[] = ['key' => $key, 'label' => $this->translator->trans('access_incidents.' . $def['label']), 'count' => $counts[$key]];
         }
         if ($counts['autre'] > 0) {
-            $tiles[] = ['key' => 'autre', 'label' => 'Autre', 'count' => $counts['autre']];
+            $tiles[] = ['key' => 'autre', 'label' => $this->translator->trans('access_incidents.cause_other'), 'count' => $counts['autre']];
         }
         $tiles[] = [
-            'key' => 'all', 'label' => 'Tout le journal',
+            'key' => 'all', 'label' => $this->translator->trans('access_incidents.tile_all'),
             'count' => $this->logs->countMatching($days, $readerId, $machineId, null),
         ];
 

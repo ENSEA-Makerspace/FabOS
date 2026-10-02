@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Design\TrainingBuilder;
 use App\Entity\Choix;
 use App\Entity\Formation;
 use App\Entity\Question;
@@ -23,7 +24,6 @@ use App\Service\QuizCatalogService;
 use App\Service\TrainingQualificationService;
 use App\Training\CohortAnnouncer;
 use App\Training\JourneyOrder;
-use App\Training\PublishChecklist;
 use App\Training\QuizDraft;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -47,7 +47,7 @@ final class FormationContentAdminController extends AbstractController
      * null ». Attrapé par `app:render` avant le redémarrage.
      */
     public function __construct(
-        private readonly PublishChecklist $checklist,
+        private readonly TrainingBuilder $builder,
         // S182d — la lecture et la validation du constructeur de quiz, sorties
         // d'ici pour pouvoir être éprouvées sans écrire de quiz.
         private readonly QuizDraft $draft,
@@ -324,7 +324,9 @@ final class FormationContentAdminController extends AbstractController
              * publier un parcours qui ne mène à rien.
              * ⚠️ Rien de neuf n'est calculé : les deux comptes sont déjà là.
              */
-            'publishSteps' => $this->checklist->steps($formation, \count($journeySections), \count($quizRows)),
+            // Le parcours ordonné et le « résultat après validation » (même service que la proposition validée) ;
+            // `builder.publishSteps` est la MÊME checklist de publication (`PublishChecklist`).
+            'builder' => $this->builder->build((int) $formation->getId()),
             'openBlock' => array_key_first($submitted) ?? $this->foldableBlock($requested),
         ]);
     }

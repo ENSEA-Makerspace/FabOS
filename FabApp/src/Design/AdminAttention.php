@@ -19,6 +19,7 @@ use App\Repository\UtilisateurRepository;
 use App\Rfid\AccessIncident;
 use App\Rfid\ReaderHealth;
 use App\Training\PracticalQueue;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * « Ce qui demande votre attention » pour l'accueil admin (proposition
@@ -54,6 +55,7 @@ final class AdminAttention
         private readonly FormationRepository $formations,
         private readonly BadgeRepository $badges,
         private readonly ProgressionRepository $progressions,
+        private readonly TranslatorInterface $translator,
     ) {
     }
 
@@ -86,6 +88,12 @@ final class AdminAttention
         ];
     }
 
+    /** Une clé `admin_attention.*` traduite. */
+    private function t(string $key): string
+    {
+        return $this->translator->trans('admin_attention.' . $key);
+    }
+
     /** @param list<array<string, mixed>> $rows */
     private function group(string $key, string $title, string $icon, array $rows, string $allRoute, array $allParams, string $allLabel): ?array
     {
@@ -114,13 +122,13 @@ final class AdminAttention
                 'where' => $machine->getLocalisation() ?: '',
                 'when' => null, 'whenKind' => 'wall',
                 'state' => $key === 'machines.st_broken'
-                    ? ['label' => 'En panne', 'signal' => 'stop']
-                    : ['label' => 'En maintenance', 'signal' => 'caution'],
-                'verb' => 'Voir la machine', 'route' => 'app_machine_detail', 'params' => ['id' => $machine->getId()],
+                    ? ['label' => $this->t('st_broken'), 'signal' => 'stop']
+                    : ['label' => $this->t('st_maintenance'), 'signal' => 'caution'],
+                'verb' => $this->t('verb_machine'), 'route' => 'app_machine_detail', 'params' => ['id' => $machine->getId()],
             ];
         }
 
-        return $this->group('machines', 'Machines indisponibles', 'tool', $rows, 'app_admin_machines', [], 'Voir toutes les machines');
+        return $this->group('machines', $this->t('g_machines'), 'tool', $rows, 'app_admin_machines', [], $this->t('all_machines'));
     }
 
     /** Tâches ouvertes en retard ou à échéance dans les 7 jours. */
@@ -137,15 +145,15 @@ final class AdminAttention
                 'where' => $task->getMachine()?->getNom() ?? '',
                 'when' => $task->getDueDate(), 'whenKind' => 'date',
                 'state' => $status === 'overdue'
-                    ? ['label' => 'En retard', 'signal' => 'stop']
-                    : ['label' => 'Bientôt due', 'signal' => 'caution'],
-                'verb' => 'Ouvrir la tâche', 'route' => 'app_admin_maintenance_edit', 'params' => ['id' => $task->getId()],
+                    ? ['label' => $this->t('st_overdue'), 'signal' => 'stop']
+                    : ['label' => $this->t('st_due_soon'), 'signal' => 'caution'],
+                'verb' => $this->t('verb_task'), 'route' => 'app_admin_maintenance_edit', 'params' => ['id' => $task->getId()],
                 '_sort' => $task->getDueDate()?->getTimestamp() ?? 0,
             ];
         }
         usort($rows, static fn (array $a, array $b): int => $a['_sort'] <=> $b['_sort']);
 
-        return $this->group('maintenance', 'Maintenance à faire', 'history', $rows, 'app_admin_maintenance', [], 'Voir toute la maintenance');
+        return $this->group('maintenance', $this->t('g_maintenance'), 'history', $rows, 'app_admin_maintenance', [], $this->t('all_maintenance'));
     }
 
     /** ReaderHealth : seuls les lecteurs « hors ligne » (pas les désactivés, pas les jamais vus). */
@@ -159,13 +167,13 @@ final class AdminAttention
             $rows[] = [
                 'title' => $reader->getName(),
                 'where' => $reader->getMachine()?->getNom() ?? $reader->getAccessPoint()?->getNom() ?? '',
-                'when' => $reader->getLastSeenAt(), 'whenKind' => 'utc', 'whenPrefix' => 'Dernier contact ',
-                'state' => ['label' => 'Hors ligne', 'signal' => 'stop'],
-                'verb' => 'Ouvrir le lecteur', 'route' => 'app_admin_rfid_reader_edit', 'params' => ['id' => $reader->getId()],
+                'when' => $reader->getLastSeenAt(), 'whenKind' => 'utc', 'whenPrefix' => $this->t('last_seen') . ' ',
+                'state' => ['label' => $this->t('st_offline'), 'signal' => 'stop'],
+                'verb' => $this->t('verb_reader'), 'route' => 'app_admin_rfid_reader_edit', 'params' => ['id' => $reader->getId()],
             ];
         }
 
-        return $this->group('readers', 'Lecteurs hors ligne', 'bolt', $rows, 'app_admin_rfid_readers', [], 'Voir tous les lecteurs');
+        return $this->group('readers', $this->t('g_readers'), 'bolt', $rows, 'app_admin_rfid_readers', [], $this->t('all_readers'));
     }
 
     /** Journal RFID : refusés des 7 derniers jours, avec le verbe correctif d'AccessIncident. */
@@ -176,17 +184,17 @@ final class AdminAttention
             /** @var AccessRfidLog $log */
             $fix = $this->incidents->of($log);
             $rows[] = [
-                'title' => $log->getUtilisateur()?->getDisplayName() ?? 'Badge inconnu',
+                'title' => $log->getUtilisateur()?->getDisplayName() ?? $this->t('unknown_badge'),
                 'where' => $log->getMachine()?->getNom() ?? $log->getReader()?->getName() ?? '',
                 'when' => $log->getCreatedAt(), 'whenKind' => 'utc',
-                'state' => ['label' => 'Refusé', 'signal' => 'stop'],
+                'state' => ['label' => $this->t('st_refused'), 'signal' => 'stop'],
                 'status' => $log->getStatus(),
                 'fix' => $fix,
-                'verb' => 'Voir le journal', 'route' => 'app_admin_access_rfid_logs', 'params' => ['days' => 7, 'result' => 'no'],
+                'verb' => $this->t('verb_log'), 'route' => 'app_admin_access_rfid_logs', 'params' => ['days' => 7, 'result' => 'no'],
             ];
         }
 
-        return $this->group('access', 'Refus d’accès récents (7 jours)', 'forbidden', $rows, 'app_admin_access_rfid_logs', ['days' => 7, 'result' => 'no'], 'Voir le journal des refus');
+        return $this->group('access', $this->t('g_access'), 'forbidden', $rows, 'app_admin_access_rfid_logs', ['days' => 7, 'result' => 'no'], $this->t('all_access'));
     }
 
     /** Réservations au statut « pending ». */
@@ -195,15 +203,15 @@ final class AdminAttention
         $rows = [];
         foreach ($this->reservations->findForAdminFilters(['statut' => Reservation::STATUS_PENDING]) as $reservation) {
             $rows[] = [
-                'title' => $reservation->getReservableLabel() ?: 'Réservation',
+                'title' => $reservation->getReservableLabel() ?: $this->t('reservation'),
                 'where' => $reservation->getUtilisateur()?->getDisplayName() ?? '',
                 'when' => $reservation->getDateDebut(), 'whenKind' => 'wall',
-                'state' => ['label' => 'À valider', 'signal' => 'wait'],
-                'verb' => 'Examiner', 'route' => 'app_reservation_detail', 'params' => ['id' => $reservation->getId()],
+                'state' => ['label' => $this->t('st_to_validate'), 'signal' => 'wait'],
+                'verb' => $this->t('verb_review'), 'route' => 'app_reservation_detail', 'params' => ['id' => $reservation->getId()],
             ];
         }
 
-        return $this->group('reservations', 'Réservations à valider', 'calendar', $rows, 'app_admin_reservations', ['statut' => Reservation::STATUS_PENDING], 'Voir les réservations');
+        return $this->group('reservations', $this->t('g_reservations'), 'calendar', $rows, 'app_admin_reservations', ['statut' => Reservation::STATUS_PENDING], $this->t('all_reservations'));
     }
 
     /** Prêts dont Loan::getEffectiveStatus() vaut « overdue ». */
@@ -215,15 +223,15 @@ final class AdminAttention
                 continue;
             }
             $rows[] = [
-                'title' => $loan->getItem()?->getName() ?? 'Objet prêté',
+                'title' => $loan->getItem()?->getName() ?? $this->t('loan_item'),
                 'where' => $loan->getBorrowerDisplay(),
-                'when' => $loan->getExpectedReturnDate(), 'whenKind' => 'wall', 'whenPrefix' => 'À rendre le ',
-                'state' => ['label' => 'En retard', 'signal' => 'stop'],
-                'verb' => 'Voir le prêt', 'route' => 'app_admin_loans', 'params' => [],
+                'when' => $loan->getExpectedReturnDate(), 'whenKind' => 'wall', 'whenPrefix' => $this->t('due_on') . ' ',
+                'state' => ['label' => $this->t('st_overdue'), 'signal' => 'stop'],
+                'verb' => $this->t('verb_loan'), 'route' => 'app_admin_loans', 'params' => [],
             ];
         }
 
-        return $this->group('loans', 'Prêts en retard', 'box', $rows, 'app_admin_loans', [], 'Voir tous les prêts');
+        return $this->group('loans', $this->t('g_loans'), 'box', $rows, 'app_admin_loans', [], $this->t('all_loans'));
     }
 
     /** PracticalQueue : théorie finie, pratique à valider. */
@@ -234,13 +242,13 @@ final class AdminAttention
             $rows[] = [
                 'title' => $row['user']->getDisplayName(),
                 'where' => (string) $row['formation']->getTitre(),
-                'when' => $row['since'], 'whenKind' => 'wall', 'whenPrefix' => 'Depuis le ',
-                'state' => ['label' => 'Pratique à valider', 'signal' => 'wait'],
-                'verb' => 'Ouvrir la file', 'route' => 'app_admin_practical_queue', 'params' => [],
+                'when' => $row['since'], 'whenKind' => 'wall', 'whenPrefix' => $this->t('since') . ' ',
+                'state' => ['label' => $this->t('st_practical'), 'signal' => 'wait'],
+                'verb' => $this->t('verb_queue'), 'route' => 'app_admin_practical_queue', 'params' => [],
             ];
         }
 
-        return $this->group('practical', 'Validations pratiques en attente', 'check', $rows, 'app_admin_practical_queue', [], 'Voir la file');
+        return $this->group('practical', $this->t('g_practical'), 'check', $rows, 'app_admin_practical_queue', [], $this->t('all_practical'));
     }
 
     /** Comptes dont le statut stocké est « pending » / « en attente ». */
@@ -252,11 +260,11 @@ final class AdminAttention
                 'title' => $user->getDisplayName(),
                 'where' => $user->getEmail(),
                 'when' => null, 'whenKind' => 'wall',
-                'state' => ['label' => 'En attente', 'signal' => 'wait'],
-                'verb' => 'Ouvrir la fiche', 'route' => 'app_admin_user_detail', 'params' => ['id' => $user->getId()],
+                'state' => ['label' => $this->t('st_pending'), 'signal' => 'wait'],
+                'verb' => $this->t('verb_user'), 'route' => 'app_admin_user_detail', 'params' => ['id' => $user->getId()],
             ];
         }
 
-        return $this->group('accounts', 'Comptes en attente', 'key', $rows, 'app_admin_users', ['statut' => 'pending'], 'Voir les comptes');
+        return $this->group('accounts', $this->t('g_accounts'), 'key', $rows, 'app_admin_users', ['statut' => 'pending'], $this->t('all_accounts'));
     }
 }

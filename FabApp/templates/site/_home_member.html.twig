@@ -1,0 +1,71 @@
+{#
+   Accueil (0.5) — le bloc d'un membre connecté, sous le hero : « À faire » (ce
+   qui bloque ou attend, chacun avec son verbe), sa prochaine réservation, et ce
+   que ses badges ouvrent (`_badge_reach`, le composant du profil).
+   Données : `App\Home\MemberToday`. Paramètres : member, today.
+#}
+<section class="home-member" aria-label="{{ 'home.member_label'|trans }}">
+    <div class="container pp-home">
+                <header class="pp-home-head">
+            <h2>{{ 'home.member_hello'|trans({'%name%': member.firstName ?: member.displayName}) }}</h2>
+            <p>{{ 'home.member_today'|trans }}</p>
+        </header>
+
+        <section class="detail-card pp-todo" aria-labelledby="pp-todo-title">
+            <h2 id="pp-todo-title" class="detail-card-title">{{ 'home.todo_title'|trans }}</h2>
+            {% if today.todo is empty %}
+                <p class="pp-todo-done"><span class="md-verdict md-verdict--go" aria-hidden="true">✓</span> {{ 'home.todo_none'|trans }}</p>
+            {% else %}
+                <ul>
+                    {% for t in today.todo %}
+                        <li class="pp-todo-{{ t.tone }}">
+                            <span class="pp-todo-ic" aria-hidden="true">{% include 'site/_icon.html.twig' with { name: t.icon } only %}</span>
+                            {% if t.kind == 'loan' %}
+                                <span><b>{{ 'home.todo_loan'|trans({'%item%': t.loan.item.name}) }}</b><small>{{ (t.overdue ? 'home.todo_loan_overdue' : 'home.todo_loan_due')|trans({'%date%': t.loan.expectedReturnDate ? t.loan.expectedReturnDate|date('d/m/Y') : '—'}) }}</small></span>
+                                <a class="btn btn-secondary" href="{{ path('app_loans_item', {id: t.loan.item.id}) }}">{{ 'home.todo_loan_cta'|trans }}</a>
+                            {% elseif t.kind == 'training' %}
+                                <span><b>{{ 'home.todo_training'|trans({'%training%': t.progression.formation.titre}) }}</b><small>{{ 'home.todo_training_since'|trans({'%date%': t.progression.dateDebut|date('d/m/Y')}) }}</small></span>
+                                <a class="btn btn-primary" href="{{ path('app_formation_detail', {id: t.progression.formation.id}) }}">{{ 'home.todo_training_cta'|trans }}</a>
+                            {% elseif t.kind == 'pending' %}
+                                {% set rr = reservable(t.reservation) %}
+                                <span><b>{{ 'home.todo_pending'|trans({'%resource%': rr.name}) }}</b><small>{{ t.reservation.dateDebut|loc_date('EEEE d MMMM') }} · {{ t.reservation.dateDebut|date('H:i') }}–{{ t.reservation.dateFin|date('H:i') }} — {{ 'home.todo_pending_note'|trans }}</small></span>
+                                <a class="btn btn-secondary" href="{{ path('app_reservation_detail', {id: t.reservation.id}) }}">{{ 'machines.see'|trans }}</a>
+                            {% elseif t.kind == 'first_badge' %}
+                                <span><b>{{ 'home.todo_first_badge'|trans }}</b><small>{{ 'home.todo_first_badge_note'|trans }}</small></span>
+                                <a class="btn btn-primary" href="{{ path('app_formations') }}">{{ 'machine.see_trainings'|trans }}</a>
+                            {% elseif t.kind == 'card' %}
+                                <span><b>{{ 'home.todo_card'|trans }}</b><small>{{ 'home.todo_card_note'|trans }}</small></span>
+                                <a class="btn btn-secondary" href="{{ path('app_home') }}#horaires">{{ 'home.todo_card_cta'|trans }}</a>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </section>
+
+        <div class="pp-home-grid">
+            <section class="detail-card pp-home-next" aria-labelledby="pp-home-next-title">
+                <h2 id="pp-home-next-title" class="detail-card-title">{{ (today.nextIsNow ? 'resv.state_current' : 'home.next_booking')|trans }}</h2>
+                {% if today.next %}
+                    {% set r = today.next %}
+                    {% set res = reservable(r) %}
+                    <a class="pp-home-next-link" href="{{ path('app_reservation_detail', {id: r.id}) }}">
+                        <b>{{ res.name }}</b>
+                        <span>{% include 'site/_icon.html.twig' with { name: 'calendar' } only %} {{ r.dateDebut|loc_date('EEEE d MMMM')|capitalize }} · {{ r.dateDebut|date('H:i') }}–{{ r.dateFin|date('H:i') }}</span>
+                        {% if r.motif %}<small>{{ r.motif }}</small>{% endif %}
+                        <span class="pp-home-next-go" aria-hidden="true">›</span>
+                    </a>
+                    <p class="md-note"><a href="{{ path('app_my_reservations') }}">{{ 'home.my_reservations'|trans }}</a></p>
+                {% else %}
+                    <p class="md-note">{{ 'home.no_next_booking'|trans }}</p>
+                    {% if has_calendar_layer() %}<a class="btn btn-primary" href="{{ path('app_calendar') }}">{{ 'resv.book_slot'|trans }}</a>{% endif %}
+                {% endif %}
+            </section>
+
+            <div class="pp-home-access">
+                {% include 'site/_badge_reach.html.twig' with { explained: today.explained, audience: 'self', id_prefix: 'pp-home-reach' } only %}
+            </div>
+        </div>
+
+    </div>
+</section>

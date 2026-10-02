@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Design\KioskHome;
 use App\Repository\AccessRfidLogRepository;
 use App\Repository\EventRegistrationRepository;
 use App\Repository\EventRepository;
@@ -19,6 +20,13 @@ use Symfony\Component\Routing\Attribute\Route;
  */
 final class KioskController extends AbstractController
 {
+    /** Accueil tactile d'une borne : état du jour, trois tuiles vers les écrans de kiosque, horaires. Aucune donnée personnelle. */
+    #[Route('/kiosk', name: 'app_kiosk_home', methods: ['GET'])]
+    public function home(KioskHome $home): Response
+    {
+        return $this->render('site/kiosk-home.html.twig', ['home' => $home->build()]);
+    }
+
     #[Route('/kiosk/entries', name: 'app_kiosk_entries', methods: ['GET'])]
     public function entries(AccessRfidLogRepository $logs): Response
     {

@@ -6,6 +6,7 @@ namespace App\Design;
 
 use App\Entity\MaintenanceTask;
 use App\Repository\MaintenanceTaskRepository;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * La file d'intervention de la proposition `maintenance` (2026-10-01, d'après la
@@ -21,15 +22,18 @@ use App\Repository\MaintenanceTaskRepository;
  */
 final class MaintenanceQueue
 {
+    /** Clés de catalogue des libellés de tuile. */
     private const TILES = [
-        'todo' => 'À faire',
-        'overdue' => 'En retard',
-        'week' => 'Cette semaine',
-        'done' => 'Fait',
+        'todo' => 'state.todo_f',
+        'overdue' => 'state.overdue',
+        'week' => 'maintenance_queue.tile_week',
+        'done' => 'state.done_m',
     ];
 
-    public function __construct(private readonly MaintenanceTaskRepository $tasks)
-    {
+    public function __construct(
+        private readonly MaintenanceTaskRepository $tasks,
+        private readonly TranslatorInterface $translator,
+    ) {
     }
 
     /** @return array{tiles: list<array<string, mixed>>, active: string, rows: list<array<string, mixed>>, empty: bool} */
@@ -58,16 +62,16 @@ final class MaintenanceQueue
             $rows[] = [
                 'id' => $task->getId(),
                 'title' => $task->getTitle(),
-                'type' => $task->getType() === 'corrective' ? 'Corrective' : 'Préventive',
+                'type' => $this->translator->trans($task->getType() === 'corrective' ? 'maintenance.type_corrective' : 'maintenance.type_preventive'),
                 'recurrenceDays' => $task->getRecurrenceDays(),
                 'machine' => $machine === null ? null : ['id' => $machine->getId(), 'name' => $machine->getNom(), 'photo' => $machine->getPhoto()],
                 'due' => $task->getDueDate(),
                 'done' => $task->getDoneDate(),
                 'state' => match ($status) {
-                    'done' => ['label' => 'Fait', 'signal' => 'go'],
-                    'overdue' => ['label' => 'En retard', 'signal' => 'stop'],
-                    'due_soon' => ['label' => 'Bientôt', 'signal' => 'caution'],
-                    default => ['label' => 'À faire', 'signal' => 'wait'],
+                    'done' => ['label' => $this->translator->trans('state.done_m'), 'signal' => 'go'],
+                    'overdue' => ['label' => $this->translator->trans('state.overdue'), 'signal' => 'stop'],
+                    'due_soon' => ['label' => $this->translator->trans('state.soon'), 'signal' => 'caution'],
+                    default => ['label' => $this->translator->trans('state.todo_f'), 'signal' => 'wait'],
                 },
                 'open' => $status !== 'done',
             ];
@@ -75,7 +79,7 @@ final class MaintenanceQueue
 
         $tiles = [];
         foreach (self::TILES as $key => $label) {
-            $tiles[] = ['key' => $key, 'label' => $label, 'count' => $counts[$key], 'active' => $key === $tile, 'signal' => $key === 'overdue' ? 'stop' : ($key === 'week' ? 'caution' : null)];
+            $tiles[] = ['key' => $key, 'label' => $this->translator->trans($label), 'count' => $counts[$key], 'active' => $key === $tile, 'signal' => $key === 'overdue' ? 'stop' : ($key === 'week' ? 'caution' : null)];
         }
 
         return ['tiles' => $tiles, 'active' => $tile, 'rows' => $rows, 'empty' => $rows === []];

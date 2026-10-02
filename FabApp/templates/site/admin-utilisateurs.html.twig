@@ -1,137 +1,93 @@
 {% extends 'base.html.twig' %}
 
-{# S78 step 7 — this page had its own <!DOCTYPE> and <head>. With no layout
-   there was nowhere to put a stylesheet link, which is why every one of these
-   grew a <style> and every <style> grew literal colours. The shell emits the
-   doctype, style.css, the favicon and importmap('app'); this file keeps only
-   what is its own.
-
-   S84 — the list is a `_data_table` now and the 325-line inline block is gone:
-   page chrome S82 unwound, a `.admin-panel` copy that **overrode S83's ground
-   and lift**, a complete modal that is not in this page's markup, a
-   `.users-table` ruleset for a `<table>` this page stopped having, and a
-   15-track `grid-template-columns` with a `min-width: 1780px`.
-
-   🔴 Found by the conversion: the status cell was `class="status-badge active"`
-   **hardcoded**, so a banned or pending member printed their real word inside a
-   green chip. The class comes off the value now. #}
+{#
+   Annuaire des utilisateurs : les tuiles trient par TRAVAIL (à valider, suspendus, expire bientôt,
+   sans badge — `AdminUserDirectory`). Les filtres Groupe et Forfait (`AudienceResolver`, côté
+   contrôleur) et le bouton de création restent. ⚠️ Un commentaire Twig entre deux clés d'un hash
+   d'arguments est une erreur de syntaxe : celui-ci reste hors des `with { … }`.
+#}
 
 {% block title %}{{ 'admin_users.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals-annuaire-utilisateurs.css') ~ '?v=' ~ css_version }}">
 {% endblock %}
 
 {% block body %}
-{# ⚠️ The tiles count `allUsers`, not `users` (S134h). `users` is the FILTERED
-   result, so with a status selected every tile reported the number of rows
-   already on screen — four tiles, one number, and nothing to say there were more
-   accounts elsewhere. `allUsers` is also where "3 sur 11" comes from.
-
-   🔴 **S159f — le menu « Rôle » est parti : il faisait double emploi avec
-   « Groupe ».** Depuis la fusion, l'appartenance à un groupe intégré EST le rôle,
-   et le menu des rôles posait la même question moins bien : il joignait
-   `UTILISATEUR_ROLE`, donc il ne voyait pas quelqu'un rendu staff par son groupe.
-
-   ⚠️ **Le filtre « groupe » (S158c) est le voisin du précédent, et il a la même
-   raison de ne pas être une jointure** : l'appartenance est l'union des lignes
-   stockées, des rôles et de l'audience `user` — seule cette dernière vaut « tout
-   compte actif », et aucune jointure ne l'écrit. Il vient AVANT le forfait dans
-   la rangée parce qu'un groupe organise des personnes et qu'un forfait leur
-   donne des droits : on cherche d'abord qui, ensuite quoi.
-
-   ⚠️ **Le filtre « droit d'usage » (S153c), et sa clé est un ID.** Il ne se
-   règle PAS dans `findForAdminFilters()` : `USAGE_RIGHT_ASSIGNMENT` n'a pas
-   d'entité, donc rien à joindre en DQL, et surtout l'appartenance à un groupe
-   n'est pas une jointure — c'est l'union de lignes stockées, de rôles et de
-   l'audience `user`, que `AudienceResolver` seul sait résoudre. Le contrôleur
-   filtre donc la liste après coup, en passant par lui.
-   ⚠️ Le menu ne s'affiche que s'il existe au moins un package : un `<select>` à
-   une seule entrée « Tous » est un contrôle qui ne fait rien.
-   ⚠️ **Les tuiles et « 3 sur 11 » comptent toujours `allUsers`**, donc le total
-   reste celui du lab. C'est voulu : le compte de gauche dit combien la sélection
-   montre, celui de droite combien il y a.
-
-   ⚠️ Kept out of the argument hash: a comment between two of its keys is a Twig
-   syntax error. #}
 {% embed 'site/_admin_list.html.twig' with {
     action_label: 'admin_users.action_label'|trans,
     action_route: 'app_admin_user_new',
     panel_title: 'admin_users.panel_title'|trans,
-    panel_note: 'admin_users.panel_note'|trans({'count': users|length}),
-    list_count: users|length,
-    list_total: allUsers|length,
+    list_count: directory.shown,
+    list_total: directory.total,
     list_route: 'app_admin_users',
     list_search: filters.q|default(''),
     list_search_placeholder: 'common.search_placeholder'|trans,
-    list_query: {statut: filters.statut, package: filters.package, groupe: filters.groupe},
-    list_tiles_label: 'admin_list.facet_status'|trans,
-    list_tiles: [
-        {label: 'admin_list.all'|trans, count: allUsers|length, query: {statut: ''}},
-        {label: 'admin_list.active'|trans, count: allUsers|filter(user => user.statut == 'actif')|length, query: {statut: 'actif'}},
-        {label: 'admin_list.inactive'|trans, count: allUsers|filter(user => user.statut == 'inactif')|length, query: {statut: 'inactif'}},
-        {label: 'admin_list.pending'|trans, count: allUsers|filter(user => user.statut == 'pending')|length, query: {statut: 'pending'}},
-    ],
+    list_query: {tuile: directory.tile, package: filters.package|default(''), groupe: filters.groupe|default('')},
+    list_tiles_label: 'admin_user_directory.tiles_label'|trans,
+    list_tiles: directory.tiles,
     list_refine: []|merge(groupChoices|length > 0 ? [
-        {name: 'groupe', label: 'admin_users.filter_group'|trans, value: filters.groupe, options: [{value: '', label: 'admin_list.all'|trans}]|merge(groupChoices|map(g => {value: g.id, label: g.label}))},
+        {name: 'groupe', label: 'admin_users.filter_group'|trans, value: filters.groupe|default(''), options: [{value: '', label: 'admin_list.all'|trans}]|merge(groupChoices|map(g => {value: g.id, label: g.label}))},
     ] : [])|merge(packageChoices|length > 0 ? [
-        {name: 'package', label: 'admin_users.filter_package'|trans, value: filters.package, options: [{value: '', label: 'admin_list.all'|trans}]|merge(packageChoices|map(p => {value: p.id, label: p.name}))},
+        {name: 'package', label: 'admin_users.filter_package'|trans, value: filters.package|default(''), options: [{value: '', label: 'admin_list.all'|trans}]|merge(packageChoices|map(p => {value: p.id, label: p.name}))},
     ] : []),
 } %}
     {% block content %}
-        {# ⚠️ The actions column and its link say "Voir", not "Modifier". Both said
-           Modifier and both go to `app_admin_user_detail`, which is a detail page —
-           its inline forms set a person type and validate a physical training,
-           there is no edit form for the account. The page's own subtitle was
-           corrected earlier; the label promising the edit was not.
-
-           ⚠️ The note sits here rather than beside the column it describes,
-           because a Twig comment between two keys of an argument hash is a syntax
-           error. Both of this file's lint failures on the way to CT 210 were this
-           note, not the change: first for that placement, then for spelling the
-           comment-closing sequence inside a comment, which ends it early. #}
         {% embed 'site/_data_table.html.twig' with {
             pin_actions: true,
             columns: [
                 {label: 'admin_users.col_member'|trans, class: 'is-grow'},
                 {label: 'admin_users.col_status'|trans, class: 'is-tight'},
-                {label: 'admin_users.col_progressions'|trans, class: 'is-tight'},
-                {label: 'admin_users.col_rfid_logs'|trans, class: 'is-tight'},
+                {label: 'admin_user_directory.col_trainings'|trans, class: 'is-tight'},
+                {label: 'admin_user_directory.col_last'|trans, class: 'is-tight'},
                 {label: 'common.see'|trans, class: 'is-actions'},
             ],
-            rows: users,
+            rows: directory.rows,
             empty: 'admin_users.empty'|trans,
         } %}
             {% block rows %}
-                {% for user in users %}
-                    {% set logCount = logCounts[user.id]|default(0) %}
-                    <tr data-admin-list-filter-row data-admin-list-filter-category="{{ (user.statut ?? '')|lower|replace({' ': '-'}) }}" data-admin-list-filter-row-href="{{ path('app_admin_user_detail', {id: user.id}) }}">
+                {% for row in directory.rows %}
+                    <tr>
                         <td>{% include 'site/_cell_title.html.twig' with {
-                            title: user.displayName,
-                            href: path('app_admin_user_detail', {id: user.id}),
-                            subtitle: user.email,
+                            title: row.name,
+                            href: path('app_admin_user_detail', {id: row.id}),
+                            subtitle: row.email,
                             media: include('site/_cell_media.html.twig', {
-                                initials: (user.firstName ?? user.username)|slice(0, 1) ~ (user.lastName ?? '')|slice(0, 1),
+                                initials: row.initials,
                                 shape: 'circle',
                             }, with_context = false),
                         } only %}</td>
-                        {# 🔴 Was `status-badge active` whatever the value (S84), and then
-                           printed the stored word itself. `Utilisateur::getStatusKey()` is
-                           the one mapping — see the entity. #}
-                        {# 🔴 Was `class="status-badge {{ user.statut }}"` — the STORED WORD
-                           interpolated into a class name, so a value no stylesheet knew
-                           about got no colour and the chip stayed green whatever it said.
-                           `_cell_state` takes a signal; the mapping is written here, once,
-                           where it can be read. #}
-                        {% set statusKey = user.statusKey %}
-                        <td>{% include 'site/_cell_state.html.twig' with {
-                            label: statusKey|trans,
-                            signal: statusKey == 'user_status.unconfirmed' ? 'caution' : ((user.statut ?? '') == 'actif' ? 'go' : ((user.statut ?? '') == 'pending' ? 'caution' : ((user.statut ?? '') == 'banned' ? 'stop' : 'muted'))),
+                        <td>
+                            {% include 'site/_cell_state.html.twig' with { label: row.statusKey|trans, signal: row.signal } only %}
+                            {% if row.note %}
+                                <div class="pp-au-note">
+                                    {{ row.note }}{% if row.until %} · {{ 'admin_user_directory.until'|trans({'%date%': row.until|date('d/m/Y')}) }}{% endif %}
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td>{% include 'site/_cell_meter.html.twig' with {
+                            value: row.trainingsDone,
+                            max: directory.formationsTotal,
+                            signal: directory.formationsTotal > 0 and row.trainingsDone >= directory.formationsTotal ? 'go' : '',
+                            label: (row.hasBadge ? 'admin_user_directory.badge_registered' : 'admin_user_directory.tile_no_badge')|trans,
                         } only %}</td>
-                        <td class="is-numeric">{{ progressionCounts[user.id]|default(0) }}</td>
-                        <td class="is-numeric"><a class="rfid-log-link" href="{{ path('app_admin_access_rfid_logs') }}">{{ logCount }}</a></td>
+                        <td>
+                            {% if row.last %}
+                                <div class="pp-au-last">{{ row.last|lab_date('d/m/Y H:i') }}</div>
+                                <div class="pp-au-note">{{ row.lastKind }}</div>
+                            {% else %}
+                                {% include 'site/_cell_empty.html.twig' with { reason: 'admin_user_directory.no_activity' } only %}
+                            {% endif %}
+                        </td>
                         <td class="is-actions">{% include 'site/_cell_actions.html.twig' with {
-                            actions: [{label: 'common.see'|trans, icon: 'view', href: path('app_admin_user_detail', {id: user.id})}],
+                            actions: [{
+                                label: (row.examine ? 'admin_user_directory.examine' : 'admin_user_directory.open')|trans,
+                                icon: row.examine ? 'view' : 'open',
+                                href: path('app_admin_user_detail', {id: row.id}),
+                                tone: row.examine ? 'primary' : 'default',
+                            }],
                         } only %}</td>
                     </tr>
                 {% endfor %}

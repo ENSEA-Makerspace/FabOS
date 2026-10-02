@@ -6,6 +6,7 @@ namespace App\Design;
 
 use App\Entity\Loan;
 use App\Repository\LoanRepository;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * La liste de travail du comptoir « Prêts » (proposition `prets-admin`,
@@ -27,19 +28,21 @@ use App\Repository\LoanRepository;
  */
 final class LoansCounter
 {
-    /** Tuiles de travail : clé => libellé. `en-cours` est la vue par défaut. */
+    /** Tuiles de travail : clé => clé de traduction du libellé. `en-cours` est la vue par défaut. */
     private const TILES = [
-        'aujourdhui' => 'À rendre aujourd’hui',
-        'retard' => 'En retard',
-        'en-cours' => 'En cours',
-        'rendus' => 'Rendus',
+        'aujourdhui' => 'loans_desk.tile_today',
+        'retard' => 'loans_desk.tile_late',
+        'en-cours' => 'loans_desk.tile_out',
+        'rendus' => 'loans_desk.tile_returned',
     ];
 
     /** Prêts rendus montrés : le reste est l'historique de la liste réelle. */
     private const RETURNED_LIMIT = 30;
 
-    public function __construct(private readonly LoanRepository $loans)
-    {
+    public function __construct(
+        private readonly LoanRepository $loans,
+        private readonly TranslatorInterface $translator,
+    ) {
     }
 
     /** @return array{tiles: list<array<string, mixed>>, rows: list<array<string, mixed>>, tile: string, q: string, total: int} */
@@ -84,7 +87,7 @@ final class LoansCounter
         $tiles = [];
         foreach (self::TILES as $key => $label) {
             $tiles[] = [
-                'label' => $label,
+                'label' => $this->translator->trans($label),
                 'count' => $counts[$key],
                 'query' => ['tuile' => $key],
                 'active' => $key === $tile,
@@ -106,7 +109,7 @@ final class LoansCounter
         return [
             'id' => (int) $loan->getId(),
             'itemId' => $loan->getItem()?->getId(),
-            'item' => $loan->getItem()?->getName() ?? 'Objet prêté',
+            'item' => $loan->getItem()?->getName() ?? $this->translator->trans('loans_desk.item_fallback'),
             'borrower' => $loan->getBorrowerDisplay(),
             'taken' => $loan->getDateTaken(),
             'due' => $due,
@@ -116,10 +119,10 @@ final class LoansCounter
             'due_today' => $dueToday,
             'returned' => $returned,
             'state' => match (true) {
-                $returned => ['label' => 'Rendu', 'signal' => 'go'],
-                $overdue => ['label' => 'En retard', 'signal' => 'stop'],
-                $dueToday => ['label' => 'À rendre aujourd’hui', 'signal' => 'caution'],
-                default => ['label' => 'En cours', 'signal' => 'wait'],
+                $returned => ['label' => $this->translator->trans('loans_desk.state_returned'), 'signal' => 'go'],
+                $overdue => ['label' => $this->translator->trans('loans_desk.state_late'), 'signal' => 'stop'],
+                $dueToday => ['label' => $this->translator->trans('loans_desk.tile_today'), 'signal' => 'caution'],
+                default => ['label' => $this->translator->trans('loans_desk.state_out'), 'signal' => 'wait'],
             },
         ];
     }

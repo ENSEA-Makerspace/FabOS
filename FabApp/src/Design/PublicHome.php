@@ -51,29 +51,7 @@ final class PublicHome
         $zone = new \DateTimeZone($this->siteSettings->getTimezone());
         $now = new \DateTimeImmutable('now', $zone);
         $openNow = $this->schedule->isOpenAt(null, $now);
-
-        $placeCards = null;
-        if ($this->features->allowsSurface('places')) {
-            $rows = $this->places->findLive([], ['nom' => 'ASC']);
-            $placeCards = ['total' => \count($rows), 'cards' => []];
-            foreach (\array_slice($rows, 0, self::PER_ROW) as $place) {
-                /** @var Place $place */
-                $slot = $this->nextFreeSlot->find(null, ReservableType::Place, (int) $place->getId());
-                $placeCards['cards'][] = ['place' => $place] + $this->state($slot, $openNow, false, $now);
-            }
-        }
-
-        $machineCards = null;
-        if ($this->features->allowsSurface('machines')) {
-            $rows = $this->machines->findLive([], ['nom' => 'ASC']);
-            $machineCards = ['total' => \count($rows), 'cards' => []];
-            foreach (\array_slice($rows, 0, self::PER_ROW) as $machine) {
-                /** @var Machine $machine */
-                $down = \in_array(strtolower($machine->getStatut()), ['maintenance', 'panne'], true);
-                $slot = $down ? null : $this->nextFreeSlot->find(null, ReservableType::Machine, (int) $machine->getId());
-                $machineCards['cards'][] = ['machine' => $machine] + $this->state($slot, $openNow, $down, $now);
-            }
-        }
+        ['places' => $placeCards, 'machines' => $machineCards] = $this->freeNow();
 
         $events = [];
         foreach ($this->events->findUpcoming(3) as $event) {
@@ -86,6 +64,65 @@ final class PublicHome
             'machines' => $machineCards,
             'events' => $events,
         ];
+    }
+
+    /**
+     * Les rangées « Espaces » et « Équipements » de l'accueil : ce qui est libre
+     * maintenant d'abord, puis ce qui se libère le plus tôt (2026-10-02, accueil
+     * de la 0.5). Vu comme un visiteur : le droit de chacun se lit sur la fiche.
+     *
+     * @return array{places: ?array{cards: list<array<string, mixed>>, total: int}, machines: ?array{cards: list<array<string, mixed>>, total: int}}
+     */
+    public function freeNow(): array
+    {
+        $now = new \DateTimeImmutable('now', new \DateTimeZone($this->siteSettings->getTimezone()));
+        $openNow = $this->schedule->isOpenAt(null, $now);
+        $soonestFirst = static fn (array $a, array $b): int => [!$a['freeNow'], $a['at'] ?? PHP_INT_MAX] <=> [!$b['freeNow'], $b['at'] ?? PHP_INT_MAX];
+
+        $placeCards = null;
+        if ($this->features->allowsSurface('places')) {
+            $cards = [];
+            foreach ($this->places->findLive([], ['nom' => 'ASC']) as $place) {
+                /** @var Place $place */
+                $slot = $this->nextFreeSlot->find(null, ReservableType::Place, (int) $place->getId());
+                $cards[] = ['place' => $place, 'at' => $slot ? $slot['start']->getTimestamp() : null] + $this->state($slot, $openNow, false, $now);
+            }
+            usort($cards, $soonestFirst);
+            $placeCards = ['total' => \count($cards), 'cards' => \array_slice($cards, 0, self::PER_ROW)];
+        }
+
+        $machineCards = null;
+        if ($this->features->allowsSurface('machines')) {
+            $cards = [];
+            foreach ($this->machines->findLive([], ['nom' => 'ASC']) as $machine) {
+                /** @var Machine $machine */
+                $down = \in_array(strtolower($machine->getStatut()), ['maintenance', 'panne'], true);
+                $slot = $down ? null : $this->nextFreeSlot->find(null, ReservableType::Machine, (int) $machine->getId());
+                $cards[] = ['machine' => $machine, 'at' => $slot ? $slot['start']->getTimestamp() : null] + $this->state($slot, $openNow, $down, $now);
+            }
+            usort($cards, $soonestFirst);
+            // Une machine par catégorie d'abord : quatre imprimantes identiques
+            // ne disent rien de plus qu'une.
+            $picked = [];
+            $seen = [];
+            foreach ($cards as $i => $card) {
+                $category = (string) $card['machine']->getCategorySlug();
+                if (!isset($seen[$category]) && \count($picked) < self::PER_ROW) {
+                    $seen[$category] = true;
+                    $picked[$i] = $card;
+                }
+            }
+            foreach ($cards as $i => $card) {
+                if (\count($picked) >= self::PER_ROW) {
+                    break;
+                }
+                $picked[$i] ??= $card;
+            }
+            ksort($picked);
+            $machineCards = ['total' => \count($cards), 'cards' => array_values($picked)];
+        }
+
+        return ['places' => $placeCards, 'machines' => $machineCards];
     }
 
     /**
@@ -112,7 +149,7 @@ final class PublicHome
         $dayDiff = (int) $now->setTime(0, 0)->diff($start->setTime(0, 0))->format('%r%a');
         $label = match (true) {
             $dayDiff <= 0 => $this->translator->trans('state.free_at', ['%time%' => $time]),
-            $dayDiff === 1 => 'Libre demain ' . $time,
+            $dayDiff === 1 => $this->translator->trans('state.free_tomorrow', ['%time%' => $time]),
             default => $this->translator->trans('state.free_on', ['%day%' => $start->format('d/m'), '%time%' => $time]),
         };
 

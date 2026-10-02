@@ -37,3 +37,12 @@
 @media (max-width: 640px) {
     .pp-aa-table th:nth-child(2), .pp-aa-table td:nth-child(2) { display: none; }
 }
+
+/* Assistant de première installation : seul chemin vers lui (pas de redirection). */
+.pp-aa-firstrun {
+    display: flex; align-items: center; gap: var(--spacing-md); flex-wrap: wrap;
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: var(--theme-surface); border: 1px solid var(--border-color); border-radius: var(--border-radius);
+}
+.pp-aa-firstrun b { color: var(--color-text); }
+.pp-aa-firstrun p { margin: 0; flex: 1 1 260px; color: var(--color-text-light); font-size: var(--font-size-sm); }

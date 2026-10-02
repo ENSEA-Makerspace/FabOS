@@ -116,6 +116,8 @@ final class SiteController extends AbstractController
         HomepagePersonalizationService $homepagePersonalization,
         EventRepository $events,
         EventArtwork $artwork,
+        \App\Home\MemberToday $memberToday,
+        \App\Design\PublicHome $publicHome,
     ): Response
     {
         $currentUser = $this->getUser();
@@ -190,6 +192,9 @@ final class SiteController extends AbstractController
         }
 
         return $this->render('site/index.html.twig', [
+            // 0.5 — sous le hero : ce qu'un membre a à faire, et ce qui est libre.
+            'memberToday' => $currentUser instanceof Utilisateur ? $memberToday->for($currentUser) : null,
+            'freeNow' => $publicHome->freeNow(),
             'eventArtwork' => $eventArt,
             'homeStats' => $homeStats,
             'machines' => $homeMachines,
@@ -534,15 +539,14 @@ final class SiteController extends AbstractController
 
     #[Route('/mes-reservations', name: 'app_my_reservations', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
-    public function myReservations(Request $request, \App\Catalogue\MyReservations $mine): Response
+    public function myReservations(Request $request, \App\Catalogue\MyReservations $mine, \App\Catalogue\MyReservationVisuals $visuals): Response
     {
         $user = $this->getUser();
         if (!$user instanceof Utilisateur) {
             throw $this->createAccessDeniedException('Authentification requise');
         }
 
-        // 2026-10-01 — le calcul vit dans `MyReservations`, lu aussi par sa proposition.
-        return $this->render('site/mes-reservations.html.twig', $mine->build($request, $user));
+        return $this->render('site/mes-reservations.html.twig', $visuals->add($mine->build($request, $user)));
     }
 
     #[Route('/machines', name: 'app_machines', methods: ['GET'])]
@@ -701,8 +705,7 @@ final class SiteController extends AbstractController
     public function machineDetail(
         Request $request,
         MachineRepository $machines,
-        AccessRfidLogRepository $rfidLogs,
-        LogUtilisationRepository $usageLogs,
+        \App\Design\MachineOperations $machineOperations,
         ReservationRepository $reservations,
         MachineQualificationService $machineAccess,
         MachineFavoriteRepository $favorites,
@@ -796,9 +799,9 @@ final class SiteController extends AbstractController
             'hasRequiredBadge' => $hasRequiredBadge,
             'authorizationStatus' => $authorizationStatus,
             'seesOperations' => $seesOperations,
-            'rfidLogCount' => $seesOperations ? $rfidLogs->count(['machine' => $machine]) : 0,
-            'usageLogCount' => $seesOperations ? $usageLogs->count(['machine' => $machine]) : 0,
-            'reservationCount' => $seesOperations ? $reservations->countForReservable(ReservableType::Machine, $machine->getId()) : 0,
+            // Les quatre cartes d'exploitation (état, maintenance, lecteur, accès) : `MachineOperations`,
+            // calculées pour le seul personnel (`BookingIdentityPolicy`) comme les compteurs d'avant.
+            'ops' => $seesOperations ? $machineOperations->for($machine->getId()) : null,
             'favoritesEnabled' => $favoritesEnabled,
             'isFavorite' => $isFavorite,
             'materialsEnabled' => $modules->isEnabled('materials'),
@@ -1634,24 +1637,14 @@ final class SiteController extends AbstractController
     }
 
     #[Route('/badges/{id}', name: 'app_badge_detail', requirements: ['id' => '\d+'], methods: ['GET'])]
-    public function badgeDetail(Badge $badge, FormationRepository $formations): Response
+    public function badgeDetail(Badge $badge, FormationRepository $formations, \App\Design\BadgeHeld $badgeHeld): Response
     {
-        $machineAccess = [];
-        foreach ($badge->getMachineBadges() as $machineBadge) {
-            $machine = $machineBadge->getMachine();
-            if ($machine === null) {
-                continue;
-            }
-
-            $machineAccess[] = [
-                'machine' => $machine,
-                'requiredForAccess' => $machineBadge->isRequiredForAccess(),
-            ];
-        }
+        $user = $this->getUser();
 
         return $this->render('site/badge-detail.html.twig', [
             'badge' => $badge,
-            'machineAccess' => $machineAccess,
+            // La page change selon qui la regarde (détenu ou non) : `BadgeHeld`.
+            'held' => $badgeHeld->for($badge->getId(), $user instanceof Utilisateur ? $user : null),
             'earnedVia' => $formations->findBy(['badge' => $badge], ['titre' => 'ASC']),
             'unlockedBadges' => $badge->getUnlockedBadges(),
         ]);
@@ -1761,8 +1754,20 @@ final class SiteController extends AbstractController
         ReservableResolver $reservables,
         AccessPointRepository $accessPoints,
         \App\Service\PlaceBadges $placeBadges,
+        \App\Reservation\Policy\BookingPolicyService $bookingPolicies,
     ): Response {
         $currentUser = $this->getUser();
+
+        // « Annulable jusqu'à … » dans le panneau de réservation : la règle est un
+        // délai avant le début (`changeDeadlineFor`, seule source de ce calcul). On le
+        // relit sur une date de référence pour pouvoir l'écrire AVANT que le créneau
+        // soit choisi ; null = pas de délai (annulable librement).
+        $cancellationNoticeMinutes = null;
+        if ($currentUser instanceof Utilisateur) {
+            $reference = new \DateTimeImmutable('2030-01-15 12:00:00');
+            $deadline = $bookingPolicies->changeDeadlineFor($currentUser, ReservableType::Place, $reference);
+            $cancellationNoticeMinutes = $deadline === null ? null : intdiv($reference->getTimestamp() - $deadline->getTimestamp(), 60);
+        }
         $usageVerdict = $usageRights->verdict($currentUser instanceof Utilisateur ? $currentUser : null, 'places');
 
         $calendarResources = $this->buildCalendarResources([], [$place]);
@@ -1787,6 +1792,8 @@ final class SiteController extends AbstractController
              * complète et qui ne répond pas.
              */
             'accessPoints' => $accessPoints->findForPlace((int) $place->getId()),
+            'cancellationNoticeMinutes' => $cancellationNoticeMinutes,
+            'doorMarginMinutes' => \App\Rfid\DoorAccessDecision::MARGIN_MINUTES,
             'reservations' => $reservations->findActiveForReservable(ReservableType::Place, $place->getId()),
             'usageRight' => $usageVerdict,
             'calendarResources' => $calendarResources,
@@ -1827,113 +1834,14 @@ final class SiteController extends AbstractController
      * only thing that differs, and it is a number, not a second stylesheet.
      */
     #[Route('/events', name: 'app_events', methods: ['GET'])]
-    public function events(
-        Request $request,
-        EventRepository $events,
-        EventRegistrationRepository $registrations,
-        EventArtwork $artwork,
-        UsageRightsService $usageRights,
-        VenueContext $venues,
-        EventCategoryRepository $eventCategories,
-        TranslatorInterface $translator,
-    ): Response {
-        $search = trim((string) $request->query->get('q', ''));
-        $member = $this->getUser() instanceof Utilisateur ? $this->getUser() : null;
+    public function events(Request $request, \App\Design\EventsHub $hub): Response
+    {
+        // Le calcul (filtres « quand », lieu, catégorie, cartes, « Mes inscriptions »)
+        // vit dans `EventsHub` : une seule vérité. Voir ses notes sur les deux horloges
+        // (S139d) et sur le défaut « tout » (S159c).
+        $user = $this->getUser();
 
-        // 🔴 **S159c — le défaut est « tout », et c'est un RENVERSEMENT assumé.**
-        // La note précédente disait l'inverse : « /events nu n'est PAS tout, c'est
-        // à venir, ce pour quoi on arrive sur une page d'événements ». L'opérateur
-        // a tranché autrement le 2026-09-02 — la page s'ouvre sur l'ensemble.
-        // ⚠️ **Le défaut n'est donc plus un filtre**, ce qui rend
-        // `filter_all_value` cohérent avec l'URL nue : la tuile « Tous » s'allume
-        // sur `/events`, et elle a raison de s'allumer.
-        $when = (string) $request->query->get('when', 'all');
-        if (!in_array($when, [EventRepository::WHEN_UPCOMING, EventRepository::WHEN_PAST, 'all'], true)) {
-            $when = EventRepository::WHEN_UPCOMING;
-        }
-
-        // ⚠️ S138. The PUBLIC catalogue had no location filter, on an install with
-        // more than one location since S129 — a member was shown every row in the
-        // organisation with no way to narrow it. Same gap /machines had until S137.
-        $venueContext = $venues->forRequest($request, $this->getUser() instanceof Utilisateur ? $this->getUser() : null);
-        $rows = $events->findForCatalogue($when === 'all' ? null : $when, $search);
-        // ⚠️ Filtered here rather than in the repository: `findForCatalogue` is
-        // shared with surfaces that must NOT be venue-scoped (the home deck, the
-        // iCal feed), and narrowing it there would silently narrow those too.
-        if ($venueContext['selected'] !== null) {
-            $rows = array_values(array_filter(
-                $rows,
-                static fn (Event $event): bool => $event->getVenue()?->getId() === $venueContext['selected']->getId(),
-            ));
-        }
-        // ⚠️ **The category filter is a SLUG, and an unknown one shows everything
-        // rather than nothing** (S146f). A category can be archived or renamed while
-        // somebody holds a link to it; answering "no events" would say the lab has
-        // stopped running workshops, which is a different and wrong statement. The
-        // location filter refuses an unknown slug with a 400 because a location is a
-        // place that either exists or does not — a category is a word.
-        $categorySlug = trim((string) $request->query->get('category', ''));
-        $selectedCategory = $categorySlug !== '' ? $eventCategories->findOneBySlug($categorySlug) : null;
-        if ($selectedCategory !== null) {
-            $rows = array_values(array_filter(
-                $rows,
-                static fn (Event $event): bool => $event->getCategory()?->getId() === $selectedCategory->getId(),
-            ));
-        }
-
-        // The refine menu's options. One entry plus "all" means one real choice,
-        // and the template draws no menu at all — same rule as the location filter
-        // on a single-location install.
-        $categoryOptions = [['value' => '', 'label' => $translator->trans('event_categories.menu_all')]];
-        foreach ($eventCategories->findSelectable() as $category) {
-            $categoryOptions[] = ['value' => $category->getSlug(), 'label' => $category->getLabel()];
-        }
-
-        // One query for the whole page, not one per card — see the repository.
-        $seatsTaken = $registrations->countSeatsTakenFor($rows);
-
-        $cards = [];
-        foreach ($rows as $event) {
-            $taken = $seatsTaken[(int) $event->getId()] ?? 0;
-            $capacity = $event->getCapacite();
-            $cards[] = [
-                'event' => $event,
-                'photo' => $artwork->describe($event)['thumb'],
-                // 🔴 The card used to derive "past" in the template, from
-                // `Event::isRegistrationOpen()` — which compares against
-                // `new \DateTimeImmutable()`, the raw SERVER instant, while the
-                // list that produced these very rows compares in the lab's wall
-                // clock (`EventRepository::nowInStoredForm()`). The filter and
-                // the badge on the same card were answering different questions,
-                // and near midnight they disagreed by the lab's offset. One
-                // clock, computed once, here.
-                'past' => !$event->isCancelled()
-                    && $event->getDateDebut() !== null
-                    && $event->getDateDebut() <= $events->storedNow(),
-                'seatsTaken' => $taken,
-                'full' => $capacity !== null && $capacity > 0 && $taken >= $capacity,
-                'seatsLeft' => $capacity !== null ? max(0, $capacity - $taken) : null,
-                'usageRight' => $member instanceof Utilisateur && !$event->isGuestsAllowed()
-                    ? $usageRights->verdict($member, 'events', $event->getDateDebut(), $event->getDateFin())
-                    : null,
-            ];
-        }
-
-        return $this->render('site/events.html.twig', [
-            'venueContext' => $venueContext,
-            // ⚠️ Built in PHP, not with Twig's `map`: this template is one of the
-            // three that took the whole page down over a Twig-version construct, and
-            // an options list is data the controller already has.
-            'categoryOptions' => $categoryOptions,
-            'category' => $selectedCategory?->getSlug() ?? '',
-            'cards' => $cards,
-            'search' => $search,
-            'when' => $when,
-            'total' => count($cards),
-            'all' => $events->countWhen(null),
-            'countUpcoming' => $events->countWhen(EventRepository::WHEN_UPCOMING),
-            'countPast' => $events->countWhen(EventRepository::WHEN_PAST),
-        ]);
+        return $this->render('site/events.html.twig', $hub->build($request, $user instanceof Utilisateur ? $user : null));
     }
 
     #[Route('/events/{id}', name: 'app_event_detail', requirements: ['id' => '\d+'], methods: ['GET'])]
@@ -2143,8 +2051,7 @@ final class SiteController extends AbstractController
         UsageRightsService $usageRights,
         UsageAllowanceService $usageBudgets,
         RightsExplainer $explainer,
-        SessionRegistry $sessionRegistry,
-        MfaService $mfa,
+        \App\Design\AccountSecurityEmails $accountSecurityEmails,
         VenueRepository $venues,
         LocaleCatalog $locales,
         BadgeGrants $badgeGrants,
@@ -2523,17 +2430,14 @@ final class SiteController extends AbstractController
             // raconter deux histoires.
             'explained' => $explained = $explainer->explain($user),
             'usageRightsSummary' => $explained['capabilities'],
-            // S191a — null tant que la migration n'est pas passée : pas de lien.
-            'openSessions' => $sessionRegistry->isReady() ? \count($sessionRegistry->aliveFor($user)) : null,
-            // S191b — null sans la migration.
-            'mfaStatus' => $mfa->isReady() ? $mfa->status($user) : null,
+            // Sécurité (mot de passe, e-mail, double authentification, sessions) et e-mails
+            // par domaine : une seule source, `AccountSecurityEmails`. Les liens de session et de
+            // MFA y restent nuls tant que leurs migrations ne sont pas passées.
+            'account' => $accountSecurityEmails->for($user),
             // ⚠️ What a package METERS, beside what it allows (S144c). A member
             // who only learns their limit at the moment of refusal reads a
             // budget they were sold as an arbitrary rule.
             'usageBudgets' => $usageBudgets->summaryFor($user),
-            'notificationCategories' => $user->getId() !== null
-                ? $notificationPreferences->forUser($user->getId())
-                : array_fill_keys(NotificationCategory::OPTOUTABLE, true),
             'activeVenues' => $venues->findBy(['active' => true], ['name' => 'ASC']),
             'profileStats' => [
                 'completedFormations' => count($completedProgressions),

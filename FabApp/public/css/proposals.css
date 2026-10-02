@@ -189,3 +189,8 @@
 .pp-search-go { color: var(--color-text-light); font-size: 20px; }
 @media (max-width: 640px) { .pp-search-row { grid-template-columns: 36px minmax(0, 1fr) 12px; } .pp-search-meta { display: none; } }
 .pp-tr-discover h2 { margin: 0 0 var(--spacing-sm); font-size: var(--font-size-lg); }
+
+/* ---- accueil 0.5 : les blocs sous le hero ------------------------------------- */
+.home-member, .home-free-now { padding: var(--spacing-lg) 0; }
+.home-free-now .container { display: grid; gap: var(--spacing-xl); }
+.home-member .pp-home-head h2 { margin: 0; }

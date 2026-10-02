@@ -4,6 +4,12 @@
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/home-deck.css') ~ '?v=20260804-s83-surface' }}">
+    {# 0.5 — les blocs « membre » et « libre maintenant » : cartes du catalogue,
+       cartes de détail, et les motifs partagés des pages revues. #}
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals-accueil-public.css') ~ '?v=' ~ css_version }}">
 {% endblock %}
 
 {% block page_styles %}
@@ -56,6 +62,16 @@
         showHours: homepageVisibility['opening_hours']|default(false),
         openingHours: openingHours,
     } only %}
+
+    {# 0.5 (2026-10-02) — le hero, les horaires et les événements restent en tête
+       (choix de l'opérateur) ; dessous, ce qui sert tout de suite : pour un membre,
+       ce qu'il a à faire et sa prochaine réservation ; pour tous, ce qui est libre. #}
+    {% if app.user and memberToday|default(null) %}
+        {% include 'site/_home_member.html.twig' with { member: app.user, today: memberToday } only %}
+    {% endif %}
+    {% if freeNow|default(null) %}
+        {% include 'site/_home_free_now.html.twig' with { places: freeNow.places, machines: freeNow.machines } only %}
+    {% endif %}
 
     {% if app.user %}
         <section class="home-user-actions-section" aria-label="{{ 'home.user_actions'|trans }}">

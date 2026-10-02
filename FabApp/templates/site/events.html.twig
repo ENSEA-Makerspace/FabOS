@@ -39,9 +39,68 @@
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals-evenements.css') ~ '?v=' ~ css_version }}">
 {% endblock %}
 
 {% block body %}
+{% if mine is not null %}
+<div class="main-content">
+    <section class="machine-detail-section">
+        <div class="container pp-ev-mine">
+            <h2>{{ 'events.mine_title'|trans }}</h2>
+            {% if mine.next is null %}
+                <p class="pp-ev-empty">{{ 'events.mine_none'|trans }}</p>
+            {% else %}
+                {% set n = mine.next %}
+                {% set e = n.card.event %}
+                {% set reg = n.registration %}
+                <section class="pp-next" aria-labelledby="pp-ev-next-title">
+                    <div class="pp-next-media">
+                        {% if n.card.photo %}<img src="{{ n.card.photo starts with 'http' or n.card.photo starts with '/' ? n.card.photo : asset(n.card.photo) }}" alt="" loading="lazy">{% else %}{% include 'site/_icon.html.twig' with { name: 'calendar' } only %}{% endif %}
+                    </div>
+                    <div class="pp-next-main">
+                        <p class="pp-ev-state{{ reg.waitlisted ? ' is-wait' : '' }}">{{ reg.waitlisted ? 'events.mine_waitlisted'|trans : 'events.mine_registered'|trans }}</p>
+                        <p class="pp-next-when"><b>{{ e.dateDebut|date('d/m/Y') }}</b> · {{ e.dateDebut|date('H:i') }}{% if e.dateFin %} – {{ e.dateFin|date('H:i') }}{% endif %}</p>
+                        <h3 id="pp-ev-next-title" class="pp-next-title"><a href="{{ path('app_event_detail', {id: e.id}) }}">{{ e.titre }}</a></h3>
+                        {% if e.lieu %}<p class="pp-next-motif">{% include 'site/_icon.html.twig' with { name: 'pin' } only %} {{ e.lieu }}</p>{% endif %}
+                        {% if n.card.seatsLeft is not null %}
+                            <p class="pp-ev-seats">{{ 'events.mine_seats_left'|trans({'%n%': n.card.seatsLeft, '%capacity%': e.capacite}) }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="pp-next-side">
+                        <div class="pp-next-actions">
+                            {% if n.ticketUrl %}
+                                <a class="btn btn-primary" href="{{ n.ticketUrl }}">{% include 'site/_icon.html.twig' with { name: 'ticket' } only %} {{ 'events.mine_ticket'|trans }}</a>
+                            {% endif %}
+                            <a class="btn {{ n.ticketUrl ? 'btn-secondary' : 'btn-primary' }}" href="{{ path('app_event_detail', {id: e.id}) }}">{{ 'events.mine_manage'|trans }}</a>
+                        </div>
+                    </div>
+                </section>
+
+                {% if mine.others|length %}
+                    <section class="pp-rows">
+                        <h2>{{ 'events.mine_others'|trans }}</h2>
+                        <ul class="pp-ev-rows">
+                            {% for o in mine.others %}
+                                {% set oe = o.card.event %}
+                                <li>
+                                    <span class="pp-row-what"><a href="{{ path('app_event_detail', {id: oe.id}) }}">{{ oe.titre }}</a></span>
+                                    <span class="pp-row-motif">{{ oe.dateDebut|date('d/m/Y · H:i') }}</span>
+                                    <span class="pp-row-motif">{{ o.registration.waitlisted ? 'events.mine_waitlist_short'|trans : (oe.lieu ?: 'events.mine_registered_short'|trans) }}</span>
+                                    <a class="pp-row-go" href="{{ o.ticketUrl ?: path('app_event_detail', {id: oe.id}) }}">{{ o.ticketUrl ? 'events.mine_ticket'|trans : 'resv.manage'|trans }}</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </section>
+                {% endif %}
+            {% endif %}
+        </div>
+    </section>
+</div>
+{% endif %}
+
 {% embed 'site/_catalogue.html.twig' with {
     venue_context: venueContext,
     route: 'app_events',

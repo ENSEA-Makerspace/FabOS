@@ -20,6 +20,10 @@
      resources_by_kind  those rows grouped by `kind`, for the picker's optgroups
      booking_access     the verdicts, keyed `kind:id`, so a locked option says why
      signed_in          whether there is a member to render the form for
+     facts              OPTIONAL — what the space says before you confirm: a list of
+                        `{icon, text}` (capacity, how long a booking can be cancelled,
+                        what the badge opens). Computed server-side by the page; the
+                        controller only fills the duration. Omit it for a machine.
 
    ⚠️ `signed_in` is passed rather than read from `app.user` here. Twig globals do
    survive `only`, but this partial decides whether a FORM exists at all, and prod
@@ -49,8 +53,16 @@
                 <div class="booking-summary-card">
                     <span>{{ 'machines.col_slot'|trans }}</span>
                     <strong data-calendar-target="timeLabel">-</strong>
+                    <small data-calendar-target="durationLabel" data-unit-hour="{{ 'cal.unit_hour'|trans }}" data-unit-minute="{{ 'cal.unit_minute'|trans }}"></small>
                 </div>
             </div>
+            {% if facts is defined and facts %}
+                <ul class="booking-facts" data-booking-facts>
+                    {% for fact in facts %}
+                        <li>{% include 'site/_icon.html.twig' with { name: fact.icon } only %}<p>{{ fact.text }}</p></li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
             {% if resources|length > 1 %}
                 <div>
                     <label for="booking-machine">{{ 'profile.col_machine'|trans }}</label>

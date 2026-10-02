@@ -12,6 +12,7 @@ use App\Repository\ProgressionRepository;
 use App\Repository\UtilisateurRepository;
 use App\Service\TrainingQualificationService;
 use Doctrine\DBAL\Connection;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * L'annuaire des utilisateurs, orienté TRAVAIL (proposition
@@ -36,13 +37,13 @@ final class AdminUserDirectory
 {
     private const SOON_DAYS = 30;
 
-    /** Ordre et libellés des tuiles. */
+    /** Ordre des tuiles et clé `admin_user_directory.*` de leur libellé. */
     private const TILES = [
-        '' => 'Tous',
-        'valider' => 'À valider',
-        'suspendus' => 'Suspendus ou inactifs',
-        'expire' => 'Expire bientôt',
-        'sans-badge' => 'Sans badge',
+        '' => 'tile_all',
+        'valider' => 'tile_validate',
+        'suspendus' => 'tile_suspended',
+        'expire' => 'tile_expiring',
+        'sans-badge' => 'tile_no_badge',
     ];
 
     public function __construct(
@@ -51,13 +52,17 @@ final class AdminUserDirectory
         private readonly ProgressionRepository $progressions,
         private readonly FormationRepository $formations,
         private readonly Connection $db,
+        private readonly TranslatorInterface $translator,
     ) {
     }
 
     /**
+     * @param list<int>|null $onlyIds si fourni, seules ces personnes sont LISTÉES (les filtres Groupe et
+     *                                Forfait de la page réelle) ; les tuiles et le total comptent tout le lab.
+     *
      * @return array{tiles: list<array<string, mixed>>, rows: list<array<string, mixed>>, total: int, shown: int, tile: string, q: string, formationsTotal: int}
      */
-    public function build(string $tile, string $q): array
+    public function build(string $tile, string $q, ?array $onlyIds = null): array
     {
         $tile = array_key_exists($tile, self::TILES) ? $tile : '';
         $q = trim($q);
@@ -83,14 +88,18 @@ final class AdminUserDirectory
         $tiles = [];
         foreach (self::TILES as $key => $label) {
             $tiles[] = [
-                'label' => $label,
+                'label' => $this->t($label),
                 'count' => $counts[$key],
                 'query' => ['tuile' => $key],
                 'active' => $key === $tile,
             ];
         }
 
-        $shown = array_values(array_filter($rows, static function (array $row) use ($tile, $q): bool {
+        $only = $onlyIds === null ? null : array_flip($onlyIds);
+        $shown = array_values(array_filter($rows, static function (array $row) use ($tile, $q, $only): bool {
+            if ($only !== null && !isset($only[$row['id']])) {
+                return false;
+            }
             if ($tile !== '' && !in_array($tile, $row['tiles'], true)) {
                 return false;
             }
@@ -107,6 +116,11 @@ final class AdminUserDirectory
             'q' => $q,
             'formationsTotal' => $this->formations->countVisible(),
         ];
+    }
+
+    private function t(string $key, array $params = []): string
+    {
+        return $this->translator->trans('admin_user_directory.' . $key, $params);
     }
 
     /**
@@ -147,17 +161,17 @@ final class AdminUserDirectory
         $last = null;
         $lastKind = '';
         if ($pass !== null && ($login === null || $pass >= $login)) {
-            [$last, $lastKind] = [$pass, 'Badge'];
+            [$last, $lastKind] = [$pass, $this->t('last_badge')];
         } elseif ($login !== null) {
-            [$last, $lastKind] = [$login, 'Connexion'];
+            [$last, $lastKind] = [$login, $this->t('last_login')];
         }
 
         // Le signal et le texte de statut : le même mapping que la liste actuelle.
         $signal = $unconfirmed || $pending ? 'caution' : ($statut === 'actif' ? 'go' : (in_array($statut, ['banned', 'banni'], true) ? 'stop' : 'muted'));
         $note = match (true) {
-            $unconfirmed => 'Adresse non confirmée',
-            $pending => 'En attente de validation',
-            $suspended => 'Accès coupé',
+            $unconfirmed => $this->t('note_unconfirmed'),
+            $pending => $this->t('note_pending'),
+            $suspended => $this->t('note_suspended'),
             $soon !== null => $soon['group'],
             default => '',
         };
@@ -244,7 +258,7 @@ final class AdminUserDirectory
             // ORDER BY DESC puis écrasement : la dernière écrite est la plus proche.
             $out[(int) $row['userId']] = [
                 'until' => new \DateTimeImmutable((string) $row['validUntil']),
-                'group' => 'Groupe « ' . $row['label'] . ' »',
+                'group' => $this->t('note_group', ['%group%' => $row['label']]),
             ];
         }
 

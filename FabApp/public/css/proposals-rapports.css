@@ -31,3 +31,7 @@
 @media (max-width: 640px) {
     .pp-rp-table th:nth-child(4), .pp-rp-table td:nth-child(4) { display: none; }
 }
+
+/* Rapport détaillé : dates libres + jour par jour + export, repliés. */
+.pp-rp-detail { display: grid; gap: var(--spacing-md); }
+.pp-rp-detail > summary { cursor: pointer; color: var(--color-primary-text); font-weight: var(--font-weight-semibold); }

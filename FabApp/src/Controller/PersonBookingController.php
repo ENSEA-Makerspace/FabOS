@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Design\PersonAppointment;
 use App\Service\SiteSettingService;
 use App\Entity\UserAvailability;
 use App\Entity\Utilisateur;
@@ -45,25 +46,26 @@ final class PersonBookingController extends AbstractController
         int $id,
         Request $request,
         UtilisateurRepository $people,
+        PersonAppointment $appointment,
         PersonAvailabilityService $availability,
-        ReservationRepository $reservations,
         UsageRightsService $usageRights,
     ): Response {
         $person = $this->findBookablePerson($people, $id);
-        $durations = $person->getBookingDurationsMinutes();
 
-        $duration = (int) $request->query->get('duree', (string) $durations[0]);
-        if (!in_array($duration, $durations, true)) {
-            $duration = $durations[0];
-        }
+        // Bande de jours, créneaux du jour choisi et récapitulatif : le MÊME service que
+        // la proposition validée (`?jour=`, `?creneau=`, `?duree=`). La règle des créneaux
+        // reste celle de PersonAvailabilityService, il ne fait que les regrouper.
+        $view = $appointment->build(
+            $id,
+            $request->query->has('jour') ? (string) $request->query->get('jour') : null,
+            $request->query->has('creneau') ? (string) $request->query->get('creneau') : null,
+            $request->query->getInt('duree') ?: null,
+        );
 
         return $this->render('site/person-booking.html.twig', [
             'person' => $person,
-            'durations' => $durations,
-            'selectedDuration' => $duration,
-            'days' => $availability->dailySlots($person, $duration),
+            'appointment' => $view,
             'weeklyWindows' => $availability->weeklyWindows($person),
-            'upcoming' => $reservations->findUpcomingForReservable(ReservableType::User, $id),
             'horizonDays' => PersonAvailabilityService::HORIZON_DAYS,
             'usageRight' => $usageRights->verdict($this->getUser() instanceof Utilisateur ? $this->getUser() : null, 'person_booking'),
         ]);

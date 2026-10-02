@@ -1,235 +1,235 @@
 {% extends 'site/base_public.html.twig' %}
 
+{# « Rendez-vous avec une personne » : en tête le prochain créneau, une bande de 14 jours,
+   les créneaux du jour choisi (`?jour=`) et, à droite, « Votre rendez-vous » (`?creneau=`)
+   qui porte le VRAI formulaire de confirmation (POST `app_person_book`, jeton CSRF,
+   droit d'usage). Les créneaux viennent de `App\Design\PersonAppointment`, donc de
+   `PersonAvailabilityService::dailySlots()`. Une demande libre (autre moment) reste
+   possible sous les créneaux (POST `app_person_request`). #}
+
 {% block title %}{{ person.displayName }} - FabOS{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
-{% endblock %}
-
-{% block page_styles %}
-    <style>
-        .person-booking-section { padding: 24px 0 48px; }
-        .person-booking-header { display: flex; align-items: center; gap: 18px; margin: 16px 0 8px; }
-        .person-booking-header .fabos-user-avatar { border-radius: 50%; object-fit: cover; }
-        .person-booking-header h1 { margin: 0 0 4px; }
-        .person-roles { font-size: 13px; color: var(--color-primary-text); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
-        .person-note { color: #4b5563; margin: 0 0 20px; max-width: 70ch; }
-        .person-booking-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-top: 16px; }
-        .duration-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
-        .duration-tabs a {
-            padding: 7px 14px; border-radius: 999px; border: 1px solid var(--border-color);
-            font-size: 14px; font-weight: 700; color: var(--color-text); text-decoration: none;
-        }
-        .duration-tabs a.is-active { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
-        .slot-day { margin-bottom: 18px; }
-        .slot-day-title { font-weight: 700; font-size: 14px; color: var(--color-text); margin-bottom: 8px; }
-        .slot-list { display: flex; flex-wrap: wrap; gap: 8px; }
-        .slot { position: relative; }
-        .slot input { position: absolute; opacity: 0; width: 0; height: 0; }
-        .slot span {
-            display: inline-block; padding: 8px 14px; border-radius: 8px;
-            border: 1px solid var(--border-color); font-size: 14px; font-weight: 700; color: var(--color-text); cursor: pointer;
-        }
-        .slot input:checked + span { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
-        .slot input:focus-visible + span { outline: 2px solid var(--color-primary); outline-offset: 2px; }
-        .person-form { display: grid; gap: 14px; margin-top: 8px; }
-        .person-form label { display: block; font-weight: 700; margin-bottom: 6px; color: var(--color-text); }
-        .person-form input, .person-form textarea {
-            width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 15px;
-        }
-        .person-form textarea { min-height: 80px; resize: vertical; }
-        .person-form-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .person-week-list, .person-upcoming-list { list-style: none; margin: 0; padding: 0; }
-        .person-week-list li, .person-upcoming-list li { padding: 9px 0; border-bottom: 1px solid var(--border-color); font-size: 14px; }
-        .person-week-list li:last-child, .person-upcoming-list li:last-child { border-bottom: none; }
-        .person-week-day { font-weight: 700; color: var(--color-text); }
-        .person-pending-tag { font-size: 12px; font-weight: 700; color: var(--color-warn); background: color-mix(in srgb, var(--color-warn) 15%, var(--theme-surface)); padding: 2px 8px; border-radius: 999px; }
-        .person-flash { margin: 0 0 16px; padding: 12px 14px; border-radius: 6px; font-weight: 700; }
-        .person-flash.success { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
-        .person-flash.error { background: color-mix(in srgb, var(--color-stop, #b91c1c) 15%, var(--theme-surface)); color: var(--color-stop, #b91c1c); }
-        .person-empty { color: var(--color-text-light); }
-        @media (max-width: 900px) { .person-booking-grid { grid-template-columns: 1fr; } .person-form-row { grid-template-columns: 1fr; } }
-    </style>
+    <link rel="stylesheet" href="{{ asset('css/proposals.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals-rendez-vous.css') ~ '?v=' ~ css_version }}">
 {% endblock %}
 
 {% block body %}
-    <main id="main-content" tabindex="-1" class="main-content">
-        <section class="person-booking-section">
-            <div class="container">
-                {# 🔴 Fixed on the way past: the middle link sat inside an `{% if %}`
-                   while its separator sat outside, so a person who is neither a
-                   trainer nor staff — or whose feature is switched off — got
-                   "Accueil / / Léa". Passing `null` lets the shell close the gap. #}
-                {% set person_section = person.isTrainer and feature_enabled('trainers')
-                    ? {label: 'nav.trainers'|trans, url: path('app_trainers')}
-                    : (person.isStaff and feature_enabled('staff')
-                        ? {label: 'nav.staff'|trans, url: path('app_staff')}
-                        : null) %}
-                {% include 'site/_breadcrumb.html.twig' with {trail: [
-                    {label: 'nav.home'|trans, url: path('app_home')},
-                    person_section,
-                    {label: person.displayName},
-                ]} only %}
+{% set pid = person.id %}
+{% set dur = appointment.duration %}
+{% set soon = appointment.next %}
+{% set day = appointment.day %}
+{% set slot = appointment.slot %}
+{% set dayKey = day ? day.date|date('Y-m-d') : null %}
+<main id="main-content" tabindex="-1" class="main-content">
+    <section class="machine-detail-section">
+        <div class="container pp-rdv" data-person-booking="{{ pid }}">
+            {# 🔴 Fixed on the way past: the middle link sat inside an `{% if %}`
+               while its separator sat outside, so a person who is neither a
+               trainer nor staff — or whose feature is switched off — got
+               "Accueil / / Léa". Passing `null` lets the shell close the gap. #}
+            {% set person_section = person.isTrainer and feature_enabled('trainers')
+                ? {label: 'nav.trainers'|trans, url: path('app_trainers')}
+                : (person.isStaff and feature_enabled('staff')
+                    ? {label: 'nav.staff'|trans, url: path('app_staff')}
+                    : null) %}
+            {% include 'site/_breadcrumb.html.twig' with {trail: [
+                {label: 'nav.home'|trans, url: path('app_home')},
+                person_section,
+                {label: person.displayName},
+            ]} only %}
 
-                <div class="person-booking-header">
-                    {% include 'site/_user_avatar.html.twig' with {user: person, size: 72, alt: person.displayName} only %}
-                    <div>
-                        <h1>{{ person.displayName }}</h1>
-                        <div class="person-roles">
-                            {% if person.isTrainer %}{{ 'trainers.role_label'|trans }}{% endif %}
-                            {% if person.isTrainer and person.isStaff %} · {% endif %}
-                            {% if person.isStaff %}{{ 'staff.role_label'|trans }}{% endif %}
+            <h1>{{ 'booking.book_person'|trans }}</h1>
+
+            {% for message in app.flashes('success') %}<div class="pp-rdv-flash is-success">{{ message|flash_text }}</div>{% endfor %}
+            {% for message in app.flashes('error') %}<div class="pp-rdv-flash is-error">{{ message|flash_text }}</div>{% endfor %}
+
+            {% if usageRight.enforced and not usageRight.allowed %}
+                {% include 'site/_usage_right_state.html.twig' with {
+                    capability: usageRight.capability,
+                    verdict: usageRight,
+                    action: usageRight.reason == 'signin_required'
+                        ? {label: 'nav.login'|trans, url: path('app_login')}
+                        : {label: 'usage_rights.my_rights'|trans, url: path('app_profile') ~ '#usage-rights'}
+                } only %}
+            {% endif %}
+
+            <div class="pp-rdv-grid">
+                <div class="pp-rdv-main">
+                    <section class="detail-card pp-rdv-person">
+                        <div class="pp-rdv-avatar">
+                            {% include 'site/_user_avatar.html.twig' with {user: person, size: 96, alt: person.displayName} only %}
                         </div>
-                    </div>
-                </div>
-                {% if person.bookingNote %}<p class="person-note">{{ person.bookingNote }}</p>{% endif %}
+                        <div class="pp-rdv-id">
+                            <h2>{{ person.displayName }}</h2>
+                            <p class="pp-rdv-role">
+                                {% if person.isTrainer %}{{ 'trainers.role_label'|trans }}{% endif %}{% if person.isTrainer and person.isStaff %} · {% endif %}{% if person.isStaff %}{{ 'staff.role_label'|trans }}{% endif %}
+                            </p>
+                            {% if person.bookingNote %}<p class="pp-rdv-note">{{ person.bookingNote }}</p>{% endif %}
+                        </div>
+                        <div class="pp-rdv-nextslot">
+                            <p class="pp-rdv-kicker">{{ 'appointment.next_slot'|trans }}</p>
+                            {% if soon %}
+                                <p class="pp-rdv-nextwhen">
+                                    <b>{{ ('booking.weekday.' ~ soon.date.format('N'))|trans }} {{ soon.date|date('d/m') }} · {{ soon.slot.start|date('H:i') }}</b>
+                                </p>
+                                <a class="btn btn-primary" href="{{ path('app_person_booking', {id: pid, duree: dur, jour: soon.date|date('Y-m-d'), creneau: soon.slot.start|date('H:i')}) }}">{{ 'appointment.take_slot'|trans }}</a>
+                            {% else %}
+                                <p class="pp-rdv-nextwhen">{{ 'appointment.no_slot_horizon'|trans({'%days%': horizonDays}) }}</p>
+                            {% endif %}
+                        </div>
+                    </section>
 
-                {% for message in app.flashes('success') %}<div class="person-flash success">{{ message|flash_text }}</div>{% endfor %}
-                {% for message in app.flashes('error') %}<div class="person-flash error">{{ message|flash_text }}</div>{% endfor %}
+                    {% if appointment.durations|length > 1 %}
+                        <nav class="pp-rdv-durations" aria-label="{{ 'booking.duration_label'|trans }}">
+                            {% for d in appointment.durations %}
+                                <a href="{{ path('app_person_booking', {id: pid, duree: d}) }}"
+                                   class="pp-rdv-chip{{ d == dur ? ' is-active' : '' }}"{% if d == dur %} aria-current="true"{% endif %}>{{ 'booking.duration_minutes'|trans({'%minutes%': d}) }}</a>
+                            {% endfor %}
+                        </nav>
+                    {% endif %}
 
-                {% if usageRight.enforced and not usageRight.allowed %}
-                    {% include 'site/_usage_right_state.html.twig' with {
-                        capability: usageRight.capability,
-                        verdict: usageRight,
-                        action: usageRight.reason == 'signin_required'
-                            ? {label: 'nav.login'|trans, url: path('app_login')}
-                            : {label: 'usage_rights.my_rights'|trans, url: path('app_profile') ~ '#usage-rights'}
-                    } only %}
-                {% endif %}
+                    <section>
+                        <h2 class="pp-rdv-h">{{ 'appointment.choose_day'|trans }}</h2>
+                        <ol class="pp-rdv-strip">
+                            {% for s in appointment.strip %}
+                                <li>
+                                    {% if s.free > 0 %}
+                                        <a class="pp-rdv-day{{ s.key == dayKey ? ' is-active' : '' }}"
+                                           href="{{ path('app_person_booking', {id: pid, duree: dur, jour: s.key}) }}"
+                                           {% if s.key == dayKey %}aria-current="date"{% endif %}>
+                                            <b>{{ ('booking.weekday.' ~ s.dow)|trans|slice(0, 3) }}</b>
+                                            <strong>{{ s.date|date('d/m') }}</strong>
+                                            <small>{{ (s.free > 1 ? 'appointment.free_many' : 'appointment.free_one')|trans({'%n%': s.free}) }}</small>
+                                        </a>
+                                    {% else %}
+                                        <div class="pp-rdv-day is-empty" aria-disabled="true">
+                                            <b>{{ ('booking.weekday.' ~ s.dow)|trans|slice(0, 3) }}</b>
+                                            <strong>{{ s.date|date('d/m') }}</strong>
+                                            <small>—</small>
+                                        </div>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ol>
+                    </section>
 
-                <div class="person-booking-grid">
-                    <div>
-                        <div class="detail-card">
-                            <h2 class="detail-card-title">{{ 'booking.available_slots'|trans }}</h2>
-                            <div class="detail-card-content">
-                                {% if durations|length > 1 %}
-                                    <div class="duration-tabs">
-                                        {% for duration in durations %}
-                                            <a href="{{ path('app_person_booking', {id: person.id, duree: duration}) }}"
-                                               class="{{ duration == selectedDuration ? 'is-active' : '' }}">
-                                                {{ 'booking.duration_minutes'|trans({'%minutes%': duration}) }}
-                                            </a>
-                                        {% endfor %}
+                    {% if day %}
+                        <section>
+                            <h2 class="pp-rdv-h">{{ ('booking.weekday.' ~ day.dayLabel)|trans }} {{ day.date|date('d/m') }}</h2>
+                            <ul class="pp-rdv-slots">
+                                {% for sl in day.slots %}
+                                    {% set hm = sl.start|date('H:i') %}
+                                    <li>
+                                        <a class="pp-rdv-slot{{ slot and slot.start|date('H:i') == hm ? ' is-active' : '' }}"
+                                           href="{{ path('app_person_booking', {id: pid, duree: dur, jour: dayKey, creneau: hm}) }}"
+                                           {% if slot and slot.start|date('H:i') == hm %}aria-current="true"{% endif %}>{{ hm }}</a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                            <p class="pp-rdv-tz">{{ 'appointment.lab_time'|trans }}</p>
+                        </section>
+                    {% else %}
+                        <section class="detail-card">
+                            <p class="pp-rdv-muted">{{ 'booking.no_slots'|trans({'%days%': horizonDays}) }}</p>
+                        </section>
+                    {% endif %}
+
+                    <details class="detail-card pp-rdv-request" id="demande"{% if not day %} open{% endif %}>
+                        <summary class="detail-card-title">{{ 'booking.request_title'|trans }}</summary>
+                        <div class="detail-card-content">
+                            <p class="pp-rdv-muted">{{ 'booking.request_hint'|trans }}</p>
+                            {% if app.user and usageRight.allowed %}
+                                <form method="post" action="{{ path('app_person_request', {id: pid}) }}" class="pp-rdv-form">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('person_request_' ~ pid) }}">
+                                    <div class="pp-rdv-form-row">
+                                        <div>
+                                            <label for="request-date">{{ 'booking.date_label'|trans }}</label>
+                                            <input type="date" id="request-date" name="date" required>
+                                        </div>
+                                        <div>
+                                            <label for="request-time">{{ 'booking.start_label'|trans }}</label>
+                                            <input type="time" id="request-time" name="startTime" required>
+                                        </div>
+                                        <div>
+                                            <label for="request-duration">{{ 'booking.duration_label'|trans }}</label>
+                                            <input type="number" id="request-duration" name="duration" list="offered-durations"
+                                                   min="5" max="480" step="5" value="{{ dur }}" required>
+                                            <datalist id="offered-durations">
+                                                {% for d in appointment.durations %}<option value="{{ d }}"></option>{% endfor %}
+                                            </datalist>
+                                        </div>
                                     </div>
-                                {% endif %}
-
-                                {% if days is empty %}
-                                    <p class="person-empty">{{ 'booking.no_slots'|trans({'%days%': horizonDays}) }}</p>
-                                {% elseif not usageRight.allowed %}
-                                    <p class="person-empty">{{ ('usage_rights.verdict.' ~ usageRight.reason ~ '.description')|trans }}</p>
-                                {% elseif not app.user %}
-                                    <p><a href="{{ path('app_login') }}">{{ 'login.submit'|trans }}</a> {{ 'booking.login_to_book'|trans }}</p>
-                                {% else %}
-                                    <form method="post" action="{{ path('app_person_book', {id: person.id}) }}" class="person-form">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('person_book_' ~ person.id) }}">
-                                        <input type="hidden" name="duration" value="{{ selectedDuration }}">
-                                        <div>
-                                            {% for day in days %}
-                                                <div class="slot-day">
-                                                    <div class="slot-day-title">
-                                                        {{ ('booking.weekday.' ~ day.dayLabel)|trans }} {{ day.date|date('d/m') }}
-                                                    </div>
-                                                    <div class="slot-list">
-                                                        {% for slot in day.slots %}
-                                                            <label class="slot">
-                                                                <input type="radio" name="start" required
-                                                                       value="{{ slot.start|date('Y-m-d H:i') }}">
-                                                                <span>{{ slot.start|date('H:i') }}</span>
-                                                            </label>
-                                                        {% endfor %}
-                                                    </div>
-                                                </div>
-                                            {% endfor %}
-                                        </div>
-                                        <div>
-                                            <label for="slot-motif">{{ 'booking.reason_label'|trans }}</label>
-                                            <textarea id="slot-motif" name="motif" maxlength="500"></textarea>
-                                        </div>
-                                        <button type="submit" class="btn btn-primary">{{ 'booking.confirm'|trans }}</button>
-                                    </form>
-                                {% endif %}
-                            </div>
+                                    <div>
+                                        <label for="request-motif">{{ 'booking.request_reason_label'|trans }}</label>
+                                        <textarea id="request-motif" name="motif" maxlength="500" required></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-secondary">{{ 'booking.send_request'|trans }}</button>
+                                </form>
+                            {% elseif not app.user %}
+                                <p><a href="{{ path('app_login') }}">{{ 'login.submit'|trans }}</a> {{ 'booking.login_to_book'|trans }}</p>
+                            {% else %}
+                                <p class="pp-rdv-muted">{{ ('usage_rights.verdict.' ~ usageRight.reason ~ '.description')|trans }}</p>
+                            {% endif %}
                         </div>
+                    </details>
 
-                        <div class="detail-card">
-                            <h2 class="detail-card-title">{{ 'booking.request_title'|trans }}</h2>
-                            <div class="detail-card-content">
-                                <p class="person-empty">{{ 'booking.request_hint'|trans }}</p>
-                                {% if app.user and usageRight.allowed %}
-                                    <form method="post" action="{{ path('app_person_request', {id: person.id}) }}" class="person-form">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('person_request_' ~ person.id) }}">
-                                        <div class="person-form-row">
-                                            <div>
-                                                <label for="request-date">{{ 'booking.date_label'|trans }}</label>
-                                                <input type="date" id="request-date" name="date" required>
-                                            </div>
-                                            <div>
-                                                <label for="request-time">{{ 'booking.start_label'|trans }}</label>
-                                                <input type="time" id="request-time" name="startTime" required>
-                                            </div>
-                                            <div>
-                                                <label for="request-duration">{{ 'booking.duration_label'|trans }}</label>
-                                                <input type="number" id="request-duration" name="duration" list="offered-durations"
-                                                       min="5" max="480" step="5" value="{{ selectedDuration }}" required>
-                                                <datalist id="offered-durations">
-                                                    {% for duration in durations %}<option value="{{ duration }}"></option>{% endfor %}
-                                                </datalist>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label for="request-motif">{{ 'booking.request_reason_label'|trans }}</label>
-                                            <textarea id="request-motif" name="motif" maxlength="500" required></textarea>
-                                        </div>
-                                        <button type="submit" class="btn btn-secondary">{{ 'booking.send_request'|trans }}</button>
-                                    </form>
-                                {% elseif not app.user %}
-                                    <p><a href="{{ path('app_login') }}">{{ 'login.submit'|trans }}</a> {{ 'booking.login_to_book'|trans }}</p>
-                                {% else %}
-                                    <p class="person-empty">{{ ('usage_rights.verdict.' ~ usageRight.reason ~ '.description')|trans }}</p>
-                                {% endif %}
-                            </div>
+                    <section class="detail-card">
+                        <h2 class="detail-card-title">{{ 'booking.weekly_availability'|trans }}</h2>
+                        <div class="detail-card-content">
+                            {% if weeklyWindows is empty %}
+                                <p class="pp-rdv-muted">{{ 'booking.no_availability'|trans }}</p>
+                            {% else %}
+                                <ul class="pp-rdv-week">
+                                    {% for dayOfWeek, windows in weeklyWindows %}
+                                        <li>
+                                            <b>{{ ('booking.weekday.' ~ dayOfWeek)|trans }}</b>
+                                            — {% for window in windows %}{{ window.displayLabel }}{% if not loop.last %}, {% endif %}{% endfor %}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
                         </div>
-                    </div>
-
-                    <div>
-                        <div class="detail-card">
-                            <h2 class="detail-card-title">{{ 'booking.weekly_availability'|trans }}</h2>
-                            <div class="detail-card-content">
-                                {% if weeklyWindows is empty %}
-                                    <p class="person-empty">{{ 'booking.no_availability'|trans }}</p>
-                                {% else %}
-                                    <ul class="person-week-list">
-                                        {% for dayOfWeek, windows in weeklyWindows %}
-                                            <li>
-                                                <span class="person-week-day">{{ ('booking.weekday.' ~ dayOfWeek)|trans }}</span>
-                                                — {% for window in windows %}{{ window.displayLabel }}{% if not loop.last %}, {% endif %}{% endfor %}
-                                            </li>
-                                        {% endfor %}
-                                    </ul>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="detail-card">
-                            <h2 class="detail-card-title">{{ 'booking.upcoming'|trans }}</h2>
-                            <div class="detail-card-content">
-                                {% if upcoming is empty %}
-                                    <p class="person-empty">{{ 'booking.no_upcoming'|trans }}</p>
-                                {% else %}
-                                    <ul class="person-upcoming-list">
-                                        {% for reservation in upcoming %}
-                                            <li>
-                                                {{ reservation.dateDebut|date('d/m/Y H:i') }} — {{ reservation.dateFin|date('H:i') }}
-                                                {% if reservation.isPending %}<span class="person-pending-tag">{{ 'booking.status_pending'|trans }}</span>{% endif %}
-                                            </li>
-                                        {% endfor %}
-                                    </ul>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
+                    </section>
                 </div>
+
+                <aside class="detail-card pp-rdv-recap" aria-label="{{ 'appointment.recap_title'|trans }}">
+                    <h2>{{ 'appointment.recap_title'|trans }}</h2>
+                    <dl class="pp-rdv-facts">
+                        <div><dt>{{ 'appointment.with'|trans }}</dt><dd>{{ person.displayName }}</dd></div>
+                        {% if slot %}
+                            <div><dt>{{ 'appointment.when'|trans }}</dt><dd>{{ ('booking.weekday.' ~ day.dayLabel)|trans }} {{ day.date|date('d/m/Y') }}</dd></div>
+                            <div><dt>{{ 'appointment.time'|trans }}</dt><dd>{{ slot.start|date('H:i') }} – {{ slot.end|date('H:i') }}</dd></div>
+                        {% else %}
+                            <div><dt>{{ 'appointment.when'|trans }}</dt><dd class="pp-rdv-muted">{{ 'appointment.pick_slot'|trans }}</dd></div>
+                        {% endif %}
+                        <div><dt>{{ 'appointment.duration'|trans }}</dt><dd>{{ 'booking.duration_minutes'|trans({'%minutes%': dur}) }}</dd></div>
+                        <div><dt>{{ 'appointment.place'|trans }}</dt><dd class="pp-rdv-muted">{{ 'appointment.place_value'|trans }}</dd></div>
+                    </dl>
+                    {% if slot %}
+                        {% if not app.user %}
+                            <p><a href="{{ path('app_login') }}">{{ 'login.submit'|trans }}</a> {{ 'booking.login_to_book'|trans }}</p>
+                        {% elseif not usageRight.allowed %}
+                            <p class="pp-rdv-muted">{{ ('usage_rights.verdict.' ~ usageRight.reason ~ '.description')|trans }}</p>
+                        {% else %}
+                            <form method="post" action="{{ path('app_person_book', {id: pid}) }}" class="pp-rdv-form">
+                                <input type="hidden" name="_token" value="{{ csrf_token('person_book_' ~ pid) }}">
+                                <input type="hidden" name="duration" value="{{ dur }}">
+                                <input type="hidden" name="start" value="{{ slot.start|date('Y-m-d H:i') }}">
+                                <div>
+                                    <label for="slot-motif">{{ 'booking.reason_label'|trans }}</label>
+                                    <textarea id="slot-motif" name="motif" maxlength="500"></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary">{{ 'booking.confirm'|trans }}</button>
+                            </form>
+                        {% endif %}
+                    {% else %}
+                        <p class="pp-rdv-tz">{{ 'appointment.pick_slot_hint'|trans }}</p>
+                    {% endif %}
+                </aside>
             </div>
-        </section>
-    </main>
+        </div>
+    </section>
+</main>
 {% endblock %}

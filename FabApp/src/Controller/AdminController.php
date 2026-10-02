@@ -4,6 +4,11 @@ namespace App\Controller;
 
 use App\Feature\FeatureAdvice;
 use App\Feature\FeatureSurfaces;
+use App\Design\AccessIncidentBoard;
+use App\Design\AdminAttention;
+use App\Design\AdminUserDirectory;
+use App\Design\MaintenanceQueue;
+use App\Design\ReportingBrief;
 use App\Feature\FirstRun;
 use App\Feature\SetupHealth;
 use App\Feature\SiteFeatureRegistry;
@@ -161,87 +166,14 @@ final class AdminController extends AbstractController
 {
     #[Route('', name: 'app_admin_dashboard', methods: ['GET'])]
     #[Route('/dashboard', name: 'app_admin_dashboard_alt', methods: ['GET'])]
-    public function dashboard(
-        UtilisateurRepository $users,
-        MachineRepository $machines,
-        FormationRepository $formations,
-        ReservationRepository $reservations,
-        AccessRfidLogRepository $rfidLogs,
-        BadgeRepository $badges,
-        ProgressionRepository $progressions,
-        LogUtilisationRepository $usageLogs,
-        FirstRun $firstRun,
-        ScheduleResolver $schedule,
-        LabClock $clock,
-    ): Response {
-        $recentActivities = $this->buildRecentActivities($rfidLogs, $reservations, $progressions, $usageLogs);
-
+    public function dashboard(AdminAttention $attention, FirstRun $firstRun): Response
+    {
         return $this->render('site/admin-dashboard.html.twig', [
-            // ⚠️ **S153 — la bande porte un FAIT, et il vient du résolveur.**
-            // Une bande qui ne dit que bonjour est un bandeau ; une bande qui dit
-            // l'état du lab est une information. Le fait est donc calculé, jamais
-            // écrit dans le gabarit : une bande qui affirme « Ouvert » un jour de
-            // fermeture est pire que pas de bande du tout.
-            'openState' => $this->openState($schedule, $clock),
+            // D'abord ce qui demande une action ; les compteurs en sont le pied.
+            'attention' => $attention->build(),
             // The only thing that ever points at the wizard. Nothing redirects.
             'showFirstRun' => $firstRun->isFresh(),
-            'dashboardStats' => [
-                'users' => $users->count([]),
-                'machines' => $machines->count([]),
-                'formations' => $formations->countVisible(),
-                'reservations' => $reservations->count([]),
-                'rfidLogs' => $rfidLogs->count([]),
-                'badges' => $badges->count([]),
-                'completedFormations' => $progressions->countCompletedVisible(),
-            ],
-            'recentActivities' => $recentActivities,
         ]);
-    }
-
-    /**
-     * L'état du lab maintenant, en trois valeurs, pour la bande du tableau de bord.
-     *
-     * 🔴 **`isOpenAt()` et non l'enveloppe** : à 12:30 dans un lab qui ferme le
-     * midi, l'enveloppe dit « ouvert » et la porte est fermée. C'est la même
-     * leçon que S134d, et la raison pour laquelle on parcourt les INTERVALLES
-     * plutôt que `openMinutesFor()`.
-     *
-     * ⚠️ **`null` comme lieu, comme partout ailleurs** : c'est le lieu par
-     * défaut. L'admin n'a pas de sélecteur de lieu sur cette page, et agréger
-     * plusieurs lieux ne donne aucune réponse unique — voir la même note dans
-     * `SiteController::machines()`.
-     *
-     * ⚠️ La raison n'existe que pour une fermeture DATÉE : `closureReasonFor()`
-     * rend `null` un jour ouvré, y compris pendant la pause de midi. « Fermé »
-     * seul y est donc la bonne phrase, et l'heure de réouverture la complète.
-     *
-     * @return array{open: bool, until: ?string, from: ?string, reason: ?string}
-     */
-    private function openState(ScheduleResolver $schedule, LabClock $clock): array
-    {
-        $now = $clock->now();
-        $minute = ((int) $now->format('H')) * 60 + (int) $now->format('i');
-        $intervals = $schedule->openIntervalsFor(null, $now);
-
-        $clockOf = static fn (int $minutes): string => sprintf('%02d:%02d', intdiv($minutes, 60), $minutes % 60);
-
-        foreach ($intervals as $interval) {
-            if ($minute >= $interval['start'] && $minute < $interval['end']) {
-                return ['open' => true, 'until' => $clockOf($interval['end']), 'from' => null, 'reason' => null];
-            }
-            // Trié et fusionné par le résolveur : le premier intervalle qui
-            // commence après maintenant EST la prochaine ouverture du jour.
-            if ($minute < $interval['start']) {
-                return ['open' => false, 'until' => null, 'from' => $clockOf($interval['start']), 'reason' => null];
-            }
-        }
-
-        return [
-            'open' => false,
-            'until' => null,
-            'from' => null,
-            'reason' => $schedule->closureReasonFor(null, $now),
-        ];
     }
 
     #[Route('/homepage', name: 'app_admin_homepage', methods: ['GET', 'POST'])]
@@ -1593,37 +1525,29 @@ final class AdminController extends AbstractController
     public function users(
         Request $request,
         UtilisateurRepository $users,
-        AccessRfidLogRepository $logs,
-        ProgressionRepository $progressions,
         UsagePackageRepository $packages,
         UserGroupRepository $userGroups,
         AudienceResolver $audiences,
         LabClock $clock,
+        AdminUserDirectory $directory,
     ): Response {
         // 🔴 **S159f — le filtre « rôle » est parti, il faisait double emploi.**
-        // Depuis la fusion, l'appartenance à un groupe intégré EST le rôle : deux
-        // menus côte à côte posaient la même question, et celui des rôles la
-        // posait moins bien — il joignait `UTILISATEUR_ROLE`, donc il ne voyait
-        // pas quelqu'un rendu staff par son groupe.
+        // Depuis la fusion, l'appartenance à un groupe intégré EST le rôle.
         $filters = $this->extractFilters($request, ['q', 'statut', 'package', 'groupe']);
-        $logCounts = [];
-        foreach ($logs->createQueryBuilder('log')
-            ->select('IDENTITY(log.utilisateur) AS userId, COUNT(log.id) AS logCount')
-            ->where('log.utilisateur IS NOT NULL')
-            ->groupBy('log.utilisateur')
-            ->getQuery()
-            ->getArrayResult() as $row) {
-            $logCounts[(int) $row['userId']] = (int) $row['logCount'];
+
+        // Les tuiles trient par TRAVAIL (`?tuile=`). L'ancien `?statut=` (liens
+        // déjà écrits ailleurs) s'y rabat : en attente → « À valider »,
+        // inactif → « Suspendus ou inactifs ».
+        $tile = $request->query->getString('tuile');
+        if ($tile === '') {
+            $tile = ['pending' => 'valider', 'inactif' => 'suspendus'][(string) ($filters['statut'] ?? '')] ?? '';
         }
+        $filters['statut'] = '';
 
-        // ⚠️ S134h: the tile counts and the "3 sur 11" scope line both need the
-        // list BEFORE filtering. The template used to count `users`, which is the
-        // filtered result — so with a status selected every tile reported the
-        // same number, the number of rows already on screen.
-        $allUsers = $users->findForAdminFilters(['q' => '', 'statut' => '', 'package' => '', 'groupe' => '']);
-
-        // ⚠️ Les deux filtres se composent, et dans cet ordre parce qu'il n'en a
-        // aucune importance : chacun ne fait que retirer des lignes.
+        // ⚠️ Les filtres Groupe et Forfait ne se règlent PAS en DQL : l'appartenance
+        // est l'union de lignes stockées, de rôles et de l'audience `user`, que
+        // `AudienceResolver` seul sait résoudre. Ils retirent des lignes de la
+        // liste ; les tuiles et le total comptent toujours tout le lab.
         $rows = $this->filterByPackage(
             $users->findForAdminFilters($filters),
             trim((string) ($filters['package'] ?? '')),
@@ -1631,25 +1555,20 @@ final class AdminController extends AbstractController
             $audiences,
             $clock,
         );
+        $rows = $this->filterByGroup($rows, trim((string) ($filters['groupe'] ?? '')), $userGroups, $audiences);
 
         return $this->render('site/admin-utilisateurs.html.twig', [
-            'users' => $this->filterByGroup(
-                $rows,
-                trim((string) ($filters['groupe'] ?? '')),
-                $userGroups,
-                $audiences,
+            'directory' => $directory->build(
+                $tile,
+                '',
+                array_map(static fn (Utilisateur $user): int => (int) $user->getId(), $rows),
             ),
-            'allUsers' => $allUsers,
-            'logCounts' => $logCounts,
-            'progressionCounts' => $this->buildUserProgressionStats($progressions),
             'filters' => $filters,
-            // ⚠️ Tous les packages, actifs ou non : un package désactivé garde ses
-            // attributions, et « qui avait ce forfait » est justement la question
-            // qu'on pose le jour où on le désactive.
+            // ⚠️ Tous les packages, actifs ou non : « qui avait ce forfait » est
+            // justement la question qu'on pose le jour où on le désactive.
             'packageChoices' => $packages->findAll(),
             // ⚠️ Les audiences VIRTUELLES sont proposées comme les autres : « tout
-            // compte actif » est un filtre parfaitement sensé, et c'est justement
-            // celui qu'aucune jointure ne saurait écrire.
+            // compte actif » est un filtre sensé qu'aucune jointure ne saurait écrire.
             'groupChoices' => $userGroups->all(),
         ]);
     }
@@ -3307,11 +3226,15 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/reporting/{workspace}', name: 'app_admin_reporting', requirements: ['workspace' => 'equipment|spaces'], methods: ['GET'])]
-    public function reporting(string $workspace, Request $request, ReportingRegistry $reporting, VenueContext $venueContext): Response
+    public function reporting(string $workspace, Request $request, ReportingRegistry $reporting, VenueContext $venueContext, ReportingBrief $brief): Response
     {
         [$scope, $from, $to, $context] = $this->reportScope($workspace, $request, $venueContext);
 
         return $this->render('site/admin-reporting.html.twig', [
+            // « À retenir », période en tuiles (`?jours=`), classement : même lieu que le détail.
+            'brief' => $brief->build($workspace, $request->query->getInt('jours', 30), $scope->venueId),
+            // Rapport détaillé (dates libres `from`/`to`, jour par jour) : ouvert dès qu'une date est choisie.
+            'detailOpen' => $request->query->has('from') || $request->query->has('to'),
             'report' => $reporting->forWorkspace($workspace)->report($scope),
             'workspaceKey' => $workspace,
             'venueContext' => $context,
@@ -4608,12 +4531,14 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/loans', name: 'app_admin_loans', methods: ['GET'])]
-    public function loans(LoanRepository $loans): Response
+    public function loans(Request $request, \App\Design\LoansCounter $loansCounter): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-        return $this->render('site/admin-loans.html.twig', [
-            'loans' => $loans->findAllSafe(),
+        // 0.5 — la liste du comptoir : à rendre aujourd'hui, en retard, en cours,
+        // rendus ; un verbe par ligne (le retour, POST existant).
+        return $this->render('site/admin-loans-desk.html.twig', [
+            'loans' => $loansCounter->build($request->query->getString('tuile'), $request->query->getString('q')),
         ]);
     }
 
@@ -4684,12 +4609,12 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/maintenance', name: 'app_admin_maintenance', methods: ['GET'])]
-    public function maintenance(MaintenanceTaskRepository $tasks): Response
+    public function maintenance(Request $request, MaintenanceQueue $queue): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         return $this->render('site/admin-maintenance.html.twig', [
-            'tasks' => $tasks->findAllSafe(),
+            'queue' => $queue->build($request->query->getString('tuile')),
         ]);
     }
 
@@ -4848,12 +4773,29 @@ final class AdminController extends AbstractController
      * notice it already had, rather than controls that would quietly do nothing.
      */
     #[Route('/access-rfid-logs', name: 'app_admin_access_rfid_logs', methods: ['GET'])]
-    public function accessRfidLogs(Request $request, AccessRfidLogRepository $logs, RfidReaderRepository $readers, MachineRepository $machines, EntityManagerInterface $entityManager, AccessIncident $incidents): Response
+    public function accessRfidLogs(Request $request, AccessRfidLogRepository $logs, RfidReaderRepository $readers, MachineRepository $machines, EntityManagerInterface $entityManager, AccessIncident $incidents, AccessIncidentBoard $board): Response
     {
         $readerColumnsExist = $this->accessRfidLogReaderColumnsExist($entityManager);
 
-        if (!$readerColumnsExist) {
+        // La route s'ouvre sur « À traiter » (les refus par cause + la santé des
+        // lecteurs). Le journal complet — filtre Oui/Non, motif, message, jeton —
+        // reste sur la MÊME route : `?vue=journal`, ou tout lien qui porte un
+        // `result` (anciens liens). Une installation sans les colonnes lecteur ne
+        // peut pas filtrer : elle garde le journal brut.
+        $journal = $request->query->get('vue') === 'journal' || $request->query->has('result');
+        if ($readerColumnsExist && !$journal) {
             return $this->render('site/admin-access-rfid-logs.html.twig', [
+                'board' => $board->build(
+                    $request->query->getInt('days', 7),
+                    $request->query->getInt('reader') ?: null,
+                    $request->query->getInt('machine') ?: null,
+                    (string) $request->query->get('cause', 'todo'),
+                ),
+            ]);
+        }
+
+        if (!$readerColumnsExist) {
+            return $this->render('site/admin-access-rfid-journal.html.twig', [
                 'logs' => $this->findAccessRfidLogsWithoutReaderColumns($entityManager),
                 // ⚠️ Le repli pré-migration rend des TABLEAUX bruts, pas des
                 // entités : `AccessIncident` ne peut rien en dire, et une carte
@@ -4899,7 +4841,7 @@ final class AdminController extends AbstractController
             $fixes[$row->getId()] = $incidents->of($row);
         }
 
-        return $this->render('site/admin-access-rfid-logs.html.twig', [
+        return $this->render('site/admin-access-rfid-journal.html.twig', [
             'logs' => $rows,
             'fixes' => $fixes,
             'logMatching' => $logs->countMatching($days, $readerId, $machineId, $result ?: null),
@@ -5760,72 +5702,6 @@ final class AdminController extends AbstractController
         return null;
     }
 
-    private function buildRecentActivities(
-        AccessRfidLogRepository $rfidLogs,
-        ReservationRepository $reservations,
-        ProgressionRepository $progressions,
-        LogUtilisationRepository $usageLogs,
-    ): array {
-        $activities = [];
-
-        try {
-            foreach ($rfidLogs->findBy([], ['createdAt' => 'DESC'], 5) as $log) {
-                $user = $log->getUtilisateur();
-                $machine = $log->getMachine();
-                $activities[] = [
-                    'type' => 'rfid',
-                    'title_key' => $log->isAuthorized() ? 'admin_dashboard.act_rfid_allowed' : 'admin_dashboard.act_rfid_denied',
-                    'message_key' => 'admin_dashboard.act_rfid_message',
-                    'user' => $user?->getDisplayName(),
-                    'machine' => $machine?->getNom(),
-                    'badge' => $log->getBadgeUid(),
-                    'date' => $log->getCreatedAt(),
-                ];
-            }
-        } catch (\Throwable $e) {
-            // La migration readerId/readerToken peut ne pas encore être appliquée.
-        }
-
-        foreach ($reservations->findBy([], ['created' => 'DESC'], 5) as $reservation) {
-            $activities[] = [
-                'type' => 'reservation',
-                'title_key' => 'admin_dashboard.act_reservation',
-                'message_key' => 'admin_dashboard.act_reservation_message',
-                'user' => $reservation->getUtilisateur()?->getDisplayName(),
-                'resource' => $reservation->getReservableLabel() ?: null,
-                'date' => $reservation->getCreated(),
-            ];
-        }
-
-        foreach ($progressions->findBy([], ['dateDebut' => 'DESC'], 5) as $progression) {
-            $activities[] = [
-                'type' => 'formation',
-                'title_key' => $progression->isCompleted() ? 'admin_dashboard.act_formation_done' : 'admin_dashboard.act_formation_started',
-                'message_key' => 'admin_dashboard.act_formation_message',
-                'user' => $progression->getUtilisateur()?->getDisplayName(),
-                'formation' => $progression->getFormation()?->getTitre(),
-                'score' => $progression->getScore(),
-                'date' => $progression->getDateEnd() ?? $progression->getDateDebut(),
-            ];
-        }
-
-        foreach ($usageLogs->findBy([], ['createdAt' => 'DESC'], 5) as $usageLog) {
-            $activities[] = [
-                'type' => 'usage',
-                'title_key' => 'admin_dashboard.act_usage',
-                'message_key' => 'admin_dashboard.act_usage_message',
-                'user' => $usageLog->getUtilisateur()?->getDisplayName(),
-                'machine' => $usageLog->getMachine()?->getNom(),
-                'source' => $usageLog->getSource(),
-                'date' => $usageLog->getCreatedAt(),
-            ];
-        }
-
-        usort($activities, static fn (array $a, array $b): int => $b['date'] <=> $a['date']);
-
-        return array_slice($activities, 0, 8);
-    }
-
     private function buildFormationProgressionStats(ProgressionRepository $progressions): array
     {
         $stats = [];
@@ -5839,24 +5715,6 @@ final class AdminController extends AbstractController
             $stats[$id] ??= ['total' => 0, 'completed' => 0, 'incomplete' => 0];
             $stats[$id]['total']++;
             $progression->isCompleted() ? $stats[$id]['completed']++ : $stats[$id]['incomplete']++;
-        }
-
-        return $stats;
-    }
-
-    private function buildUserProgressionStats(ProgressionRepository $progressions): array
-    {
-        $stats = [];
-        foreach ($progressions->findAll() as $progression) {
-            $formation = $progression->getFormation();
-            if ($formation !== null && TrainingQualificationService::isInternalCategory($formation->getCategorie())) {
-                continue;
-            }
-
-            $user = $progression->getUtilisateur();
-            if ($user && $user->getId()) {
-                $stats[$user->getId()] = ($stats[$user->getId()] ?? 0) + 1;
-            }
         }
 
         return $stats;

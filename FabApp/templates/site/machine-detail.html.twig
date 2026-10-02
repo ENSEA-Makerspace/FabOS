@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') ~ '?v=' ~ css_version }}">
     <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
     <link rel="stylesheet" href="{{ asset('css/calendar-leaderboard.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals-exploitation-machine.css') ~ '?v=' ~ css_version }}">
 {% endblock %}
 
 {% block page_styles %}
@@ -32,14 +34,6 @@
         .maint-task-title { font-weight: 700; }
         .maint-task-due { color: var(--color-text-light); font-size: 13px; }
         .maint-task-link { color: var(--color-primary-text); font-weight: 700; text-decoration: none; font-size: 13px; }
-        /* S173 — la zone Exploitation se voit qu'elle est à part, sans être un
-           second thème : un liseré à gauche et un fond très léger, tirés des
-           jetons. ⚠️ Aucune couleur littérale ici — une planche de référence ne
-           décide ni du thème ni de la palette (règle en tête de la Phase O). */
-        .machine-ops { border-left: 3px solid var(--color-primary); background: color-mix(in srgb, var(--color-primary) 4%, var(--theme-surface)); }
-        .machine-ops-note { color: var(--color-text-light); font-size: 13px; margin: 4px 0 14px; }
-        .machine-ops-grid { margin: 0; }
-        .machine-ops-grid .detail-card { background: var(--theme-surface); }
     </style>
 {% endblock %}
 
@@ -359,42 +353,91 @@
                            libellé : c'est le segment d'URL qui adresse la machine sur l'API
                            des boîtiers (`/api/rfid/machines/{machineToken}/authorization`).
                            Il n'a sa place que sur un écran `/admin`. #}
-                        {% if seesOperations %}
-                        <div class="detail-card full-width machine-ops">
+                        {% if seesOperations and ops %}
+                        {# Quatre cartes qui portent chacune un FAIT et un VERBE (`App\Design\MachineOperations`),
+                           au lieu de compter des lignes de journal. Les verbes mènent aux pages réelles. #}
+                        <div class="detail-card full-width pp-xm-new" data-machine-ops>
                             <h3 class="detail-card-title">{{ 'machine.ops_zone'|trans }}</h3>
-                            <p class="machine-ops-note">{{ 'machine.ops_note'|trans }}</p>
-                            <div class="detail-tab-grid machine-ops-grid">
-                                <div class="detail-card">
-                                    <h3 class="detail-card-title">{{ 'machine.real_activity'|trans }}</h3>
-                                    <ul class="feature-list">
-                                        <li>{{ 'machine.stat_reservations'|trans({'%n%': reservationCount}) }}</li>
-                                        <li>{{ 'machine.stat_rfid'|trans({'%n%': rfidLogCount}) }}</li>
-                                        <li>{{ 'machine.stat_usage'|trans({'%n%': usageLogCount}) }}</li>
-                                    </ul>
-                                </div>
-                                <div class="detail-card">
-                                    <h3 class="detail-card-title">{{ 'machine.ops_links'|trans }}</h3>
-                                    {# ⚠️ `can_reach()` et pas un rôle écrit ici : cette
-                                       application n'a PAS de hiérarchie de rôles, donc
-                                       `ROLE_ADMIN` n'implique pas `ROLE_STAFF` et une
-                                       constante en dur cache le lien aux seules personnes
-                                       qui s'en servent. C'est la règle de la route qui
-                                       décide, comme pour `admin_actions`. #}
-                                    <ul class="feature-list">
-                                        <li><a href="{{ path('app_machine_history', {id: machine.id}) }}">{{ 'machine.tab_history'|trans }}</a></li>
-                                        {% if can_reach('app_admin_machine_edit', {id: machine.id}) %}
-                                            <li><a href="{{ path('app_admin_machine_edit', {id: machine.id}) }}">{{ 'admin_inline.edit'|trans }}</a></li>
+                            <div class="pp-xm-grid">
+                                <article class="pp-xm-card">
+                                    <h3>{{ 'mops.state'|trans }}</h3>
+                                    {% include 'site/_state_chip.html.twig' with { label: ops.state.label|trans, signal: ops.state.signal } only %}
+                                    {% if can_reach('app_admin_machine_edit', {id: machine.id}) %}
+                                        <a class="btn btn-secondary" href="{{ path('app_admin_machine_edit', {id: machine.id}) }}">{{ (ops.state.outOfService ? 'mops.put_back' : 'mops.put_out')|trans }}</a>
+                                    {% endif %}
+                                </article>
+
+                                <article class="pp-xm-card">
+                                    <h3>{{ 'mops.maintenance'|trans }}</h3>
+                                    {% if not ops.maintenanceEnabled %}
+                                        <p class="pp-xm-sub">{{ 'mops.maintenance_off'|trans }}</p>
+                                    {% elseif ops.task %}
+                                        {% set t = ops.task %}
+                                        <p class="pp-xm-fact">{{ t.title }}</p>
+                                        <p class="pp-xm-sub{{ t.effectiveStatus == 'overdue' ? ' is-late' : '' }}">
+                                            {% if t.dueDate %}{{ (t.effectiveStatus == 'overdue' ? 'mops.late_due' : 'mops.due')|trans({'%date%': t.dueDate|date('d/m/Y')}) }}{% else %}{{ 'mops.no_due'|trans }}{% endif %}
+                                            {% if ops.openCount > 1 %} · {{ 'mops.others_open'|trans({'%n%': ops.openCount - 1}) }}{% endif %}
+                                        </p>
+                                        {% if can_reach('app_admin_maintenance_edit', {id: t.id}) %}
+                                            <a class="btn btn-secondary" href="{{ path('app_admin_maintenance_edit', {id: t.id}) }}">{{ 'mops.open_task'|trans }}</a>
                                         {% endif %}
-                                        {% if maintenanceEnabled and can_reach('app_admin_maintenance') %}
-                                            <li><a href="{{ path('app_admin_maintenance') }}">{{ 'admin_nav.entry.app_admin_maintenance'|trans }}</a></li>
+                                    {% else %}
+                                        <p class="pp-xm-sub">{{ 'mops.no_task'|trans }}</p>
+                                        {% if can_reach('app_admin_maintenance_new') %}
+                                            <a class="btn btn-secondary" href="{{ path('app_admin_maintenance_new') }}">{{ 'mops.plan'|trans }}</a>
                                         {% endif %}
-                                    </ul>
-                                </div>
+                                    {% endif %}
+                                </article>
+
+                                <article class="pp-xm-card">
+                                    <h3>{{ 'mops.reader'|trans }}</h3>
+                                    {% if ops.reader %}
+                                        {% set r = ops.reader.entity %}
+                                        <p class="pp-xm-fact">{{ r.name }}</p>
+                                        {% include 'site/_state_chip.html.twig' with { label: ops.reader.health.label|trans, signal: ops.reader.health.signal } only %}
+                                        <p class="pp-xm-sub">{% if r.lastSeenAt %}{{ 'mops.last_seen'|trans({'%when%': r.lastSeenAt|lab_date('d/m H:i')}) }}{% else %}{{ 'mops.never_seen'|trans }}{% endif %}</p>
+                                        {% if can_reach('app_admin_rfid_reader_edit', {id: r.id}) %}
+                                            <a class="btn btn-secondary" href="{{ path('app_admin_rfid_reader_edit', {id: r.id}) }}">{{ 'mops.open_reader'|trans }}</a>
+                                        {% endif %}
+                                    {% else %}
+                                        <p class="pp-xm-sub">{{ 'mops.no_reader'|trans }}</p>
+                                        {% if can_reach('app_admin_rfid_reader_new') %}
+                                            <a class="btn btn-secondary" href="{{ path('app_admin_rfid_reader_new') }}">{{ 'mops.link_reader'|trans }}</a>
+                                        {% endif %}
+                                    {% endif %}
+                                </article>
+
+                                <article class="pp-xm-card">
+                                    <h3>{{ 'mops.access'|trans }}</h3>
+                                    <p class="pp-xm-fact">{{ ops.incidents|length ? 'mops.recent_denials'|trans({'%n%': ops.incidents|length}) : 'mops.no_denials'|trans }}</p>
+                                    {% if can_reach('app_admin_access_rfid_logs') %}
+                                        <a class="btn btn-secondary" href="{{ path('app_admin_access_rfid_logs', {machine: machine.id, days: 30}) }}">{{ 'mops.see_incidents'|trans }}</a>
+                                    {% endif %}
+                                </article>
                             </div>
+
+                            {% if ops.incidents %}
+                                <h3 class="detail-card-title">{{ 'mops.last_denials'|trans }}</h3>
+                                <ul class="pp-xm-incidents">
+                                    {% for row in ops.incidents %}
+                                        <li>
+                                            <time>{{ row.log.createdAt|lab_date('d/m H:i') }}</time>
+                                            <span>{{ row.log.message|default(row.log.status) }}</span>
+                                            {% if row.fix %}
+                                                {% include 'site/_cell_fix.html.twig' with { fix: row.fix.fix, route: row.fix.route, params: row.fix.params, tone: 'alert' } only %}
+                                            {% endif %}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+
+                            <p class="pp-xm-sub"><a href="{{ path('app_machine_history', {id: machine.id}) }}">{{ 'machine.tab_history'|trans }}</a></p>
+
                             {# Divulgué sur demande plutôt qu'affiché (S48) : même pour
                                le staff, c'est de la tenue de registre, pas ce qu'on
-                               vient lire. Le pourquoi du bannissement de
-                               `machineToken` est en tête du bloc, une seule fois. #}
+                               vient lire. ⚠️ `machine.machineToken` reste INTERDIT ici :
+                               c'est le segment d'URL qui adresse la machine sur l'API des
+                               boîtiers ; il n'a sa place que sur un écran `/admin`. #}
                             <details class="detail-card full-width detail-disclosure">
                                 <summary class="detail-card-title">{{ 'machine.tech_info'|trans }}</summary>
                                 <div class="materials-grid">

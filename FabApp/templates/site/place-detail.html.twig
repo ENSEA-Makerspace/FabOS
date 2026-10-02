@@ -141,7 +141,25 @@
                         subtitle: 'mcal.click_slot'|trans,
                     } only %}
 
+                    {# Ce que l'espace dit avant de confirmer : capacité, délai d'annulation (si la
+                       politique en fixe un), et la fenêtre où le badge ouvre la porte (si l'espace
+                       a des portes). Le tout calculé côté serveur ; la durée, elle, vient du JS. #}
+                    {% set bookingFacts = [] %}
+                    {% if place.capacite %}
+                        {% set bookingFacts = bookingFacts|merge([{icon: 'map', text: 'mbk.capacity'|trans({'%n%': place.capacite})}]) %}
+                    {% endif %}
+                    {% if cancellationNoticeMinutes is not null %}
+                        {% set noticeHours = cancellationNoticeMinutes // 60 %}
+                        {% set noticeRest = cancellationNoticeMinutes % 60 %}
+                        {% set noticeText = (noticeHours > 0 ? noticeHours ~ ' ' ~ 'cal.unit_hour'|trans : '') ~ (noticeRest > 0 ? (noticeHours > 0 ? ' ' : '') ~ noticeRest ~ ' ' ~ 'cal.unit_minute'|trans : '') %}
+                        {% set bookingFacts = bookingFacts|merge([{icon: 'history', text: (cancellationNoticeMinutes > 0 ? 'mbk.cancel_notice' : 'mbk.cancel_until_start')|trans({'%delay%': noticeText})}]) %}
+                    {% endif %}
+                    {% if accessPoints|length %}
+                        {% set bookingFacts = bookingFacts|merge([{icon: 'key', text: 'mbk.door_window'|trans({'%margin%': doorMarginMinutes, '%doors%': accessPoints|map(d => d.nom)|join(', ')})}]) %}
+                    {% endif %}
+
                     {% include 'site/_calendar_booking.html.twig' with {
+                        facts: bookingFacts,
                         title: 'places.book_this_place'|trans,
                         hint: 'machine_calendar.pick_free_slot'|trans,
                         resources: calendarResources,

@@ -45,6 +45,8 @@
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">
     <link rel="stylesheet" href="{{ asset('css/formation-content-admin.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals-constructeur-formation.css') ~ '?v=' ~ css_version }}">
 {% endblock %}
 
 {% block body %}
@@ -96,8 +98,79 @@
                l'est, une garde de SÉCURITÉ est encore tranchée par un mot-clé
                dans le titre (S180b). #}
             {% include 'site/_commissioning.html.twig' with {
-                steps: publishSteps, label_ns: 'formation_content.pub_', title: 'formation_content.pub_title',
+                steps: builder.publishSteps, label_ns: 'formation_content.pub_', title: 'formation_content.pub_title',
             } only %}
+
+            {# **Le parcours d'abord.** Une liste ordonnée dans l'ordre où l'apprenant le vit (chaque
+               section suivie de SES quiz, puis les quiz de fin, la validation pratique, le badge),
+               et à droite ce que la validation ouvre. Données : `App\Design\TrainingBuilder`.
+               Chaque ligne mène à sa page d'édition ou, quand c'est un bloc de CETTE page, à sa
+               carte plus bas (ancre : pas de rechargement, la saisie en cours n'est pas perdue).
+               ⚠️ Les neuf cartes ci-dessous restent la seule porte vers les formulaires. #}
+            {% if builder is not null %}
+            <div class="pp-cf" data-training-builder>
+                <div class="pp-cf-grid">
+                    <section class="admin-content-card pp-cf-journey" aria-labelledby="pp-cf-journey-title">
+                        <h2 id="pp-cf-journey-title">{{ 'training_builder.journey_title'|trans }}</h2>
+                        <ol class="pp-cf-steps">
+                            {% for step in builder.steps %}
+                                <li class="pp-cf-step is-{{ step.kind }}{{ step.nested ? ' is-nested' : '' }}">
+                                    <b class="pp-cf-num">{{ loop.index }}</b>
+                                    <div class="pp-cf-ico">{% include 'site/_icon.html.twig' with { name: step.icon } only %}</div>
+                                    <div class="pp-cf-what">
+                                        <p class="pp-cf-type">{{ step.typeLabel }}</p>
+                                        <b class="pp-cf-title">{{ step.title }}</b>
+                                        {% if step.meta %}<p class="pp-cf-meta">{{ step.meta }}</p>{% endif %}
+                                    </div>
+                                    <div class="pp-cf-state">{% include 'site/_state_chip.html.twig' with { label: step.state.label, signal: step.state.signal } only %}</div>
+                                    {% if step.route == 'app_admin_formation_content' %}
+                                        <a class="pp-cf-verb" href="#{{ step.params._fragment }}">{{ step.verb }}</a>
+                                    {% else %}
+                                        <a class="pp-cf-verb" href="{{ path(step.route, step.params) }}">{{ step.verb }}</a>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ol>
+                    </section>
+
+                    <aside class="admin-content-card pp-cf-result" aria-labelledby="pp-cf-result-title">
+                        <h2 id="pp-cf-result-title">{{ 'training_builder.result_title'|trans }}</h2>
+                        {% set result = builder.result %}
+                        {% if result.badge is null %}
+                            <p class="pp-cf-meta">{{ 'training_builder.result_none'|trans }}</p>
+                        {% else %}
+                            <div class="pp-cf-fact">
+                                <div class="pp-cf-ico">{% include 'site/_icon.html.twig' with { name: 'key' } only %}</div>
+                                <div><p class="pp-cf-type">{{ 'training_builder.result_badge'|trans }}</p><b>{{ result.badge.nom }}</b></div>
+                            </div>
+                            <div class="pp-cf-fact">
+                                <div class="pp-cf-ico">{% include 'site/_icon.html.twig' with { name: 'tool' } only %}</div>
+                                <div>
+                                    <p class="pp-cf-type">{{ 'training_builder.result_machines'|trans }}</p>
+                                    {% if result.machines is empty %}
+                                        <p class="pp-cf-meta">{{ 'training_builder.result_nothing'|trans }}</p>
+                                    {% else %}
+                                        <ul class="pp-cf-list">{% for machine in result.machines %}<li><a href="{{ path('app_machine_detail', {id: machine.id}) }}">{{ machine.nom }}</a></li>{% endfor %}</ul>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="pp-cf-fact">
+                                <div class="pp-cf-ico">{% include 'site/_icon.html.twig' with { name: 'lock' } only %}</div>
+                                <div>
+                                    <p class="pp-cf-type">{{ 'training_builder.result_places'|trans }}</p>
+                                    {% if result.places is empty %}
+                                        <p class="pp-cf-meta">{{ 'training_builder.result_nothing'|trans }}</p>
+                                    {% else %}
+                                        <ul class="pp-cf-list">{% for place in result.places %}<li><a href="{{ path('app_admin_place_edit', {id: place.id}) }}">{{ place.nom }}</a></li>{% endfor %}</ul>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </aside>
+                </div>
+                <h2 class="pp-cf-more">{{ 'training_builder.settings_title'|trans }}</h2>
+            </div>
+            {% endif %}
 
             <nav class="admin-content-nav" aria-label="{{ 'formation_content.nav_label'|trans }}">
                 <a href="#general">{{ 'formation_content.nav_general'|trans }}</a>

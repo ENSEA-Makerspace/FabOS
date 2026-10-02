@@ -6,6 +6,7 @@ namespace App\Design;
 
 use App\Reporting\ReportingRegistry;
 use App\Reporting\ReportScope;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * « Rapports » qui conduisent à l'action (proposition `rapports`, 2026-10-01,
@@ -42,14 +43,22 @@ final class ReportingBrief
     private const TREND_RATE = 0.3;
     private const MAX_FINDINGS = 3;
 
-    public function __construct(private readonly ReportingRegistry $reporting)
+    public function __construct(
+        private readonly ReportingRegistry $reporting,
+        private readonly TranslatorInterface $translator,
+    ) {
+    }
+
+    /** Une clé `reporting_brief.*` traduite. */
+    private function t(string $key, array $params = []): string
     {
+        return $this->translator->trans('reporting_brief.' . $key, $params);
     }
 
     /**
      * @return array<string, mixed>
      */
-    public function build(string $workspace, int $days): array
+    public function build(string $workspace, int $days, ?int $venueId = null): array
     {
         $workspace = $workspace === 'spaces' ? 'spaces' : 'equipment';
         $days = \in_array($days, self::PERIODS, true) ? $days : 30;
@@ -61,13 +70,13 @@ final class ReportingBrief
         $previousFrom = $from->modify('-' . $days . ' days');
 
         $adapter = $this->reporting->forWorkspace($workspace);
-        $report = $adapter->report(new ReportScope($workspace, $from, $until));
-        $previous = $adapter->report(new ReportScope($workspace, $previousFrom, $from));
+        $report = $adapter->report(new ReportScope($workspace, $from, $until, $venueId));
+        $previous = $adapter->report(new ReportScope($workspace, $previousFrom, $from, $venueId));
 
         $summary = $report->summary;
         $total = (int) ($summary['total'] ?? 0);
         $detailRoute = $equipment ? 'app_machine_detail' : 'app_place_detail';
-        $noun = $equipment ? 'machine' : 'espace';
+        $kind = $equipment ? 'machine' : 'space';
 
         $top = [];
         foreach ($report->top as $row) {
@@ -89,9 +98,9 @@ final class ReportingBrief
             $findings[] = [
                 'signal' => 'caution',
                 'icon' => 'bolt',
-                'text' => $top[0]['label'] . ' porte ' . $top[0]['share'] . ' % des réservations de la période.',
-                'hint' => 'Une seule ' . $noun . ' concentre la demande : en ajouter une, ou rediriger vers les autres.',
-                'verb' => 'Voir ' . ($equipment ? 'la machine' : 'l’espace'),
+                'text' => $this->t('concentration_text', ['%label%' => $top[0]['label'], '%share%' => $top[0]['share'] . ' %']),
+                'hint' => $this->t('concentration_hint_' . $kind),
+                'verb' => $this->t('concentration_verb_' . $kind),
                 'route' => $detailRoute,
                 'params' => ['id' => $top[0]['id']],
             ];
@@ -104,9 +113,9 @@ final class ReportingBrief
             $findings[] = [
                 'signal' => 'caution',
                 'icon' => 'warning',
-                'text' => (int) round(100 * $cancelled / $requested) . ' % des demandes sont annulées (' . $cancelled . ' sur ' . $requested . ').',
-                'hint' => 'Un délai d’annulation ou une limite de réservations aide souvent.',
-                'verb' => 'Revoir les règles de réservation',
+                'text' => $this->t('cancel_text', ['%rate%' => (int) round(100 * $cancelled / $requested) . ' %', '%cancelled%' => $cancelled, '%requested%' => $requested]),
+                'hint' => $this->t('cancel_hint'),
+                'verb' => $this->t('cancel_verb'),
                 'route' => 'app_admin_booking_policies',
                 'params' => [],
             ];
@@ -123,9 +132,9 @@ final class ReportingBrief
             $findings[] = [
                 'signal' => $up ? 'go' : 'wait',
                 'icon' => $up ? 'bolt' : 'history',
-                'text' => 'Les réservations ' . ($up ? 'augmentent' : 'baissent') . ' de ' . abs($trend) . ' % sur ' . $days . ' jours (' . $before . ' avant, ' . $total . ' maintenant).',
-                'hint' => 'Comparé aux ' . $days . ' jours précédents, annulations exclues.',
-                'verb' => 'Voir les réservations',
+                'text' => $this->t($up ? 'trend_up_text' : 'trend_down_text', ['%pct%' => abs($trend) . ' %', '%days%' => $days, '%before%' => $before, '%total%' => $total]),
+                'hint' => $this->t('trend_hint', ['%days%' => $days]),
+                'verb' => $this->t('trend_verb'),
                 'route' => 'app_admin_reservations',
                 'params' => [],
             ];
@@ -138,9 +147,9 @@ final class ReportingBrief
             $findings[] = [
                 'signal' => 'muted',
                 'icon' => 'hourglass',
-                'text' => $n . ($equipment ? ' machine' : ' espace') . ($n > 1 ? 's' : '') . ' en service sans aucune réservation sur ' . $days . ' jours.',
-                'hint' => 'Vérifiez qu’' . ($n > 1 ? 'elles sont connues' : ($equipment ? 'elle est connue' : 'il est connu')) . ' des membres, sinon archivez.',
-                'verb' => $equipment ? 'Voir les machines' : 'Voir les espaces',
+                'text' => $this->t('idle_text_' . $kind . ($n > 1 ? '_many' : '_one'), ['%n%' => $n, '%days%' => $days]),
+                'hint' => $this->t('idle_hint_' . $kind . ($n > 1 ? '_many' : '_one')),
+                'verb' => $this->t('idle_verb_' . $kind),
                 'route' => $equipment ? 'app_admin_machines' : 'app_admin_places',
                 'params' => [],
             ];
@@ -148,7 +157,7 @@ final class ReportingBrief
 
         $periods = [];
         foreach (self::PERIODS as $p) {
-            $periods[] = ['label' => $p . ' jours', 'query' => ['jours' => $p], 'active' => $p === $days];
+            $periods[] = ['label' => $this->t('period_days', ['%n%' => $p]), 'query' => ['jours' => $p], 'active' => $p === $days];
         }
 
         return [
@@ -167,9 +176,8 @@ final class ReportingBrief
             ],
             'findings' => \array_slice($findings, 0, self::MAX_FINDINGS),
             'top' => $top,
-            'topLabel' => $equipment ? 'Machines les plus réservées' : 'Espaces les plus réservés',
+            'topLabel' => $this->t('top_' . $kind),
             'idle' => array_map(static fn (array $r): array => $r + ['route' => $equipment ? 'app_machine_detail' : 'app_place_detail'], \array_slice($idle, 0, 12)),
-            'nounPlural' => $equipment ? 'machines' : 'espaces',
         ];
     }
 }

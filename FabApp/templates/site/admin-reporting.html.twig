@@ -1,93 +1,118 @@
 {% extends 'base.html.twig' %}
+
+{#
+   Rapports : « À retenir » d'abord (au plus trois constats avec UN verbe — `ReportingBrief`), la période
+   en tuiles 7 / 30 / 90 jours, le classement qui ouvre les fiches. Dessous, « Rapport détaillé »
+   (`<details>`) garde les dates libres, le tableau jour par jour et l'export CSV de la page d'avant.
+   ⚠️ Dans `.admin-panel`, `style.css` repeint tout <span> en gris : texte coloré/gras en <b>/<p>/<div>.
+#}
+
 {% block title %}{{ 'reporting.title'|trans }} - FabOS{% endblock %}
-{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">
-<style>
-    /* S195 — les constats qui mènent à une action. Jetons seulement. */
-    .report-actions { display: grid; gap: 10px; margin: 16px 0 24px; }
-    .report-actions h3 { margin: 0; }
-    .report-finding { display: grid; gap: 6px; padding: 12px 14px; border: 1px solid var(--border-color); border-left: 4px solid var(--color-primary); border-radius: 10px; background: var(--theme-surface-elevated, transparent); }
-    .report-finding p { margin: 0; color: var(--color-text); }
-    .report-finding__hint { color: var(--color-text-light) !important; font-size: .9rem; }
-    .report-finding__links { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 14px; }
-    .report-finding a:not(.btn-action) { color: var(--color-primary-text); }
-    .report-finding .btn-action { justify-self: start; }
-</style>{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals-rapports.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
 {% block body %}
 {% embed 'site/_admin_list.html.twig' with {
     panel_title: 'reporting.overview'|trans,
-    panel_note: 'reporting.panel_note'|trans({'count': report.summary.total}),
     list_route: 'app_admin_reporting',
-    list_route_params: {workspace: workspaceKey},
-    list_query: {workspace: workspaceKey, from: from, to: to},
+    list_route_params: {workspace: brief.workspace},
+    list_query: {jours: brief.days, location: venueContext.location},
+    list_tiles_label: 'reporting_brief.period'|trans,
+    list_tiles: brief.periods,
     workspace_key: workspaceKey,
     venue_context: venueContext,
-    has_filters: true,
 } %}
-    {% block filters %}
-        <form class="filters-bar" method="get" action="{{ path('app_admin_reporting', {workspace: workspaceKey}) }}">
-            <input type="hidden" name="location" value="{{ venueContext.location }}">
-            <div><label for="report-from">{{ 'reporting.from'|trans }}</label><input id="report-from" type="date" name="from" value="{{ from }}"></div>
-            <div><label for="report-to">{{ 'reporting.to'|trans }}</label><input id="report-to" type="date" name="to" value="{{ to }}"></div>
-            <button class="ml-btn" type="submit">{{ 'reporting.apply'|trans }}</button>
-            <a class="ml-reset" href="{{ path('app_admin_reporting', {workspace: workspaceKey, location: venueContext.location}) }}">{{ 'common.reset'|trans }}</a>
-        </form>
-    {% endblock %}
-    {# ⚠️ It was `panel_header_extra` until S141, and the list header it hung on
-       no longer exists — the count moved into the band and took the row with it.
-       Export is a control on this page, so it belongs on the band beside where
-       the green button would be if reporting created anything. #}
     {% block header_extra %}
-        <a class="admin-hero-action" href="{{ path('app_admin_reporting_export', {workspace: workspaceKey, from: from, to: to, location: venueContext.location}) }}">{{ 'reporting.export'|trans }}</a>
+        <a class="admin-hero-action" href="{{ path('app_admin_reporting_export', {workspace: brief.workspace, from: brief.from|date('Y-m-d'), to: brief.until|date('Y-m-d'), location: venueContext.location}) }}">{{ 'reporting.export'|trans }}</a>
     {% endblock %}
     {% block content %}
-        <div class="workspace-summary">
-            <article><strong>{{ report.summary.total }}</strong><span>{{ 'reporting.reservations'|trans }}</span></article>
-            <article><strong>{{ report.summary.users }}</strong><span>{{ 'reporting.users'|trans }}</span></article>
-            <article><strong>{{ (report.summary.minutes / 60)|number_format(1, ',', ' ') }} h</strong><span>{{ 'reporting.duration'|trans }}</span></article>
-            <article><strong>{{ report.summary.cancelled }}</strong><span>{{ 'reporting.cancelled'|trans }}</span></article>
-        </div>
-        {# 🔴 S195 — un rapport PROPOSE l'action qu'il suggère au lieu de la décrire.
-           Chaque constat est calculé sur la même période et le même lieu que les
-           chiffres au-dessus, et mène là où l'on agit. #}
-        {% set editRoute = workspaceKey == 'equipment' ? 'app_admin_machine_edit' : 'app_admin_place_edit' %}
-        {% set cancelRate = report.summary.requested|default(0) > 0 ? (report.summary.cancelled / report.summary.requested) : 0 %}
-        <section class="report-actions" aria-labelledby="report-actions-title">
-            <h3 id="report-actions-title">{{ 'reporting.todo_title'|trans }}</h3>
-            {% set anything = false %}
-            {% if report.idle is not empty %}
-                {% set anything = true %}
-                <article class="report-finding">
-                    <p><strong>{{ ('reporting.idle_' ~ workspaceKey)|trans({'count': report.idle|length}) }}</strong></p>
-                    <p class="report-finding__hint">{{ 'reporting.idle_hint'|trans }}</p>
-                    <ul class="report-finding__links">
-                        {% for resource in report.idle|slice(0, 12) %}
-                            <li><a href="{{ path(editRoute, {id: resource.id}) }}">{{ resource.label }}</a></li>
+        <div class="pp-rp" data-reporting-brief>
+            <p class="pp-rp-switch">
+                {% for key, label in {equipment: 'reporting_brief.ws_equipment'|trans, spaces: 'reporting_brief.ws_spaces'|trans} %}
+                    {% if key == brief.workspace %}<b>{{ label }}</b>{% else %}<a href="{{ path('app_admin_reporting', {workspace: key, jours: brief.days, location: venueContext.location}) }}">{{ label }}</a>{% endif %}
+                {% endfor %}
+                <span>{{ 'reporting_brief.range'|trans({'%from%': brief.from|date('d/m/Y'), '%to%': brief.until|date('d/m/Y')}) }}</span>
+            </p>
+
+            <section class="pp-rp-head" aria-labelledby="pp-rp-retenir">
+                <h2 class="pp-rp-title" id="pp-rp-retenir">{{ 'reporting_brief.heading'|trans }}</h2>
+                {% if brief.findings is not empty %}
+                    <ul class="pp-rp-finds">
+                        {% for f in brief.findings %}
+                            <li class="pp-rp-find">
+                                <div>{% include 'site/_icon.html.twig' with { name: f.icon } only %}</div>
+                                <p class="pp-rp-find-text">{{ f.text }}</p>
+                                <p class="pp-rp-find-hint">{{ f.hint }}</p>
+                                <a class="pp-rp-find-verb" href="{{ path(f.route, f.params) }}">{{ f.verb }}</a>
+                            </li>
                         {% endfor %}
                     </ul>
-                </article>
-            {% endif %}
-            {% if report.summary.requested|default(0) >= 10 and cancelRate >= 0.2 %}
-                {% set anything = true %}
-                <article class="report-finding">
-                    <p><strong>{{ 'reporting.cancel_rate'|trans({'rate': (cancelRate * 100)|round, 'count': report.summary.cancelled}) }}</strong></p>
-                    <p class="report-finding__hint">{{ 'reporting.cancel_hint'|trans }}</p>
-                    <a class="btn-action btn-primary-admin" href="{{ path('app_admin_booking_policies') }}">{{ 'reporting.cancel_action'|trans }}</a>
-                </article>
-            {% endif %}
-            {% if not anything %}
-                <p class="report-finding__hint">{{ 'reporting.nothing_to_do'|trans }}</p>
-            {% endif %}
-        </section>
+                {% else %}
+                    <p class="pp-rp-calm">{{ 'reporting_brief.calm'|trans }}</p>
+                {% endif %}
+            </section>
 
-        <h3>{{ 'reporting.daily'|trans }}</h3>
-        {% embed 'site/_data_table.html.twig' with {columns: [{label: 'reporting.date'|trans}, {label: 'reporting.reservations'|trans, numeric: true}, {label: 'reporting.minutes'|trans, numeric: true}], rows: report.daily, empty: 'reporting.empty'|trans} %}
-            {% block rows %}{% for row in report.daily %}<tr><td>{{ row.day }}</td><td class="is-numeric">{{ row.total }}</td><td class="is-numeric">{{ row.minutes }}</td></tr>{% endfor %}{% endblock %}
-        {% endembed %}
-        <h3>{{ 'reporting.top_resources'|trans }}</h3>
-        {% embed 'site/_data_table.html.twig' with {columns: [{label: 'reporting.resource'|trans}, {label: 'reporting.reservations'|trans, numeric: true}, {label: 'reporting.minutes'|trans, numeric: true}], rows: report.top, empty: 'reporting.empty'|trans} %}
-            {# S195 — chaque ressource ouvre sa fiche. #}
-            {% block rows %}{% for row in report.top %}<tr><td>{% if row.id|default(null) %}<a href="{{ path(workspaceKey == 'equipment' ? 'app_admin_machine_edit' : 'app_admin_place_edit', {id: row.id}) }}">{{ row.label }}</a>{% else %}{{ row.label }}{% endif %}</td><td class="is-numeric">{{ row.total }}</td><td class="is-numeric">{{ row.minutes }}</td></tr>{% endfor %}{% endblock %}
-        {% endembed %}
+            <div class="workspace-summary">
+                <article><strong>{{ brief.summary.total }}</strong><span>{{ 'reporting.reservations'|trans }}{% if brief.summary.trend is not null %} ({{ 'reporting_brief.vs_previous'|trans({'%pct%': (brief.summary.trend > 0 ? '+' : '') ~ brief.summary.trend ~ ' %'}) }}){% endif %}</span></article>
+                <article><strong>{{ brief.summary.users }}</strong><span>{{ 'reporting.users'|trans }}</span></article>
+                <article><strong>{{ brief.summary.hours|number_format(1, ',', ' ') }} h</strong><span>{{ 'reporting.duration'|trans }}</span></article>
+                <article><strong>{{ brief.summary.cancelled }}</strong><span>{{ 'reporting.cancelled'|trans }}</span></article>
+            </div>
+
+            <section aria-labelledby="pp-rp-top">
+                <h2 class="pp-rp-title" id="pp-rp-top">{{ brief.topLabel }}</h2>
+                {% embed 'site/_data_table.html.twig' with {
+                    columns: [
+                        {label: 'reporting.resource'|trans, class: 'is-grow'},
+                        {label: 'reporting.reservations'|trans, numeric: true},
+                        {label: 'reporting_brief.col_share'|trans, numeric: true},
+                        {label: 'reporting_brief.col_hours'|trans, numeric: true},
+                    ],
+                    rows: brief.top,
+                    empty: 'reporting.empty'|trans,
+                } %}
+                    {% block rows %}
+                        {% for row in brief.top %}
+                            <tr>
+                                <td><a class="pp-rp-name" href="{{ path(row.route, row.params) }}">{{ row.label }}</a></td>
+                                <td class="is-numeric">{{ row.total }}</td>
+                                <td class="is-numeric">{{ row.share }} %</td>
+                                <td class="is-numeric">{{ row.hours|number_format(1, ',', ' ') }}</td>
+                            </tr>
+                        {% endfor %}
+                    {% endblock %}
+                {% endembed %}
+            </section>
+
+            {% if brief.idle is not empty %}
+                <p class="pp-rp-idle">
+                    <b>{{ 'reporting_brief.idle_label'|trans }}</b> :
+                    {% for r in brief.idle %}<a href="{{ path(r.route, {id: r.id}) }}">{{ r.label }}</a>{{ not loop.last ? ' · ' : '' }}{% endfor %}
+                </p>
+            {% endif %}
+
+            {#- Rapport détaillé : dates libres, activité jour par jour, export CSV (la page d'avant, intacte). -#}
+            <details class="pp-rp-detail"{{ detailOpen ? ' open' : '' }}>
+                <summary>{{ 'reporting_brief.detail'|trans }}</summary>
+                <form class="filters-bar" method="get" action="{{ path('app_admin_reporting', {workspace: workspaceKey}) }}">
+                    <input type="hidden" name="location" value="{{ venueContext.location }}">
+                    <input type="hidden" name="jours" value="{{ brief.days }}">
+                    <div><label for="report-from">{{ 'reporting.from'|trans }}</label><input id="report-from" type="date" name="from" value="{{ from }}"></div>
+                    <div><label for="report-to">{{ 'reporting.to'|trans }}</label><input id="report-to" type="date" name="to" value="{{ to }}"></div>
+                    <button class="ml-btn" type="submit">{{ 'reporting.apply'|trans }}</button>
+                    <a class="ml-reset" href="{{ path('app_admin_reporting', {workspace: workspaceKey, jours: brief.days, location: venueContext.location}) }}">{{ 'common.reset'|trans }}</a>
+                    <a class="ml-reset" href="{{ path('app_admin_reporting_export', {workspace: workspaceKey, from: from, to: to, location: venueContext.location}) }}">{{ 'reporting.export'|trans }}</a>
+                </form>
+                <h3 class="pp-rp-title">{{ 'reporting.daily'|trans }}</h3>
+                {% embed 'site/_data_table.html.twig' with {columns: [{label: 'reporting.date'|trans}, {label: 'reporting.reservations'|trans, numeric: true}, {label: 'reporting.minutes'|trans, numeric: true}], rows: report.daily, empty: 'reporting.empty'|trans} %}
+                    {% block rows %}{% for row in report.daily %}<tr><td>{{ row.day }}</td><td class="is-numeric">{{ row.total }}</td><td class="is-numeric">{{ row.minutes }}</td></tr>{% endfor %}{% endblock %}
+                {% endembed %}
+            </details>
+        </div>
     {% endblock %}
 {% endembed %}
 {% endblock %}

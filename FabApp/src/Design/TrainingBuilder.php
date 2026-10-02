@@ -14,6 +14,7 @@ use App\Repository\SectionRepository;
 use App\Service\PlaceBadges;
 use App\Training\PublishChecklist;
 use Doctrine\DBAL\Connection;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Le parcours d'une formation, en UNE liste ordonnée (proposition
@@ -42,6 +43,7 @@ final class TrainingBuilder
         private readonly MachineBadgeRepository $machineBadges,
         private readonly PlaceBadges $placeBadges,
         private readonly Connection $db,
+        private readonly TranslatorInterface $translator,
     ) {
     }
 
@@ -105,11 +107,11 @@ final class TrainingBuilder
         foreach ($journey as $section) {
             $filled = trim((string) $section->getContenu()) !== '' || trim((string) $section->getVideoUrl()) !== '';
             $steps[] = [
-                'kind' => 'section', 'icon' => 'view', 'typeLabel' => 'Section', 'nested' => false,
+                'kind' => 'section', 'icon' => 'view', 'typeLabel' => $this->t('type_section'), 'nested' => false,
                 'title' => $section->getTitre(),
-                'meta' => $section->getVideoUrl() ? 'Avec vidéo' : '',
-                'state' => $filled ? ['label' => 'Publié', 'signal' => 'go'] : ['label' => 'Brouillon', 'signal' => 'wait'],
-                'verb' => 'Modifier', 'route' => 'app_admin_formation_section_edit',
+                'meta' => $section->getVideoUrl() ? $this->t('with_video') : '',
+                'state' => $filled ? ['label' => $this->t('state_published'), 'signal' => 'go'] : ['label' => $this->t('state_draft'), 'signal' => 'wait'],
+                'verb' => $this->t('verb_edit'), 'route' => 'app_admin_formation_section_edit',
                 'params' => ['id' => $formation->getId(), 'sectionId' => $section->getId()],
             ];
             foreach ($attachedTo[$section->getId()] ?? [] as $row) {
@@ -128,26 +130,26 @@ final class TrainingBuilder
         $physical = $this->formations->findPhysicalValidationForParent((int) $formation->getId());
         $points = $physical === null ? 0 : \count(array_filter(preg_split('/\R/', (string) $physical->getObjectifs()) ?: [], static fn (string $l): bool => trim($l) !== ''));
         $steps[] = [
-            'kind' => 'practical', 'icon' => 'tool', 'typeLabel' => 'Validation pratique', 'nested' => false,
-            'title' => 'Évaluation sur la machine, par un encadrant',
-            'meta' => $required === true && $points > 0 ? $points . ' points à valider' : '',
+            'kind' => 'practical', 'icon' => 'tool', 'typeLabel' => $this->t('type_practical'), 'nested' => false,
+            'title' => $this->t('practical_title'),
+            'meta' => $required === true && $points > 0 ? $this->translator->trans('training_builder.practical_points', ['%n%' => $points]) : '',
             'state' => match (true) {
-                $required === null => ['label' => 'À décider', 'signal' => 'stop'],
-                $required === false => ['label' => 'Non exigée', 'signal' => 'muted'],
-                $physical === null => ['label' => 'Manquant', 'signal' => 'caution'],
-                default => ['label' => 'Publié', 'signal' => 'go'],
+                $required === null => ['label' => $this->t('state_undecided'), 'signal' => 'stop'],
+                $required === false => ['label' => $this->t('state_not_required'), 'signal' => 'muted'],
+                $physical === null => ['label' => $this->t('state_missing'), 'signal' => 'caution'],
+                default => ['label' => $this->t('state_published'), 'signal' => 'go'],
             },
-            'verb' => $required === null ? 'Décider' : 'Modifier', 'route' => 'app_admin_formation_content',
+            'verb' => $required === null ? $this->t('verb_decide') : $this->t('verb_edit'), 'route' => 'app_admin_formation_content',
             'params' => ['id' => $formation->getId(), 'ouvrir' => 'practical', '_fragment' => 'practical'],
         ];
 
         $badge = $formation->getBadge();
         $steps[] = [
-            'kind' => 'badge', 'icon' => 'key', 'typeLabel' => 'Badge', 'nested' => false,
-            'title' => $badge?->getNom() ?? 'Aucun badge délivré',
-            'meta' => $badge === null ? 'Un cours d’information n’en a pas besoin' : '',
-            'state' => $badge === null ? ['label' => 'Manquant', 'signal' => 'muted'] : ['label' => 'Publié', 'signal' => 'go'],
-            'verb' => $badge === null ? 'Choisir' : 'Voir le badge',
+            'kind' => 'badge', 'icon' => 'key', 'typeLabel' => $this->t('type_badge'), 'nested' => false,
+            'title' => $badge?->getNom() ?? $this->t('no_badge'),
+            'meta' => $badge === null ? $this->t('no_badge_hint') : '',
+            'state' => $badge === null ? ['label' => $this->t('state_missing'), 'signal' => 'muted'] : ['label' => $this->t('state_published'), 'signal' => 'go'],
+            'verb' => $badge === null ? $this->t('verb_choose') : $this->t('verb_view_badge'),
             'route' => $badge === null ? 'app_admin_formation_content' : 'app_admin_badge_edit',
             'params' => $badge === null
                 ? ['id' => $formation->getId(), 'ouvrir' => 'general', '_fragment' => 'general']
@@ -202,7 +204,7 @@ final class TrainingBuilder
     {
         return [
             'quiz' => $quiz,
-            'title' => $quiz->getFormation()?->getTitre() ?: ($quiz->getSection()?->getTitre() ?: 'Quiz'),
+            'title' => $quiz->getFormation()?->getTitre() ?: ($quiz->getSection()?->getTitre() ?: $this->t('type_quiz_plain')),
             'questionCount' => $this->questions->count(['quiz' => $quiz]),
         ];
     }
@@ -217,12 +219,17 @@ final class TrainingBuilder
         $count = $row['questionCount'];
 
         return [
-            'kind' => 'quiz', 'icon' => 'check', 'typeLabel' => $nested ? 'Quiz de la section' : 'Quiz de fin', 'nested' => $nested,
+            'kind' => 'quiz', 'icon' => 'check', 'typeLabel' => $nested ? $this->t('type_quiz_section') : $this->t('type_quiz_final'), 'nested' => $nested,
             'title' => $row['title'],
-            'meta' => $count . ($count > 1 ? ' questions' : ' question') . ' · note minimale ' . $row['quiz']->getNoteMinimale(),
-            'state' => $count > 0 ? ['label' => 'Publié', 'signal' => 'go'] : ['label' => 'Brouillon', 'signal' => 'wait'],
-            'verb' => 'Modifier', 'route' => 'app_admin_formation_quiz_edit',
+            'meta' => $this->translator->trans($count > 1 ? 'training_builder.questions_many' : 'training_builder.questions_one', ['%n%' => $count]) . ' · ' . $this->translator->trans('training_builder.min_score', ['%n%' => $row['quiz']->getNoteMinimale()]),
+            'state' => $count > 0 ? ['label' => $this->t('state_published'), 'signal' => 'go'] : ['label' => $this->t('state_draft'), 'signal' => 'wait'],
+            'verb' => $this->t('verb_edit'), 'route' => 'app_admin_formation_quiz_edit',
             'params' => ['id' => $formation->getId(), 'quizId' => $row['quiz']->getId()],
         ];
+    }
+
+    private function t(string $key): string
+    {
+        return $this->translator->trans('training_builder.' . $key);
     }
 }

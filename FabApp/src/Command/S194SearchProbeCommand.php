@@ -92,8 +92,8 @@ final class S194SearchProbeCommand extends Command
 
         $io->section('2. La page de résultats saute par type');
         $page = $this->get('/recherche?q=a');
-        $jumps = preg_match_all('~href="#results-([a-z_]+)"~', $page, $m);
-        $anchors = preg_match_all('~id="results-([a-z_]+)"~', $page);
+        $jumps = preg_match_all('~data-search-type="([a-z_]+)"~', $page, $m);
+        $anchors = preg_match_all('~data-search-group="([a-z_]+)"~', $page);
         $this->check($io, $failures, sprintf('%d saut(s), chacun vers un groupe présent', $jumps), $jumps > 1 && $jumps === $anchors);
         $this->check($io, $failures, '« / » est branché sur la recherche de l\'en-tête', str_contains($page, 'data-controller="search-shortcut"') && str_contains($page, 'aria-keyshortcuts="/"'));
 

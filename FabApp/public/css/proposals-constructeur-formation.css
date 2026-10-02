@@ -1,5 +1,4 @@
-/* Proposition `constructeur-formation` — préfixe pp-cf-, jetons du thème seulement.
-   🅿️ Se supprime avec la proposition. */
+/* Constructeur de formation (`/admin/formations/{id}/content`) — préfixe pp-cf-, jetons du thème seulement. */
 
 .pp-cf { display: grid; gap: var(--spacing-lg); padding-block: var(--spacing-md); }
 .pp-cf-empty { color: var(--color-text-light); }
@@ -49,3 +48,7 @@
     .pp-cf-ico { display: none; }
     .pp-cf-state, .pp-cf-verb { grid-column: 2; justify-self: start; }
 }
+
+/* Page réelle `/admin/formations/{id}/content` : le parcours au-dessus des neuf cartes repliées. */
+.pp-cf-more { margin: var(--spacing-md) 0 0; font-size: var(--font-size-lg); color: var(--color-text); }
+.pp-cf-journey h2, .pp-cf-result h2 { margin: 0 0 var(--spacing-md); font-size: var(--font-size-lg); }

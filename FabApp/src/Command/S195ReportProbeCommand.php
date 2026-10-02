@@ -59,6 +59,10 @@ final class S195ReportProbeCommand extends Command
         $to = (string) $input->getOption('to');
 
         $io->section('1. Le rapport « équipement », recalculé à part');
+        // Le rapport s'ouvre sur « À retenir » : période en tuiles (`?jours=30`), et non plus sur deux
+        // dates libres. La fenêtre attendue est donc les 30 derniers jours, aujourd'hui compris.
+        $to = (new \DateTimeImmutable('today'))->format('Y-m-d');
+        $from = (new \DateTimeImmutable('today'))->modify('-29 days')->format('Y-m-d');
         $window = ['from' => $from . ' 00:00:00', 'until' => (new \DateTimeImmutable($to))->modify('+1 day')->format('Y-m-d 00:00:00')];
         $active = (int) $this->db->fetchOne("SELECT COUNT(*) FROM RESERVATION WHERE reservableType = 'machine' AND dateDebut >= :from AND dateDebut < :until AND statut NOT IN ('cancelled','declined')", $window);
         $cancelled = (int) $this->db->fetchOne("SELECT COUNT(*) FROM RESERVATION WHERE reservableType = 'machine' AND dateDebut >= :from AND dateDebut < :until AND statut = 'cancelled'", $window);
@@ -69,20 +73,21 @@ final class S195ReportProbeCommand extends Command
         $idle = $this->db->fetchFirstColumn("SELECT m.id FROM MACHINE m WHERE m.archivedAt IS NULL AND LOWER(m.statut) NOT LIKE '%maintenance%' AND LOWER(m.statut) NOT LIKE '%panne%' AND LOWER(m.statut) NOT IN ('hors service','broken','down') AND NOT EXISTS (SELECT 1 FROM RESERVATION r WHERE r.reservableType = 'machine' AND r.reservableId = m.id AND r.dateDebut >= :from AND r.dateDebut < :until AND r.statut NOT IN ('cancelled','declined'))", $window);
         $io->writeln(sprintf('   attendu : %d actives (%d demandes, %d annulées), %d machine(s) jamais réservée(s)', $active, $all, $cancelled, \count($idle)));
 
-        $page = $this->get('/admin/reporting/equipment?from=' . $from . '&to=' . $to, new Session(new MockArraySessionStorage()));
+        $page = $this->get('/admin/reporting/equipment?jours=30', new Session(new MockArraySessionStorage()));
         preg_match_all('~<article><strong>([^<]*)</strong>~', $page, $m);
         $shown = array_map(static fn (string $v): string => trim($v), $m[1]);
         $this->check($io, $failures, sprintf('🔴 le total affiché (%s) = les réservations ACTIVES (%d), plus les annulées', $shown[0] ?? '?', $active), ($shown[0] ?? '') === (string) $active);
         $this->check($io, $failures, sprintf('les annulées restent comptées à part (%s)', $shown[3] ?? '?'), ($shown[3] ?? '') === (string) $cancelled);
 
-        $idleShown = preg_match_all('~<li><a href="/admin/machines/(\d+)/edit">~', $page, $ids) ? array_map('intval', $ids[1]) : [];
+        $idleBlock = preg_match('~<p class="pp-rp-idle">\s*<b>[^<]*</b> :(.*?)</p>~s', $page, $idleHtml) === 1 ? $idleHtml[1] : '';
+        $idleShown = preg_match_all('~<a href="/machines/(\d+)">~', $idleBlock, $ids) ? array_map('intval', $ids[1]) : [];
         sort($idle);
         sort($idleShown);
         $this->check($io, $failures, 'le constat « jamais réservées » liste EXACTEMENT ces machines, chacune vers sa fiche', array_map('intval', $idle) === $idleShown || (\count($idle) > 12 && \count($idleShown) === 12));
         $rate = $all > 0 ? $cancelled / $all : 0;
         $expectCancelFinding = $all >= 10 && $rate >= 0.2;
-        $this->check($io, $failures, sprintf('le constat « annulations » (%d %%) %s, avec son action', (int) round($rate * 100), $expectCancelFinding ? 'apparaît' : 'n\'apparaît pas'), str_contains($page, 'btn-primary-admin" href="/admin/quotas-reservation"') === $expectCancelFinding);
-        $topLinked = preg_match_all('~<tr><td><a href="/admin/machines/\d+/edit">~', $page);
+        $this->check($io, $failures, sprintf('le constat « annulations » (%d %%) %s, avec son action', (int) round($rate * 100), $expectCancelFinding ? 'apparaît' : 'n\'apparaît pas'), str_contains($page, 'pp-rp-find-verb" href="/admin/quotas-reservation"') === $expectCancelFinding);
+        $topLinked = preg_match_all('~<tr><td><a class="pp-rp-name" href="/machines/\d+">~', $page);
         $this->check($io, $failures, sprintf('les ressources du classement ouvrent leur fiche (%d)', $topLinked), $active === 0 || $topLinked > 0);
 
         $io->section('2. Chaque création publiée a sa fiche');

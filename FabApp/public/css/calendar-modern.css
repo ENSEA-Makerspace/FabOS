@@ -747,6 +747,38 @@
     line-height: 1.25;
 }
 
+.booking-summary-card small {
+    display: block;
+    margin-top: 2px;
+    color: var(--cal-muted);
+    font-size: 13px;
+}
+
+.booking-facts {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--spacing-sm);
+}
+
+.booking-facts li {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+}
+
+.booking-facts svg {
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    color: var(--color-ok);
+}
+
+.booking-facts p {
+    margin: 0;
+}
+
 .booking-time-picker {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));

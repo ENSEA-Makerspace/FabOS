@@ -1,14 +1,19 @@
 {% extends 'base.html.twig' %}
 
+{#
+   Maintenance : une FILE d'intervention (`MaintenanceQueue`) — tuiles À faire / En retard / Cette
+   semaine / Fait, la machine, la tâche, l'échéance. « Marquer faite » est un vrai POST vers
+   `app_admin_maintenance_done` (jeton CSRF `done_maintenance_<id>`). Le bouton « Ajouter une tâche »
+   et « Maintenance en lot » restent dans la bande.
+   ⚠️ Dans `.admin-panel`, `style.css` repeint tout <span> en gris : texte coloré/gras en <b>/<div>/<p>.
+#}
+
 {% block title %}{{ 'maintenance.browser_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">
-    {# S134j — `.m-status` was a FIFTH private copy of the state chip (after
-       `.status-badge`, `.ml-state`, `.loan-status` and `.pill`), and `.m-type` a
-       private copy of `.is-meta`. Both are `_cell_*` now and this page has no
-       local CSS. The `.admin-table` padding line was a verbatim copy of the
-       shared rule. #}
+    <link rel="stylesheet" href="{{ asset('css/proposals.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals-maintenance.css') ~ '?v=' ~ css_version }}">
 {% endblock %}
 
 {% block body %}
@@ -16,63 +21,74 @@
     action_label: 'maintenance.list_action'|trans,
     action_route: 'app_admin_maintenance_new',
     panel_title: 'maintenance.list_panel'|trans,
-    list_tiles_label: 'admin_list.facet_status'|trans,
-    list_client_filter: true,
-    panel_note: 'maintenance.panel_note'|trans({'count': tasks|length}),
-    list_count: tasks|length,
-    list_route: 'app_admin_maintenance',
-    list_search_placeholder: 'common.search_placeholder'|trans,
-    list_tiles: [
-        {label: 'admin_list.all'|trans, count: tasks|length, category: 'all', active: true},
-        {label: 'admin_list.overdue'|trans, count: tasks|filter(task => task.effectiveStatus == 'overdue')|length, category: 'overdue'},
-        {label: 'admin_list.due_soon'|trans, count: tasks|filter(task => task.effectiveStatus == 'due_soon')|length, category: 'due_soon'},
-        {label: 'admin_list.done'|trans, count: tasks|filter(task => task.effectiveStatus == 'done')|length, category: 'done'},
-    ],
 } %}
-    {#- ⚠️ **S147, J-18 — « Maintenance groupée » n'était liée par AUCUN gabarit.**
-        La route existait, la page répondait 200, le formulaire fonctionnait, et
-        personne ne pouvait y arriver sans connaître l'URL : `app_machine_ical`
-        est resté orphelin une phase entière de la même façon. Le crochet
-        `header_extra` est déjà le motif pour une seconde action (c'est ainsi que
-        `/admin/rfid-readers` ouvre son appairage), donc rien de neuf à dessiner. -#}
+    {#- Seconde action de la bande (S147) : « Maintenance en lot » n'est liée par aucun autre gabarit. -#}
     {% block header_extra %}
         <a class="admin-hero-action" href="{{ path('app_admin_maintenance_batch') }}">{{ 'maintenance.batch_action'|trans }}</a>
     {% endblock %}
     {% block content %}
-            {% embed 'site/_data_table.html.twig' with {
-                pin_actions: true,
-                columns: [
-                    {label: 'adm.col_task'|trans},
-                    {label: 'adm.col_machine'|trans},
-                    {label: 'adm.col_due'|trans},
-                    {label: 'adm.col_status'|trans},
-                    {label: 'adm.col_actions'|trans},
-                ],
-                rows: tasks,
-                empty: 'adm.maintenance_empty'|trans,
-            } %}
-                {% block rows %}
-                    {% for task in tasks %}
-                        {% set st = task.effectiveStatus %}
-                        <tr data-admin-list-filter-row data-admin-list-filter-category="{{ st }}" data-admin-list-filter-row-href="{{ path('app_admin_maintenance_edit', {id: task.id}) }}">
-                            <td>{% include 'site/_cell_title.html.twig' with {
-                                title: task.title,
-                                href: path('app_admin_maintenance_edit', {id: task.id}),
-                                subtitle: task.archived ? 'adm.archived'|trans : ((task.type == 'corrective' ? 'maintenance.type_corrective' : 'maintenance.type_preventive')|trans ~ (task.recurrenceDays ? ' · ' ~ 'maintenance.every_days'|trans({'%n%': task.recurrenceDays}) : '')),
-                            } only %}</td>
-                            <td>{% if task.machine %}{{ task.machine.nom }}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>
-                            <td>{% include 'site/_cell_date.html.twig' with {value: task.dueDate, convention: 'wall', format: 'd/m/Y'} only %}</td>
-                            <td>{% include 'site/_cell_state.html.twig' with {
-                                label: st == 'done' ? 'state.done_m'|trans : (st == 'overdue' ? 'state.overdue'|trans : (st == 'due_soon' ? 'state.soon'|trans : 'state.todo_f'|trans)),
-                                signal: st == 'done' ? 'go' : (st == 'overdue' ? 'stop' : (st == 'due_soon' ? 'caution' : 'wait')),
-                            } only %}{% if task.doneDate %}<span class="cell-date-meta">{{ task.doneDate|date('d/m/Y') }}</span>{% endif %}</td>
-                            <td class="is-actions">{% include 'site/_cell_actions.html.twig' with {
-                                actions: [{label: 'common.edit'|trans, icon: 'edit', href: path('app_admin_maintenance_edit', {id: task.id})}],
-                            } only %}</td>
-                        </tr>
-                    {% endfor %}
-                {% endblock %}
-            {% endembed %}
+
+        <div class="pp-mq" data-maintenance-queue>
+            <nav class="pp-mq-tiles" aria-label="{{ 'maintenance_queue.filter'|trans }}">
+                {% for t in queue.tiles %}
+                    <a class="pp-mq-tile{{ t.active ? ' is-active' : '' }}{{ t.signal ? ' is-' ~ t.signal : '' }}" href="{{ path('app_admin_maintenance', {tuile: t.key}) }}"{% if t.active %} aria-current="true"{% endif %}>
+                        <b class="pp-mq-count">{{ t.count }}</b>
+                        <div class="pp-mq-label">{{ t.label }}</div>
+                    </a>
+                {% endfor %}
+            </nav>
+
+            {% if queue.empty %}
+                <p class="pp-mq-empty">{{ 'maintenance_queue.empty'|trans }}</p>
+            {% else %}
+                <div class="admin-table-wrap">
+                    <table class="admin-table pp-mq-table">
+                        <thead>
+                            <tr><th>{{ 'adm.col_machine'|trans }}</th><th>{{ 'adm.col_task'|trans }}</th><th>{{ 'adm.col_due'|trans }}</th><th>{{ 'adm.col_status'|trans }}</th><th>{{ 'adm.col_actions'|trans }}</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for row in queue.rows %}
+                                <tr>
+                                    <td>
+                                        {% if row.machine %}
+                                            <div class="pp-mq-machine">
+                                                <div class="pp-mq-thumb">
+                                                    {% if row.machine.photo %}<img src="{{ row.machine.photo starts with 'http' or row.machine.photo starts with '/' ? row.machine.photo : asset(row.machine.photo) }}" alt="" loading="lazy">{% else %}{% include 'site/_icon.html.twig' with { name: 'tool' } only %}{% endif %}
+                                                </div>
+                                                <a class="pp-mq-link" href="{{ path('app_machine_detail', {id: row.machine.id}) }}">{{ row.machine.name }}</a>
+                                            </div>
+                                        {% else %}
+                                            {% include 'site/_cell_empty.html.twig' only %}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <b class="pp-mq-name">{{ row.title }}</b>
+                                        <div class="pp-mq-meta">{{ row.type }}{% if row.recurrenceDays %} · {{ 'maintenance.every_days'|trans({'%n%': row.recurrenceDays}) }}{% endif %}</div>
+                                    </td>
+                                    <td>
+                                        {% if row.due %}<div class="pp-mq-due">{{ row.due|date('d/m/Y') }}</div>{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}
+                                        {% if row.done %}<div class="pp-mq-meta">{{ 'maintenance_queue.done_on'|trans({'%date%': row.done|date('d/m/Y')}) }}</div>{% endif %}
+                                    </td>
+                                    <td>{% include 'site/_state_chip.html.twig' with { label: row.state.label, signal: row.state.signal } only %}</td>
+                                    <td>
+                                        <div class="pp-mq-actions">
+                                            {% if row.open %}
+                                                {# POST + jeton CSRF `done_maintenance_<id>` : le geste vit dans `doneMaintenance()`. #}
+                                                <form class="pp-mq-done" method="post" action="{{ path('app_admin_maintenance_done', {id: row.id}) }}">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('done_maintenance_' ~ row.id) }}">
+                                                    <button type="submit" class="pp-mq-verb">{{ 'maintenance_queue.mark_done'|trans }}</button>
+                                                </form>
+                                            {% endif %}
+                                            <a class="pp-mq-secondary" href="{{ path('app_admin_maintenance_edit', {id: row.id}) }}">{{ 'common.edit'|trans }}</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
     {% endblock %}
 {% endembed %}
 {% endblock %}

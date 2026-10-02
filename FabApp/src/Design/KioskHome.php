@@ -10,6 +10,7 @@ use App\Repository\EventRepository;
 use App\Repository\MachineRepository;
 use App\Schedule\ScheduleResolver;
 use App\Service\SiteSettingService;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * L'accueil d'une borne tactile (proposition `kiosque-accueil`, 2026-10-01,
@@ -27,6 +28,7 @@ final class KioskHome
         private readonly MachineRepository $machines,
         private readonly SiteFeatureService $features,
         private readonly SiteSettingService $siteSettings,
+        private readonly TranslatorInterface $translator,
     ) {
     }
 
@@ -71,7 +73,7 @@ final class KioskHome
         $intervals = $this->schedule->openIntervalsFor(null, $now);
         foreach ($intervals as $interval) {
             if ($minuteNow >= $interval['start'] && $minuteNow < $interval['end']) {
-                return ['open' => true, 'signal' => 'go', 'label' => 'Ouvert jusqu’à ' . self::clock($interval['end']), 'detail' => null];
+                return ['open' => true, 'signal' => 'go', 'label' => $this->translator->trans('kiosk_home.open_until', ['%time%' => self::clock($interval['end'])]), 'detail' => null];
             }
         }
 
@@ -79,27 +81,29 @@ final class KioskHome
         $reason = $intervals === [] ? $this->schedule->closureReasonFor(null, $now) : null;
         foreach ($intervals as $interval) {
             if ($interval['start'] > $minuteNow) {
-                return ['open' => false, 'signal' => 'wait', 'label' => 'Fermé — ouvre à ' . self::clock($interval['start']), 'detail' => $reason];
+                return ['open' => false, 'signal' => 'wait', 'label' => $this->translator->trans('kiosk_home.closed_opens_at', ['%time%' => self::clock($interval['start'])]), 'detail' => $reason];
             }
         }
-        $formatter = new \IntlDateFormatter('fr_FR', \IntlDateFormatter::NONE, \IntlDateFormatter::NONE, $now->getTimezone(), null, 'EEEE');
+        $formatter = new \IntlDateFormatter($this->translator->getLocale(), \IntlDateFormatter::NONE, \IntlDateFormatter::NONE, $now->getTimezone(), null, 'EEEE');
         for ($i = 1; $i <= 14; ++$i) {
             $day = $now->modify('+' . $i . ' days');
             $span = $this->schedule->openMinutesFor(null, $day);
             if ($span !== null) {
-                $name = $i === 1 ? 'demain' : (string) $formatter->format($day);
+                $label = $i === 1
+                    ? $this->translator->trans('kiosk_home.closed_reopens_tomorrow', ['%time%' => self::clock($span['start'])])
+                    : $this->translator->trans('kiosk_home.closed_reopens_day', ['%day%' => (string) $formatter->format($day), '%time%' => self::clock($span['start'])]);
 
-                return ['open' => false, 'signal' => 'stop', 'label' => 'Fermé — rouvre ' . $name . ' ' . self::clock($span['start']), 'detail' => $reason];
+                return ['open' => false, 'signal' => 'stop', 'label' => $label, 'detail' => $reason];
             }
         }
 
-        return ['open' => false, 'signal' => 'stop', 'label' => 'Fermé', 'detail' => $reason];
+        return ['open' => false, 'signal' => 'stop', 'label' => $this->translator->trans('kiosk_home.closed'), 'detail' => $reason];
     }
 
     /** @return list<array{day: string, hours: ?string, today: bool}> */
     private function week(\DateTimeImmutable $now): array
     {
-        $formatter = new \IntlDateFormatter('fr_FR', \IntlDateFormatter::NONE, \IntlDateFormatter::NONE, $now->getTimezone(), null, 'EEEE');
+        $formatter = new \IntlDateFormatter($this->translator->getLocale(), \IntlDateFormatter::NONE, \IntlDateFormatter::NONE, $now->getTimezone(), null, 'EEEE');
         $week = [];
         for ($i = 0; $i < 7; ++$i) {
             $day = $now->modify('+' . $i . ' days');

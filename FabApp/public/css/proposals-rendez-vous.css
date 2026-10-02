@@ -35,3 +35,18 @@ a.pp-rdv-day:hover { border-color: var(--color-primary); }
     .pp-rdv-grid { grid-template-columns: 1fr; }
     .pp-rdv-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
+
+/* Page réelle `/personnes/{id}/reserver` : formulaires, messages, disponibilités de la semaine. */
+.pp-rdv-flash { margin: 0 0 var(--spacing-md); padding: 12px 14px; border-radius: var(--border-radius); font-weight: 700; }
+.pp-rdv-flash.is-success { background: color-mix(in srgb, var(--color-ok) 15%, var(--theme-surface)); color: var(--color-ok); }
+.pp-rdv-flash.is-error { background: color-mix(in srgb, var(--color-stop, #b91c1c) 15%, var(--theme-surface)); color: var(--color-stop, #b91c1c); }
+.pp-rdv-form { display: grid; gap: 14px; margin-top: var(--spacing-sm); }
+.pp-rdv-form label { display: block; font-weight: 700; margin-bottom: 6px; color: var(--color-text); }
+.pp-rdv-form input, .pp-rdv-form textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: var(--border-radius); font-size: 15px; box-sizing: border-box; }
+.pp-rdv-form textarea { min-height: 80px; resize: vertical; }
+.pp-rdv-form-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.pp-rdv-request > summary { cursor: pointer; }
+.pp-rdv-week { list-style: none; margin: 0; padding: 0; }
+.pp-rdv-week li { padding: 9px 0; border-bottom: 1px solid var(--border-color); font-size: 14px; }
+.pp-rdv-week li:last-child { border-bottom: none; }
+@media (max-width: 900px) { .pp-rdv-form-row { grid-template-columns: 1fr; } }

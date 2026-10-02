@@ -9,6 +9,7 @@ use App\Mail\NotificationCategory;
 use App\Mail\NotificationPreferences;
 use App\Security\MfaService;
 use App\Security\SessionRegistry;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * « Sécurité et e-mails » (proposition du 2026-10-01, planches `05-profil-securite`
@@ -25,10 +26,11 @@ final class AccountSecurityEmails
         private readonly MfaService $mfa,
         private readonly SessionRegistry $sessions,
         private readonly NotificationPreferences $preferences,
+        private readonly TranslatorInterface $translator,
     ) {
     }
 
-    /** @return array{email: string, verified: bool, mfa: ?string, sessions: ?int, masterOn: bool, groups: list<array<string, mixed>>} */
+    /** @return array{email: string, verified: bool, mfa: ?string, sessions: ?int, masterOn: bool, groups: list<array<string, mixed>>, keptCategories: list<string>} */
     public function for(Utilisateur $user): array
     {
         $userId = $user->getId();
@@ -38,36 +40,53 @@ final class AccountSecurityEmails
         $staff = array_diff($user->getRoles(), ['ROLE_USER']) !== [];
 
         // Une ligne = une catégorie réelle. `essential` ⇔ pas dans OPTOUTABLE.
-        $line = static fn (string $category, string $what) => [
+        $line = fn (string $category, string $what) => [
             'category' => $category,
-            'what' => $what,
+            'what' => $this->translator->trans($what),
             'essential' => !NotificationCategory::isOptOutable($category),
             'received' => $state[$category] ?? true,
         ];
 
         $groups = [
-            ['icon' => 'calendar', 'title' => 'Réservations et prêts', 'lines' => [
-                $line(NotificationCategory::BOOKING, 'Confirmations, réponses de l’équipe et changements de vos réservations.'),
-                $line(NotificationCategory::REMINDER, 'Un rappel avant une réservation, et pour un emprunt à rendre.'),
+            ['icon' => 'calendar', 'title' => $this->translator->trans('accsec.group_bookings'), 'lines' => [
+                $line(NotificationCategory::BOOKING, 'accsec.what_booking'),
+                $line(NotificationCategory::REMINDER, 'accsec.what_reminder'),
             ]],
-            ['icon' => 'ticket', 'title' => 'Événements', 'lines' => [
-                $line(NotificationCategory::EVENT, 'Inscription, liste d’attente et « une place s’est libérée ».'),
+            ['icon' => 'ticket', 'title' => $this->translator->trans('accsec.group_events'), 'lines' => [
+                $line(NotificationCategory::EVENT, 'accsec.what_event'),
             ]],
-            ['icon' => 'bell', 'title' => 'Formations', 'lines' => [
-                $line(NotificationCategory::MESSAGE, 'Une copie des messages échangés avec l’équipe de formation (le fil reste lisible dans FabOS).'),
+            ['icon' => 'bell', 'title' => $this->translator->trans('accsec.group_trainings'), 'lines' => [
+                $line(NotificationCategory::MESSAGE, 'accsec.what_message'),
             ]],
-            ['icon' => 'pin', 'title' => 'Vie du lieu', 'lines' => [
-                $line(NotificationCategory::NEWS, 'Résumés et annonces du lieu.'),
-                $line(NotificationCategory::GENERAL, 'Les messages qui n’entrent dans aucune autre catégorie.'),
+            ['icon' => 'pin', 'title' => $this->translator->trans('accsec.group_venue'), 'lines' => [
+                $line(NotificationCategory::NEWS, 'accsec.what_news'),
+                $line(NotificationCategory::GENERAL, 'accsec.what_general'),
             ]],
         ];
         if ($staff) {
-            $groups[] = ['icon' => 'tool', 'title' => 'Équipe', 'lines' => [
-                $line(NotificationCategory::MAINTENANCE, 'Alertes de maintenance en retard (réservé à l’équipe).'),
+            $groups[] = ['icon' => 'tool', 'title' => $this->translator->trans('accsec.group_team'), 'lines' => [
+                $line(NotificationCategory::MAINTENANCE, 'accsec.what_maintenance'),
             ]];
         }
 
+        // Les catégories optionnelles que cette personne ne voit pas (ex. la maintenance,
+        // réservée à l'équipe) : le formulaire de `/profil` les rejoue telles quelles, sans
+        // quoi enregistrer les réglages les couperait en silence.
+        $shown = [];
+        foreach ($groups as $group) {
+            foreach ($group['lines'] as $groupLine) {
+                $shown[$groupLine['category']] = true;
+            }
+        }
+        $kept = [];
+        foreach (NotificationCategory::OPTOUTABLE as $category) {
+            if (!isset($shown[$category]) && ($state[$category] ?? true)) {
+                $kept[] = $category;
+            }
+        }
+
         return [
+            'keptCategories' => $kept,
             'email' => $user->getEmail(),
             'verified' => $user->isVerified(),
             'mfa' => $this->mfa->isReady() ? $this->mfa->status($user) : null,

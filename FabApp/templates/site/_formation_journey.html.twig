@@ -98,6 +98,8 @@
                 <div id="section-panel-{{ section.id }}" class="journey-card__panel" data-section-panel {{ item.active ? '' : 'hidden' }}>
                     {% if item.unlocked %}
                         <div class="journey-content">
+                            {# 0.5 — chaque étape a sa page de lecture (sommaire, précédente / suivante). #}
+                            <p class="journey-content__page"><a href="{{ path('app_formation_section', {id: formation.id, n: item.position}) }}">{{ 'journey.read_on_page'|trans }} ›</a></p>
                             <p class="journey-content__intro">{{ content.intro }}</p>
 
                             <div class="journey-reading-guide">

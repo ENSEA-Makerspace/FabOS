@@ -39,7 +39,7 @@ export default class extends Controller {
         'todayHours', 'todayCount', 'visibleCount', 'nextSlot',
         'resourceToggle', 'resourceSearch', 'resourceStatus', 'resourceCard',
         'panel', 'backdrop', 'form', 'startInput', 'endInput',
-        'dateLabel', 'timeLabel', 'context', 'startTime', 'endTime',
+        'dateLabel', 'timeLabel', 'durationLabel', 'context', 'startTime', 'endTime',
         'resourceSelect', 'durationChip', 'submit', 'message',
     ];
 
@@ -580,6 +580,14 @@ export default class extends Controller {
         }
         if (this.hasTimeLabelTarget) {
             this.timeLabelTarget.textContent = `${this.clock(this.draft.startMinutes)} - ${this.clock(this.draft.endMinutes)}`;
+        }
+        if (this.hasDurationLabelTarget) {
+            // Display only: the length of the draft, in the page's own unit words.
+            const total = Math.max(0, this.draft.endMinutes - this.draft.startMinutes);
+            const hours = Math.floor(total / 60);
+            const rest = total % 60;
+            const unit = this.durationLabelTarget.dataset;
+            this.durationLabelTarget.textContent = [hours > 0 ? `${hours} ${unit.unitHour}` : '', rest > 0 ? `${rest} ${unit.unitMinute}` : ''].filter(Boolean).join(' ');
         }
         if (this.hasContextTarget) {
             this.contextTarget.textContent = String(this.labels.slotDay)

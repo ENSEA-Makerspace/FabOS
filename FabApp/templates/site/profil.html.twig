@@ -22,6 +22,8 @@
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('css/login-register.css') ~ '?v=' ~ css_version }}">
     <link rel="stylesheet" href="{{ asset('css/badges.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals-profil-securite-emails.css') ~ '?v=' ~ css_version }}">
 {% endblock %}
 
 {% block body %}
@@ -635,8 +637,12 @@
                         <form method="post" action="{{ path('app_profile') }}" class="settings-form">
                             <input type="hidden" name="_token" value="{{ csrf_token('profile_preferences') }}">
                             <div class="settings-grid">
-                            <div class="settings-section">
+                            {# E-mails : regroupés par domaine (`App\Design\AccountSecurityEmails`).
+                               Les essentiels n'ont pas d'interrupteur ; chaque optionnel garde son
+                               `notify_<catégorie>` — le POST de `/profil` lit ces noms et le jeton. #}
+                            <div class="settings-section pp-se-mail">
                                 <h3 class="settings-subtitle">{{ 'profile.notif_prefs'|trans }}</h3>
+                                <p class="pp-se-lede">{{ (account.masterOn ? 'accsec.mail_lede_on' : 'accsec.mail_lede_off')|trans }}</p>
                                 <div class="setting-item">
                                     <div class="setting-info">
                                         <h4>{{ 'profile.notif_email'|trans }}</h4>
@@ -649,7 +655,7 @@
                                         </label>
                                     </div>
                                 </div>
-                                
+
                                 <div class="setting-item">
                                     <div class="setting-info">
                                         <h4>{{ 'profile.notif_push'|trans }}</h4>
@@ -663,75 +669,79 @@
                                     </div>
                                 </div>
 
-                                {# Per-category switches. These replace the old single
-                                   "rappelReservation" toggle, which nothing ever read. #}
-                                {% for category, accepted in notificationCategories %}
-                                <div class="setting-item">
-                                    <div class="setting-info">
-                                        <h4>{{ ('notification.category.' ~ category ~ '.label')|trans }}</h4>
-                                        <p>{{ ('notification.category.' ~ category ~ '.description')|trans }}</p>
-                                    </div>
-                                    <div class="setting-toggle">
-                                        <label class="switch">
-                                            <input type="checkbox" name="notify_{{ category }}" value="1" {{ accepted ? 'checked' : '' }}>
-                                            <span class="slider round"></span>
-                                        </label>
-                                    </div>
+                                <div class="pp-se-groups">
+                                    {% for group in account.groups %}
+                                        <article class="pp-se-group" data-mail-group>
+                                            <h4>{% include 'site/_icon.html.twig' with {name: group.icon} only %}{{ group.title }}</h4>
+                                            <ul>
+                                                {% for line in group.lines %}
+                                                    <li>
+                                                        <div>
+                                                            <b>{{ (line.essential ? 'accsec.essential' : 'accsec.optional')|trans }}</b>
+                                                            <small>{{ line.what }}</small>
+                                                        </div>
+                                                        {% if line.essential %}
+                                                            <div class="pp-se-state">{{ 'accsec.always_sent'|trans }}</div>
+                                                        {% else %}
+                                                            <div class="setting-toggle">
+                                                                <label class="switch">
+                                                                    <input type="checkbox" name="notify_{{ line.category }}" value="1" aria-label="{{ line.what }}" {{ line.received ? 'checked' : '' }}>
+                                                                    <span class="slider round"></span>
+                                                                </label>
+                                                            </div>
+                                                        {% endif %}
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+                                        </article>
+                                    {% endfor %}
                                 </div>
-                                {% endfor %}
+                                {% for category in account.keptCategories %}<input type="hidden" name="notify_{{ category }}" value="1">{% endfor %}
                             </div>
 
-                            <div class="settings-section">
-                                <h3 class="settings-subtitle">{{ 'profile.security'|trans }}</h3>
-                                <div class="setting-item">
-                                    <div class="setting-info">
-                                        <h4>{{ 'profile.change_password'|trans }}</h4>
-                                        <p>{{ 'profile.change_password_desc'|trans }}</p>
-                                    </div>
-                                    <div class="setting-action">
-                                        <a href="{{ path('app_profile_password') }}" class="btn btn-sm">{{ 'profile.change_password_btn'|trans }}</a>
-                                    </div>
-                                </div>
-
-                                {# S191a — un LIEN vers sa page : fermer une session est un bouton,
-                                   et cette section vit dans le formulaire des réglages. #}
-                                {% if mfaStatus is not null %}
-                                    <div class="setting-item">
-                                        <div class="setting-info">
-                                            <h4>{{ 'mfa.title'|trans }}</h4>
-                                            <p>{{ (mfaStatus == 'enabled' ? 'mfa.profile_on' : 'mfa.profile_off')|trans }}</p>
+                            {# Sécurité : UNE ligne par chose, son état et son verbe. Des LIENS (jamais
+                               un bouton qui écrit) : cette section vit dans le formulaire des réglages. #}
+                            <div class="settings-section pp-se-sec pp-todo">
+                                <h3 class="settings-subtitle">{{ 'accsec.sec_title'|trans }}</h3>
+                                <p class="pp-se-lede">{{ 'accsec.sec_lede'|trans }}</p>
+                                <ul>
+                                    <li>
+                                        <span class="pp-todo-ic" aria-hidden="true">{% include 'site/_icon.html.twig' with {name: 'lock'} only %}</span>
+                                        <div><b>{{ 'accsec.password'|trans }}</b><small>{{ 'accsec.password_note'|trans }}</small></div>
+                                        <a class="btn btn-secondary" href="{{ path('app_profile_password') }}">{{ 'accsec.password_btn'|trans }}</a>
+                                    </li>
+                                    <li>
+                                        <span class="pp-todo-ic" aria-hidden="true">{% include 'site/_icon.html.twig' with {name: 'mail'} only %}</span>
+                                        <div>
+                                            <b>{{ 'accsec.email_addr'|trans }}</b>
+                                            <small>{{ account.email }}</small>
                                         </div>
-                                        <div class="setting-action">
-                                            <a href="{{ path('app_profile_mfa') }}" class="btn btn-sm">{{ 'sessions.manage'|trans }}</a>
-                                        </div>
-                                    </div>
-                                {% endif %}
-                                {% if openSessions is not null %}
-                                    <div class="setting-item">
-                                        <div class="setting-info">
-                                            <h4>{{ 'sessions.title'|trans }}</h4>
-                                            <p>{{ 'sessions.profile_hint'|trans({'count': openSessions}) }}</p>
-                                        </div>
-                                        <div class="setting-action">
-                                            <a href="{{ path('app_profile_sessions') }}" class="btn btn-sm">{{ 'sessions.manage'|trans }}</a>
-                                        </div>
-                                    </div>
-                                {% endif %}
-
-                                {# ⚠️ A LINK, not a form. Erasure is the one irreversible
-                                   control a member has, so it opens a page that can say
-                                   what leaves and what stays before anything happens —
-                                   a submit button here would put it one stray click from
-                                   a settings form people scroll through. #}
-                                <div class="setting-item">
-                                    <div class="setting-info">
-                                        <h4>{{ 'account_delete.title'|trans }}</h4>
-                                        <p>{{ 'account_delete.intro'|trans }}</p>
-                                    </div>
-                                    <div class="setting-action">
-                                        <a href="{{ path('app_profile_delete') }}" class="btn btn-sm btn-danger">{{ 'account_delete.title'|trans }}</a>
-                                    </div>
-                                </div>
+                                        <div>{% include 'site/_state_chip.html.twig' with {label: (account.verified ? 'accsec.verified' : 'accsec.not_verified')|trans, signal: account.verified ? 'go' : 'caution'} only %}</div>
+                                    </li>
+                                    {% if account.mfa is not null %}
+                                        <li>
+                                            <span class="pp-todo-ic" aria-hidden="true">{% include 'site/_icon.html.twig' with {name: 'key'} only %}</span>
+                                            <div>
+                                                <b>{{ 'mfa.title'|trans }}{% if account.mfa != 'enabled' %}<span class="pp-se-tag">{{ 'accsec.mfa_recommended'|trans }}</span>{% endif %}</b>
+                                                <small>{{ (account.mfa == 'enabled' ? 'accsec.mfa_on' : (account.mfa == 'pending' ? 'accsec.mfa_pending' : 'accsec.mfa_off'))|trans }}</small>
+                                            </div>
+                                            <a class="btn {{ account.mfa == 'enabled' ? 'btn-secondary' : 'btn-primary' }}" href="{{ path('app_profile_mfa') }}">{{ (account.mfa == 'enabled' ? 'accsec.mfa_manage' : (account.mfa == 'pending' ? 'accsec.mfa_finish' : 'accsec.mfa_enable'))|trans }}</a>
+                                        </li>
+                                    {% endif %}
+                                    {% if account.sessions is not null %}
+                                        <li>
+                                            <span class="pp-todo-ic" aria-hidden="true">{% include 'site/_icon.html.twig' with {name: 'history'} only %}</span>
+                                            <div>
+                                                <b>{{ 'sessions.title'|trans }}</b>
+                                                <small>{{ 'sessions.profile_hint'|trans({'count': account.sessions}) }}</small>
+                                            </div>
+                                            <a class="btn btn-secondary" href="{{ path('app_profile_sessions') }}">{{ 'accsec.sessions_view'|trans }}</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                                {# ⚠️ A LINK, not a form : l'effacement est le seul geste irréversible d'un
+                                   membre ; il ouvre une page qui dit ce qui part et ce qui reste. #}
+                                <p class="pp-se-danger">{{ 'accsec.delete_note'|trans }} <a href="{{ path('app_profile_delete') }}">{{ 'accsec.delete_link'|trans }}</a> — {{ 'accsec.delete_after'|trans }}</p>
                             </div>
 
                             <div class="settings-section">

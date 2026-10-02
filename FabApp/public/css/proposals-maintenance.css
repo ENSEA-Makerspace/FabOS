@@ -38,3 +38,8 @@
 @media (max-width: 640px) {
     .pp-mq-table th:nth-child(3), .pp-mq-table td:nth-child(3) { display: none; }
 }
+
+/* « Marquer faite » : un vrai formulaire POST, le bouton se lit comme le lien voisin. */
+.pp-mq-done { margin: 0; display: inline; }
+button.pp-mq-verb { background: none; border: 0; padding: 0; font: inherit; font-weight: var(--font-weight-semibold); cursor: pointer; }
+button.pp-mq-verb:hover { text-decoration: underline; }

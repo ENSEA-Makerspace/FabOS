@@ -1,0 +1,99 @@
+{% extends 'site/base_public.html.twig' %}
+
+{# Lire une étape du parcours guidé : fil d'Ariane, « Étape n sur N · environ X min », le contenu, le sommaire du module à droite, précédente / suivante / quiz en pied. Données : `App\Design\ModuleReading` (celles de la fiche formation). #}
+
+{% block title %}{{ reading.item.section.titre }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/section-journey.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/proposals-module-cours.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+<main id="main-content" tabindex="-1" class="main-content">
+    <section class="machine-detail-section">
+        <div class="container pp-home">
+            {% set item = reading.item %}
+            {% set content = item.content %}
+
+                {% include 'site/_breadcrumb.html.twig' with {trail: [
+                    {label: 'nav.trainings'|trans, url: path('app_formations')},
+                    {label: reading.formation.titre, url: path('app_formation_detail', {id: reading.formation.id})},
+                    {label: item.section.titre},
+                ]} only %}
+
+                <header class="pp-home-head">
+                    <h1>{{ item.section.titre }}</h1>
+                    <p class="pp-mc-meta">{{ 'mod.meta'|trans({'%n%': item.position, '%total%': reading.total, '%min%': reading.minutes}) }}</p>
+                </header>
+
+                <div class="pp-mc-grid">
+                    <div class="pp-mc-body">
+                        <article class="detail-card">
+                            <p class="pp-mc-intro">{{ content.intro }}</p>
+
+                            {% if content.objectives is not empty %}
+                                <div class="journey-objectives" aria-label="{{ 'journey.objectives_label'|trans }}">
+                                    {% for objective in content.objectives %}<span class="journey-objective">{{ objective }}</span>{% endfor %}
+                                </div>
+                            {% endif %}
+
+                            {% if content.steps is not empty %}
+                                <div class="journey-steps">
+                                    {% for step in content.steps %}
+                                        <article class="journey-step">
+                                            <span class="journey-step__number">{{ loop.index }}</span>
+                                            <h2>{{ step.title }}</h2>
+                                            <p>{{ step.text }}</p>
+                                        </article>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+
+                            {% if content.callouts is not empty %}
+                                <div class="journey-callouts">
+                                    {% for callout in content.callouts %}
+                                        {% set icon = callout.type == 'warning' ? '!' : (callout.type == 'check' ? '✓' : (callout.type == 'info' ? 'i' : '✦')) %}
+                                        <div class="journey-callout is-{{ callout.type }}">
+                                            <span class="journey-callout__icon" aria-hidden="true">{{ icon }}</span>
+                                            <div><strong>{{ callout.title }}</strong><p>{{ callout.text }}</p></div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </article>
+
+                        <nav class="pp-mc-foot" aria-label="{{ 'mod.nav_label'|trans }}">
+                            {% if reading.previous %}
+                                <a class="btn btn-secondary" href="{{ path('app_formation_section', {id: reading.formation.id, n: reading.previous}) }}">‹ {{ 'mod.previous'|trans }}</a>
+                            {% endif %}
+                            {% if item.quiz %}
+                                <a class="btn btn-primary" href="{{ path('app_formation_detail', {id: reading.formation.id}) }}#section-panel-{{ item.section.id }}">{{ 'mod.to_quiz'|trans }}</a>
+                                <small>{{ (item.completed ? 'mod.quiz_passed' : 'mod.quiz_pending')|trans }}</small>
+                            {% endif %}
+                            {% if reading.next %}
+                                <a class="btn {{ item.quiz ? 'btn-secondary' : 'btn-primary' }}" href="{{ path('app_formation_section', {id: reading.formation.id, n: reading.next}) }}">{{ 'mod.next'|trans }} ›</a>
+                            {% endif %}
+                        </nav>
+                    </div>
+
+                    <aside class="detail-card pp-mc-toc" aria-labelledby="pp-mc-toc-title">
+                        <h2 id="pp-mc-toc-title">{{ 'mod.toc'|trans }}</h2>
+                        <ol>
+                            {% for entry in reading.journey.items %}
+                                <li class="{{ entry.position == item.position ? 'is-current' : '' }} {{ entry.completed ? 'is-done' : '' }}">
+                                    <a href="{{ path('app_formation_section', {id: reading.formation.id, n: entry.position}) }}"{% if entry.position == item.position %} aria-current="page"{% endif %}>
+                                        <span class="pp-mc-mark" aria-hidden="true">{{ entry.completed ? '✓' : entry.position }}</span>
+                                        <b>{{ entry.section.titre }}</b>
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ol>
+                    </aside>
+                </div>
+        </div>
+    </section>
+</main>
+{% endblock %}

@@ -95,6 +95,8 @@ final class NavBuilder
 
         $nav[] = $this->group('nav.learn', null, [
             $this->item('nav.trainings', 'app_formations', feature: 'formations'),
+            // 0.5 — « Mes formations » : où j'en suis, et le verbe de l'étape suivante.
+            $this->item('nav.my_trainings', 'app_my_trainings', feature: 'formations', role: 'ROLE_USER'),
             $this->item('nav.badges', 'app_badges', feature: 'badges'),
             // 🔴 **S183b — la boîte de l'équipe de formation, pour les FORMATEURS
             // seulement.** Gardée par `ROLE_TRAINER`, pas par `ROLE_ADMIN` : un

@@ -1,0 +1,56 @@
+{#
+   Accueil (0.5) — « Espaces » et « Équipements » : ce qui est libre maintenant
+   d'abord, puis ce qui se libère le plus tôt. Données `PublicHome::freeNow()`,
+   mêmes mots que `/places` et `/machines` ; cartes `_catalogue_card`.
+   Paramètres : places, machines (null = surface désactivée).
+#}
+<section class="home-free-now" aria-label="{{ 'home.free_now_label'|trans }}">
+    <div class="container">
+        {% for row in [
+            {key: 'places', data: places, title: 'nav.places'|trans, url: path('app_places'), empty: 'home.free_places_none'|trans},
+            {key: 'machines', data: machines, title: 'nav.machines'|trans, url: path('app_machines'), empty: 'home.free_machines_none'|trans},
+        ] %}
+            {% if row.data is not null %}
+                <section class="pp-ap-row" aria-labelledby="home-free-{{ row.key }}">
+                    <div class="pp-ap-row-head">
+                        <h2 id="home-free-{{ row.key }}">{{ row.title }}</h2>
+                        <a href="{{ row.url }}">{{ 'home.see_all'|trans({'%n%': row.data.total}) }}</a>
+                    </div>
+                    {% if row.data.cards is empty %}
+                        <p class="pp-ap-empty">{{ row.empty }}</p>
+                    {% else %}
+                        <div class="ml-grid">
+                            {% for c in row.data.cards %}
+                                {% if row.key == 'places' %}
+                                    {% include 'site/_catalogue_card.html.twig' with {
+                                        url: path('app_place_detail', {id: c.place.id}),
+                                        title: c.place.nom,
+                                        meta: c.place.localisation,
+                                        state: c.state,
+                                        state_tone: c.tone,
+                                        foot: c.place.capacite ? c.place.capacite ~ ' ' ~ 'places.capacity_suffix'|trans : '',
+                                        foot_tone: 'muted',
+                                        action: 'machines.see'|trans,
+                                        fallback_icon: 'map',
+                                    } only %}
+                                {% else %}
+                                    {% include 'site/_catalogue_card.html.twig' with {
+                                        url: path('app_machine_detail', {id: c.machine.id}),
+                                        title: c.machine.nom,
+                                        type: c.machine.categoryLabel,
+                                        meta: c.machine.localisation,
+                                        state: c.state,
+                                        state_tone: c.tone,
+                                        action: 'machines.see'|trans,
+                                        icon_slug: c.machine.categorySlug,
+                                        photo: c.machine.photo,
+                                    } only %}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </section>
+            {% endif %}
+        {% endfor %}
+    </div>
+</section>
