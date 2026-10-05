@@ -1,0 +1,50 @@
+{% extends 'site/base_public.html.twig' %}
+
+{# S207 — « Check-in » du membre : un geste, « J'arrive » puis « Je pars ».
+   Palier 3 : la question « pourquoi ? » EST le bouton d'arrivée (un geste), « Passer »
+   arrive sans répondre. Palier 4 : une note facultative, repliée, jamais requise.
+   Rien d'autre à l'écran : aucune feuille propre, `detail-card` + `ml-btn`. #}
+
+{% block title %}{{ 'checkin.title'|trans }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/pages.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+<main id="main-content" tabindex="-1" class="ml-page">
+    <div class="ml-wrap">
+        <header class="pp-resv-head"><h1>{{ 'checkin.title'|trans }}</h1></header>
+        <section class="detail-card" aria-labelledby="checkin-state">
+            <form method="post" action="{{ path('app_checkin_post') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('checkin') }}">
+                {% if open %}
+                    <h2 id="checkin-state" class="detail-card-title">{{ 'checkin.here_since'|trans({'%time%': open.start|lab_date('H:i')}) }}</h2>
+                    <button class="ml-btn" type="submit" name="action" value="leave">{{ 'checkin.leave'|trans }}</button>
+                {% else %}
+                    <h2 id="checkin-state" class="detail-card-title">{{ (reasons ? 'checkin.why' : 'checkin.not_here')|trans }}</h2>
+                    {% if withNote %}
+                        <details class="detail-disclosure">
+                            <summary>{{ 'checkin.note_label'|trans }}</summary>
+                            <label class="sr-only" for="checkin-note">{{ 'checkin.note_label'|trans }}</label>
+                            <div class="ml-field"><input id="checkin-note" type="text" name="note" maxlength="500" placeholder="{{ 'checkin.note_hint'|trans }}" autocomplete="off"></div>
+                        </details>
+                    {% endif %}
+                    <div class="ml-head-actions">
+                        {% if reasons %}
+                            {% for r in reasons %}
+                                <button class="ml-btn" type="submit" name="reason" value="{{ r.id }}">{{ r.label }}</button>
+                            {% endfor %}
+                            <button class="ml-btn ml-btn-quiet" type="submit" name="action" value="arrive">{{ 'checkin.skip'|trans }}</button>
+                        {% else %}
+                            <button class="ml-btn" type="submit" name="action" value="arrive">{{ 'checkin.arrive'|trans }}</button>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </form>
+        </section>
+    </div>
+</main>
+{% endblock %}

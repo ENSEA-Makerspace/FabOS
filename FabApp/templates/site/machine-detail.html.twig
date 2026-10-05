@@ -414,6 +414,31 @@
                                         <a class="btn btn-secondary" href="{{ path('app_admin_access_rfid_logs', {machine: machine.id, days: 30}) }}">{{ 'mops.see_incidents'|trans }}</a>
                                     {% endif %}
                                 </article>
+
+                                {# S205 — « Signalements » : les pannes signalées par QR, avec le verbe « Résoudre ». `ops.reports` est nul fonction éteinte ou migration pas passée : la carte n'existe pas alors. #}
+                                {% if ops.reports is not null %}
+                                    <article class="pp-xm-card">
+                                        <h3>{{ 'mops.reports'|trans }}</h3>
+                                        {% if ops.reports %}
+                                            {% for report in ops.reports %}
+                                                <p class="pp-xm-fact">{{ report.description }}</p>
+                                                <p class="pp-xm-sub">{{ report.createdAt|lab_date('d/m H:i') }}{% if report.contact %} · {{ report.contact }}{% endif %}</p>
+                                                {% if can_reach('app_admin_machine_report_resolve', {id: report.id}) %}
+                                                    <form method="post" action="{{ path('app_admin_machine_report_resolve', {id: report.id}) }}">
+                                                        <input type="hidden" name="_token" value="{{ csrf_token('report_resolve_' ~ report.id) }}">
+                                                        <input type="hidden" name="back" value="machine">
+                                                        <button class="btn btn-secondary" type="submit">{{ 'machine_report.resolve'|trans }}</button>
+                                                    </form>
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% else %}
+                                            <p class="pp-xm-sub">{{ 'mops.reports_none'|trans }}</p>
+                                        {% endif %}
+                                        {% if can_reach('app_admin_machine_report_qr', {id: machine.id}) %}
+                                            <a class="btn btn-secondary" href="{{ path('app_admin_machine_report_qr', {id: machine.id}) }}">{{ 'mops.reports_qr'|trans }}</a>
+                                        {% endif %}
+                                    </article>
+                                {% endif %}
                             </div>
 
                             {% if ops.incidents %}

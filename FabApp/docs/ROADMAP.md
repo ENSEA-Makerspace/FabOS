@@ -36,7 +36,7 @@ de références et cinq phases neuves ont rendu la lecture linéaire impossible.
 | **U** | **Identité : des modules de connexion** (LDAP, AD, CAS, SAML/Shibboleth, OIDC) — pour TOUTES les installations | S196–S201 — ⏳ ordre à fixer quand l'opérateur saura ce qu'utilise l'ENSEA |
 | **R** | Commerce — **la dernière**, et bloquée par J | S184–S188 |
 | **V** ✅ | Pages revues d'après les planches — **0.5.0**, en test usagers | 2026-10-01 → 2026-10-02 |
-| **W** | Idées reprises de FabtrackJS : signaler une panne (QR), stocks optionnels, check-in à paliers, avertissements, charte, bouton de retour | S205–S210 — 🅿️ à planifier |
+| **W** | Idées reprises de FabtrackJS : signaler une panne (QR), stocks optionnels, check-in à paliers, avertissements, charte, bouton de retour | S205–S210 — **0.6.0**, migration + vérification opérateur |
 
 ⚠️ **R garde ses numéros bas en passant après S et T** : un numéro de session est
 une étiquette, pas un rang — la note ci-dessous vaut pour elle aussi.
@@ -71,7 +71,9 @@ reste dans `docs/references/PROPOSITIONS.md`, le contenu de la version dans
 - « Valider une inscription » : décider d'abord si une inscription se valide.
 - Le préfixe CSS `pp-` (motifs de `pages.css`) est historique.
 
-## Phase W — les idées reprises de FabtrackJS (ajoutée le 2026-10-05) 🅿️ À PLANIFIER
+## Phase W — les idées reprises de FabtrackJS → **0.6.0 (2026-10-05), à vérifier par l'opérateur**
+
+🔴 **Migration à lancer par l'opérateur** (5 fichiers `Version2026100509x000`) : tant qu'elle n'est pas passée, les six fonctions sont inertes et invisibles. Interrupteurs dans Configuration → Fonctionnalités : stocks, check-in (et ses paliers) et charte sont ÉTEINTS par défaut.
 
 Source : la comparaison avec [FabtrackJS](https://github.com/harry-finch/FabtrackJS)
 (outil du fablab de Sorbonne Université ; journal de visites tenu par l'équipe, là

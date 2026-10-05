@@ -132,6 +132,8 @@
                     </svg>
                 </button>
             </form>
+            {# S210 — « Signaler un problème » : membre connecté, fonction allumée, migration passée. #}
+            {% if app.user and feedback_open() %}{% include 'site/_feedback.html.twig' %}{% endif %}
             <div class="header-auth">
                 {% include 'site/_header_auth.html.twig' %}
             </div>

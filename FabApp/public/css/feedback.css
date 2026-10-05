@@ -1,0 +1,44 @@
+/* S210 — « Signaler un problème » : l'entrée de l'en-tête et sa fenêtre.
+   Chargée par `site/_feedback.html.twig`, donc seulement pour un membre connecté
+   quand la fonction est allumée. Zéro JS : un <details> ; la pastille de
+   l'entrée réutilise `.header-logout-link` (style.css). */
+.fb { position: relative; }
+.fb > summary { list-style: none; cursor: pointer; }
+.fb > summary::-webkit-details-marker { display: none; }
+.fb-panel {
+    position: absolute; right: 0; top: calc(100% + 8px); z-index: 60;
+    width: min(360px, 92vw); padding: var(--spacing-md);
+    background: var(--theme-surface-elevated, var(--theme-surface)); color: var(--color-text);
+    border: 1px solid var(--border-color); border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+}
+.fb-panel form { display: grid; gap: var(--spacing-sm); }
+.fb-kinds { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--spacing-xs); border: 0; margin: 0; padding: 0; }
+.fb-kinds legend { padding: 0; margin-bottom: var(--spacing-xs); font-weight: 700; }
+.fb-kinds input { position: absolute; opacity: 0; pointer-events: none; }
+.fb-kinds label {
+    display: block; padding: 10px 4px; text-align: center; cursor: pointer;
+    border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); font-weight: 600;
+}
+.fb-kinds input:checked + label { border-color: var(--color-primary); background: var(--tone-primary-soft); }
+.fb-kinds input:focus-visible + label { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+.fb-panel textarea {
+    width: 100%; min-height: 96px; padding: 8px; resize: vertical; font: inherit;
+    color: var(--color-text); background: var(--theme-input, var(--theme-surface));
+    border: 1px solid var(--border-color); border-radius: var(--border-radius-sm);
+}
+.fb-send {
+    min-height: 44px; border: 0; border-radius: var(--border-radius-sm); cursor: pointer;
+    background: var(--color-primary); color: var(--color-text-inverse); font: inherit; font-weight: 700;
+}
+.fb-send:hover { filter: brightness(1.08); }
+.fb-note { margin: 0; font-size: var(--font-size-sm); color: var(--color-text-light); }
+/* Le remerciement (ou le refus) : une bande en haut de page, que l'en-tête rend car
+   les pages publiques n'ont pas de zone de flashes commune. */
+.fb-toast {
+    position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 80;
+    max-width: min(92vw, 520px); padding: 10px 16px; border-radius: var(--border-radius);
+    background: var(--tone-ok-soft); color: var(--color-text); border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-lg); font-weight: 600;
+}
+.fb-toast.is-error { background: var(--tone-stop-soft); }

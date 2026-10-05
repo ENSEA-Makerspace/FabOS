@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    {# Après un « merci », la borne revient seule à l'accueil. #}
+    {% if done %}<meta http-equiv="refresh" content="6;url={{ path('app_kiosk_home') }}">{% endif %}
+    <title>{{ venue_label() }} — {{ 'checkin.title'|trans }}</title>
+    {% include 'site/_favicon.html.twig' %}
+    <link rel="stylesheet" href="{{ asset('css/kiosk.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/page-kiosque-accueil.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/page-kiosk-checkin.css') ~ '?v=' ~ css_version }}">
+</head>
+<body class="pp-kq-body" data-kiosk="checkin">
+    {# S207 — la borne. 🔴 Aucune recherche de membre par nom : le QR mène à `/check-in`,
+       que le membre ouvre CONNECTÉ sur son téléphone. Seul le visiteur sans compte (palier 2)
+       tape un nom, le sien. #}
+    <main class="pp-kq">
+        <header class="pp-kq-head">
+            <h1 class="pp-kq-venue">{{ 'checkin.title'|trans }}</h1>
+            <a class="pp-kq-close" href="{{ path('app_kiosk_home') }}">{{ 'kiosk_home.close'|trans }}</a>
+        </header>
+
+        {% if done %}
+            <section class="pp-kq-welcome"><h2>{{ 'checkin.thanks'|trans }}</h2></section>
+        {% else %}
+            {% if tooMany %}<p class="pp-kq-reason">{{ 'checkin.too_many'|trans }}</p>{% endif %}
+            <section class="pp-kq-welcome ck-qr">
+                <h2>{{ 'checkin.kiosk_member'|trans }}</h2>
+                {% if qr %}<img src="{{ qr }}" alt="{{ 'checkin.qr_alt'|trans }}" width="260" height="260">{% endif %}
+                <p>{{ 'checkin.kiosk_member_hint'|trans }}</p>
+            </section>
+
+            {% if walkin %}
+                <section class="pp-kq-hours ck-walkin" aria-labelledby="ck-walkin-title">
+                    <h2 id="ck-walkin-title">{{ 'checkin.kiosk_visitor'|trans }}</h2>
+                    <form method="post" action="{{ path('app_kiosk_checkin_post') }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('kiosk_checkin') }}">
+                        {# Pot de miel : invisible pour une personne, rempli par un robot. #}
+                        <div class="ck-hp" aria-hidden="true"><label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+                        <label class="ck-field"><span>{{ 'checkin.visitor_name'|trans }}</span>
+                            <input type="text" name="name" maxlength="120" required autocomplete="off"></label>
+                        <label class="ck-field"><span>{{ 'checkin.visitor_type'|trans }}</span>
+                            <select name="type">{% for t in types %}<option value="{{ t }}">{{ ('checkin.type_' ~ t)|trans }}</option>{% endfor %}</select></label>
+                        {% if withNote %}
+                            <label class="ck-field"><span>{{ 'checkin.note_label'|trans }}</span>
+                                <input type="text" name="note" maxlength="500" placeholder="{{ 'checkin.note_hint'|trans }}" autocomplete="off"></label>
+                        {% endif %}
+                        <div class="ck-actions">
+                            {% if reasons %}
+                                <p>{{ 'checkin.why'|trans }}</p>
+                                {% for r in reasons %}<button class="pp-kq-tile" type="submit" name="reason" value="{{ r.id }}"><b>{{ r.label }}</b></button>{% endfor %}
+                                <button class="pp-kq-close" type="submit">{{ 'checkin.skip'|trans }}</button>
+                            {% else %}
+                                <button class="pp-kq-tile" type="submit"><b>{{ 'checkin.arrive'|trans }}</b></button>
+                            {% endif %}
+                        </div>
+                    </form>
+                </section>
+            {% endif %}
+        {% endif %}
+    </main>
+</body>
+</html>

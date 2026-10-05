@@ -55,6 +55,11 @@
                     photo: material.imageUrl,
                 } %}
                     {% block main %}
+                        {# S206 — la pastille d'état seulement ; la quantité exacte, au personnel. Éteint : rien. #}
+                        {% set _stk = stock_of(material.id) %}
+                        {% if _stk %}
+                            <p>{% include 'site/_state_chip.html.twig' with { label: _stk.label, signal: _stk.signal } only %}{% if can_reach('app_admin_material_edit', {id: material.id}) %} <b>{{ _stk.amount }}</b>{% endif %}</p>
+                        {% endif %}
                         {% if material.description %}<p class="md-lede">{{ material.description }}</p>{% endif %}
                         <div class="md-cards">
                             {# 🔴 **Les machines d'abord** : « où est-ce que je peux m'en servir ? ». #}

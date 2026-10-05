@@ -52,6 +52,8 @@ final class SiteFeature
         public readonly ?ReservableType $reservable = null,
         public readonly array $recommends = [],
         public readonly ?string $landingRoute = null,
+        /** Faux : la fonction est ÉTEINTE tant que personne ne l'allume (0.6 — stocks, check-in, charte). */
+        public readonly bool $defaultOn = true,
     ) {
     }
 

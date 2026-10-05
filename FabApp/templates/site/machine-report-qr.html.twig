@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ 'machine_report.qr_title'|trans }} — {{ machine.nom }}</title>
+    <meta name="robots" content="noindex, nofollow">
+    {# ⚠️ Page autonome, comme le billet d'événement (`event-ticket`) : une étiquette
+       s'imprime sur ce qui traîne, sans le chrome du site. Aucune couleur littérale :
+       les couleurs système (`Canvas` / `CanvasText`) donnent noir sur blanc à
+       l'impression, et un fond sombre à l'écran si le système l'est. #}
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 24px 16px; display: flex; justify-content: center; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: Canvas; color: CanvasText; }
+        .qs { width: 100%; max-width: 420px; text-align: center; }
+        .qs h1 { font-size: 24px; margin: 0 0 4px; }
+        .qs-ask { font-size: 18px; margin: 0 0 16px; }
+        .qs img { width: 100%; max-width: 340px; height: auto; background: Canvas; }
+        .qs-url { font-size: 13px; word-break: break-all; margin: 12px 0 20px; opacity: .75; }
+        .qs button { padding: 12px 20px; border: 1px solid CanvasText; border-radius: 8px; background: Canvas; color: CanvasText; font-weight: 700; font-size: 15px; cursor: pointer; }
+        @media print { body { padding: 0; } .qs button, .qs-back { display: none; } }
+    </style>
+</head>
+<body>
+<div class="qs">
+    <h1>{{ machine.nom }}</h1>
+    <p class="qs-ask">{{ 'machine_report.qr_ask'|trans }}</p>
+    {% if qr %}
+        <img src="{{ qr }}" alt="{{ 'machine_report.qr_alt'|trans({'%machine%': machine.nom}) }}">
+        <p class="qs-url">{{ url }}</p>
+        <button type="button" onclick="window.print()">{{ 'event.ticket.print'|trans }}</button>
+    {% else %}
+        <p>{{ 'machine_report.qr_no_url'|trans }}</p>
+    {% endif %}
+    <p class="qs-back"><a href="{{ path('app_machine_detail', {id: machine.id}) }}">{{ 'machine_report.qr_back'|trans }}</a></p>
+</div>
+</body>
+</html>

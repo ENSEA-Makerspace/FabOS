@@ -1,0 +1,29 @@
+{% extends 'site/base_public.html.twig' %}
+
+{#
+   S205 — l'écran de remerciement. On n'y revient pas au formulaire : le geste
+   est fini (le contrôleur redirige ici après l'envoi, donc recharger la page ne
+   renvoie rien). Le seul lien mène à l'accueil.
+#}
+
+{% block title %}{{ 'machine_report.thanks_title'|trans }} - FabOS{% endblock %}
+{% block head %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+<main id="main-content" tabindex="-1" class="main-content">
+    <section class="machine-detail-section">
+        <div class="container">
+            <section class="detail-card" role="status">
+                <h1 class="detail-card-title">{{ 'machine_report.thanks_title'|trans }}</h1>
+                <div class="detail-card-content">
+                    <p>{{ 'machine_report.thanks_body'|trans }}</p>
+                    <p><a href="{{ path('app_home') }}">{{ 'machine_report.thanks_home'|trans }}</a></p>
+                </div>
+            </section>
+        </div>
+    </section>
+</main>
+{% endblock %}

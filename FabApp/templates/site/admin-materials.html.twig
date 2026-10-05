@@ -30,8 +30,9 @@
                     {label: 'adm.col_name'|trans, class: 'is-grow'},
                     {label: 'adm.col_category'|trans, class: 'is-tight'},
                     {label: 'adm.col_storage'|trans, class: 'is-tight'},
+                ]|merge(stock_active() ? [{label: 'stock.col_stock'|trans, class: 'is-tight'}] : [])|merge([
                     {label: 'adm.col_actions'|trans, class: 'is-actions'},
-                ],
+                ]),
                 rows: materials,
                 empty: 'adm.materials_empty'|trans,
             } %}
@@ -49,6 +50,11 @@
                             } only %}</td>
                             <td>{% if material.category %}{{ material.category }}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>
                             <td>{% if material.storageLocation %}{{ material.storageLocation }}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>
+                            {% if stock_active() %}
+                                {# S206 — la colonne n'existe pas, éteinte. Non suivi : une absence dite, pas une cellule vide. #}
+                                {% set _s = stock_of(material.id) %}
+                                <td>{% if _s %}{% include 'site/_cell_state.html.twig' with {label: _s.label, signal: _s.signal} only %}{% include 'site/_cell_meter.html.twig' with {value: _s.amount} only %}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>
+                            {% endif %}
                             <td class="is-actions">{% include 'site/_cell_actions.html.twig' with {
                                 actions: [{label: 'common.edit'|trans, icon: 'edit', href: path('app_admin_material_edit', {id: material.id})}],
                             } only %}</td>

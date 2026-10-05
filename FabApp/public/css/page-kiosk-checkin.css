@@ -1,0 +1,14 @@
+/* S207 — l'écran « Check-in » de la borne : seulement ce que `page-kiosque-accueil.css`
+   n'a pas (champs de formulaire, QR, pot de miel). Jetons kiosque (--k-*). */
+.ck-qr { display: flex; flex-direction: column; align-items: center; }
+.ck-qr img { background: #fff; padding: 12px; border-radius: 16px; margin-top: 2vh; }
+.ck-walkin { display: block; }
+.ck-field { display: flex; flex-direction: column; gap: .6vh; margin-bottom: 2vh; font-size: 1.8vw; color: var(--k-ink-soft); }
+.ck-field input, .ck-field select {
+    font: inherit; min-height: 64px; padding: 0 1.4vw; color: var(--k-ink);
+    background: var(--k-surface-strong); border: 1px solid var(--k-line); border-radius: 16px;
+}
+.ck-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.6vw; align-items: stretch; }
+.ck-actions p { grid-column: 1 / -1; margin: 0; font-size: 2vw; }
+.ck-actions button { font: inherit; cursor: pointer; text-align: left; }
+.ck-hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }

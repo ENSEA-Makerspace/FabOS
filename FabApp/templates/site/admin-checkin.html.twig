@@ -1,0 +1,94 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ 'checkin.admin_title'|trans }} - FabOS{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">{% endblock %}
+{% block body %}
+{# S207 — « Check-in » côté équipe : présents maintenant, visites de la période (tuiles
+   Aujourd'hui / 7 jours / 30 jours), export CSV, motifs repliés.
+   ⚠️ Le compteur « présents » est ICI seulement : ce n'est pas une action à faire.
+   ⚠️ Les noms et les motifs sont du CONTENU : jamais traduits. #}
+{% embed 'site/_admin_list.html.twig' with {
+    page_title: 'checkin.admin_title'|trans,
+    panel_title: 'checkin.admin_title'|trans,
+    panel_note: 'checkin.present_now'|trans({'%n%': present|length}),
+    list_route: 'app_admin_checkin',
+    list_tiles: tiles,
+    list_tiles_label: 'checkin.period_label'|trans,
+} %}
+    {% block header_extra %}
+        <a class="ml-btn ml-btn-quiet" href="{{ path('app_admin_checkin_export', {period: period}) }}">{{ 'checkin.export'|trans }}</a>
+    {% endblock %}
+    {% block content %}
+        {% embed 'site/_data_table.html.twig' with {
+            columns: [
+                {label: 'checkin.col_name'|trans, class: 'is-grow'},
+                {label: 'checkin.col_arrived'|trans, class: 'is-tight'},
+            ],
+            rows: present,
+            empty: 'checkin.empty_present'|trans,
+        } %}
+            {% block rows %}
+                {% for v in present %}
+                    <tr>
+                        <td>{% include 'site/_cell_title.html.twig' with {
+                            title: v.name,
+                            subtitle: [v.userId ? '' : ('checkin.type_' ~ v.visitorType)|trans, v.reason, showNote ? v.projectNote : '']|filter(x => x)|join(' · '),
+                        } only %}</td>
+                        <td>{{ v.start|lab_date('H:i') }}</td>
+                    </tr>
+                {% endfor %}
+            {% endblock %}
+        {% endembed %}
+
+        <h3>{{ ('checkin.period_' ~ period)|trans }}</h3>
+        {% embed 'site/_data_table.html.twig' with {
+            columns: [
+                {label: 'checkin.col_name'|trans, class: 'is-grow'},
+                {label: 'checkin.col_arrived'|trans, class: 'is-tight'},
+                {label: 'checkin.col_left'|trans, class: 'is-tight'},
+            ],
+            rows: visits,
+            empty: 'checkin.empty_visits'|trans,
+        } %}
+            {% block rows %}
+                {% for v in visits %}
+                    <tr>
+                        <td>{% include 'site/_cell_title.html.twig' with {
+                            title: v.name,
+                            subtitle: [v.userId ? '' : ('checkin.type_' ~ v.visitorType)|trans, v.reason, showNote ? v.projectNote : '']|filter(x => x)|join(' · '),
+                        } only %}</td>
+                        <td>{{ v.start|lab_date('d/m H:i') }}</td>
+                        <td>{{ v.end ? v.end|lab_date('H:i') : 'checkin.still_here'|trans }}</td>
+                    </tr>
+                {% endfor %}
+            {% endblock %}
+        {% endembed %}
+
+        {% if showReasons %}
+            <details class="settings-danger settings-danger--neutral" id="motifs">
+                <summary>{{ 'checkin.reasons_title'|trans }}</summary>
+                <div>
+                    <form method="post" action="{{ path('app_admin_checkin_reasons') }}" class="cat-inline">
+                        <input type="hidden" name="_token" value="{{ csrf_token('admin_checkin_reasons') }}">
+                        <input type="hidden" name="action" value="add">
+                        <label class="sr-only" for="ck-new-reason">{{ 'checkin.reason_add'|trans }}</label>
+                        <input id="ck-new-reason" type="text" name="label" maxlength="120" required aria-label="{{ 'checkin.reason_add'|trans }}">
+                        <button class="ml-btn" type="submit">{{ 'checkin.reason_add'|trans }}</button>
+                    </form>
+                    {% for r in reasons %}
+                        <form method="post" action="{{ path('app_admin_checkin_reasons') }}" class="cat-inline">
+                            <input type="hidden" name="_token" value="{{ csrf_token('admin_checkin_reasons') }}">
+                            <input type="hidden" name="id" value="{{ r.id }}">
+                            <label class="sr-only" for="ck-reason-{{ r.id }}">{{ 'checkin.reason_rename'|trans }}</label>
+                            <input id="ck-reason-{{ r.id }}" type="text" name="label" maxlength="120" required value="{{ r.label }}">
+                            <button class="ml-btn" type="submit" name="action" value="rename">{{ 'checkin.reason_rename'|trans }}</button>
+                            <button class="ml-btn" type="submit" name="action" value="move_up" aria-label="{{ 'checkin.move_up'|trans }}" title="{{ 'checkin.move_up'|trans }}">↑</button>
+                            <button class="ml-btn" type="submit" name="action" value="move_down" aria-label="{{ 'checkin.move_down'|trans }}" title="{{ 'checkin.move_down'|trans }}">↓</button>
+                            <button class="ml-btn" type="submit" name="action" value="{{ r.active ? 'disable' : 'enable' }}">{{ (r.active ? 'checkin.reason_disable' : 'checkin.reason_enable')|trans }}</button>
+                        </form>
+                    {% endfor %}
+                </div>
+            </details>
+        {% endif %}
+    {% endblock %}
+{% endembed %}
+{% endblock %}

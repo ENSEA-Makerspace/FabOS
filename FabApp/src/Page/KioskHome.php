@@ -29,6 +29,7 @@ final class KioskHome
         private readonly SiteFeatureService $features,
         private readonly SiteSettingService $siteSettings,
         private readonly TranslatorInterface $translator,
+        private readonly \App\Service\Checkins $checkins,
     ) {
     }
 
@@ -63,7 +64,10 @@ final class KioskHome
             $machines = ['count' => \count($rows), 'down' => $down, 'firstId' => $rows === [] ? null : $rows[0]->getId()];
         }
 
-        return ['status' => $this->status($now), 'week' => $this->week($now), 'events' => $events, 'machines' => $machines];
+        // S207 — la tuile « Je suis là » : seulement si le Check-in est allumé ET sa table présente.
+        $checkin = $this->features->allowsSurface('checkin') && $this->checkins->isReady();
+
+        return ['status' => $this->status($now), 'week' => $this->week($now), 'events' => $events, 'machines' => $machines, 'checkin' => $checkin];
     }
 
     /** @return array{open: bool, signal: string, label: string, detail: ?string} */

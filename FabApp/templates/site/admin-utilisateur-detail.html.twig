@@ -59,6 +59,11 @@
                         <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_rfid_uid'|trans }}</span><span class="admin-user-value">{# S192 — masqué : l'identifiant d'une carte suffit souvent à la cloner. Il reste lisible dans « Modifier », là où on le saisit. #}{{ explained.badge.hint ?? '-' }}</span></div>
                         <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_total_time'|trans }}</span><span class="admin-user-value">{{ user.tempsPresenceTotal }}</span></div>
                         <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_verified'|trans }}</span><span class="admin-user-value">{{ (user.verified ? 'common.yes' : 'common.no')|trans }}</span></div>
+                        {# S209 — la charte, seulement si la fonction est allumée et qu'un texte existe. #}
+                        {% set charterNow = charter_state(user) %}
+                        {% if charterNow is not null %}
+                            <div class="admin-user-field"><span class="admin-user-label">{{ 'charter.admin_label'|trans }}</span><span class="admin-user-value">{{ charterNow.acceptedAt ? 'charter.admin_accepted'|trans({'%date%': charterNow.acceptedAt|lab_date('d/m/Y')}) : 'charter.admin_pending'|trans }}</span></div>
+                        {% endif %}
                         <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_created'|trans }}</span><span class="admin-user-value">{{ user.createdAt|lab_date('d/m/Y H:i:s') }}</span></div>
                         <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_last_login'|trans }}</span><span class="admin-user-value">{{ user.derniereConnexion ? user.derniereConnexion|lab_date('d/m/Y H:i:s') : '-' }}</span></div>
                         <div class="admin-user-field"><span class="admin-user-label">{{ 'admin_user_detail.field_notify_email'|trans }}</span><span class="admin-user-value">{{ (user.notificationEmail ? 'common.yes' : 'common.no')|trans }}</span></div>
@@ -126,6 +131,53 @@
                                 </ul>
                             </details>
                         {% endif %}
+                    </section>
+                {% endif %}
+
+                {# S208 — le registre d'avertissements. Absent si la fonction est éteinte
+                   ou la migration pas passée. Un REGISTRE : aucun effet sur les droits,
+                   et la personne ne le voit pas (le dit l'aide du formulaire). #}
+                {% set warn = user_warnings(user) %}
+                {% if warn is not null %}
+                    <section class="badge-grants" id="warnings" aria-labelledby="warnings-title">
+                        <h2 id="warnings-title">{{ 'warnings.heading'|trans }}</h2>
+
+                        {% if warn.rows is empty %}
+                            <p class="admin-panel-help">{{ 'warnings.none'|trans }}</p>
+                        {% else %}
+                            <ul>
+                                {% for w in warn.rows %}
+                                    <li>
+                                        <b>{{ w.reason ?: '—' }}</b> · {{ w.at|lab_date('d/m/Y') }}{% if w.by %} · {{ 'warnings.by'|trans({'%name%': w.by}) }}{% endif %}
+                                        {% if w.note %}<div>{{ w.note }}</div>{% endif %}
+                                        {% if w.liftedAt %}
+                                            <div class="admin-panel-help">{{ 'warnings.lifted_on'|trans({'%date%': w.liftedAt|lab_date('d/m/Y')}) }}</div>
+                                        {% else %}
+                                            <form method="post" action="{{ path('app_admin_warning_lift', {id: w.id}) }}">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('admin_warning_lift_' ~ w.id) }}">
+                                                <button class="admin-secondary-button" type="submit">{{ 'warnings.lift'|trans }}</button>
+                                            </form>
+                                        {% endif %}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+
+                        {% if warn.reasons is not empty %}
+                            <details class="badge-reach__more">
+                                <summary>{{ 'warnings.add'|trans }}</summary>
+                                <form method="post" action="{{ path('app_admin_user_warning_add', {id: user.id}) }}" class="afp-tier badge-grants__row">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('admin_warning_add_' ~ user.id) }}">
+                                    <label class="afp-select"><span class="afp-k">{{ 'warnings.reason_label'|trans }}</span><select id="warning-reason" name="reason" required>
+                                        {% for r in warn.reasons %}<option value="{{ r.id }}">{{ r.label }}</option>{% endfor %}
+                                    </select></label>
+                                    <label class="afp-select badge-grants__reason"><span class="afp-k">{{ 'warnings.note_label'|trans }}</span><input type="text" id="warning-note" name="note" maxlength="2000" placeholder="{{ 'warnings.note_placeholder'|trans }}"></label>
+                                    <button class="btn-link btn-danger-admin" type="submit">{{ 'warnings.add_submit'|trans }}</button>
+                                </form>
+                                <p class="admin-panel-help">{{ 'warnings.help'|trans }}</p>
+                            </details>
+                        {% endif %}
+                        <p class="admin-panel-help"><a href="{{ path('app_admin_warnings') }}">{{ 'warnings.see_all'|trans }}</a></p>
                     </section>
                 {% endif %}
 

@@ -1,0 +1,36 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'charter.title'|trans }} - FabOS{% endblock %}
+
+{# S209 — la charte de sécurité : le texte est celui du règlement du lab
+   (`/reglement`), la page n'y ajoute qu'UN verbe. Même coque que lab-rules. #}
+{% block body %}
+    {% include 'site/_header.html.twig' %}
+    <main id="main-content" tabindex="-1" class="static-page">
+        <div class="fab-toasts">
+            {% for message in app.flashes('success') %}<div class="fab-toast fab-toast--success" role="status">{{ message|flash_text }}</div>{% endfor %}
+            {% for message in app.flashes('error') %}<div class="fab-toast fab-toast--error" role="alert">{{ message|flash_text }}</div>{% endfor %}
+        </div>
+        <section class="static-hero">
+            <p class="static-kicker">{{ 'footer.safety_heading'|trans }}</p>
+            <h1>{{ 'charter.title'|trans }}</h1>
+            <p>{{ 'charter.intro'|trans }}</p>
+        </section>
+
+        <section class="static-card">
+            {# Texte saisi par l'administrateur (ROLE_ADMIN), rendu comme le règlement. #}
+            <div class="static-prose">{{ charterHtml|raw }}</div>
+
+            <div class="static-actions">
+                {% if acceptedAt %}
+                    {% include 'site/_state_chip.html.twig' with {label: 'charter.accepted_on'|trans({'%date%': acceptedAt|lab_date('d/m/Y')}), signal: 'go'} only %}
+                {% else %}
+                    <form method="post" action="{{ path('app_charter') }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('charter_accept') }}">
+                        <button class="btn btn-primary" type="submit">{{ 'charter.accept'|trans }}</button>
+                    </form>
+                {% endif %}
+            </div>
+        </section>
+    </main>
+{% endblock %}

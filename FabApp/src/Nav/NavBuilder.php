@@ -109,6 +109,8 @@ final class NavBuilder
         $nav[] = $this->group('nav.activity', null, [
             $this->item('nav.leaderboard', 'app_leaderboard', feature: 'leaderboard'),
             $this->item('nav.projects', 'app_creations', feature: 'projects'),
+            // 0.6 — « Je suis là » : la présence au lab, en un geste (S207).
+            $this->item('nav.checkin', 'app_checkin', feature: 'checkin', role: 'ROLE_USER'),
         ]);
 
         // "Mes réservations" and "Mes disponibilités" are personal pages, not places
@@ -326,6 +328,11 @@ final class NavBuilder
             $this->adminItem('admin_nav.entry.app_admin_groups', 'app_admin_groups', 'users', [
                 'app_admin_group_edit',
             ]),
+            // 0.6 (Phase W) — ce que l'équipe tient sur les personnes : présences,
+            // avertissements, retours. Chacune derrière son interrupteur.
+            $this->adminItem('admin_nav.entry.app_admin_checkin', 'app_admin_checkin', 'users', feature: 'checkin'),
+            $this->adminItem('admin_nav.entry.app_admin_warnings', 'app_admin_warnings', 'users', feature: 'warnings'),
+            $this->adminItem('admin_nav.entry.app_admin_feedback', 'app_admin_feedback', 'users', feature: 'feedback'),
         ]);
 
         // ⚠️ **S159 — « Aperçu grants v2 » est parti d'ici avec son écran.** Il
@@ -526,6 +533,8 @@ final class NavBuilder
                 $this->adminItem('admin_nav.entry.app_admin_maintenance', 'app_admin_maintenance', 'machines', [
                     'app_admin_maintenance_new', 'app_admin_maintenance_batch',
                 ], feature: ['machines', 'maintenance']),
+                // 0.6 — les pannes signalées par QR (S205).
+                $this->adminItem('admin_nav.entry.app_admin_machine_reports', 'app_admin_machine_reports', 'machines', feature: ['machines', 'machine_reports']),
                 $this->adminItem('admin_nav.entry.app_admin_reservations', 'app_admin_reservations', 'reservations', feature: 'bookings', params: ['reservableType' => 'machine']),
                 $this->adminItem('admin_nav.entry.app_admin_booking_policies', 'app_admin_booking_policies', 'reservations', feature: 'bookings', params: ['reservableType' => 'machine']),
                 $this->adminItem('admin_nav.entry.app_admin_usage_logs', 'app_admin_usage_logs', 'usage', feature: 'machines'),

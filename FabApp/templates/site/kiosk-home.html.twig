@@ -27,6 +27,13 @@
         </section>
 
         <nav class="pp-kq-tiles" aria-label="{{ 'kiosk_home.tiles_label'|trans }}">
+            {% if home.checkin|default(false) %}
+                <a class="pp-kq-tile" href="{{ path('app_kiosk_checkin') }}">
+                    {% include 'site/_icon.html.twig' with { name: 'check' } only %}
+                    <b>{{ 'checkin.tile'|trans }}</b>
+                    <p>{{ 'checkin.tile_hint'|trans }}</p>
+                </a>
+            {% endif %}
             {% if home.events is not null %}
                 <a class="pp-kq-tile" href="{{ path('app_kiosk_events') }}">
                     {% include 'site/_icon.html.twig' with { name: 'calendar' } only %}

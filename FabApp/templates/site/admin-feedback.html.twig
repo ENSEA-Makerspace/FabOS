@@ -1,0 +1,69 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ 'feedback.admin_title'|trans }} - FabOS{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">{% endblock %}
+{% block body %}
+{# S210 — la boîte des retours des usagers : une liste admin ordinaire.
+
+   Les tuiles sont l'axe qui définit la page (Ouverts / Traités, avec leur
+   compte) ; le type est un « Affiner ». Une ligne dit QUI, QUAND, QUEL type,
+   le message, la page concernée (lien) et UN verbe : « Marquer traité » /
+   « Rouvrir » (POST, CSRF).
+   ⚠️ Pas de `_cell_actions` : le verbe écrit, il est donc un formulaire dans
+   la ligne (cf. la note de `_cell_actions`). ⚠️ `<b>` et non `<span>` dans les
+   cellules : `style.css` repeint en gris tout `<span>` de `.admin-panel`. #}
+{% embed 'site/_admin_list.html.twig' with {
+    page_title: 'feedback.admin_title'|trans,
+    panel_title: 'feedback.admin_title'|trans,
+    list_count: rows|length,
+    list_route: 'app_admin_feedback',
+    list_route_params: {},
+    list_query: {statut: status, type: kind},
+    list_tiles: [
+        {label: 'feedback.open'|trans, count: counts.open, query: {statut: 'open'}, active: status == 'open'},
+        {label: 'feedback.done'|trans, count: counts.done, query: {statut: 'done'}, active: status == 'done'},
+    ],
+    list_refine: [
+        {name: 'type', label: 'feedback.col_kind'|trans, value: kind, options: [{value: '', label: 'admin_list.all'|trans}]|merge(
+            kinds|map(k => {value: k, label: ('feedback.kind_' ~ k)|trans})
+        )},
+    ],
+} %}
+    {% block content %}
+        {% embed 'site/_data_table.html.twig' with {
+            pin_actions: true,
+            columns: [
+                {label: 'feedback.col_date'|trans, class: 'is-tight'},
+                {label: 'feedback.col_who'|trans, class: 'is-tight'},
+                {label: 'feedback.col_kind'|trans, class: 'is-tight'},
+                {label: 'feedback.col_message'|trans, class: 'is-grow'},
+                {label: 'feedback.col_action'|trans, class: 'is-actions'},
+            ],
+            rows: rows,
+            empty: (status == 'open' ? 'feedback.empty_open' : 'feedback.empty_done')|trans,
+        } %}
+            {% block rows %}
+                {% for row in rows %}
+                    <tr>
+                        <td>{% include 'site/_cell_date.html.twig' with {value: row.createdAtUtc, convention: 'machine'} only %}</td>
+                        <td>{% include 'site/_cell_title.html.twig' with {title: row.authorName ?: row.authorEmail, subtitle: row.appVersion ? 'FabOS ' ~ row.appVersion : ''} only %}</td>
+                        <td>{% include 'site/_cell_state.html.twig' with {label: ('feedback.kind_' ~ row.kind)|trans, signal: {bug: 'stop', ux: 'caution', idea: 'go'}[row.kind]|default('muted')} only %}</td>
+                        <td>
+                            <div class="admin-cell-stack">
+                                <b class="is-strong">{{ row.message|nl2br }}</b>
+                                <b class="is-meta"><a href="{{ row.pageUrl }}">{{ row.pageUrl }}</a>{% if row.userAgent %} · {{ row.userAgent|slice(0, 80) }}{% endif %}</b>
+                            </div>
+                        </td>
+                        <td class="is-actions">
+                            <form method="post" action="{{ path('app_admin_feedback_status', {id: row.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('admin_feedback') }}">
+                                <input type="hidden" name="to" value="{{ row.status == 'open' ? 'done' : 'open' }}">
+                                <button class="admin-action{{ row.status == 'open' ? ' is-primary' : '' }}" type="submit">{{ (row.status == 'open' ? 'feedback.mark_done' : 'feedback.reopen')|trans }}</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% endblock %}
+        {% endembed %}
+    {% endblock %}
+{% endembed %}
+{% endblock %}

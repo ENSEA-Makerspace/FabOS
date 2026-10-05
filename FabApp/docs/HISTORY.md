@@ -205,6 +205,20 @@ des propositions est retiré (contrôleur, registre, gabarits, menu) ; les servi
 deviennent `App\Page\*`, les feuilles `pages.css` + `page-<page>.css`. Versions
 nommées à partir d'ici (`docs/VERSIONS.md`, étiquettes `v0.4.0`, `v0.5.0`).
 
+## 0.6.0 — Phase W : six fonctions activables (2026-10-05)
+
+Après la comparaison avec FabtrackJS (Sorbonne), l'opérateur retient six idées,
+construites en un lot par cinq sous-agents en parallèle sur un brief commun
+(tables neuves en DBAL avec `isReady()` fail-safe, contrôleurs neufs, i18n à part,
+une sonde chacun). `SiteFeature` gagne `defaultOn` : stocks, check-in (4 paliers)
+et charte naissent ÉTEINTS. S205 panne par QR (page publique, photo, anti-abus,
+QR imprimable) ; S206 stocks (éteint = le mot n'apparaît nulle part, prouvé par la
+sonde) ; S207 check-in à paliers (la documentation de projet est le dernier palier,
+jamais obligatoire — position de l'opérateur) ; S208 avertissements (registre, sans
+effet automatique) ; S209 charte (= le règlement du lab, accord redemandé si le
+texte change) ; S210 bouton « Signaler ». ⚠️ Le passage de badge n'ouvre pas encore
+un check-in : aucune API de porte n'enregistre les passages.
+
 ## 0.5.1 — « Mon compte » (2026-10-02)
 
 `/profil` refait d'après la proposition validée : en-tête compact, onglets serveur

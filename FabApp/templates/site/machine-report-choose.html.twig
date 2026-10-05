@@ -1,0 +1,36 @@
+{% extends 'site/base_public.html.twig' %}
+
+{#
+   S205 — `/signaler` sans machine : on choisit laquelle. Les tuiles `.ml-tile`
+   sont celles de tous les filtres du site ; chacune mène à `/signaler/{id}`.
+   Zéro machine ⇒ le contrôleur n'arrive pas ici avec une liste vide inutile :
+   l'état vide dit quoi faire.
+#}
+
+{% block title %}{{ 'machine_report.title'|trans }} - FabOS{% endblock %}
+{% block head %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+<main id="main-content" tabindex="-1" class="main-content">
+    <section class="machine-detail-section">
+        <div class="container">
+            <section class="detail-card">
+                <h1 class="detail-card-title">{{ 'machine_report.choose_title'|trans }}</h1>
+                {% if machines %}
+                    <nav class="ml-cats" aria-label="{{ 'machine_report.choose_title'|trans }}">
+                        {% for machine in machines %}
+                            <a class="ml-tile" href="{{ path('app_report_machine', {id: machine.id}) }}"><span class="ml-tile-label">{{ machine.nom }}</span></a>
+                        {% endfor %}
+                    </nav>
+                {% else %}
+                    <p>{{ 'machine_report.choose_empty'|trans }}</p>
+                {% endif %}
+            </section>
+        </div>
+    </section>
+</main>
+{% endblock %}

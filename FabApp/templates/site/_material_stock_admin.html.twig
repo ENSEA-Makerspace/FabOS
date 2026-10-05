@@ -1,0 +1,96 @@
+{# S206 — le bloc « Stock » de la fiche admin d'un matériau.
+
+   Reçoit : `material`. N'émet RIEN quand la fonction est éteinte (ni titre, ni
+   champ) : c'est l'exigence n°1 de l'opérateur, et c'est ce garde-là qui la tient.
+
+   Chemin courant : une entrée / une sortie (un nombre, une note, un bouton). Le
+   réglage (unité, seuil, correction de la quantité) est replié dès que le
+   matériau est suivi ; tant qu'il ne l'est pas, c'est le seul geste proposé.
+   Plusieurs formulaires, un seul POST chacun : ils n'ont rien à voir avec celui
+   du matériau, et l'entité `Material` ne porte rien de ceci. #}
+{% if stock_active() %}
+    {% set _s = stock_of(material.id) %}
+    <div class="form-section" id="stock"><h3>{{ 'stock.heading'|trans }}</h3></div>
+
+    {% if _s %}
+        <div>{% include 'site/_state_chip.html.twig' with { label: _s.label, signal: _s.signal } only %}</div>
+        <p class="admin-panel-help">
+            {{ 'stock.current'|trans({'%amount%': _s.amount}) }}
+            {% if _s.threshold %}{{ 'stock.threshold_hint'|trans({'%threshold%': _s.threshold}) }}{% endif %}
+        </p>
+
+        <form method="post" action="{{ path('app_admin_material_stock_move', {id: material.id}) }}" class="admin-edit-form">
+            <input type="hidden" name="_token" value="{{ csrf_token('material_stock_move_' ~ material.id) }}">
+            <div class="form-grid">
+                <div class="form-field">
+                    <label for="stock-amount">{{ 'stock.amount'|trans({'%unit%': stock_unit_label(_s.unit)}) }}</label>
+                    <input type="text" inputmode="decimal" id="stock-amount" name="amount" required autocomplete="off">
+                </div>
+                <div class="form-field">
+                    <label for="stock-note">{{ 'stock.note'|trans }}</label>
+                    <input type="text" id="stock-note" name="note" maxlength="255" autocomplete="off" placeholder="{{ 'stock.note_placeholder'|trans }}">
+                </div>
+            </div>
+            <div class="form-actions">
+                <button class="btn-link btn-primary-admin" type="submit" name="direction" value="in">{{ 'stock.move_in'|trans }}</button>
+                <button class="btn-link" type="submit" name="direction" value="out">{{ 'stock.move_out'|trans }}</button>
+            </div>
+        </form>
+
+        {# Les dix derniers mouvements ; rien d'affiché tant qu'il n'y en a pas. #}
+        {% set _moves = stock_moves(material.id) %}
+        {% if _moves is not empty %}
+            {% embed 'site/_data_table.html.twig' with {
+                columns: [
+                    {label: 'stock.col_when'|trans, class: 'is-tight'},
+                    {label: 'stock.col_delta'|trans, class: 'is-tight'},
+                    {label: 'stock.col_note'|trans, class: 'is-grow'},
+                    {label: 'stock.col_who'|trans, class: 'is-tight'},
+                ],
+                rows: _moves,
+                empty: '',
+                m_unit: _s.unit,
+            } %}
+                {% block rows %}
+                    {% for m in _moves %}
+                        <tr>
+                            <td>{{ m.at|lab_date('d/m/Y H:i') }}</td>
+                            <td>{{ m.delta > 0 ? '+' : '' }}{{ stock_number(m.delta) }} {{ stock_unit_label(m_unit) }}</td>
+                            <td>{{ m.note ?: '' }}</td>
+                            <td>{{ m.who ?: '' }}</td>
+                        </tr>
+                    {% endfor %}
+                {% endblock %}
+            {% endembed %}
+        {% endif %}
+    {% else %}
+        <p class="admin-panel-help">{{ 'stock.untracked_help'|trans }}</p>
+    {% endif %}
+
+    {# Le réglage : seul geste tant que le matériau n'est pas suivi, replié ensuite. #}
+    <form method="post" action="{{ path('app_admin_material_stock_save', {id: material.id}) }}" class="admin-edit-form">
+        <input type="hidden" name="_token" value="{{ csrf_token('material_stock_' ~ material.id) }}">
+        {% if _s %}<details class="settings-danger settings-danger--neutral"><summary>{{ 'stock.settings'|trans }}</summary>{% endif %}
+        <div class="form-grid">
+            <div class="form-field">
+                <label for="stock-quantity">{{ 'stock.quantity'|trans }}</label>
+                <input type="text" inputmode="decimal" id="stock-quantity" name="quantity" required autocomplete="off" value="{{ _s ? _s.number : '0' }}">
+            </div>
+            <div class="form-field">
+                <label for="stock-unit">{{ 'stock.unit'|trans }}</label>
+                <select id="stock-unit" name="unit">
+                    {% for u in ['g', 'kg', 'm', 'L', 'mL', 'pcs'] %}<option value="{{ u }}"{{ _s and _s.unit == u ? ' selected' : '' }}>{{ stock_unit_label(u) }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="form-field">
+                <label for="stock-threshold">{{ 'stock.threshold'|trans }}</label>
+                <input type="text" inputmode="decimal" id="stock-threshold" name="lowThreshold" autocomplete="off" value="{{ _s and _s.thresholdNumber ? _s.thresholdNumber : '' }}">
+                <p class="form-help">{{ 'stock.threshold_help'|trans }}</p>
+            </div>
+        </div>
+        <div class="form-actions">
+            <button class="btn-link btn-primary-admin" type="submit">{{ (_s ? 'common.save' : 'stock.track')|trans }}</button>
+        </div>
+        {% if _s %}</details>{% endif %}
+    </form>
+{% endif %}

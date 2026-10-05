@@ -32,6 +32,8 @@
                 } only %}
                 <div class="admin-edit-panel-header"><h2>{{ material.name }}</h2></div>
                 {{ include('site/_material_form.html.twig', {form: form, submit_label: 'common.save_changes'|trans}) }}
+                {# S206 — le stock : rien du tout tant que la fonction est éteinte. #}
+                {{ include('site/_material_stock_admin.html.twig', {material: material}, with_context = false) }}
                 {% include 'site/_admin_danger_zone.html.twig' with {
                     action: path('app_admin_material_delete', {id: material.id}),
                     token: 'delete_material_' ~ material.id,

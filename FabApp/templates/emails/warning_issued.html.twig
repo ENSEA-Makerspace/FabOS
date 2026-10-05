@@ -1,0 +1,14 @@
+{% extends 'emails/_layout.html.twig' %}
+
+{% block subject %}{{ 'mail.warning_issued.subject'|trans({'%person%': person}) }}{% endblock %}
+
+{% block body %}
+    {# S208 — à chaque avertissement, tous les administrateurs sont prévenus. #}
+    <h2 style="margin:0 0 12px; font-size:19px;">{{ 'mail.warning_issued.title'|trans }}</h2>
+    <p style="margin:0 0 16px;">{{ 'mail.warning_issued.intro'|trans({'%person%': person, '%reason%': reason, '%by%': by}) }}</p>
+    {% if note %}
+        <p style="margin:0 0 16px; padding:10px 16px; background:#f9fafb; border-radius:10px;">{{ note }}</p>
+    {% endif %}
+    <p style="margin:0 0 16px;"><a href="{{ url }}" style="color:#9E1B56;">{{ 'mail.warning_issued.link'|trans }}</a></p>
+    <p style="margin:0; color:#6b7280; font-size:13px;">{{ 'mail.warning_issued.note'|trans }}</p>
+{% endblock %}

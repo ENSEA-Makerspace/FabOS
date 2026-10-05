@@ -41,7 +41,7 @@ final class MaterialAdminType extends AbstractType
         [
             // Deux questions qui vont ensemble : où il est ici, où on le
             // rachète. Côte à côte pour cette raison (règle 6).
-            'title' => 'materials_form.section_supply',
+            'title' => 'materials_form.section_supply_plain',
             'fields' => ['storageLocation', 'purchaseUrl'],
         ],
         [

@@ -25,6 +25,9 @@
                             {% if t.kind == 'loan' %}
                                 <span><b>{{ 'home.todo_loan'|trans({'%item%': t.loan.item.name}) }}</b><small>{{ (t.overdue ? 'home.todo_loan_overdue' : 'home.todo_loan_due')|trans({'%date%': t.loan.expectedReturnDate ? t.loan.expectedReturnDate|date('d/m/Y') : '—'}) }}</small></span>
                                 <a class="btn btn-secondary" href="{{ path('app_loans_item', {id: t.loan.item.id}) }}">{{ 'home.todo_loan_cta'|trans }}</a>
+                            {% elseif t.kind == 'charter' %}
+                                <span><b>{{ 'charter.todo'|trans }}</b><small>{{ 'charter.todo_note'|trans }}</small></span>
+                                <a class="btn btn-primary" href="{{ path('app_charter') }}">{{ 'charter.todo_cta'|trans }}</a>
                             {% elseif t.kind == 'training' %}
                                 <span><b>{{ 'home.todo_training'|trans({'%training%': t.progression.formation.titre}) }}</b><small>{{ 'home.todo_training_since'|trans({'%date%': t.progression.dateDebut|date('d/m/Y')}) }}</small></span>
                                 <a class="btn btn-primary" href="{{ path('app_formation_detail', {id: t.progression.formation.id}) }}">{{ 'home.todo_training_cta'|trans }}</a>

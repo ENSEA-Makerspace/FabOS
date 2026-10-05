@@ -15,6 +15,7 @@ use App\Repository\RfidReaderRepository;
 use App\Rfid\AccessIncident;
 use App\Rfid\ReaderHealth;
 use App\Feature\SiteFeatureService;
+use App\Service\MachineReports;
 
 /**
  * « Exploitation » d'une machine (proposition du 2026-10-01, planche
@@ -37,6 +38,7 @@ final class MachineOperations
         private readonly ReaderHealth $readerHealth,
         private readonly AccessIncident $incidents,
         private readonly SiteFeatureService $modules,
+        private readonly MachineReports $reports,
     ) {
     }
 
@@ -82,6 +84,8 @@ final class MachineOperations
             'openCount' => \count($open),
             'reader' => $reader instanceof RfidReader ? ['entity' => $reader, 'health' => $this->readerHealth->of($reader)] : null,
             'incidents' => $incidents,
+            // S205 — les signalements de panne ouverts ; `null` = fonction éteinte ou migration pas passée (la carte ne s'affiche pas).
+            'reports' => $this->modules->allowsSurface('machine_reports') && $this->reports->isReady() ? $this->reports->openForMachine((int) $machine->getId()) : null,
             'counts' => [
                 'rfid' => $this->rfidLogs->count(['machine' => $machine]),
                 'usage' => $this->usageLogs->count(['machine' => $machine]),

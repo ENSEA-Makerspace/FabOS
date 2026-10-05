@@ -36,7 +36,12 @@ final class SiteFeatureService
             return $this->cache;
         }
 
-        $state = array_fill_keys($this->registry->keys(), true);
+        // Allumée par défaut, sauf les fonctions qui se déclarent éteintes
+        // (`defaultOn: false`) : une ligne de SITE_MODULE décide ensuite.
+        $state = [];
+        foreach ($this->registry->all() as $feature) {
+            $state[$feature->key] = $feature->defaultOn;
+        }
 
         try {
             $rows = $this->db->fetchAllAssociative(

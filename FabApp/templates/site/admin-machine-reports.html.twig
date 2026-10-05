@@ -1,0 +1,94 @@
+{% extends 'base.html.twig' %}
+
+{#
+   S205 — les signalements de panne : la file de l'équipe. Deux tuiles (Ouverts /
+   Résolus, avec leur compte), une ligne par signalement, et les verbes là où on
+   les attend : « Résoudre » (note facultative) sur un ouvert ; « Rouvrir » et
+   « Supprimer » sur un résolu. Un ouvert peut aussi être supprimé (pourriel).
+
+   ⚠️ Dans `.admin-panel`, `style.css` repeint tout <span> en gris : le texte
+   coloré ou gras passe par <b>/<div>/<p>.
+   ⚠️ Chaque verbe est un POST avec son jeton CSRF par ligne ; `statut` est
+   renvoyé pour revenir sur la même tuile.
+#}
+
+{% block title %}{{ 'machine_report.admin_title'|trans }} - FabOS{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+{% embed 'site/_admin_list.html.twig' with {
+    page_title: 'machine_report.admin_title'|trans,
+    panel_title: 'machine_report.admin_title'|trans,
+    list_count: rows|length,
+    list_route: 'app_admin_machine_reports',
+    list_query: {statut: status},
+    list_tiles: tiles|map(t => {label: ('machine_report.tile_' ~ t.key)|trans, count: t.count, query: {statut: t.key}, active: t.active}),
+} %}
+    {% block content %}
+        {% embed 'site/_data_table.html.twig' with {
+            pin_actions: true,
+            columns: [
+                {label: 'machine_report.col_machine'|trans, class: 'is-tight'},
+                {label: 'machine_report.col_report'|trans, class: 'is-grow'},
+                {label: 'machine_report.col_photo'|trans, class: 'is-tight'},
+                {label: 'machine_report.col_state'|trans, class: 'is-tight'},
+                {label: 'machine_report.col_actions'|trans, class: 'is-actions'},
+            ],
+            rows: rows,
+            empty: (status == 'open' ? 'machine_report.empty_open' : 'machine_report.empty_resolved')|trans,
+        } %}
+            {% block rows %}
+                {% for row in rows %}
+                    <tr>
+                        <td>{% include 'site/_cell_title.html.twig' with {
+                            title: row.machineName,
+                            href: path('app_machine_detail', {id: row.machineId}),
+                            subtitle: row.createdAt|lab_date('d/m/Y H:i'),
+                        } only %}</td>
+                        <td>
+                            <p>{{ row.description }}</p>
+                            {% if row.contact %}<p class="admin-meta">{{ 'machine_report.contact_line'|trans({'%contact%': row.contact}) }}</p>{% endif %}
+                            {% if row.resolutionNote %}<p class="admin-meta">{{ 'machine_report.note_line'|trans({'%note%': row.resolutionNote}) }}</p>{% endif %}
+                        </td>
+                        <td>{% if row.photo %}
+                            {% set photoUrl = asset('uploads/machine-reports/' ~ row.photo) %}
+                            <a href="{{ photoUrl }}" target="_blank" rel="noopener">{% include 'site/_cell_media.html.twig' with {src: photoUrl, alt: 'machine_report.photo_alt'|trans({'%machine%': row.machineName})} only %}</a>
+                        {% else %}{% include 'site/_cell_empty.html.twig' with {reason: 'machine_report.no_photo'} only %}{% endif %}</td>
+                        <td>{% include 'site/_cell_state.html.twig' with {
+                            label: (row.isOpen ? 'machine_report.state_open' : 'machine_report.state_resolved')|trans,
+                            signal: row.isOpen ? 'caution' : 'go',
+                        } only %}{% if row.resolvedAt %}<p class="admin-meta">{{ row.resolvedAt|lab_date('d/m/Y H:i') }}</p>{% endif %}</td>
+                        <td class="is-actions">
+                            {% if row.isOpen %}
+                                <form method="post" action="{{ path('app_admin_machine_report_resolve', {id: row.id}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('report_resolve_' ~ row.id) }}">
+                                    <input type="hidden" name="statut" value="{{ status }}">
+                                    <label class="sr-only" for="report-note-{{ row.id }}">{{ 'machine_report.note_label'|trans }}</label>
+                                    <input id="report-note-{{ row.id }}" type="text" name="note" maxlength="1000" placeholder="{{ 'machine_report.note_placeholder'|trans }}">
+                                    <button class="btn-action" type="submit">{{ 'machine_report.resolve'|trans }}</button>
+                                </form>
+                            {% else %}
+                                <form method="post" action="{{ path('app_admin_machine_report_reopen', {id: row.id}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('report_reopen_' ~ row.id) }}">
+                                    <input type="hidden" name="statut" value="{{ status }}">
+                                    <button class="btn-action" type="submit">{{ 'machine_report.reopen'|trans }}</button>
+                                </form>
+                            {% endif %}
+                            {% include 'site/_admin_delete_form.html.twig' with {
+                                action: path('app_admin_machine_report_delete', {id: row.id, statut: status}),
+                                token: 'report_delete_' ~ row.id,
+                                confirm: 'machine_report.delete_confirm'|trans,
+                                label: 'machine_report.delete'|trans,
+                            } %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% endblock %}
+        {% endembed %}
+    {% endblock %}
+{% endembed %}
+{% endblock %}

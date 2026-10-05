@@ -6,6 +6,7 @@ namespace App\Home;
 
 use App\Entity\Utilisateur;
 use App\Repository\LoanRepository;
+use App\Service\CharterAcceptances;
 use App\Repository\ProgressionRepository;
 use App\Repository\ReservationRepository;
 use App\Reservation\LabClock;
@@ -29,6 +30,7 @@ final class MemberToday
         private readonly RightsExplainer $explainer,
         private readonly LabClock $clock,
         private readonly Connection $db,
+        private readonly CharterAcceptances $charter,
     ) {
     }
 
@@ -47,6 +49,12 @@ final class MemberToday
                 'kind' => 'loan', 'tone' => $status === 'overdue' ? 'stop' : 'caution', 'icon' => 'box',
                 'loan' => $loan, 'overdue' => $status === 'overdue',
             ];
+        }
+
+        // 1b. S209 — la charte de sécurité, tant qu'elle n'est pas acceptée (rien si
+        // la fonction est éteinte ou si aucun règlement n'est écrit).
+        if ($this->charter->isPending((int) $user->getId())) {
+            $todo[] = ['kind' => 'charter', 'tone' => 'caution', 'icon' => 'warning'];
         }
 
         // 2. Les formations commencées et pas finies : « Continuer ».

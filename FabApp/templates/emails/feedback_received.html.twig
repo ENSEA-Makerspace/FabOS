@@ -1,0 +1,15 @@
+{% extends 'emails/_layout.html.twig' %}
+
+{% block subject %}{{ 'mail.feedback_received.subject'|trans({'%kind%': ('feedback.kind_' ~ kind|default('bug'))|trans}) }}{% endblock %}
+
+{% block body %}
+    {# S210 — un usager a signalé un problème depuis une page. À l'équipe seule. #}
+    <h2 style="margin:0 0 12px; font-size:19px;">{{ 'mail.feedback_received.title'|trans({'%kind%': ('feedback.kind_' ~ kind|default('bug'))|trans}) }}</h2>
+    <p style="margin:0 0 12px;">{{ 'mail.feedback_received.intro'|trans({'%author%': author}) }}</p>
+    <p style="margin:0 0 16px; padding:12px; background:#f3f4f6; border-radius:8px; white-space:pre-wrap;">{{ body }}</p>
+    <p style="margin:0 0 16px;">{{ 'mail.feedback_received.page'|trans }} <a href="{{ page|default('') }}">{{ page|default('') }}</a></p>
+    <p style="margin:0 0 20px;">
+        <a href="{{ link|default('') }}"
+           style="display:inline-block; padding:12px 20px; border-radius:8px; background:#15803d; color:#ffffff; font-weight:700; text-decoration:none;">{{ 'mail.feedback_received.open'|trans }}</a>
+    </p>
+{% endblock %}

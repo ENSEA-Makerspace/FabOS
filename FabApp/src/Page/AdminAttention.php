@@ -18,6 +18,10 @@ use App\Repository\RfidReaderRepository;
 use App\Repository\UtilisateurRepository;
 use App\Rfid\AccessIncident;
 use App\Rfid\ReaderHealth;
+use App\Service\MachineReports;
+use App\Service\MaterialStock;
+use App\Service\Feedback;
+use App\Feature\SiteFeatureService;
 use App\Training\PracticalQueue;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -56,6 +60,10 @@ final class AdminAttention
         private readonly BadgeRepository $badges,
         private readonly ProgressionRepository $progressions,
         private readonly TranslatorInterface $translator,
+        private readonly Feedback $feedback,
+        private readonly SiteFeatureService $features,
+        private readonly MachineReports $machineReports,
+        private readonly MaterialStock $stock,
     ) {
     }
 
@@ -64,6 +72,7 @@ final class AdminAttention
     {
         $groups = array_values(array_filter([
             $this->unavailableMachines(),
+            $this->reportedBreakdowns(),
             $this->maintenanceDue(),
             $this->offlineReaders(),
             $this->refusedAccess(),
@@ -71,6 +80,8 @@ final class AdminAttention
             $this->overdueLoans(),
             $this->practicalValidations(),
             $this->pendingAccounts(),
+            $this->userFeedback(),
+            $this->lowStock(),
         ]));
 
         return [
@@ -129,6 +140,26 @@ final class AdminAttention
         }
 
         return $this->group('machines', $this->t('g_machines'), 'tool', $rows, 'app_admin_machines', [], $this->t('all_machines'));
+    }
+
+    /** S205 — pannes signalées par QR, pas encore résolues (fonction éteinte ou migration absente : aucun groupe). */
+    private function reportedBreakdowns(): ?array
+    {
+        if (!$this->features->allowsSurface('machine_reports') || !$this->machineReports->isReady()) {
+            return null;
+        }
+        $rows = [];
+        foreach ($this->machineReports->all(MachineReports::OPEN, null, 50) as $report) {
+            $rows[] = [
+                'title' => $report['description'],
+                'where' => (string) $report['machineName'],
+                'when' => $report['createdAt'], 'whenKind' => 'utc',
+                'state' => ['label' => $this->t('st_report'), 'signal' => 'caution'],
+                'verb' => $this->t('verb_report'), 'route' => 'app_admin_machine_reports', 'params' => ['statut' => 'open'],
+            ];
+        }
+
+        return $this->group('reports', $this->t('g_reports'), 'warning', $rows, 'app_admin_machine_reports', ['statut' => 'open'], $this->t('all_reports'));
     }
 
     /** Tâches ouvertes en retard ou à échéance dans les 7 jours. */
@@ -266,5 +297,44 @@ final class AdminAttention
         }
 
         return $this->group('accounts', $this->t('g_accounts'), 'key', $rows, 'app_admin_users', ['statut' => 'pending'], $this->t('all_accounts'));
+    }
+
+    /** S210 — les retours des usagers encore ouverts (fonction allumée et migration passée). */
+    private function userFeedback(): ?array
+    {
+        if (!$this->features->allowsSurface('feedback') || !$this->feedback->isReady()) {
+            return null;
+        }
+        $signals = ['bug' => 'stop', 'ux' => 'caution', 'idea' => 'go'];
+        $rows = [];
+        foreach ($this->feedback->list('open') as $row) {
+            $rows[] = [
+                'title' => mb_strimwidth(preg_replace('/\s+/', ' ', (string) $row['message']) ?? '', 0, 90, '…'),
+                'where' => $row['authorName'] ?: (string) $row['authorEmail'],
+                'when' => new \DateTimeImmutable((string) $row['createdAt'], new \DateTimeZone('UTC')), 'whenKind' => 'utc',
+                'state' => ['label' => $this->translator->trans('feedback.kind_' . $row['kind']), 'signal' => $signals[$row['kind']] ?? 'muted'],
+                'verb' => $this->t('verb_feedback'), 'route' => 'app_admin_feedback', 'params' => [],
+            ];
+        }
+
+        return $this->group('feedback', $this->t('g_feedback'), 'mail', $rows, 'app_admin_feedback', [], $this->t('all_feedback'));
+    }
+
+    /** S206 — matériaux épuisés ou sous leur seuil. Sans ligne (donc sans groupe) tant que la fonction est éteinte. */
+    private function lowStock(): ?array
+    {
+        $rows = [];
+        foreach ($this->stock->lowMaterials() as $material) {
+            $out = $material['state'] === MaterialStock::OUT;
+            $rows[] = [
+                'title' => $material['name'],
+                'where' => $this->stock->format($material['quantity'], $material['unit']),
+                'when' => null, 'whenKind' => 'wall',
+                'state' => ['label' => $this->t($out ? 'st_stock_out' : 'st_stock_low'), 'signal' => $out ? 'stop' : 'caution'],
+                'verb' => $this->t('verb_stock'), 'route' => 'app_admin_material_edit', 'params' => ['id' => $material['id']],
+            ];
+        }
+
+        return $this->group('stock', $this->t('g_stock'), 'box', $rows, 'app_admin_materials', [], $this->t('all_stock'));
     }
 }

@@ -1,0 +1,89 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ 'warnings.page_title'|trans }} - FabOS{% endblock %}
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">{% endblock %}
+{% block body %}
+{# S208 — tous les avertissements du lab. Un REGISTRE : aucun effet sur les
+   droits, et la personne concernée ne les voit pas. On en POSE depuis la fiche
+   d'une personne (là où l'on sait qui) ; ici on lit, on lève et on règle les
+   motifs, repliés plus bas. ⚠️ Pas d'entrée de menu propre : le titre vient de
+   `page_title`. #}
+{% embed 'site/_admin_list.html.twig' with {
+    page_title: 'warnings.page_title'|trans,
+    panel_title: 'warnings.page_title'|trans,
+    list_count: rows|length,
+    list_route: 'app_admin_warnings',
+    list_tiles_label: 'warnings.tiles_label'|trans,
+    list_tiles: [
+        {label: 'admin_list.all'|trans, count: counts.active + counts.lifted, query: {etat: ''}, active: state == ''},
+        {label: 'warnings.state_active'|trans, count: counts.active, query: {etat: 'active'}, active: state == 'active'},
+        {label: 'warnings.state_lifted'|trans, count: counts.lifted, query: {etat: 'lifted'}, active: state == 'lifted'},
+    ],
+} %}
+    {% block content %}
+        {% embed 'site/_data_table.html.twig' with {
+            pin_actions: true,
+            columns: [
+                {label: 'warnings.col_date'|trans, class: 'is-tight'},
+                {label: 'warnings.col_person'|trans, class: 'is-grow'},
+                {label: 'warnings.col_reason'|trans, class: 'is-grow'},
+                {label: 'warnings.col_by'|trans, class: 'is-tight'},
+                {label: 'warnings.col_state'|trans, class: 'is-actions'},
+            ],
+            rows: rows,
+            empty: 'warnings.empty'|trans,
+        } %}
+            {% block rows %}
+                {% for w in rows %}
+                    <tr>
+                        <td>{% include 'site/_cell_date.html.twig' with {value: w.at, convention: 'machine', format: 'd/m/Y'} only %}</td>
+                        <td>{% include 'site/_cell_title.html.twig' with {title: w.user, href: path('app_admin_user_detail', {id: w.userId, _fragment: 'warnings'})} only %}</td>
+                        <td>{% include 'site/_cell_title.html.twig' with {title: w.reason, subtitle: w.note} only %}</td>
+                        <td>{{ w.by ?: '—' }}</td>
+                        <td class="is-actions">
+                            {% if w.liftedAt %}
+                                {% include 'site/_cell_state.html.twig' with {label: 'warnings.lifted_on'|trans({'%date%': w.liftedAt|lab_date('d/m/Y')}), signal: 'muted'} only %}
+                            {% else %}
+                                <form method="post" action="{{ path('app_admin_warning_lift', {id: w.id}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('admin_warning_lift_' ~ w.id) }}">
+                                    <input type="hidden" name="back" value="list">
+                                    <button class="admin-secondary-button" type="submit">{{ 'warnings.lift'|trans }}</button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% endblock %}
+        {% endembed %}
+
+        {# Le réglage des motifs : replié, il ne sert qu'à l'équipe qui les change. #}
+        <details class="settings-danger settings-danger--neutral" id="motifs">
+            <summary>{{ 'warnings.reasons_heading'|trans }}</summary>
+            <div>
+                <p class="settings-hint">{{ 'warnings.reasons_help'|trans }}</p>
+                <ul>
+                    {% for r in reasons %}
+                        <li>
+                            <b>{{ r.label }}</b>
+                            <form method="post" action="{{ path('app_admin_warning_reasons') }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('admin_warning_reasons') }}">
+                                <input type="hidden" name="id" value="{{ r.id }}">
+                                <input type="hidden" name="action" value="{{ r.active ? 'disable' : 'enable' }}">
+                                <button class="admin-secondary-button" type="submit">{{ (r.active ? 'warnings.reason_disable' : 'warnings.reason_enable')|trans }}</button>
+                            </form>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <form method="post" action="{{ path('app_admin_warning_reasons') }}" class="form-grid">
+                    <input type="hidden" name="_token" value="{{ csrf_token('admin_warning_reasons') }}">
+                    <input type="hidden" name="action" value="add">
+                    <div class="form-field">
+                        <label for="warning-reason-label">{{ 'warnings.reason_new'|trans }}</label>
+                        <input id="warning-reason-label" type="text" name="label" maxlength="120" required>
+                    </div>
+                    <div class="form-field full"><button class="ml-btn" type="submit">{{ 'warnings.reason_add'|trans }}</button></div>
+                </form>
+            </div>
+        </details>
+    {% endblock %}
+{% endembed %}
+{% endblock %}
