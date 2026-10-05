@@ -44,6 +44,7 @@ final class RenderAsCommand extends Command
     public function __construct(
         private readonly ConsoleRenderAuthenticator $authenticator,
         private readonly HttpKernelInterface $kernel,
+        private readonly \Doctrine\DBAL\Connection $db,
     ) {
         parent::__construct();
     }
@@ -55,7 +56,11 @@ final class RenderAsCommand extends Command
             ->addOption('as', null, InputOption::VALUE_REQUIRED, 'Account to render as (default: the first admin)')
             ->addOption('grep', null, InputOption::VALUE_REQUIRED, 'Print only body lines matching this substring')
             ->addOption('save', null, InputOption::VALUE_REQUIRED, 'Write the full body to this file')
-            ->addOption('anonymous', null, InputOption::VALUE_NONE, 'Do not sign in — see what a visitor sees');
+            ->addOption('anonymous', null, InputOption::VALUE_NONE, 'Do not sign in — see what a visitor sees')
+            // 0.6 — voir une page avec des fonctions ÉTEINTES par défaut (stocks,
+            // check-in, charte) sans toucher aux réglages : allumées dans une
+            // transaction ANNULÉE après le rendu. Rien n'est écrit.
+            ->addOption('features', null, InputOption::VALUE_REQUIRED, 'Comma-separated feature keys switched ON for this render only (rolled back)');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -81,8 +86,21 @@ final class RenderAsCommand extends Command
         // written to disk and nothing survives the command.
         $request->setSession(new Session(new MockArraySessionStorage()));
 
-        $response = $this->kernel->handle($request, HttpKernelInterface::MAIN_REQUEST, false);
-        $body = (string) $response->getContent();
+        $forced = array_filter(array_map('trim', explode(',', (string) $input->getOption('features'))));
+        if ($forced !== []) {
+            $this->db->beginTransaction();
+            foreach ($forced as $key) {
+                $this->db->executeStatement('INSERT INTO SITE_MODULE (moduleKey, enabled) VALUES (?, 1) ON DUPLICATE KEY UPDATE enabled = 1', [$key]);
+            }
+        }
+        try {
+            $response = $this->kernel->handle($request, HttpKernelInterface::MAIN_REQUEST, false);
+            $body = (string) $response->getContent();
+        } finally {
+            if ($forced !== []) {
+                $this->db->rollBack();
+            }
+        }
 
         $io->definitionList(
             ['path' => $path],
