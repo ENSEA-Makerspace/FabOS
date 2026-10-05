@@ -36,6 +36,7 @@ de références et cinq phases neuves ont rendu la lecture linéaire impossible.
 | **U** | **Identité : des modules de connexion** (LDAP, AD, CAS, SAML/Shibboleth, OIDC) — pour TOUTES les installations | S196–S201 — ⏳ ordre à fixer quand l'opérateur saura ce qu'utilise l'ENSEA |
 | **R** | Commerce — **la dernière**, et bloquée par J | S184–S188 |
 | **V** ✅ | Pages revues d'après les planches — **0.5.0**, en test usagers | 2026-10-01 → 2026-10-02 |
+| **W** | Idées reprises de FabtrackJS : signaler une panne (QR), stocks optionnels, check-in à paliers | S205–S207 — 🅿️ à planifier |
 
 ⚠️ **R garde ses numéros bas en passant après S et T** : un numéro de session est
 une étiquette, pas un rang — la note ci-dessous vaut pour elle aussi.
@@ -69,6 +70,69 @@ reste dans `docs/references/PROPOSITIONS.md`, le contenu de la version dans
   ferme et la page se met à jour) ; le délai d'annulation s'écrit en durée.
 - « Valider une inscription » : décider d'abord si une inscription se valide.
 - Le préfixe CSS `pp-` (motifs de `pages.css`) est historique.
+
+## Phase W — trois idées reprises de FabtrackJS (ajoutée le 2026-10-05) 🅿️ À PLANIFIER
+
+Source : la comparaison avec [FabtrackJS](https://github.com/harry-finch/FabtrackJS)
+(outil du fablab de Sorbonne Université ; journal de visites tenu par l'équipe, là
+où FabOS est un portail où le membre agit lui-même). L'opérateur rencontre ses
+auteurs bientôt. Trois idées retenues, dans cet ordre.
+
+### S205 — Signaler une panne, sans compte, depuis un QR code sur la machine
+- Une page **publique** (aucune connexion) `/signaler` et `/signaler/{machine}` :
+  la machine présélectionnée par le QR code collé dessus, une description, et un
+  bouton **photo** qui ouvre l'appareil du téléphone (`capture="environment"`).
+- Le signalement entre dans l'**historique de la machine** et dans « ce qui demande
+  votre attention » de `/admin` ; l'équipe le **résout** (avec une note), le
+  **rouvre** ou le supprime. Un e-mail prévient l'équipe (gabarit modifiable, comme
+  les autres).
+- Le QR code s'imprime depuis la fiche admin de la machine.
+- ⚠️ À trancher à la construction : anti-abus (page publique : limite de débit,
+  pot de miel), et si un signalement passe la machine en « panne » tout seul (non
+  par défaut : c'est l'équipe qui décide).
+- **Ce que l'opérateur vérifie** : scanner le QR d'une machine avec un téléphone
+  non connecté, envoyer une photo ; le voir arriver dans `/admin` ; le résoudre.
+
+### S206 — Stocks de consommables, en sous-fonction ACTIVABLE
+- Un **interrupteur** (sous-fonction de Matériaux, dans Fonctionnalités). 🔴
+  **Désactivé : aucune mention de stock nulle part** — ni champ, ni colonne, ni
+  pastille, ni e-mail, ni menu. C'est l'état par défaut.
+- Activé : quantité et unité par matériau (g, m, L, pièces), **seuil bas** avec
+  alerte e-mail à l'équipe, mouvements d'entrée / sortie, et l'état « en stock /
+  bientôt épuisé / épuisé » sur la fiche et la carte du matériau.
+- ⚠️ Garde par `allowsSurface()`, jamais `isEnabled()` (une clé inconnue répond
+  vrai). Tables neuves en migration « expand » d'abord.
+- 🅿️ Hors périmètre ici : le coût par projet et la refacturation — avec la Phase R
+  (commerce).
+- **Ce que l'opérateur vérifie** : interrupteur coupé → chercher le mot « stock »
+  sur le site, il n'y en a pas ; activé → régler un seuil, passer dessous, recevoir
+  l'alerte.
+
+### S207 — « Check-in » : s'enregistrer, badger, ou documenter sa visite — par PALIERS
+Une fonctionnalité **Check-in**, activable, dont chaque installation choisit le
+niveau. Les paliers s'empilent, et chacun est un interrupteur :
+1. **Présence** — badger à l'entrée (les lecteurs existent déjà) ou s'enregistrer
+   à la borne `/kiosk` ; entrée et sortie. Rien à saisir.
+2. **Inscription sur place** — un visiteur sans compte se déclare à la borne
+   (nom, type d'usager), pour les labs ouverts au public.
+3. **Motif de visite** — un choix en un geste parmi une courte liste (projet
+   personnel, cours, atelier, Repair Café…). Sert les statistiques.
+4. **Documentation du projet** — lien ou note sur ce qu'on fait.
+- 🔴 **Position de l'opérateur, à respecter dans le dessin** : la documentation
+  de projet est une vieille arlésienne des fablabs — elle ne marche nulle part,
+  agace les usagers et n'est pas lue. Le palier 4 est donc **coupé par défaut**,
+  **jamais obligatoire**, et rien dans les paliers 1 à 3 ne doit le supposer. Au
+  lab de l'opérateur, on s'arrête au palier 1.
+- Règle de conception : **le palier le plus bas ne coûte aucun geste** ; chaque
+  palier ajouté dit ce qu'il demande à l'usager avant d'être activé.
+- **Ce que l'opérateur vérifie** : palier 1 seul → badger suffit, aucun formulaire ;
+  activer le palier 3 → la borne pose UNE question ; le palier 4 n'apparaît que
+  si on l'allume.
+
+### Non retenu pour l'instant (noté pour mémoire)
+Avertissements par usager, charte de sécurité à accepter, bouton « signaler un
+bug » sur chaque page, traductions en tableur, statistiques « posez une question »,
+système de plugins.
 
 ## Cap produit
 
