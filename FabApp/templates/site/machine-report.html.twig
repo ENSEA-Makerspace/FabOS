@@ -2,14 +2,12 @@
 
 {#
    S205 — « Signaler une panne » : la page PUBLIQUE ouverte par le QR collé sur la
-   machine (`/signaler/{id}`). Aucun compte : une description, une photo
-   facultative (`capture="environment"` ouvre l'appareil du téléphone), un contact
-   facultatif. Un seul verbe : « Envoyer le signalement ».
-
-   ⚠️ Le champ `website` est le POT DE MIEL : hors écran (`.sr-only`), jamais
-   atteint au clavier ni annoncé ; seul un robot le remplit. Ce n'est pas la seule
-   défense (jeton CSRF, limite de débit, image contrôlée : voir le contrôleur).
-   ⚠️ Aucune CSS neuve : `_detail_hero`, `.detail-card`, `.form-field`, `.btn-submit`.
+   machine (`/signaler/{id}`). Aucun compte : une
+   description (seul champ requis), une photo (`capture="environment"` ouvre
+   l'appareil du téléphone), un contact. Un seul verbe : « Envoyer le signalement ».
+   Le pot de miel est `_honeypot` (défense complétée par le contrôleur : jeton CSRF,
+   limite de débit, image contrôlée).
+   ⚠️ Aucune CSS neuve : `.detail-card`, `.form-field`, `.btn-submit`.
 #}
 
 {% block title %}{{ 'machine_report.title'|trans }} - {{ machine.nom }} - FabOS{% endblock %}
@@ -22,41 +20,26 @@
 <main id="main-content" tabindex="-1" class="main-content">
     <section class="machine-detail-section">
         <div class="container">
-            {% embed 'site/_detail_hero.html.twig' with {
-                kicker: 'machine_report.title'|trans,
-                title: machine.nom,
-                photo: machine.photo,
-                machine: machine,
-            } %}
-                {% block main %}
-                    <p>{{ 'machine_report.lead'|trans }}</p>
-                {% endblock %}
-                {% block fallback %}{% include 'site/_category_icon.html.twig' with { slug: machine.categorySlug|default(machine.iconSlug) } only %}{% endblock %}
-            {% endembed %}
-
             <section class="detail-card" aria-labelledby="report-form-title">
-                <h2 id="report-form-title" class="detail-card-title">{{ 'machine_report.form_title'|trans }}</h2>
+                <h1 id="report-form-title" class="detail-card-title">{{ 'machine_report.heading'|trans({'%machine%': machine.nom}) }}</h1>
+                <p>{{ 'machine_report.lead'|trans }}</p>
                 {% if error %}<p class="form-errors" role="alert">{{ error|trans }}</p>{% endif %}
                 <form method="post" action="{{ path('app_report_machine', {id: machine.id}) }}" enctype="multipart/form-data" class="form-grid">
                     <input type="hidden" name="_token" value="{{ csrf_token('machine_report_' ~ machine.id) }}">
                     <div class="form-field full is-required">
-                        <label for="report-description">{{ 'machine_report.field_description'|trans }}</label>
+                        <label for="report-description">{{ 'machine_report.field_description'|trans }} <span class="form-required" aria-hidden="true">{{ 'common.required'|trans }}</span></label>
                         <textarea id="report-description" name="description" rows="4" minlength="5" maxlength="{{ maxLength }}" required>{{ description }}</textarea>
                     </div>
                     <div class="form-field full">
                         <label for="report-photo">{{ 'machine_report.field_photo'|trans }}</label>
                         <input id="report-photo" type="file" name="photo" accept="image/*" capture="environment">
-                        <p class="form-help">{{ 'machine_report.help_photo'|trans }}</p>
                     </div>
                     <div class="form-field full">
                         <label for="report-contact">{{ 'machine_report.field_contact'|trans }}</label>
                         <input id="report-contact" type="text" name="contact" maxlength="190" value="{{ contact }}" autocomplete="email">
                         <p class="form-help">{{ 'machine_report.help_contact'|trans }}</p>
                     </div>
-                    <div class="sr-only" aria-hidden="true">
-                        <label for="report-website">{{ 'machine_report.honeypot'|trans }}</label>
-                        <input id="report-website" type="text" name="website" value="" tabindex="-1" autocomplete="off">
-                    </div>
+                    {% include 'site/_honeypot.html.twig' %}
                     <div class="form-field full"><span class="btn-submit"><button type="submit">{{ 'machine_report.submit'|trans }}</button></span></div>
                 </form>
             </section>

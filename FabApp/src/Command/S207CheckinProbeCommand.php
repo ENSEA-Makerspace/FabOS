@@ -117,7 +117,7 @@ final class S207CheckinProbeCommand extends Command
             $this->post('/check-in', ['_token' => $token, 'action' => 'arrive'], $session);
             $this->check($io, $failures, 'deux fois « J’arrive » : une seule visite', (int) $this->db->fetchOne('SELECT COUNT(*) FROM CHECKIN WHERE userId = ?', [$memberId]) === 1);
             $html = $this->page('/check-in', $session);
-            $this->check($io, $failures, '« Vous êtes au lab depuis … » et « Je pars »', $this->inAnyLocale($html, 'checkin.leave', []) && !$this->inAnyLocale($html, 'checkin.arrive', []));
+            $this->check($io, $failures, '« Vous êtes au lab depuis … » et « Je pars »', str_contains($html, 'value="leave"') && !str_contains($html, 'value="arrive"'));
             $this->post('/check-in', ['_token' => $this->formToken($html, '/check-in'), 'action' => 'leave'], $session);
             $this->check($io, $failures, '« Je pars » : la visite est fermée', $openRow()['endedAt'] !== null && $this->checkins->openFor($member) === null);
 
@@ -187,6 +187,12 @@ final class S207CheckinProbeCommand extends Command
             $this->check($io, $failures, 'éteint : aucun champ « note »', !str_contains($this->page('/check-in', $session), 'name="note"'));
             $set(true, false, false, true);
             $this->check($io, $failures, 'allumé : un champ facultatif, replié', str_contains($this->page('/check-in', $session), 'name="note"') && !str_contains($this->page('/check-in', $session), 'name="note" required'));
+            $note = $this->page('/check-in', $session);
+            $this->check($io, $failures, 'la note vient APRÈS le bouton d’arrivée, jamais avant', strpos($note, 'name="note"') > strpos($note, 'value="arrive"'));
+            $set(true, true, false, true);
+            $kiosk = $this->page('/kiosk/check-in', $guest);
+            $this->check($io, $failures, '🔴 la borne ne propose jamais la note (palier 4 allumé), et son pot de miel est le partiel commun', !str_contains($kiosk, 'name="note"') && str_contains($kiosk, 'data-honeypot'));
+            $set(true, false, false, true);
             $this->post('/check-in', ['_token' => $token, 'action' => 'arrive', 'note' => 'Une lampe à base de bois'], $session);
             $this->check($io, $failures, 'avec note : enregistrée', ($openRow()['projectNote'] ?? null) === 'Une lampe à base de bois');
             $this->checkins->leave($member);

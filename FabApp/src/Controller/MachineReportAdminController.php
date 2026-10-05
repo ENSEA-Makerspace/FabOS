@@ -110,11 +110,26 @@ final class MachineReportAdminController extends AbstractController
             throw $this->createNotFoundException();
         }
 
+        return $this->render('site/machine-report-qr.html.twig', ['labels' => [$this->label($machine, $qr)]]);
+    }
+
+    /** Toutes les étiquettes d'un coup, une par page : mettre la fonction en service sans ouvrir 38 fiches. */
+    #[Route('/admin/signalements/qr', name: 'app_admin_machine_report_qr_all', methods: ['GET'])]
+    public function qrAll(MachineRepository $machines, MachineReportQr $qr): Response
+    {
+        $this->guard();
+
         return $this->render('site/machine-report-qr.html.twig', [
-            'machine' => $machine,
-            'qr' => $qr->svgDataUri($id),
-            'url' => $qr->publicUrl($id),
+            'labels' => array_map(fn (Machine $machine): array => $this->label($machine, $qr), $machines->findLive()),
         ]);
+    }
+
+    /** @return array{machine: Machine, qr: ?string, url: ?string} */
+    private function label(Machine $machine, MachineReportQr $qr): array
+    {
+        $id = (int) $machine->getId();
+
+        return ['machine' => $machine, 'qr' => $qr->svgDataUri($id), 'url' => $qr->publicUrl($id)];
     }
 
     private function guard(): void

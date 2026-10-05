@@ -192,12 +192,15 @@ final class S205MachineReportProbeCommand extends Command
             $this->check($io, $failures, 'la page imprimable nomme la machine', str_contains($qr, htmlspecialchars($name, ENT_QUOTES)));
             $this->check($io, $failures, 'le QR (ou, sans adresse publique réglée, la phrase qui dit quoi faire)', str_contains($qr, 'data:image/svg+xml') || $this->inAnyLocale($qr, 'machine_report.qr_no_url', []));
             $this->check($io, $failures, 'un anonyme n’y accède pas', $this->status('/admin/machines/' . $id . '/signaler-qr', $guest()) !== 200);
+            $all = $this->page('/admin/signalements/qr', $adminSession);
+            $this->check($io, $failures, 'toutes les étiquettes d’un coup : la page nomme la machine, un lien y mène depuis la liste', str_contains($all, htmlspecialchars($name, ENT_QUOTES)) && str_contains($this->page('/admin/signalements', $adminSession), 'data-qr-all'));
+            $this->check($io, $failures, '🔴 la fiche PUBLIQUE de la machine mène à « Signaler une panne »', str_contains($this->page('/machines/' . $id, $guest()), 'href="' . $page . '"'));
 
             $io->section('7. Fonction éteinte');
             $this->features->setEnabled('machine_reports', false);
             $this->check($io, $failures, 'la page publique : 404', $this->status($page, $guest()) === 404 && $this->status('/signaler', $guest()) === 404);
             $this->check($io, $failures, 'la liste admin : 404', $this->status('/admin/signalements', $adminSession) === 404);
-            $this->check($io, $failures, 'plus aucun groupe sur /admin, plus de carte sur la fiche', !$this->inAnyLocale($this->page('/admin', $adminSession), 'admin_attention.g_reports', []) && !str_contains($this->page('/machines/' . $id, $adminSession), '/signaler-qr'));
+            $this->check($io, $failures, 'plus aucun groupe sur /admin, plus de carte sur la fiche', !$this->inAnyLocale($this->page('/admin', $adminSession), 'admin_attention.g_reports', []) && !str_contains($this->page('/machines/' . $id, $adminSession), '/signaler-qr') && !str_contains($this->page('/machines/' . $id, $guest()), 'href="' . $page . '"'));
 
             foreach ($this->db->fetchFirstColumn('SELECT photo FROM MACHINE_REPORT WHERE photo IS NOT NULL') as $leftover) {
                 $created[] = (string) $leftover;

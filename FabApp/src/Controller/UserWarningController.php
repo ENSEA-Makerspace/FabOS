@@ -101,7 +101,7 @@ final class UserWarningController extends AbstractController
         return $this->redirectToRoute('app_admin_user_detail', ['id' => $userId, '_fragment' => 'warnings'], Response::HTTP_SEE_OTHER);
     }
 
-    /** Le réglage des motifs : en ajouter un, en retirer un de la liste (ou le remettre). */
+    /** Le réglage des motifs : en ajouter un, le renommer, en retirer un de la liste (ou le remettre). */
     #[Route('/admin/avertissements/motifs', name: 'app_admin_warning_reasons', methods: ['POST'])]
     public function reasons(Request $request): Response
     {
@@ -111,6 +111,9 @@ final class UserWarningController extends AbstractController
         } elseif ($request->request->get('action') === 'add') {
             $saved = $this->warnings->addReason((string) $request->request->get('label'));
             $this->addFlash($saved ? 'success' : 'error', $saved ? 'warnings.reason_saved' : 'warnings.reason_refused');
+        } elseif ($request->request->get('action') === 'rename') {
+            $saved = $this->warnings->renameReason((int) $request->request->get('id'), (string) $request->request->get('label'));
+            $this->addFlash($saved ? 'success' : 'error', $saved ? 'warnings.reason_updated' : 'warnings.reason_refused');
         } else {
             $this->warnings->setReasonActive((int) $request->request->get('id'), $request->request->get('action') === 'enable');
             $this->addFlash('success', 'warnings.reason_updated');

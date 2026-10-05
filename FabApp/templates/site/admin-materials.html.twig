@@ -53,7 +53,8 @@
                             {% if stock_active() %}
                                 {# S206 — la colonne n'existe pas, éteinte. Non suivi : une absence dite, pas une cellule vide. #}
                                 {% set _s = stock_of(material.id) %}
-                                <td>{% if _s %}{% include 'site/_cell_state.html.twig' with {label: _s.label, signal: _s.signal} only %}{% include 'site/_cell_meter.html.twig' with {value: _s.amount} only %}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</td>
+                                {# La pastille mène au bloc « Stock » de la fiche : enregistrer une sortie, c'est le geste du quotidien. #}
+                                <td><a href="{{ path('app_admin_material_edit', {id: material.id}) }}#stock">{% if _s %}{% include 'site/_cell_state.html.twig' with {label: _s.label, signal: _s.signal} only %}{% include 'site/_cell_meter.html.twig' with {value: _s.amount} only %}{% else %}{% include 'site/_cell_empty.html.twig' only %}{% endif %}</a></td>
                             {% endif %}
                             <td class="is-actions">{% include 'site/_cell_actions.html.twig' with {
                                 actions: [{label: 'common.edit'|trans, icon: 'edit', href: path('app_admin_material_edit', {id: material.id})}],

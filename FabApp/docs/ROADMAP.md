@@ -80,6 +80,16 @@ Source : la comparaison avec [FabtrackJS](https://github.com/harry-finch/Fabtrac
 où FabOS est un portail où le membre agit lui-même). L'opérateur rencontre ses
 auteurs bientôt. Six idées retenues ; deux à rediscuter.
 
+### 🅿️ Reste ouvert après la revue de sortie (0.6.0)
+- Le passage de badge à une porte n'ouvre pas un check-in : il n'existe pas d'API
+  de porte qui enregistre les passages (à faire avec elle).
+- R8 de la revue : borner la largeur du formulaire public de signalement (demande
+  une règle CSS neuve — refusée par la règle de réutilisation ; à trancher).
+- États REMPLIS non vus par le designer (la base n'avait aucune donnée) : liste des
+  signalements avec note, bloc Stock avec mouvements — à regarder à l'usage.
+- Les motifs d'avertissement n'ont pas d'ordre réglable (ceux du check-in oui).
+- Le règlement accepté ne bloque pas la réservation (réglage possible plus tard).
+
 ### S205 — Signaler une panne, sans compte, depuis un QR code sur la machine
 - Une page **publique** (aucune connexion) `/signaler` et `/signaler/{machine}` :
   la machine présélectionnée par le QR code collé dessus, une description, et un

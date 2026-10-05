@@ -2,7 +2,7 @@
 
 {# S207 — « Check-in » du membre : un geste, « J'arrive » puis « Je pars ».
    Palier 3 : la question « pourquoi ? » EST le bouton d'arrivée (un geste), « Passer »
-   arrive sans répondre. Palier 4 : une note facultative, repliée, jamais requise.
+   arrive sans répondre. Palier 4 : une note sur le projet, repliée, EN DERNIER, jamais requise (absente de la borne).
    Rien d'autre à l'écran : aucune feuille propre, `detail-card` + `ml-btn`. #}
 
 {% block title %}{{ 'checkin.title'|trans }} - FabOS{% endblock %}
@@ -25,13 +25,6 @@
                     <button class="ml-btn" type="submit" name="action" value="leave">{{ 'checkin.leave'|trans }}</button>
                 {% else %}
                     <h2 id="checkin-state" class="detail-card-title">{{ (reasons ? 'checkin.why' : 'checkin.not_here')|trans }}</h2>
-                    {% if withNote %}
-                        <details class="detail-disclosure">
-                            <summary>{{ 'checkin.note_label'|trans }}</summary>
-                            <label class="sr-only" for="checkin-note">{{ 'checkin.note_label'|trans }}</label>
-                            <div class="ml-field"><input id="checkin-note" type="text" name="note" maxlength="500" placeholder="{{ 'checkin.note_hint'|trans }}" autocomplete="off"></div>
-                        </details>
-                    {% endif %}
                     <div class="ml-head-actions">
                         {% if reasons %}
                             {% for r in reasons %}
@@ -42,6 +35,13 @@
                             <button class="ml-btn" type="submit" name="action" value="arrive">{{ 'checkin.arrive'|trans }}</button>
                         {% endif %}
                     </div>
+                    {% if withNote %}
+                        <details class="detail-disclosure">
+                            <summary>{{ 'checkin.note_label'|trans }}</summary>
+                            <label class="sr-only" for="checkin-note">{{ 'checkin.note_label'|trans }}</label>
+                            <div class="ml-field"><input id="checkin-note" type="text" name="note" maxlength="500" placeholder="{{ 'checkin.note_hint'|trans }}" autocomplete="off"></div>
+                        </details>
+                    {% endif %}
                 {% endif %}
             </form>
         </section>

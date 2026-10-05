@@ -51,8 +51,8 @@ final class S206StockProbeCommand extends Command
 
     private const PASSWORD = 'sonde-S206-motdepasse';
 
-    /** Le mot, dans les cinq langues. « Lagerort » (emplacement) n'en est pas un. */
-    private const WORD = '/\b(stocks?|bestand|lager|existencias|scorte)\b/iu';
+    /** Le mot et sa famille (« stockage », « Lagerort »…), dans les cinq langues : un emplacement se dit « rangement », « Aufbewahrungsort »… */
+    private const WORD = '/\b(stock\w*|bestand|lager\w*|existencias|scorte)\b/iu';
 
     /** Deux libellés d'archivage allemands qui disent « Bestand » au sens « parc » : hors sujet, signalés. */
     private const NOT_STOCK = ['Aus dem Bestand nehmen', 'Zurück in den Bestand'];

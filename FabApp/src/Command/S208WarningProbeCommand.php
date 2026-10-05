@@ -145,6 +145,8 @@ final class S208WarningProbeCommand extends Command
             $newId = (int) $this->db->fetchOne("SELECT id FROM WARNING_REASON WHERE label = 'Sonde S208 : motif neuf'");
             $this->check($io, $failures, 'un motif neuf est ajouté', $newId > 0);
             $this->check($io, $failures, 'il est proposé sur la fiche', str_contains($this->page($fiche, $session), 'data-warning-reason="' . $newId . '"'));
+            $this->post('/admin/avertissements/motifs', ['_token' => $listToken, 'action' => 'rename', 'id' => (string) $newId, 'label' => 'Sonde S208 : motif renommé'], $session);
+            $this->check($io, $failures, 'renommer : la liste partagée (`_reason_list`) sait le faire ici aussi', (string) $this->db->fetchOne('SELECT label FROM WARNING_REASON WHERE id = ?', [$newId]) === 'Sonde S208 : motif renommé' && str_contains($this->page('/admin/avertissements', $session), 'data-reason="' . $newId . '"'));
             $this->post('/admin/avertissements/motifs', ['_token' => $listToken, 'action' => 'disable', 'id' => (string) $newId], $session);
             $this->check($io, $failures, 'retiré de la liste : plus proposé, mais pas effacé', !str_contains($this->page($fiche, $session), 'data-warning-reason="' . $newId . '"') && (int) $this->db->fetchOne('SELECT COUNT(*) FROM WARNING_REASON WHERE id = ?', [$newId]) === 1);
 

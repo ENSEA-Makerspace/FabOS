@@ -3,7 +3,7 @@
 {#
    S205 — les signalements de panne : la file de l'équipe. Deux tuiles (Ouverts /
    Résolus, avec leur compte), une ligne par signalement, et les verbes là où on
-   les attend : « Résoudre » (note facultative) sur un ouvert ; « Rouvrir » et
+   les attend : « Résoudre » sur un ouvert (sa note, dans la colonne du signalement) ; « Rouvrir » et
    « Supprimer » sur un résolu. Un ouvert peut aussi être supprimé (pourriel).
 
    ⚠️ Dans `.admin-panel`, `style.css` repeint tout <span> en gris : le texte
@@ -28,6 +28,10 @@
     list_query: {statut: status},
     list_tiles: tiles|map(t => {label: ('machine_report.tile_' ~ t.key)|trans, count: t.count, query: {statut: t.key}, active: t.active}),
 } %}
+    {# Mettre la fonction en service : toutes les étiquettes d'un coup. #}
+    {% block header_extra %}
+        <a class="ml-btn ml-btn-quiet" href="{{ path('app_admin_machine_report_qr_all') }}" data-qr-all>{{ 'machine_report.qr_all'|trans }}</a>
+    {% endblock %}
     {% block content %}
         {% embed 'site/_data_table.html.twig' with {
             pin_actions: true,
@@ -53,6 +57,10 @@
                             <p>{{ row.description }}</p>
                             {% if row.contact %}<p class="admin-meta">{{ 'machine_report.contact_line'|trans({'%contact%': row.contact}) }}</p>{% endif %}
                             {% if row.resolutionNote %}<p class="admin-meta">{{ 'machine_report.note_line'|trans({'%note%': row.resolutionNote}) }}</p>{% endif %}
+                            {% if row.isOpen %}
+                                <label class="sr-only" for="report-note-{{ row.id }}">{{ 'machine_report.note_label'|trans }}</label>
+                                <input id="report-note-{{ row.id }}" form="report-resolve-{{ row.id }}" type="text" name="note" maxlength="1000" placeholder="{{ 'machine_report.note_placeholder'|trans }}">
+                            {% endif %}
                         </td>
                         <td>{% if row.photo %}
                             {% set photoUrl = asset('uploads/machine-reports/' ~ row.photo) %}
@@ -64,11 +72,9 @@
                         } only %}{% if row.resolvedAt %}<p class="admin-meta">{{ row.resolvedAt|lab_date('d/m/Y H:i') }}</p>{% endif %}</td>
                         <td class="is-actions">
                             {% if row.isOpen %}
-                                <form method="post" action="{{ path('app_admin_machine_report_resolve', {id: row.id}) }}">
+                                <form id="report-resolve-{{ row.id }}" method="post" action="{{ path('app_admin_machine_report_resolve', {id: row.id}) }}">
                                     <input type="hidden" name="_token" value="{{ csrf_token('report_resolve_' ~ row.id) }}">
                                     <input type="hidden" name="statut" value="{{ status }}">
-                                    <label class="sr-only" for="report-note-{{ row.id }}">{{ 'machine_report.note_label'|trans }}</label>
-                                    <input id="report-note-{{ row.id }}" type="text" name="note" maxlength="1000" placeholder="{{ 'machine_report.note_placeholder'|trans }}">
                                     <button class="btn-action" type="submit">{{ 'machine_report.resolve'|trans }}</button>
                                 </form>
                             {% else %}

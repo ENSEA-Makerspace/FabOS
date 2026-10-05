@@ -980,6 +980,32 @@
                 </p>
             </div>
 
+            <div class="dz-sec" id="choix-tuiles">
+                <h3>Le choix à quelques tuiles</h3>
+                <p>
+                    Un choix parmi trois ou quatre, <strong>sans JavaScript</strong> : des radios
+                    cachées et leurs libellés, dans un <code>&lt;fieldset&gt;</code> dont la
+                    <code>&lt;legend&gt;</code> est la question. Premier usage : le type du
+                    panneau « Un retour ? » de l'en-tête (Bug, Gêne, Idée). Au-delà de quatre
+                    choix, c'est une liste déroulante.
+                </p>
+                <p class="dz-label">Le composant réel, rendu ici</p>
+                <div class="dz-demo">
+                    <fieldset class="choice-tiles">
+                        <legend>Un retour sur le site</legend>
+                        {% for kind in ['bug', 'ux', 'idea'] %}
+                            <input type="radio" name="dz-kind" id="dz-kind-{{ kind }}" value="{{ kind }}"{{ loop.first ? ' checked' : '' }}>
+                            <label for="dz-kind-{{ kind }}">{{ ('feedback.kind_' ~ kind)|trans }}</label>
+                        {% endfor %}
+                    </fieldset>
+                </div>
+                <p class="dz-used">
+                    <b>Classe :</b> <code>.choice-tiles</code> (<code>components.css</code>).
+                    ⚠️ Des libellés courts, sur une ligne : une tuile qui passe sur deux
+                    lignes déséquilibre les autres.
+                </p>
+            </div>
+
             <div class="dz-sec" id="recherche">
                 <h3>La recherche : deux formes, et trois qui n'en sont pas</h3>
                 <p>

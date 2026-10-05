@@ -89,7 +89,6 @@ final class CheckinController extends AbstractController
             'qr' => $qr,
             'walkin' => $this->features->allowsSurface('checkin_walkin'),
             'reasons' => $this->reasons(),
-            'withNote' => $this->features->allowsSurface('checkin_project'),
             'types' => Checkins::VISITOR_TYPES,
             'done' => $request->query->getBoolean('done'),
             'tooMany' => $request->query->getBoolean('slow'),
@@ -118,7 +117,7 @@ final class CheckinController extends AbstractController
         if ($name === '') {
             return $this->redirectToRoute('app_kiosk_checkin', [], Response::HTTP_SEE_OTHER);
         }
-        $this->checkins->arriveVisitor($name, (string) $request->request->get('type'), $this->chosenReason($request), $this->chosenNote($request));
+        $this->checkins->arriveVisitor($name, (string) $request->request->get('type'), $this->chosenReason($request), null);
 
         return $this->redirectToRoute('app_kiosk_checkin', ['done' => 1], Response::HTTP_SEE_OTHER);
     }

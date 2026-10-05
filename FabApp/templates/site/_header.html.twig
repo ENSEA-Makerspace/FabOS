@@ -145,3 +145,14 @@
         </div>
     </div>
 </header>
+{# S210 — le remerciement (ou le refus) du panneau « Un retour ? » : les composants `.fab-toast`. #}
+{% if app.user and feedback_open() %}
+    {% set _fb_ok = app.flashes('feedback') %}
+    {% set _fb_err = app.flashes('feedback_error') %}
+    {% if _fb_ok or _fb_err %}
+        <div class="fab-toasts">
+            {% for message in _fb_ok %}<div class="fab-toast fab-toast--success" role="status">{{ message }}</div>{% endfor %}
+            {% for message in _fb_err %}<div class="fab-toast fab-toast--error" role="alert">{{ message }}</div>{% endfor %}
+        </div>
+    {% endif %}
+{% endif %}

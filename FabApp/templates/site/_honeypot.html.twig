@@ -1,0 +1,8 @@
+{# Le pot de miel des formulaires publics : un champ `website` hors écran, jamais atteint au
+   clavier ni annoncé ; seul un robot le remplit. Un seul balisage pour la page de panne
+   (`machine-report`) et la borne de check-in. Ce n'est pas la seule défense : voir le
+   contrôleur de chaque formulaire (jeton CSRF, limite de débit). #}
+<div class="sr-only" aria-hidden="true" data-honeypot>
+    <label for="hp-website">{{ 'common.honeypot'|trans }}</label>
+    <input id="hp-website" type="text" name="website" value="" tabindex="-1" autocomplete="off">
+</div>

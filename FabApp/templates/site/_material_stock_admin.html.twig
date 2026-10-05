@@ -79,7 +79,7 @@
             <div class="form-field">
                 <label for="stock-unit">{{ 'stock.unit'|trans }}</label>
                 <select id="stock-unit" name="unit">
-                    {% for u in ['g', 'kg', 'm', 'L', 'mL', 'pcs'] %}<option value="{{ u }}"{{ _s and _s.unit == u ? ' selected' : '' }}>{{ stock_unit_label(u) }}</option>{% endfor %}
+                    {% for u in stock_units() %}<option value="{{ u }}"{{ _s and _s.unit == u ? ' selected' : '' }}>{{ stock_unit_label(u) }}</option>{% endfor %}
                 </select>
             </div>
             <div class="form-field">

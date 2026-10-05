@@ -32,6 +32,7 @@ final class MaterialStockExtension extends AbstractExtension
             new TwigFunction('stock_moves', fn (int $id): array => $this->stock->moves($id, 10)),
             new TwigFunction('stock_number', $this->stock->number(...)),
             new TwigFunction('stock_unit_label', $this->stock->unitLabel(...)),
+            new TwigFunction('stock_units', static fn (): array => MaterialStock::UNITS),
         ];
     }
 

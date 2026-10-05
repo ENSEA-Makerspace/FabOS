@@ -2,8 +2,8 @@
 
 {% block title %}{{ 'charter.title'|trans }} - FabOS{% endblock %}
 
-{# S209 — la charte de sécurité : le texte est celui du règlement du lab
-   (`/reglement`), la page n'y ajoute qu'UN verbe. Même coque que lab-rules. #}
+{# S209 — le règlement du lab, à accepter : le texte est celui de `/reglement`, la page
+   (`/charte`) n'y ajoute qu'UN verbe ; un seul nom pour ce texte. Même coque que lab-rules. #}
 {% block body %}
     {% include 'site/_header.html.twig' %}
     <main id="main-content" tabindex="-1" class="static-page">
@@ -12,7 +12,6 @@
             {% for message in app.flashes('error') %}<div class="fab-toast fab-toast--error" role="alert">{{ message|flash_text }}</div>{% endfor %}
         </div>
         <section class="static-hero">
-            <p class="static-kicker">{{ 'footer.safety_heading'|trans }}</p>
             <h1>{{ 'charter.title'|trans }}</h1>
             <p>{{ 'charter.intro'|trans }}</p>
         </section>

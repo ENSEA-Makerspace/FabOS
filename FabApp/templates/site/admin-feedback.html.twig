@@ -5,7 +5,7 @@
 {# S210 — la boîte des retours des usagers : une liste admin ordinaire.
 
    Les tuiles sont l'axe qui définit la page (Ouverts / Traités, avec leur
-   compte) ; le type est un « Affiner ». Une ligne dit QUI, QUAND, QUEL type,
+   compte) ; le type est un « Affiner » (un type n'est pas un état : pastille neutre). Une ligne dit QUI, QUAND, QUEL type,
    le message, la page concernée (lien) et UN verbe : « Marquer traité » /
    « Rouvrir » (POST, CSRF).
    ⚠️ Pas de `_cell_actions` : le verbe écrit, il est donc un formulaire dans
@@ -23,7 +23,7 @@
         {label: 'feedback.done'|trans, count: counts.done, query: {statut: 'done'}, active: status == 'done'},
     ],
     list_refine: [
-        {name: 'type', label: 'feedback.col_kind'|trans, value: kind, options: [{value: '', label: 'admin_list.all'|trans}]|merge(
+        {name: 'type', label: 'feedback.col_kind'|trans, value: kind, options: [{value: '', label: 'admin_list.all_m'|trans}]|merge(
             kinds|map(k => {value: k, label: ('feedback.kind_' ~ k)|trans})
         )},
     ],
@@ -46,11 +46,11 @@
                     <tr>
                         <td>{% include 'site/_cell_date.html.twig' with {value: row.createdAtUtc, convention: 'machine'} only %}</td>
                         <td>{% include 'site/_cell_title.html.twig' with {title: row.authorName ?: row.authorEmail, subtitle: row.appVersion ? 'FabOS ' ~ row.appVersion : ''} only %}</td>
-                        <td>{% include 'site/_cell_state.html.twig' with {label: ('feedback.kind_' ~ row.kind)|trans, signal: {bug: 'stop', ux: 'caution', idea: 'go'}[row.kind]|default('muted')} only %}</td>
+                        <td>{% include 'site/_cell_state.html.twig' with {label: ('feedback.kind_' ~ row.kind)|trans, signal: 'muted'} only %}</td>
                         <td>
                             <div class="admin-cell-stack">
                                 <b class="is-strong">{{ row.message|nl2br }}</b>
-                                <b class="is-meta"><a href="{{ row.pageUrl }}">{{ row.pageUrl }}</a>{% if row.userAgent %} · {{ row.userAgent|slice(0, 80) }}{% endif %}</b>
+                                <b class="is-meta"><a href="{{ row.pageUrl }}"{% if row.userAgent %} title="{{ row.userAgent|slice(0, 200) }}"{% endif %}>{{ row.pageUrl }}</a></b>
                             </div>
                         </td>
                         <td class="is-actions">

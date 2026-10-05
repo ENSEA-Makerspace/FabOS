@@ -1325,7 +1325,7 @@ html[data-theme="dark"] .form-field.afp-select > label.afp-k {
    `:last-child`: a list whose last column is data would get a sticky data
    column and a shadow in the middle of nowhere. */
 .admin-table.has-pinned-actions th:last-child,
-.admin-table.has-pinned-actions td:last-child {
+.admin-table.has-pinned-actions tr:not(.admin-table-empty) > td:last-child {
     position: sticky; right: 0; text-align: right;
     width: 9.5rem; min-width: 9.5rem;
     background: var(--theme-surface);
@@ -1753,6 +1753,9 @@ html[data-theme="dark"] .form-field.afp-select > label.afp-k {
     font-size: var(--font-size-sm); box-shadow: none;
 }
 .admin-hero .admin-add-plus { background: rgba(255, 255, 255, .3); }
+/* Sans recherche, ce qui suit le titre (bouton vert, lien d'export) va à droite,
+   comme quand la recherche est là. */
+.admin-hero .admin-hero-text + :not(.admin-list-search) { margin-left: auto; }
 
 /* The search, on the band rather than on a white row. ⚠️ Translucent white and
    not `--theme-input`: that token is a light box in light mode and #3d3349 in

@@ -967,3 +967,15 @@ a.cell-chip:hover, a.cell-chip:focus-visible {
 .badge-reach__more p,
 .badge-reach__more ul { margin: 6px 0 0; color: var(--color-text-light); font-size: var(--font-size-sm); }
 .badge-reach__direct { font-style: normal; color: var(--color-text); font-weight: 600; }
+
+/* Un choix parmi quelques tuiles (3 à 4), sans JS : des radios cachées et leurs libellés.
+   Premier usage : le type du panneau de retour (`_feedback`). Exemple dans /admin/design. */
+.choice-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--spacing-xs); border: 0; margin: 0; padding: 0; }
+.choice-tiles legend { padding: 0; margin-bottom: var(--spacing-xs); font-weight: 700; }
+.choice-tiles input { position: absolute; opacity: 0; pointer-events: none; }
+.choice-tiles label {
+    display: block; padding: 10px 4px; text-align: center; cursor: pointer;
+    border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); font-weight: 600;
+}
+.choice-tiles input:checked + label { border-color: var(--color-primary); background: var(--tone-primary-soft); }
+.choice-tiles input:focus-visible + label { outline: 2px solid var(--color-primary); outline-offset: 2px; }

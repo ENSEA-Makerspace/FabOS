@@ -4506,7 +4506,8 @@ h3 .admin-inline__action {
        weight does not change on desktop-sized touch screens. */
     .btn,
     button.btn,
-    a.btn {
+    a.btn,
+    .btn-submit button {
         min-height: 44px;
     }
 
@@ -4701,8 +4702,8 @@ html[data-theme="dark"] .navbar-dropdown-link.active {
 @media (max-width: 560px) {
     /* The search earns its own row rather than being squeezed to an icon —
        it is the one control here people arrive intending to use. */
-    .header-right { order: 1; flex: 1 1 100%; margin-left: 0; }
-    .header-search { flex: 1 1 auto; }
+    .header-right { order: 1; flex: 1 1 100%; margin-left: 0; flex-wrap: wrap; }
+    .header-search { flex: 1 1 100%; }
     .mobile-nav-toggle { order: 2; }
 }
 

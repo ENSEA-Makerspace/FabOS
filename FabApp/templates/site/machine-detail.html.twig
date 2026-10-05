@@ -176,6 +176,11 @@
                                     {% else %}
                                         <span>{{ statusLabel }}</span>
                                     {% endif %}
+                                    {# S205 — le chemin d'un membre devant une machine sans étiquette : un lien texte. #}
+                                    {% if machine_reports_open() %}
+                                        <span aria-hidden="true">·</span>
+                                        <a href="{{ path('app_report_machine', {id: machine.id}) }}">{{ 'machine_report.title'|trans }}</a>
+                                    {% endif %}
                                 </p>
                             </section>
 
@@ -433,6 +438,9 @@
                                             {% endfor %}
                                         {% else %}
                                             <p class="pp-xm-sub">{{ 'mops.reports_none'|trans }}</p>
+                                        {% endif %}
+                                        {% if can_reach('app_admin_machine_reports') %}
+                                            <a class="btn btn-secondary" href="{{ path('app_admin_machine_reports') }}">{{ 'admin_attention.all_reports'|trans }}</a>
                                         {% endif %}
                                         {% if can_reach('app_admin_machine_report_qr', {id: machine.id}) %}
                                             <a class="btn btn-secondary" href="{{ path('app_admin_machine_report_qr', {id: machine.id}) }}">{{ 'mops.reports_qr'|trans }}</a>

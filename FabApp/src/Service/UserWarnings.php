@@ -68,6 +68,16 @@ final class UserWarnings
         return true;
     }
 
+    public function renameReason(int $id, string $label): bool
+    {
+        $label = mb_substr(trim($label), 0, 120);
+        if (!$this->isReady() || $label === '' || $this->db->fetchOne('SELECT 1 FROM WARNING_REASON WHERE label = ? AND id <> ?', [$label, $id])) {
+            return false;
+        }
+
+        return $this->db->update('WARNING_REASON', ['label' => $label], ['id' => $id]) >= 0;
+    }
+
     public function setReasonActive(int $id, bool $active): bool
     {
         return $this->isReady() && $this->db->update('WARNING_REASON', ['active' => $active ? 1 : 0], ['id' => $id]) > 0;

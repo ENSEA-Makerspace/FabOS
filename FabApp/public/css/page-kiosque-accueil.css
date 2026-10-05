@@ -55,7 +55,8 @@
 .pp-kq-hours ul { list-style: none; display: grid; gap: 1vh; }
 .pp-kq-hours li { display: flex; justify-content: space-between; font-size: 2vw; padding: 1vh 0; border-bottom: 1px solid var(--k-line); }
 .pp-kq-hours li.is-today b, .pp-kq-hours li.is-today strong { color: var(--k-accent-ink); }
-.pp-kq-close { display: inline-flex; align-items: center; min-height: 64px; margin-top: 2vh; padding: 0 2.4vw; font-size: 2vw; font-weight: 700; color: var(--k-ink); border: 1px solid var(--k-line); border-radius: 16px; text-decoration: none; }
+.pp-kq-close { display: inline-flex; align-items: center; min-height: 64px; margin-top: 2vh; padding: 0 2.4vw; font-size: 2vw; font-weight: 700; color: var(--k-ink); border: 1px solid var(--k-line); border-radius: 16px; text-decoration: none; background: transparent; font-family: inherit; cursor: pointer; }
+.pp-kq-head .pp-kq-close { margin-top: 0; }
 
 /* L'écran de porte : une consigne, pas un bouton. */
 .pp-kq-door { display: flex; align-items: center; justify-content: center; gap: 2.4vw; padding: 3vh 2.6vw; border: 2px dashed var(--k-line); border-radius: 24px; }

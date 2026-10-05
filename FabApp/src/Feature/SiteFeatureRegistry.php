@@ -244,15 +244,15 @@ final class SiteFeatureRegistry
             ),
             new SiteFeature(
                 'charter',
-                'Charte de sécurité',
-                'Une charte que chaque membre accepte une fois ; redemandée quand elle change.',
+                'Règlement à accepter',
+                'Le règlement du lab, que chaque membre accepte une fois ; redemandé quand il change.',
                 self::GROUP_ACTIVITY,
                 defaultOn: false,
             ),
             new SiteFeature(
                 'feedback',
-                'Signaler un problème',
-                'Un bouton sur chaque page pour envoyer un bug, une gêne ou une idée à l’équipe.',
+                'Retour sur le site',
+                'Un bouton « Un retour ? » sur chaque page pour envoyer un bug, une gêne ou une idée sur le site à l’équipe.',
                 self::GROUP_ACTIVITY,
             ),
             new SiteFeature(

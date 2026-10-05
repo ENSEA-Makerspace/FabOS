@@ -1,4 +1,4 @@
-{# S210 — « Signaler un problème » : l'entrée de l'en-tête (membre connecté).
+{# S210 — « Un retour ? » : l'entrée de l'en-tête (membre connecté).
 
    Zéro JS : un <details> dont la pastille réutilise `.header-logout-link`.
    Inclus par `_header.html.twig` seulement si `app.user` ET `feedback_open()`
@@ -8,28 +8,30 @@
    🔴 **L'adresse de la page est celle de LA REQUÊTE** (`app.request.requestUri`,
    écrite ici par le serveur), jamais le Referer : le navigateur peut le
    supprimer, et il dit d'où l'on vient, pas où l'on est.
-   ⚠️ Le remerciement sort ICI : les pages publiques n'ont pas de zone de flashes
-   commune, et les flashes `feedback` ne doivent pas être avalés par un autre
-   gabarit. #}
+   ⚠️ Le remerciement (flashes `feedback`) sort juste SOUS l'en-tête, dans
+   `_header.html.twig` : les pages publiques n'ont pas de zone de flashes commune. #}
 <link rel="stylesheet" href="{{ asset('css/feedback.css') ~ '?v=' ~ css_version }}">
-{% for message in app.flashes('feedback') %}<div class="fb-toast" role="status">{{ message }}</div>{% endfor %}
-{% for message in app.flashes('feedback_error') %}<div class="fb-toast is-error" role="alert">{{ message }}</div>{% endfor %}
 <details class="fb">
     <summary class="header-logout-link" title="{{ 'feedback.title'|trans }}">{{ 'feedback.entry'|trans }}</summary>
     <div class="fb-panel">
         <form method="post" action="{{ path('app_feedback_send') }}">
             <input type="hidden" name="_token" value="{{ csrf_token('feedback') }}">
             <input type="hidden" name="page" value="{{ app.request.requestUri }}">
-            <fieldset class="fb-kinds">
+            <fieldset class="choice-tiles">
                 <legend>{{ 'feedback.title'|trans }}</legend>
                 {% for kind in ['bug', 'ux', 'idea'] %}
                     <input type="radio" name="kind" id="fb-kind-{{ kind }}" value="{{ kind }}"{{ loop.first ? ' checked' : '' }}>
                     <label for="fb-kind-{{ kind }}">{{ ('feedback.kind_' ~ kind)|trans }}</label>
                 {% endfor %}
             </fieldset>
-            <textarea name="message" required maxlength="2000" aria-label="{{ 'feedback.message'|trans }}" placeholder="{{ 'feedback.message'|trans }}"></textarea>
-            <button type="submit" class="fb-send">{{ 'feedback.send'|trans }}</button>
-            <p class="fb-note">{{ 'feedback.note'|trans }}</p>
+            <div class="form-field">
+                <label for="fb-message">{{ 'feedback.message_label'|trans }}</label>
+                <textarea id="fb-message" name="message" required maxlength="2000" placeholder="{{ 'feedback.message'|trans }}"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">{{ 'feedback.send'|trans }}</button>
+            <p class="form-help">{{ 'feedback.note'|trans }}</p>
         </form>
+        {# S205 — une machine en panne n'est pas un retour sur le site : un autre chemin, et une machine à nommer. #}
+        {% if machine_reports_open() %}<p class="form-help"><a href="{{ path('app_report_choose') }}">{{ 'feedback.machine_down'|trans }}</a></p>{% endif %}
     </div>
 </details>

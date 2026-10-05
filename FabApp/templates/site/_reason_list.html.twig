@@ -1,0 +1,46 @@
+{#
+   LA LISTE DE MOTIFS RÉGLABLE — un seul partiel pour les motifs de visite (check-in) et les
+   motifs d'avertissement (S207, S208). Un repli sous la liste : ajouter un motif, renommer,
+   retirer de la liste (ou remettre), et — si `movable` — monter / descendre. Retirer ne
+   supprime rien : les lignes déjà écrites gardent leur motif.
+
+   Paramètres :
+     reasons   la liste `{id, label, active}`
+     route     la route POST (`action` = add | rename | enable | disable | move_up | move_down)
+     token     l'identifiant du jeton CSRF que cette route attend
+     help      (facultatif) une phrase d'aide, déjà traduite
+     movable   (facultatif) montre ↑ ↓ : seulement là où l'ordre se voit (les tuiles de la borne)
+
+   Même balisage que les catégories de machines et d'événements (`.cat-inline`) ; ⚠️ le
+   contenu (`label`) est de la donnée : jamais traduit.
+#}
+{# Le <div> : un enfant direct de la carte de liste reçoit le retrait latéral des tuiles (`.admin-panel > *`). #}
+<div>
+<details class="settings-danger settings-danger--neutral" id="motifs">
+    <summary>{{ 'reasons.title'|trans }}</summary>
+    <div>
+        {% if help|default('') %}<p class="settings-hint">{{ help }}</p>{% endif %}
+        <form method="post" action="{{ path(route) }}" class="cat-inline">
+            <input type="hidden" name="_token" value="{{ csrf_token(token) }}">
+            <input type="hidden" name="action" value="add">
+            <label class="sr-only" for="reason-new">{{ 'reasons.new'|trans }}</label>
+            <input id="reason-new" type="text" name="label" maxlength="120" required>
+            <button class="ml-btn" type="submit">{{ 'reasons.add'|trans }}</button>
+        </form>
+        {% for r in reasons %}
+            <form method="post" action="{{ path(route) }}" class="cat-inline" data-reason="{{ r.id }}">
+                <input type="hidden" name="_token" value="{{ csrf_token(token) }}">
+                <input type="hidden" name="id" value="{{ r.id }}">
+                <label class="sr-only" for="reason-{{ r.id }}">{{ 'reasons.rename'|trans }}</label>
+                <input id="reason-{{ r.id }}" type="text" name="label" maxlength="120" required value="{{ r.label }}">
+                <button class="admin-action" type="submit" name="action" value="rename">{{ 'reasons.rename'|trans }}</button>
+                {% if movable|default(false) %}
+                    <button class="admin-action" type="submit" name="action" value="move_up" aria-label="{{ 'reasons.move_up'|trans }}" title="{{ 'reasons.move_up'|trans }}">↑</button>
+                    <button class="admin-action" type="submit" name="action" value="move_down" aria-label="{{ 'reasons.move_down'|trans }}" title="{{ 'reasons.move_down'|trans }}">↓</button>
+                {% endif %}
+                <button class="admin-action" type="submit" name="action" value="{{ r.active ? 'disable' : 'enable' }}">{{ (r.active ? 'reasons.remove' : 'reasons.restore')|trans }}</button>
+            </form>
+        {% endfor %}
+    </div>
+</details>
+</div>

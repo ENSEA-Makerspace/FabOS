@@ -37,16 +37,11 @@
                     <h2 id="ck-walkin-title">{{ 'checkin.kiosk_visitor'|trans }}</h2>
                     <form method="post" action="{{ path('app_kiosk_checkin_post') }}">
                         <input type="hidden" name="_token" value="{{ csrf_token('kiosk_checkin') }}">
-                        {# Pot de miel : invisible pour une personne, rempli par un robot. #}
-                        <div class="ck-hp" aria-hidden="true"><label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+                        {% include 'site/_honeypot.html.twig' %}
                         <label class="ck-field"><span>{{ 'checkin.visitor_name'|trans }}</span>
                             <input type="text" name="name" maxlength="120" required autocomplete="off"></label>
                         <label class="ck-field"><span>{{ 'checkin.visitor_type'|trans }}</span>
                             <select name="type">{% for t in types %}<option value="{{ t }}">{{ ('checkin.type_' ~ t)|trans }}</option>{% endfor %}</select></label>
-                        {% if withNote %}
-                            <label class="ck-field"><span>{{ 'checkin.note_label'|trans }}</span>
-                                <input type="text" name="note" maxlength="500" placeholder="{{ 'checkin.note_hint'|trans }}" autocomplete="off"></label>
-                        {% endif %}
                         <div class="ck-actions">
                             {% if reasons %}
                                 <p>{{ 'checkin.why'|trans }}</p>

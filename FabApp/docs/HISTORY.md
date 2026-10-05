@@ -219,6 +219,17 @@ effet automatique) ; S209 charte (= le règlement du lab, accord redemandé si l
 texte change) ; S210 bouton « Signaler ». ⚠️ Le passage de badge n'ouvre pas encore
 un check-in : aucune API de porte n'enregistre les passages.
 
+**Revue de sortie par un designer pointilleux** (`docs/PHASE-W-REVUE.md`, 43
+constats : 3 bloquants, 18 à corriger, 22 finitions) — 42 appliqués. Décisions :
+la pastille de l'en-tête devient « Un retour ? » (deux « Signaler » se
+confondaient) et renvoie vers le signalement de panne ; un lien « Signaler une
+panne » sur chaque fiche machine ; « stockage » devient « rangement » (stocks
+éteints = plus un mot de la famille, sonde élargie) ; la charte s'appelle « Règlement
+du lab » partout ; la question du projet quitte la borne. Un seul partiel de
+« liste de motifs » pour le check-in et les avertissements ; `feedback.css` divisé
+par deux. `app:render --features` : voir une fonction éteinte dans une transaction
+annulée.
+
 ## 0.5.1 — « Mon compte » (2026-10-02)
 
 `/profil` refait d'après la proposition validée : en-tête compact, onglets serveur

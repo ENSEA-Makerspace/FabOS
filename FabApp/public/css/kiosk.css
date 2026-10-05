@@ -97,3 +97,7 @@ body {
    écrite ici la découplerait de sa ligne.
    =================================================================== */
 .ic { width: 1em; height: 1em; flex: 0 0 auto; vertical-align: -0.125em; }
+
+/* `.sr-only` du site (style.css), que ces pages autonomes ne chargent pas : sert au
+   pot de miel partagé (`_honeypot`) et aux libellés qu'on ne montre qu'aux lecteurs d'écran. */
+.sr-only { position: absolute !important; width: 1px !important; height: 1px !important; margin: -1px !important; padding: 0 !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }

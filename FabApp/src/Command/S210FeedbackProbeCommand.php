@@ -105,6 +105,7 @@ final class S210FeedbackProbeCommand extends Command
             $html = $this->page($page, $memberSession);
             $this->check($io, $failures, 'un membre voit l’entrée (connexion ' . $this->lastLogin . ')', str_contains($html, 'name="kind"') && str_contains($html, 'name="message"'));
             $this->check($io, $failures, '🔴 l’adresse jointe est celle de la page (requête), pas le Referer', str_contains($html, 'name="page" value="' . $page . '"'));
+            $this->check($io, $failures, 'le choix du type est le composant partagé `.choice-tiles`, le message a son libellé', str_contains($html, 'class="choice-tiles"') && str_contains($html, 'for="fb-message"'));
             $token = $this->formToken($html, '/retour');
             $this->check($io, $failures, 'le formulaire porte son jeton CSRF', $token !== '');
 

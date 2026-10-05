@@ -37,12 +37,14 @@ final class CharterController extends AbstractController
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('charter_accept', (string) $request->request->get('_token'))) {
                 $this->addFlash('error', 'flash.mise_a_jour_refusee_token_csrf');
-            } else {
-                $charter->accept((int) $user->getId());
-                $this->addFlash('success', 'charter.accepted_flash');
-            }
 
-            return $this->redirectToRoute('app_charter', [], Response::HTTP_SEE_OTHER);
+                return $this->redirectToRoute('app_charter', [], Response::HTTP_SEE_OTHER);
+            }
+            $charter->accept((int) $user->getId());
+            $this->addFlash('success', 'charter.accepted_flash');
+
+            // Accepté : on rentre à l'accueil, dont la zone de messages dit merci.
+            return $this->redirectToRoute('app_home', [], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('site/charter.html.twig', [
