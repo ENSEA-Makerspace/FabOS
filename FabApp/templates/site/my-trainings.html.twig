@@ -32,15 +32,7 @@
                         <div class="pp-tr-resume-in">
                             <div>
                                 <h2 id="pp-tr-resume-title" class="pp-next-title"><a href="{{ path('app_formation_detail', {id: t.formation.id}) }}">{{ t.formation.titre }}</a></h2>
-                                {% set stepsOut = [] %}
-                                {% for step in t.journey.steps %}
-                                    {% set stepsOut = stepsOut|merge([{
-                                        state: step.done ? 'done' : (step.key == t.journey.next ? 'next' : ''),
-                                        label: ('fdet.step_' ~ step.key)|trans,
-                                        note: (step.done ? 'mytr.step_done' : (step.key == t.journey.next ? 'mytr.step_next' : (step.blocking ? 'mytr.step_team' : 'mytr.step_later')))|trans,
-                                    }]) %}
-                                {% endfor %}
-                                {% include 'site/_steps.html.twig' with { steps: stepsOut } only %}
+                                {% include 'site/_journey_steps.html.twig' with { journey: t.journey } only %}
                             </div>
                             <div class="pp-tr-resume-side">
                                 {% if t.journey.next %}

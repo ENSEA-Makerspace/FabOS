@@ -215,8 +215,9 @@ activable) et gagne `.form-narrow` (formulaire public étroit, R8 de la revue).
 — `_next_card`, `_dated_rows` (variante `search`), `_steps`, `_hcard` — et la page
 Design les inclut. Preuve : le `<main>` de sept pages rendu avant et après, comparé
 sans les espaces, est identique. `_reason_list` et `_honeypot` prennent un
-`id_prefix`. 🅿️ Reste : la carte « à reprendre » de Mes formations, et le choix
-du mot d'une étape écrit deux fois (`my-trainings`, `badge-detail`).
+`id_prefix`. Le choix du mot d'une étape de formation, écrit deux fois, passe dans
+`_journey_steps` (même preuve, huit pages). 🅿️ Reste : la carte « à reprendre »
+de Mes formations (ni image ni colonne latérale : `_next_card` changerait son allure).
 
 ## 0.6.0 — Phase W : six fonctions activables (2026-10-05)
 

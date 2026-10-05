@@ -1,0 +1,17 @@
+{#
+   LES ÉTAPES D'UN PARCOURS DE FORMATION — traduit le parcours (`journey` : `steps` {key, done,
+   blocking} et `next`) en étapes pour `_steps.html.twig`. Le mot sous chaque étape se décide
+   ICI, une seule fois : fait · à faire maintenant · c'est l'équipe qui valide · plus tard.
+
+   Paramètre : journey (celui de `MyTrainings` / `BadgeHeld`).
+#}
+{% set stepsOut = [] %}
+{% for step in journey.steps %}
+    {% set isNext = step.key == journey.next %}
+    {% set stepsOut = stepsOut|merge([{
+        state: step.done ? 'done' : (isNext ? 'next' : ''),
+        label: ('fdet.step_' ~ step.key)|trans,
+        note: (step.done ? 'mytr.step_done' : (isNext ? 'mytr.step_next' : (step.blocking ? 'mytr.step_team' : 'mytr.step_later')))|trans,
+    }]) %}
+{% endfor %}
+{% include 'site/_steps.html.twig' with { steps: stepsOut } only %}

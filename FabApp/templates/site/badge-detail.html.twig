@@ -114,15 +114,7 @@
                 {% for t in held.trainings|filter(t => t.journey.steps) %}
                     <section class="detail-card pp-bo-path" aria-labelledby="pp-bo-path-{{ t.formation.id }}">
                         <h2 id="pp-bo-path-{{ t.formation.id }}">{{ (held.owned ? 'badgeheld.how_obtained' : 'badgeheld.your_path')|trans }} — {{ t.formation.titre }}</h2>
-                        {% set stepsOut = [] %}
-                        {% for step in t.journey.steps %}
-                            {% set stepsOut = stepsOut|merge([{
-                                state: step.done ? 'done' : (step.key == t.journey.next ? 'next' : ''),
-                                label: ('fdet.step_' ~ step.key)|trans,
-                                note: (step.done ? 'mytr.step_done' : (step.key == t.journey.next ? 'mytr.step_next' : (step.blocking ? 'mytr.step_team' : 'mytr.step_later')))|trans,
-                            }]) %}
-                        {% endfor %}
-                        {% include 'site/_steps.html.twig' with { steps: stepsOut } only %}
+                        {% include 'site/_journey_steps.html.twig' with { journey: t.journey } only %}
                         {% if not held.owned and t.journey.next %}
                             <p class="pp-bo-actions"><a class="btn btn-primary" href="{{ path('app_formation_follow', {id: t.formation.id}) }}">{{ ('fdet.next_' ~ t.journey.next)|trans }}</a></p>
                         {% endif %}
