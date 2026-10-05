@@ -36,7 +36,7 @@ de références et cinq phases neuves ont rendu la lecture linéaire impossible.
 | **U** | **Identité : des modules de connexion** (LDAP, AD, CAS, SAML/Shibboleth, OIDC) — pour TOUTES les installations | S196–S201 — ⏳ ordre à fixer quand l'opérateur saura ce qu'utilise l'ENSEA |
 | **R** | Commerce — **la dernière**, et bloquée par J | S184–S188 |
 | **V** ✅ | Pages revues d'après les planches — **0.5.0**, en test usagers | 2026-10-01 → 2026-10-02 |
-| **W** | Idées reprises de FabtrackJS : signaler une panne (QR), stocks optionnels, check-in à paliers | S205–S207 — 🅿️ à planifier |
+| **W** | Idées reprises de FabtrackJS : signaler une panne (QR), stocks optionnels, check-in à paliers, avertissements, charte, bouton de retour | S205–S210 — 🅿️ à planifier |
 
 ⚠️ **R garde ses numéros bas en passant après S et T** : un numéro de session est
 une étiquette, pas un rang — la note ci-dessous vaut pour elle aussi.
@@ -71,12 +71,12 @@ reste dans `docs/references/PROPOSITIONS.md`, le contenu de la version dans
 - « Valider une inscription » : décider d'abord si une inscription se valide.
 - Le préfixe CSS `pp-` (motifs de `pages.css`) est historique.
 
-## Phase W — trois idées reprises de FabtrackJS (ajoutée le 2026-10-05) 🅿️ À PLANIFIER
+## Phase W — les idées reprises de FabtrackJS (ajoutée le 2026-10-05) 🅿️ À PLANIFIER
 
 Source : la comparaison avec [FabtrackJS](https://github.com/harry-finch/FabtrackJS)
 (outil du fablab de Sorbonne Université ; journal de visites tenu par l'équipe, là
 où FabOS est un portail où le membre agit lui-même). L'opérateur rencontre ses
-auteurs bientôt. Trois idées retenues, dans cet ordre.
+auteurs bientôt. Six idées retenues ; deux à rediscuter.
 
 ### S205 — Signaler une panne, sans compte, depuis un QR code sur la machine
 - Une page **publique** (aucune connexion) `/signaler` et `/signaler/{machine}` :
@@ -129,10 +129,48 @@ niveau. Les paliers s'empilent, et chacun est un interrupteur :
   activer le palier 3 → la borne pose UNE question ; le palier 4 n'apparaît que
   si on l'allume.
 
-### Non retenu pour l'instant (noté pour mémoire)
-Avertissements par usager, charte de sécurité à accepter, bouton « signaler un
-bug » sur chaque page, traductions en tableur, statistiques « posez une question »,
-système de plugins.
+### S208 — Avertissements par usager
+- L'équipe consigne un avertissement sur un compte (sécurité, comportement,
+  matériel…), dans une **liste de motifs** que le lab règle lui-même, avec une
+  note et la date. Historique visible sur la fiche admin de la personne.
+- Un e-mail prévient les admins (gabarit modifiable). 🅿️ À trancher : la personne
+  voit-elle ses avertissements sur son compte, et un avertissement a-t-il un
+  effet (aucun par défaut : c'est un registre, pas une sanction automatique).
+- **Ce que l'opérateur vérifie** : poser un avertissement depuis une fiche, le
+  retrouver dans l'historique, recevoir l'e-mail.
+
+### S209 — Charte de sécurité à accepter
+- Un texte de charte (une page du lab, modifiable) que chaque membre **accepte une
+  fois** ; l'acceptation est datée sur le compte. Une nouvelle version de la
+  charte redemande l'accord.
+- Tant qu'elle n'est pas acceptée : une ligne dans « À faire » de l'accueil et de
+  Mon compte. 🅿️ À trancher : bloque-t-elle la réservation ? (réglable, non par
+  défaut).
+- Activable : un lab sans charte ne voit rien.
+- **Ce que l'opérateur vérifie** : un compte neuf voit « Accepter la charte » dans
+  À faire ; l'accepter la fait disparaître ; changer la charte la fait revenir.
+
+### S210 — Bouton « signaler un problème » sur chaque page
+- Dans l'en-tête, pour un membre connecté : une petite fenêtre avec un type (bug,
+  ergonomie, idée) et un message ; l'adresse de la page et le compte sont joints
+  tout seuls. Arrive par e-mail à l'équipe et dans une liste admin.
+- ⚠️ Utile **pendant les tests usagers de la 0.5** : candidat à passer en premier.
+- **Ce que l'opérateur vérifie** : envoyer un retour depuis une page quelconque,
+  le recevoir avec l'adresse de la page.
+
+### 🅿️ À rediscuter avec l'opérateur (pas compris à ce stade — expliquer d'abord)
+- **Statistiques « posez une question »** (leur n°8) : l'admin écrit une question
+  en français (« combien de réservations laser en septembre ? ») et une IA la
+  traduit en requête sur la base, en lecture seule. À expliquer : ce que ça
+  apporte par rapport aux rapports existants, ce que ça coûte (un service d'IA
+  externe à payer et à qui on envoie la structure de la base), et les risques.
+- **Système de plugins** (leur n°9) : une façon d'ajouter des fonctions propres à
+  UN lab (chez eux : wiki BookStack, Repair Café, unités d'enseignement) sans
+  toucher au cœur du logiciel. À expliquer : la différence avec nos
+  fonctionnalités activables, et si un autre lab que l'ENSEA en aurait besoin.
+
+### Non retenu pour l'instant
+Traductions éditables en tableur (export / import CSV).
 
 ## Cap produit
 
