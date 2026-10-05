@@ -247,7 +247,7 @@ final class MaterialStock
         foreach ($this->db->fetchAllAssociative(
             'SELECT id, name, category FROM MATERIAL WHERE archivedAt IS NULL AND id IN (?) ORDER BY name',
             [array_keys($stock)],
-            [Connection::PARAM_INT_ARRAY],
+            [\Doctrine\DBAL\ArrayParameterType::INTEGER],
         ) as $m) {
             $row = $stock[(int) $m['id']];
             $out[] = ['id' => (int) $m['id'], 'name' => (string) $m['name'], 'category' => $m['category'], 'state' => $row['state'], 'quantity' => $row['quantity'], 'unit' => (string) $row['unit']];

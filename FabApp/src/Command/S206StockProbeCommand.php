@@ -187,7 +187,12 @@ final class S206StockProbeCommand extends Command
             $anon = new Session(new MockArraySessionStorage());
             $detail = '/materiaux/' . $materialId;
             $this->check($io, $failures, 'en stock : pastille sur la fiche et sur la carte', $this->inAnyLocale($this->page($detail, $anon), 'stock.state_in', []) && $this->inAnyLocale($this->page('/materiaux', $anon), 'stock.state_in', []));
-            $this->check($io, $failures, '🔴 le public ne voit PAS la quantité exacte', !str_contains($this->page($detail, $anon), '6 kg'));
+            $anonPage = $this->page($detail, $anon);
+            if (str_contains($anonPage, '6 kg')) {
+                $at = strpos($anonPage, '6 kg');
+                $io->writeln('   contexte : ' . preg_replace('/\s+/', ' ', substr($anonPage, max(0, $at - 160), 220)));
+            }
+            $this->check($io, $failures, '🔴 le public ne voit PAS la quantité exacte', !str_contains($anonPage, '6 kg'));
             $this->check($io, $failures, 'le personnel la voit', str_contains($this->page($detail, $session), '6 kg'));
 
             $this->post($moveAction, ['_token' => $moveToken, 'amount' => '4', 'direction' => 'out', 'note' => ''], $session);

@@ -122,6 +122,8 @@ final class S208WarningProbeCommand extends Command
             if ($this->mailer->isOperational()) {
                 $this->check($io, $failures, '🔴 un e-mail « warning_issued » est en file pour au moins un administrateur', $mails() > $mailsBefore);
                 $ctx = (string) $this->db->fetchOne("SELECT contextJson FROM EMAIL_LOG WHERE template = 'warning_issued' ORDER BY id DESC LIMIT 1");
+                // Le contexte est du JSON : accents et barres y sont échappés — on le relit.
+                $ctx = (string) json_encode(json_decode($ctx, true), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                 $this->check($io, $failures, 'il porte la note, le motif et le lien de la fiche', str_contains($ctx, 'S208') && str_contains($ctx, $reason['label']) && str_contains($ctx, '/admin/utilisateurs/' . $memberId));
             } else {
                 $io->writeln('   <comment>– courrier non configuré ou en pause : l’envoi n’est pas mesuré ici</comment>');
@@ -142,9 +144,9 @@ final class S208WarningProbeCommand extends Command
             $this->post('/admin/avertissements/motifs', ['_token' => $listToken, 'action' => 'add', 'label' => 'Sonde S208 : motif neuf'], $session);
             $newId = (int) $this->db->fetchOne("SELECT id FROM WARNING_REASON WHERE label = 'Sonde S208 : motif neuf'");
             $this->check($io, $failures, 'un motif neuf est ajouté', $newId > 0);
-            $this->check($io, $failures, 'il est proposé sur la fiche', str_contains($this->page($fiche, $session), '<option value="' . $newId . '">'));
+            $this->check($io, $failures, 'il est proposé sur la fiche', str_contains($this->page($fiche, $session), 'data-warning-reason="' . $newId . '"'));
             $this->post('/admin/avertissements/motifs', ['_token' => $listToken, 'action' => 'disable', 'id' => (string) $newId], $session);
-            $this->check($io, $failures, 'retiré de la liste : plus proposé, mais pas effacé', !str_contains($this->page($fiche, $session), '<option value="' . $newId . '">') && (int) $this->db->fetchOne('SELECT COUNT(*) FROM WARNING_REASON WHERE id = ?', [$newId]) === 1);
+            $this->check($io, $failures, 'retiré de la liste : plus proposé, mais pas effacé', !str_contains($this->page($fiche, $session), 'data-warning-reason="' . $newId . '"') && (int) $this->db->fetchOne('SELECT COUNT(*) FROM WARNING_REASON WHERE id = ?', [$newId]) === 1);
 
             $io->section('6. Fonction éteinte');
             $this->features->setEnabled('warnings', false);

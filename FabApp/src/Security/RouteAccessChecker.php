@@ -4,6 +4,7 @@ namespace App\Security;
 
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Http\AccessMapInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -34,6 +35,7 @@ final class RouteAccessChecker
         // class exists to remove.
         #[Autowire(service: 'security.access_map')]
         private readonly AccessMapInterface $accessMap,
+        private readonly TokenStorageInterface $tokens,
     ) {
     }
 
@@ -47,7 +49,11 @@ final class RouteAccessChecker
         // because the features screen asks the whole admin navigation fifteen
         // times over — once per feature — and each miss builds a throwaway
         // `Request` to interrogate `access_control`.
-        $memoKey = $route . '?' . http_build_query($params);
+        // ⚠️ La personne fait partie de la clé (2026-10-05) : une sonde qui enchaîne
+        // admin puis anonyme dans le même noyau héritait de la réponse de l'admin.
+        // En HTTP réel le service est neuf à chaque requête ; ceci le rend vrai partout.
+        $who = $this->tokens->getToken()?->getUserIdentifier() ?? '';
+        $memoKey = $who . '|' . $route . '?' . http_build_query($params);
 
         return $this->memo[$memoKey] ??= $this->resolve($route, $params);
     }

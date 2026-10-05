@@ -169,7 +169,7 @@
                                 <form method="post" action="{{ path('app_admin_user_warning_add', {id: user.id}) }}" class="afp-tier badge-grants__row">
                                     <input type="hidden" name="_token" value="{{ csrf_token('admin_warning_add_' ~ user.id) }}">
                                     <label class="afp-select"><span class="afp-k">{{ 'warnings.reason_label'|trans }}</span><select id="warning-reason" name="reason" required>
-                                        {% for r in warn.reasons %}<option value="{{ r.id }}">{{ r.label }}</option>{% endfor %}
+                                        {% for r in warn.reasons %}<option value="{{ r.id }}" data-warning-reason="{{ r.id }}">{{ r.label }}</option>{% endfor %}
                                     </select></label>
                                     <label class="afp-select badge-grants__reason"><span class="afp-k">{{ 'warnings.note_label'|trans }}</span><input type="text" id="warning-note" name="note" maxlength="2000" placeholder="{{ 'warnings.note_placeholder'|trans }}"></label>
                                     <button class="btn-link btn-danger-admin" type="submit">{{ 'warnings.add_submit'|trans }}</button>

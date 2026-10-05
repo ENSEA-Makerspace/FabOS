@@ -78,7 +78,7 @@ final class CheckinAdminController extends AbstractController
             $head = ['date', 'arrivee', 'depart', 'nom', 'type', 'source'];
             $withReason && $head[] = 'motif';
             $withNote && $head[] = 'note';
-            fputcsv($out, $head);
+            fputcsv($out, $head, ',', '"', '');
             foreach ($visits as $v) {
                 $end = $v['end'] ?? null;
                 $line = [
@@ -92,7 +92,7 @@ final class CheckinAdminController extends AbstractController
                 ];
                 $withReason && $line[] = (string) $v['reason'];
                 $withNote && $line[] = preg_replace('/^[=+\-@]/', "'$0", (string) $v['projectNote']);
-                fputcsv($out, $line);
+                fputcsv($out, $line, ',', '"', '');
             }
             fclose($out);
         });
