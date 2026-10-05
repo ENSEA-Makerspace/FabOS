@@ -979,3 +979,9 @@ a.cell-chip:hover, a.cell-chip:focus-visible {
 }
 .choice-tiles input:checked + label { border-color: var(--color-primary); background: var(--tone-primary-soft); }
 .choice-tiles input:focus-visible + label { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+
+/* Un formulaire PUBLIC court (signaler une panne…) : la carte est étroite et centrée, jamais
+   étirée à la largeur de l'écran (docs/FORM-DESIGN.md, règle 6). Même jeton que l'admin
+   (`--form-measure`, `.admin-edit-form`), valeur plus serrée : un visiteur n'a qu'un geste à faire.
+   Se pose sur la CARTE (`.detail-card.form-narrow`). `max-width` : sous cette largeur, rien ne change. */
+.form-narrow { --form-measure: 560px; max-width: var(--form-measure); margin-inline: auto; }

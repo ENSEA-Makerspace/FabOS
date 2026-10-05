@@ -2561,6 +2561,44 @@ final class AdminController extends AbstractController
             // install's own data does to each type — including the empty cases,
             // which is where the six partials earn their keep.
             'demoRows' => array_slice($machines->findBy([], ['nom' => 'ASC']), 0, 4),
+            // 0.5 / 0.6 — des données FACTICES pour les motifs de pages.css, de
+            // `_home_member` et de « Mon compte » : de simples tableaux (Twig lit
+            // `a.b` aussi bien sur un tableau que sur un objet), aucune requête.
+            // Même forme que ce que `MemberToday` et les pages réelles passent.
+            'demoPatterns' => [
+                'member' => ['firstName' => 'Camille', 'displayName' => 'Camille D.'],
+                'today' => [
+                    'todo' => [
+                        ['kind' => 'charter', 'tone' => 'caution', 'icon' => 'check'],
+                        ['kind' => 'first_badge', 'tone' => 'caution', 'icon' => 'key'],
+                    ],
+                    'next' => null,
+                    'nextIsNow' => false,
+                    'explained' => [
+                        'active' => true,
+                        'badge' => ['registered' => true, 'hint' => '••••A1F2'],
+                        'badges' => [], 'free' => [], 'closed' => [], 'open' => [],
+                    ],
+                ],
+                'rows' => [
+                    ['day' => 'Mar', 'date' => '7 oct', 'time' => '14:00–16:00', 'what' => 'Découpeuse laser', 'motif' => 'Prototype boîtier', 'pending' => true],
+                    ['day' => 'Jeu', 'date' => '9 oct', 'time' => '10:00–12:00', 'what' => 'Atelier bois', 'motif' => 'Étagère', 'pending' => false],
+                ],
+                'steps' => [
+                    ['label' => 'Découvrir', 'note' => 'Fait', 'state' => 'is-done', 'mark' => '✓'],
+                    ['label' => 'Quiz', 'note' => 'À faire maintenant', 'state' => 'is-next', 'mark' => '2'],
+                    ['label' => 'Séance pratique', 'note' => 'Avec l’équipe', 'state' => '', 'mark' => '3'],
+                ],
+                'quick' => [
+                    ['icon' => 'calendar', 'title' => 'Mes réservations', 'hint' => 'Ce qui arrive'],
+                    ['icon' => 'tool', 'title' => 'Machines', 'hint' => 'Voir ce qui est libre'],
+                    ['icon' => 'ticket', 'title' => 'Formations', 'hint' => 'Obtenir un badge'],
+                ],
+                'reasons' => [
+                    ['id' => 0, 'label' => 'Projet perso', 'active' => true],
+                    ['id' => 0, 'label' => 'Atelier', 'active' => false],
+                ],
+            ],
         ]);
     }
 

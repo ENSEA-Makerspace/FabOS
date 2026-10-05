@@ -71,6 +71,8 @@ dans **~350 pt** de large, centré, le reste de l'écran vide. Un formulaire ne
 s'étire pas à la largeur de l'écran : une ligne de saisie de 1 200 px est plus
 difficile à lire, pas plus confortable.
 
+**Côté public** : `.form-narrow` (`components.css`) sur la carte d'un formulaire public court — 560 px, centrée, même jeton `--form-measure` que `.admin-edit-form`.
+
 ⚠️ Deux champs côte à côte **seulement** quand ils vont ensemble : prénom/nom,
 ville/code postal, début/fin. Sinon pleine largeur de la carte.
 

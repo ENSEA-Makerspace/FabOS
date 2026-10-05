@@ -7,7 +7,7 @@
    l'appareil du téléphone), un contact. Un seul verbe : « Envoyer le signalement ».
    Le pot de miel est `_honeypot` (défense complétée par le contrôleur : jeton CSRF,
    limite de débit, image contrôlée).
-   ⚠️ Aucune CSS neuve : `.detail-card`, `.form-field`, `.btn-submit`.
+   ⚠️ `.detail-card`, `.form-field`, `.btn-submit`, et `.form-narrow` (carte étroite, components.css).
 #}
 
 {% block title %}{{ 'machine_report.title'|trans }} - {{ machine.nom }} - FabOS{% endblock %}
@@ -20,7 +20,7 @@
 <main id="main-content" tabindex="-1" class="main-content">
     <section class="machine-detail-section">
         <div class="container">
-            <section class="detail-card" aria-labelledby="report-form-title">
+            <section class="detail-card form-narrow" aria-labelledby="report-form-title">
                 <h1 id="report-form-title" class="detail-card-title">{{ 'machine_report.heading'|trans({'%machine%': machine.nom}) }}</h1>
                 <p>{{ 'machine_report.lead'|trans }}</p>
                 {% if error %}<p class="form-errors" role="alert">{{ error|trans }}</p>{% endif %}

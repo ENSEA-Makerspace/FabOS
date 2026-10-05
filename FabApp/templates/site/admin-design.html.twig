@@ -18,6 +18,12 @@
        RÉELS, pas des copies : si le catalogue change, cette page change avec lui.
        Un guide de style qui redessine ses propres exemples ment au bout d'un mois. #}
     <link rel="stylesheet" href="{{ asset('css/machines-list.css') ~ '?v=' ~ css_version }}">
+    {# 0.5 / 0.6 — les feuilles des motifs documentés plus bas : `details.css` (`.md-*`, la tête de
+       fiche), `pages.css` (`.pp-*`), `page-profil.css` (`.pp-pf-*`, propres à « Mon compte »). Même
+       raison que `machines-list.css` : on montre le composant RÉEL. #}
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/pages.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/page-profil.css') ~ '?v=' ~ css_version }}">
     <style>
         .dz-intro { color: var(--color-text-light); max-width: 78ch; margin-bottom: var(--spacing-lg); }
         .dz-sec { border-top: 1px solid var(--border-color); margin-top: var(--spacing-lg); padding-top: var(--spacing-lg); }
@@ -181,6 +187,18 @@
                 votre navigateur, sur les couleurs réellement appliquées, accent de votre portail compris.
                 Changez de thème et ils se recalculent.
                 <strong>En-dessous de 4,5:1, un texte n'est pas lisible.</strong>
+            </p>
+            <p class="dz-intro">
+                <strong>Motifs des versions 0.5 et 0.6 :</strong>
+                <a href="#tete-fiche">tête de fiche</a> ·
+                <a href="#catalogue-repli">image par défaut du catalogue</a> ·
+                <a href="#motifs-pp">motifs <code>pp-</code></a> ·
+                <a href="#bloc-membre">bloc membre</a> ·
+                <a href="#choix-tuiles">tuiles de choix</a> ·
+                <a href="#formulaire-etroit">formulaire public étroit</a> ·
+                <a href="#motifs-reglables">liste de motifs et pot de miel</a> ·
+                <a href="#page-compte">page de compte</a> ·
+                <a href="#fonction-activable">fonction activable</a>
             </p>
 
             <div class="dz-sec">
@@ -379,6 +397,29 @@
                     En tête, ce qui est vrai de <em>la chose</em> (libre, occupée, labo fermé) ; en pied, ce qui est
                     vrai de <em>vous</em> (formation requise, obtenu). Un membre qui lit « indisponible » alors que la
                     vérité est « pas formé » attend quelque chose qui n'arrivera jamais.
+                </p>
+
+                <p class="dz-label" id="catalogue-repli" style="margin-top: var(--spacing-lg)">L'image par défaut — <code>fallback_icon</code></p>
+                <div class="dz-demo">
+                    <div class="ml-grid" style="--ml-card-min: 17rem">
+                        {% include 'site/_catalogue_card.html.twig' with {
+                            url: '#', title: 'Salle de réunion Ada', type: 'Salle', meta: 'Atelier bois',
+                            state: 'Libre', state_tone: 'go', action: 'Voir', fallback_icon: 'map',
+                        } only %}
+                        {% include 'site/_catalogue_card.html.twig' with {
+                            url: '#', title: 'Perceuse sans fil', type: 'Outillage', meta: 'Armoire 2',
+                            state: 'Disponible', state_tone: 'go', action: 'Voir', fallback_icon: 'box',
+                        } only %}
+                    </div>
+                </div>
+                <p class="dz-used">
+                    <b>Quand :</b> la carte de ce qui n'est pas une machine et n'a pas de photo. Sans
+                    <code>fallback_icon</code>, <code>_category_icon</code> dessine son repli par défaut — l'imprimante 3D — sur un
+                    espace ou une perceuse. Un <strong>nom de <code>_icon</code></strong>, jamais un caractère :
+                    <code>map</code> pour un espace, <code>box</code> pour un prêt ou un matériau.
+                    <b>Priorité :</b> photo, puis <code>placeholder_seed</code> (affiche d'événement), puis
+                    <code>fallback_icon</code>, puis l'icône de catégorie (<code>icon_slug</code>).
+                    <b>Sert :</b> <code>places</code>, <code>loans</code>, <code>materials</code>.
                 </p>
 
                 <p class="dz-label" style="margin-top: var(--spacing-lg)">L’état d’un droit d’usage</p>
@@ -1004,6 +1045,13 @@
                     ⚠️ Des libellés courts, sur une ligne : une tuile qui passe sur deux
                     lignes déséquilibre les autres.
                 </p>
+                <p class="dz-used">
+                    <b>Quand :</b> 3 ou 4 choix qui s'excluent, <strong>sans autre contrôle</strong> à côté. Au-delà de
+                    quatre, ou si les choix portent des explications, c'est une liste déroulante.
+                    <b>Sert :</b> le panneau « Un retour ? » (<code>_feedback.html.twig</code>) — le seul usage
+                    aujourd'hui. Les « tuiles » de la barre de catégories (<code>.ml-tile</code>) sont un autre motif :
+                    elles <em>filtrent</em> une liste par lien, celles-ci <em>choisissent</em> une valeur d'un formulaire.
+                </p>
             </div>
 
             <div class="dz-sec" id="recherche">
@@ -1087,6 +1135,391 @@
                     <code>--color-primary-text</code>. <strong>Le jour où une deuxième page a besoin
                     de cette forme, elle monte dans <code>components.css</code> — elle ne se
                     recopie pas.</strong>
+                </p>
+            </div>
+
+            {# =============================================================
+               0.5 / 0.6 — LES MOTIFS NÉS DES PAGES PUBLIQUES
+               ============================================================= #}
+            <div class="dz-sec" id="tete-fiche">
+                <h3>La tête « tâche d'abord » d'une fiche</h3>
+                <p>
+                    Ce qu'on vient décider — puis-je réserver, emprunter, où m'en servir ? — en tête, à
+                    côté de la photo ; le reste dessous. Un seul partiel pour les quatre fiches :
+                    <code>_detail_hero.html.twig</code>, appelé par <code>{% verbatim %}{% embed %}{% endverbatim %}</code>.
+                </p>
+                <p class="dz-label">Le composant réel, rendu ici (sans photo : le repli)</p>
+                <div class="dz-demo">
+                    {% embed 'site/_detail_hero.html.twig' with { kicker: 'Atelier bois', title: 'Salle de réunion Ada' } %}
+                        {% block main %}
+                            <p class="md-lede">Une salle de huit places, un écran, un tableau blanc. On y entre avec son badge.</p>
+                            <div class="md-cards">
+                                <section class="detail-card md-book" aria-labelledby="dz-md-book-title">
+                                    <div class="md-book-head">
+                                        <b class="md-verdict md-verdict--go" aria-hidden="true">✓</b>
+                                        <h2 id="dz-md-book-title" class="md-book-title">Libre</h2>
+                                    </div>
+                                    <p class="md-note">Réservable jusqu'à 18:00 aujourd'hui.</p>
+                                </section>
+                                <section class="detail-card md-access" aria-labelledby="dz-md-access-title">
+                                    <h2 id="dz-md-access-title" class="detail-card-title">Comment j'entre</h2>
+                                    <ul class="md-access-list">
+                                        <li class="is-ok"><b class="md-access-mark" aria-hidden="true">✓</b><b>Badge Atelier</b></li>
+                                        <li class="is-missing"><b class="md-access-mark" aria-hidden="true">✗</b><b>Formation sécurité</b></li>
+                                    </ul>
+                                    <p class="md-note">Le badge ouvre la porte pendant la réservation.</p>
+                                </section>
+                            </div>
+                        {% endblock %}
+                        {% block fallback %}{% include 'site/_icon.html.twig' with { name: 'map' } only %}{% endblock %}
+                    {% endembed %}
+                </div>
+                <p class="dz-label" style="margin-top: var(--spacing-md)">Les trois verdicts <code>.md-verdict</code></p>
+                <div class="dz-demo dz-row">
+                    <b class="md-verdict md-verdict--go" aria-hidden="true">✓</b> go : on peut y aller
+                    <b class="md-verdict md-verdict--wait" aria-hidden="true">…</b> wait : pris, pas de panne
+                    <b class="md-verdict md-verdict--stop" aria-hidden="true">!</b> stop : hors service, archivé
+                </div>
+                <div class="dz-rule">
+                    <b>Quand l'utiliser</b>
+                    <ol>
+                        <li>Une fiche dont la question est « puis-je en faire quelque chose maintenant ? ».
+                            Le verdict est dans <code>.md-book</code> (un mot, le même vocabulaire de signaux que
+                            <a href="#pastilles">les pastilles</a> : go / wait / stop), l'accès dans
+                            <code>.md-access-list</code> (<code>is-ok</code> / <code>is-missing</code>).</li>
+                        <li><code>.md-lede</code> : la phrase de description, 62 caractères de mesure.
+                            <code>.md-note</code> : la ligne discrète sous une carte. <code>.md-cards</code> :
+                            deux cartes côte à côte, une colonne sur téléphone.</li>
+                        <li>Blocs du partiel : <code>main</code> (sous le titre), <code>fallback</code>
+                            (<strong>obligatoire</strong> : une fiche n'a jamais de trou à la place de la photo),
+                            <code>badge</code> (pastille posée sur la photo). Variables : <code>title</code>,
+                            <code>kicker</code>, <code>title_actions</code>, <code>photo</code>.</li>
+                    </ol>
+                </div>
+                <div class="dz-dont">
+                    <b>À ne pas faire</b>
+                    <ul>
+                        <li>Une cinquième tête dessinée à la main pour une nouvelle fiche : on embed le partiel.</li>
+                        <li>Un bouton qui ne mène nulle part sous le verdict (un prêt se saisit au guichet : la
+                            fiche le dit, elle ne simule pas un bouton).</li>
+                    </ul>
+                </div>
+                <p class="dz-used">
+                    <b>Feuille :</b> <code>details.css</code> (<code>.md-*</code>). <b>Sert :</b> fiche machine,
+                    espace (<code>place-detail</code>), matériau (<code>material-detail</code>), objet prêté
+                    (<code>loan-item</code>).
+                </p>
+            </div>
+
+            <div class="dz-sec" id="motifs-pp">
+                <h3>Les motifs de <code>pages.css</code> (préfixe <code>pp-</code>)</h3>
+                <p>
+                    Le préfixe est historique (« public pages ») : ce sont les blocs des pages où un membre
+                    regarde <em>sa</em> situation. Il n'existe pas de partiel pour eux — chaque page écrit le
+                    balisage, mais <strong>les classes sont les mêmes</strong> et rien ne se redessine.
+                    Données ci-dessous : fictives, de la même forme que celles des vraies pages.
+                </p>
+
+                <p class="dz-label">LA prochaine chose — <code>.pp-next</code></p>
+                <div class="dz-demo">
+                    <section class="pp-next" aria-labelledby="dz-pp-next-title">
+                        <div class="pp-next-media">{% include 'site/_icon.html.twig' with { name: 'calendar' } only %}</div>
+                        <div class="pp-next-main">
+                            <p class="pp-next-when"><b>Demain</b> · 14:00–16:00</p>
+                            <h2 id="dz-pp-next-title" class="pp-next-title"><a href="#motifs-pp">Découpeuse laser</a></h2>
+                            <p class="pp-next-motif">Prototype boîtier</p>
+                        </div>
+                        <div class="pp-next-side">
+                            <div class="pp-next-actions">
+                                <a class="btn btn-primary" href="#motifs-pp">Gérer</a>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+                <p class="dz-used">
+                    <b>Quand :</b> en tête d'une page « mes… », UN seul élément — celui qu'on cherche. Au-delà d'un,
+                    c'est <code>.pp-rows</code>. <b>Sert :</b> <code>mes-reservations</code>, <code>events</code> (mes inscriptions),
+                    et <code>.pp-next-title</code> dans <code>my-trainings</code>.
+                </p>
+
+                <p class="dz-label" style="margin-top: var(--spacing-lg)">Les lignes datées — <code>.pp-rows</code></p>
+                <div class="dz-demo">
+                    <section class="pp-rows">
+                        <h2>À venir</h2>
+                        <ul>
+                            {% for r in demoPatterns.rows %}
+                                <li>
+                                    <span class="pp-row-date"><small>{{ r.day }}</small>{{ r.date }}</span>
+                                    <span class="pp-row-what"><small>{{ r.time }}</small>{{ r.what }}</span>
+                                    <span class="pp-row-motif">{{ r.motif }}</span>
+                                    {% if r.pending %}{% include 'site/_state_chip.html.twig' with { label: 'À valider', signal: 'wait' } only %}{% else %}<span></span>{% endif %}
+                                    <a class="pp-row-go" href="#motifs-pp">Gérer</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </section>
+                </div>
+                <p class="dz-used">
+                    <b>Quand :</b> plusieurs éléments qui ont une date, rangés par groupe (À venir, Passées).
+                    Cinq colonnes au plus : date, quoi, motif, état, un verbe. <code>.is-past</code> les fait
+                    reculer. <b>Sert :</b> <code>mes-reservations</code>, <code>my-trainings</code> (variante <code>.pp-tr-row</code>), <code>events</code>.
+                </p>
+
+                <p class="dz-label" style="margin-top: var(--spacing-lg)">Les étapes en ligne — <code>.pp-steps</code></p>
+                <div class="dz-demo">
+                    <section class="detail-card">
+                        <ol class="pp-steps">
+                            {% for st in demoPatterns.steps %}
+                                <li class="{{ st.state }}"><b class="pp-steps-mark" aria-hidden="true">{{ st.mark }}</b><b>{{ st.label }}</b><small>{{ st.note }}</small></li>
+                            {% endfor %}
+                        </ol>
+                    </section>
+                </div>
+                <p class="dz-used">
+                    <b>Quand :</b> un parcours court (3 à 5 étapes) où UNE étape est « la suivante » (<code>is-next</code>)
+                    et les passées sont cochées (<code>is-done</code>). Pas pour une simple liste.
+                    <b>Sert :</b> <code>my-trainings</code> (reprendre une formation), <code>badge-detail</code>.
+                </p>
+
+                <p class="dz-label" style="margin-top: var(--spacing-lg)">La carte horizontale — <code>.pp-hcard</code></p>
+                <div class="dz-demo">
+                    <div class="pp-now-list">
+                        <article class="pp-hcard">
+                            <div class="pp-hcard-media">{% include 'site/_icon.html.twig' with { name: 'map' } only %}</div>
+                            <div>
+                                <h3>Salle de réunion Ada</h3>
+                                <p class="pp-hcard-meta"><span>8 places</span> <span>{% include 'site/_icon.html.twig' with { name: 'pin' } only %} Atelier bois</span></p>
+                                <p class="pp-hcard-when">● Libre</p>
+                            </div>
+                            <a class="btn btn-primary" href="#motifs-pp">Réserver</a>
+                        </article>
+                    </div>
+                </div>
+                <p class="dz-used">
+                    <b>Quand :</b> deux ou trois choses « à saisir tout de suite » en tête d'un catalogue, avec UN verbe.
+                    Au-delà, c'est la grille <a href="#catalogue">de cartes</a>, jamais une pile de cartes horizontales.
+                    <b>Sert :</b> <code>places</code> (libres maintenant).
+                </p>
+
+                <p class="dz-label" style="margin-top: var(--spacing-lg)">Les tuiles d'accès rapide — <code>.pp-quick</code></p>
+                <div class="dz-demo">
+                    <div class="pp-quick">
+                        {% for q in demoPatterns.quick %}
+                            <a class="pp-quick-tile" href="#motifs-pp">
+                                <span class="pp-quick-ic" aria-hidden="true">{% include 'site/_icon.html.twig' with { name: q.icon } only %}</span>
+                                <b>{{ q.title }}</b><small>{{ q.hint }}</small>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                <p class="dz-used">
+                    <b>Quand :</b> une page vide (une recherche sans requête) qui doit proposer où aller : icône,
+                    nom, une demi-phrase. <b>Sert :</b> <code>search</code>.
+                </p>
+
+                <p class="dz-label" style="margin-top: var(--spacing-lg)">« À faire » — <code>.pp-todo</code></p>
+                <p class="dz-used" style="margin-top: 0">
+                    Rendu réel dans <a href="#bloc-membre">le bloc membre de l'accueil</a> : c'est son premier
+                    élément. Une ligne = une icône, un titre, un sous-titre, <strong>un verbe</strong> (un
+                    bouton). <code>.pp-todo-caution</code> / <code>.pp-todo-stop</code> teintent l'icône ;
+                    <code>.pp-todo-done</code> est l'état « rien à faire ». <b>Quand :</b> ce qui <em>bloque</em> ou
+                    <em>attend</em> la personne. Une information sans action n'y a pas sa place.
+                </p>
+
+                <div class="dz-dont">
+                    <b>À ne pas faire</b>
+                    <ul>
+                        <li>Redéfinir <code>.pp-rows</code> ou <code>.pp-next</code> dans la feuille d'une page : si la forme ne
+                            va pas, on la corrige ici pour toutes.</li>
+                        <li>Mettre deux <code>.pp-next</code> sur la même page : le deuxième est une ligne de <code>.pp-rows</code>.</li>
+                    </ul>
+                </div>
+                <p class="dz-used"><b>Feuille :</b> <code>pages.css</code>.</p>
+            </div>
+
+            <div class="dz-sec" id="bloc-membre">
+                <h3>Le bloc membre de l'accueil</h3>
+                <p>
+                    Sous le hero de l'accueil, pour un membre connecté : « À faire », sa prochaine réservation,
+                    et ce que ses badges ouvrent. Partiel : <code>_home_member.html.twig</code>
+                    (données : <code>MemberToday</code>). Paramètre <code>greet</code> : <code>false</code> supprime
+                    le « Bonjour » quand un en-tête le dit déjà (c'est le cas dans « Mon compte »).
+                </p>
+                <p class="dz-label">Le composant réel, rendu ici (données fictives)</p>
+                <div class="dz-demo">
+                    {% include 'site/_home_member.html.twig' with { member: demoPatterns.member, today: demoPatterns.today } only %}
+                </div>
+                <p class="dz-used">
+                    <b>Quand :</b> seulement quand on <em>sait qui regarde</em> et qu'il a quelque chose à faire ou à
+                    attendre. <b>Pas pour :</b> un visiteur anonyme (le hero seul suffit).
+                    <b>Feuille :</b> <code>pages.css</code> (<code>.pp-home*</code>, <code>.pp-todo*</code>),
+                    <code>components.css</code> (<code>.badge-reach</code>). <b>Sert :</b> accueil (<code>home</code>),
+                    « Mon compte » (<code>greet: false</code>).
+                </p>
+            </div>
+
+            <div class="dz-sec" id="formulaire-etroit">
+                <h3>Le formulaire public court — <code>.form-narrow</code></h3>
+                <p>
+                    Une carte de 560 px, centrée : un visiteur qui signale une panne n'a qu'un geste à faire, et une
+                    ligne de saisie de 1 200 px est plus dure à lire, pas plus confortable
+                    (<code>docs/FORM-DESIGN.md</code>, règle 6). C'est l'équivalent public de
+                    <code>.admin-edit-form</code> : <strong>le même jeton</strong>, <code>--form-measure</code>, posé ici à 560 px.
+                </p>
+                <p class="dz-label">Le composant réel, rendu ici</p>
+                <div class="dz-demo">
+                    <section class="detail-card form-narrow" aria-labelledby="dz-narrow-title">
+                        <h2 id="dz-narrow-title" class="detail-card-title">Signaler un problème sur Prusa MK4</h2>
+                        <form class="form-grid" onsubmit="return false">
+                            <div class="form-field full is-required">
+                                <label for="dz-narrow-d">Ce qui ne va pas <b class="form-required" aria-hidden="true">requis</b></label>
+                                <textarea id="dz-narrow-d" rows="3"></textarea>
+                            </div>
+                            <div class="form-field full">
+                                <label for="dz-narrow-c">Pour vous répondre</label>
+                                <input id="dz-narrow-c" type="text">
+                                <p class="form-help">Facultatif : un courriel ou un numéro.</p>
+                            </div>
+                            <div class="form-field full"><span class="btn-submit"><button type="submit">Envoyer le signalement</button></span></div>
+                        </form>
+                    </section>
+                </div>
+                <div class="dz-rule">
+                    <b>Quand l'utiliser</b>
+                    <ol>
+                        <li>Un formulaire PUBLIC de quelques champs, un seul verbe (signaler, s'inscrire, répondre).
+                            Se pose sur la <strong>carte</strong> : <code>&lt;section class="detail-card form-narrow"&gt;</code>.</li>
+                        <li><strong>Pas</strong> pour une carte qui n'est qu'un bouton (<code>charter</code>), ni pour une page
+                            d'administration (<code>.admin-edit-form</code>, 720 px), ni pour une carte au milieu d'une
+                            grille : <code>max-width</code> + <code>margin-inline: auto</code> la décentreraient.</li>
+                    </ol>
+                </div>
+                <p class="dz-used">
+                    <b>Feuille :</b> <code>components.css</code>. <b>Sert :</b> <code>machine-report</code> (signaler une
+                    panne, par QR). <code>checkin</code> ne l'utilise pas : son titre est aligné à gauche dans une
+                    colonne <code>.ml-wrap</code>, la carte suit le titre.
+                </p>
+            </div>
+
+            <div class="dz-sec" id="motifs-reglables">
+                <h3>La liste de motifs réglable et le pot de miel</h3>
+                <p>
+                    Deux partiels qui servent à plusieurs écrans : écrits une fois, jamais copiés.
+                </p>
+                <p class="dz-label">La liste réelle <code>_reason_list.html.twig</code> (repliée, rendue inerte ici)</p>
+                <div class="dz-demo">
+                    <fieldset disabled style="border: 0; margin: 0; padding: 0; min-width: 0">
+                        {% include 'site/_reason_list.html.twig' with { reasons: demoPatterns.reasons, route: 'app_admin_checkin_reasons', token: 'admin_checkin_reasons', movable: true } only %}
+                    </fieldset>
+                </div>
+                <p class="dz-used">
+                    <b>Quand :</b> l'équipe tient une courte liste de libellés (motifs de visite, motifs d'avertissement).
+                    Ajouter, renommer, <strong>retirer de la liste</strong> (ou remettre) — jamais supprimer : les lignes
+                    déjà écrites gardent leur motif. <code>movable</code> montre ↑ ↓ seulement là où l'ordre se voit
+                    (les tuiles de la borne). <b>Paramètres :</b> <code>reasons</code> (<code>{id, label, active}</code>),
+                    <code>route</code>, <code>token</code>, <code>help</code>. Même balisage que les catégories (<code>.cat-inline</code>).
+                    ⚠️ Le libellé est de la <em>donnée</em> : jamais traduit.
+                    <b>Sert :</b> <code>admin-checkin</code>, <code>admin-warnings</code>. La route et le jeton CSRF sont
+                    ceux de l'écran réel : ici la liste est dans un <code>&lt;fieldset disabled&gt;</code> pour qu'aucun bouton n'écrive.
+                </p>
+
+                <p class="dz-label" style="margin-top: var(--spacing-lg)"><code>_honeypot.html.twig</code> — invisible, exprès</p>
+                <div class="dz-demo">
+                    {% include 'site/_honeypot.html.twig' %}
+                    <p class="dz-used" style="margin: 0">Rien à voir ici : le partiel est rendu juste au-dessus (un champ <code>website</code> hors écran, <code>tabindex="-1"</code>, <code>aria-hidden</code>).</p>
+                </div>
+                <p class="dz-used">
+                    <b>Quand :</b> tout formulaire PUBLIC sans compte. Le contrôleur rejette la requête si
+                    <code>website</code> est rempli. ⚠️ Ce n'est <strong>pas</strong> la seule défense : jeton CSRF et limite de débit
+                    restent au contrôleur. <b>Sert :</b> <code>machine-report</code>, <code>checkin</code> (borne).
+                </p>
+            </div>
+
+            <div class="dz-sec" id="page-compte">
+                <h3>La page de compte — motifs PROPRES à « Mon compte »</h3>
+                <p>
+                    ⚠️ <strong>Ces classes ne sont à réutiliser nulle part ailleurs.</strong> Elles vivent dans
+                    <code>page-profil.css</code>, chargée par <code>profil.html.twig</code> seulement. Une autre page qui en a
+                    besoin les <em>promeut</em> d'abord vers <code>components.css</code> (et on met cette section à jour) :
+                    la copier, ou charger la feuille du profil, c'est la leçon du fil d'Ariane.
+                </p>
+                <p class="dz-label">Rendus ici avec les vraies classes</p>
+                <div class="dz-demo">
+                    <div class="pp-pf">
+                        <header class="pp-pf-head">
+                            <span class="pp-pf-avatar" style="background: var(--tone-primary-soft)" aria-hidden="true"></span>
+                            <div class="pp-pf-id">
+                                <h1>Camille Durand</h1>
+                                <p>camille@example.org</p>
+                                <ul class="pp-pf-chips"><li>{% include 'site/_state_chip.html.twig' with { label: 'Membre', signal: 'go' } only %}</li></ul>
+                            </div>
+                            <a class="btn btn-secondary" href="#page-compte">Profil public</a>
+                        </header>
+
+                        <div class="pp-pf-tiles">
+                            <a class="pp-pf-tile" href="#page-compte">
+                                <span class="pp-pf-tile-k">Je peux</span>
+                                <b>Utiliser 4 machines</b>
+                            </a>
+                        </div>
+
+                        <section class="detail-card pp-pf-set">
+                            <h2 class="detail-card-title">Mes informations</h2>
+                            <div class="pp-pf-line"><b>Prénom</b><span>Camille</span><span></span></div>
+                            <details>
+                                <summary class="pp-pf-line"><b>Photo</b><span>Par défaut</span><span class="pp-pf-verb">Changer</span></summary>
+                                <div class="pp-pf-body"><p class="md-note" style="margin: 0">Le verbe ouvre le formulaire sur place.</p></div>
+                            </details>
+                        </section>
+                    </div>
+                </div>
+                <p class="dz-used">
+                    <b>Les trois formes :</b> <code>.pp-pf-head</code> (l'en-tête compact : avatar, identité, un verbe ; une
+                    ligne de <code>.pp-pf-chips</code> dessous), <code>.pp-pf-tile</code> (un « je peux / mes… » qui renvoie
+                    vers un onglet), <code>.pp-pf-line</code> (libellé, valeur, verbe : un <code>&lt;div&gt;</code> en lecture seule, ou le
+                    <code>&lt;summary&gt;</code> d'un <code>&lt;details&gt;</code> dont le verbe — <code>.pp-pf-verb</code> — ouvre le
+                    formulaire dans <code>.pp-pf-body</code>). <code>.pp-pf-set</code>, <code>.pp-pf-grid</code> et
+                    <code>.pp-pf-wide</code> sont tout aussi propres à la page.
+                    <b>Sert :</b> <code>profil</code>, et rien d'autre.
+                </p>
+            </div>
+
+            <div class="dz-sec" id="fonction-activable">
+                <h3>Une fonction activable : comment une page se garde</h3>
+                <p>
+                    Depuis 0.6, des fonctions sont <strong>éteintes par défaut</strong> (stocks, check-in, avertissements,
+                    charte…) : l'opérateur les allume dans les réglages des fonctions. Une page de ce genre suit toujours la
+                    même chaîne, de la déclaration à l'écran.
+                </p>
+                <div class="dz-rule">
+                    <b>La règle</b>
+                    <ol>
+                        <li><b>Déclarer</b> la clé dans <code>SiteFeatureRegistry</code> :
+                            <code>new SiteFeature('checkin', …, defaultOn: false)</code>
+                            (<code>parent:</code> pour une sous-fonction). Un nom, une phrase qui dit ce que ça fait.</li>
+                        <li><b>Garder la page</b> dans le contrôleur : <code>$features-&gt;allowsSurface('clé')</code>
+                            <strong>et</strong>, si elle a ses tables, le service DBAL
+                            <code>isReady()</code> (la migration est-elle passée ?). Éteint ou migration absente : <strong>404</strong>,
+                            comme une page qui n'existe pas.</li>
+                        <li><b>Garder les mentions</b> dans Twig : <code>{% verbatim %}{% if feature_enabled('clé') %}{% endverbatim %}</code> autour de
+                            tout lien, tuile, colonne, mot.</li>
+                        <li><b>Éteint = aucune mention.</b> Pas de lien grisé, pas de « bientôt », pas de colonne vide, pas
+                            le mot « stock » dans une page qui n'en parle plus. L'installation qui n'a pas la fonction ne doit
+                            pas pouvoir deviner qu'elle existe.</li>
+                    </ol>
+                </div>
+                <div class="dz-dont">
+                    <b>À ne pas faire</b>
+                    <ul>
+                        <li>🔴 Se fier à <code>isEnabled()</code> pour une clé qui peut être inconnue : il rend <strong>true</strong>
+                            (le garde échoue ouvert). Utiliser <code>allowsSurface()</code>.</li>
+                        <li>Ne garder que dans le gabarit : la route reste atteignable par son adresse. La garde du
+                            contrôleur est la vraie ; celle du gabarit n'est que le décor.</li>
+                    </ul>
+                </div>
+                <p class="dz-used">
+                    <b>Exemples :</b> <code>MachineReportController</code> (<code>machine_reports</code>) et
+                    <code>CheckinController</code> (<code>checkin</code> et ses sous-clés).
                 </p>
             </div>
 

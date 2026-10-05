@@ -6,7 +6,7 @@
 
 ## Application de la revue (2026-10-05) — R → fait / non fait
 
-Tout est fait sauf **R8** (non fait : borner la largeur d'un formulaire public exige une règle CSS neuve, `--form-measure` n'existant que sous `.admin-edit-form` ; refusé par la règle « pas de CSS neuve »). Les textes (nouveaux ou modifiés) attendent la fusion de `scratchpad/i18n/revue.json` dans `translations/` ; **rien n'est déployé, rien n'est commité**.
+Tout est fait (R8 : règle générique `.form-narrow` dans `components.css`, décision opérateur du 2026-10-05). Les textes (nouveaux ou modifiés) attendent la fusion de `scratchpad/i18n/revue.json` dans `translations/` ; **rien n'est déployé, rien n'est commité**.
 
 | R | Statut | Note |
 |---|---|---|
@@ -17,7 +17,7 @@ Tout est fait sauf **R8** (non fait : borner la largeur d'un formulaire public e
 | R5 | fait | « Imprimer tous les QR codes » (`/admin/signalements/qr`, même gabarit que l'étiquette, une par page) ; état vide réécrit |
 | R6 | fait | le champ de note passe dans la colonne du signalement (`form="report-resolve-{id}"`) |
 | R7 | fait | « panne » : `mops.reports`, `mail.machine_report.intro`, `admin_attention.st_report` |
-| R8 | **non fait** | voir ci-dessus |
+| R8 | fait | `.form-narrow` (`components.css`, `--form-measure: 560px`) posée sur la carte de `machine-report` ; documentée dans `/admin/design#formulaire-etroit` |
 | R9 | fait | aide « appareil photo » retirée (clé `help_photo` morte) |
 | R10 | fait | carte machine : lien « Tous les signalements », bouton « Imprimer le QR code » |
 | R11 | fait | `adm.col_storage` « Rangement », `form.storage_location` « Emplacement de rangement » (5 langues) ; sonde S206 étendue à la famille du mot (`stock\w*`, `lager\w*`) |
