@@ -11,6 +11,7 @@ Le numéro vit à un seul endroit : `config/packages/twig.yaml` → `app_version
 
 | Version | Date | Ce qu'elle contient |
 |---|---|---|
+| **0.6.3** | 2026-10-06 | La page publique « Maintenance » (`/maintenance`) et ses entrées de menu sont retirées : la fiche de chaque machine montre déjà son entretien, l'équipe a sa file dans l'admin. Le module « Suivi de maintenance » reste. |
 | **0.6.2** | 2026-10-06 | Ménage interne, sans changement visible : quatre motifs recopiés à la main deviennent des gabarits communs (`_next_card`, `_dated_rows`, `_steps`, `_hcard`), puis le mot sous chaque étape de formation (`_journey_steps`) ; HTML des pages identique avant/après. |
 | **0.6.1** | 2026-10-06 | Le tutoriel des designs (`/admin/design`) documente les motifs apparus en 0.5 et 0.6 (tête de fiche, lignes datées, À faire, étapes, tuiles de choix, liste de motifs, page de compte, fonction activable) ; formulaire public étroit (`.form-narrow`) sur le signalement de panne. |
 | **0.6.0** | 2026-10-05 | Phase W, six fonctions activables reprises de la comparaison avec FabtrackJS : signaler une panne par QR code (S205), stocks de consommables — éteints par défaut, aucune mention quand éteints (S206), check-in à paliers — éteint par défaut (S207), avertissements (S208), charte de sécurité — éteinte par défaut (S209), bouton « Signaler » sur chaque page (S210). ⚠️ Demande une migration. |

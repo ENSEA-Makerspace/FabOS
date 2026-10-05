@@ -122,7 +122,6 @@ final class SiteFeatureRegistry
                 'Un carnet d’entretien par équipement, avec les tâches en retard signalées et rappelées par e-mail.',
                 self::GROUP_RESOURCE,
                 parent: 'machines',
-                landingRoute: 'app_maintenance',
             ),
             new SiteFeature(
                 'places',

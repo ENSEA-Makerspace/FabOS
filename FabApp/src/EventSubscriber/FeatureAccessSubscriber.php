@@ -51,8 +51,7 @@ final class FeatureAccessSubscriber implements EventSubscriberInterface
         $module = match (true) {
             // Every equipment route is named `app_machine…` (list, detail, its
             // own calendar, history, quiz, iCal feed) and nothing else is, so a
-            // prefix is safe here — `app_maintenance` diverges at the fourth
-            // letter. The admin side is `app_admin_machine…`, already exempt.
+            // prefix is safe here. The admin side is `app_admin_machine…`, already exempt.
             str_starts_with($route, 'app_machine'), $route === 'app_kiosk_machine' => 'machines',
             // Booking someone's time, including a bookable person's own
             // availability screen. Nothing about *being* staff or a trainer
@@ -77,7 +76,6 @@ final class FeatureAccessSubscriber implements EventSubscriberInterface
             $route === 'app_trainers' => 'trainers',
             str_starts_with($route, 'app_materials') => 'materials',
             str_starts_with($route, 'app_loans') => 'loans',
-            str_starts_with($route, 'app_maintenance') => 'maintenance',
             $route === 'app_badges' => 'badges',
             default => null,
         };

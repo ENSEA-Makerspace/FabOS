@@ -205,6 +205,15 @@ des propositions est retiré (contrôleur, registre, gabarits, menu) ; les servi
 deviennent `App\Page\*`, les feuilles `pages.css` + `page-<page>.css`. Versions
 nommées à partir d'ici (`docs/VERSIONS.md`, étiquettes `v0.4.0`, `v0.5.0`).
 
+## 0.6.3 — la page publique « Maintenance » retirée (2026-10-06)
+
+Demande de l'opérateur : la page du menu principal ne sert plus. Elle listait les
+tâches ouvertes de tout le lab ; la fiche machine montre l'entretien de la machine
+qu'on regarde, et l'équipe travaille dans `/admin/maintenance`. Retirés : route
+`app_maintenance`, contrôleur, gabarit, les deux entrées de menu, `landingRoute`,
+les clés `nav.maintenance`, `maintenance.subtitle`, `maintenance.empty`. Le module
+`maintenance` et tout le reste sont intacts.
+
 ## 0.6.1 et 0.6.2 — le design documenté, puis factorisé (2026-10-06)
 
 Règle de l'opérateur : du design neuf est permis **s'il est documenté dans
