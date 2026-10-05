@@ -132,7 +132,7 @@
                             </div>
                             <div class="form-field">
                                 <label for="mp-manufacturer">Marque</label>
-                                <input type="text" id="mp-manufacturer" name="manufacturer">
+                                <input type="text" id="mp-manufacturer" name="manufacturer" list="mp-manufacturers">
                             </div>
                             <div class="form-field">
                                 <label for="mp-model">Modèle</label>
@@ -148,8 +148,26 @@
                     <details class="settings-danger settings-danger--neutral">
                         <summary>Fiche publique <small id="mp-public-note"></small></summary>
                         <div class="form-grid">
-                            <div class="form-field full"><label for="mp-materiaux">Matériaux</label><textarea id="mp-materiaux" name="materiaux" rows="3"></textarea><p class="form-help">Un par ligne.</p></div>
-                            <div class="form-field full"><label for="mp-caracteristiques">Caractéristiques</label><textarea id="mp-caracteristiques" name="caracteristiques" rows="3"></textarea></div>
+                            
+                            {# Étiquettes : les mots déjà employés se cliquent ; le champ en ajoute un autre,
+                               avec l'autocomplétion sur TOUT l'existant. La valeur postée reste « un par ligne ». #}
+                            {% for tag in [
+                                {name: 'materiaux', label: 'Matériaux', words: hints.materials, add: 'Ajouter un matériau…'},
+                                {name: 'caracteristiques', label: 'Caractéristiques', words: hints.features, add: 'Ajouter une caractéristique…'},
+                            ] %}
+                                <div class="form-field full" data-mp-tags="{{ tag.name }}">
+                                    <label for="mp-{{ tag.name }}-add">{{ tag.label }}</label>
+                                    <div class="ml-cats">
+                                        {% for word, count in tag.words|slice(0, 12) %}
+                                            <button type="button" class="ml-tile" aria-pressed="false" data-mp-tag="{{ word }}"><b class="ml-tile-label">{{ word }}</b><b class="ml-tile-count">{{ count }}</b></button>
+                                        {% endfor %}
+                                    </div>
+                                    <input type="text" id="mp-{{ tag.name }}-add" list="mp-{{ tag.name }}-words" placeholder="{{ tag.add }}" autocomplete="off">
+                                    <p class="form-help">Entrée ou virgule pour ajouter. Un clic sur une étiquette la retire.</p>
+                                    <datalist id="mp-{{ tag.name }}-words">{% for word, count in tag.words %}<option value="{{ word }}">{% endfor %}</datalist>
+                                    <textarea name="{{ tag.name }}" hidden></textarea>
+                                </div>
+                            {% endfor %}
                             <div class="form-field full"><label for="mp-prerequis">Prérequis</label><textarea id="mp-prerequis" name="prerequis" rows="2"></textarea></div>
                             <div class="form-field"><label for="mp-photo">Photo</label><input type="text" id="mp-photo" name="photo"></div>
                             <div class="form-field"><label for="mp-icone">Icône</label><input type="text" id="mp-icone" name="icone"></div>
@@ -157,6 +175,7 @@
                     </details>
 
                     <datalist id="mp-locations">{% for label, count in hints.locations %}<option value="{{ label }}">{% endfor %}</datalist>
+                    <datalist id="mp-manufacturers">{% for word in hints.manufacturers %}<option value="{{ word }}">{% endfor %}</datalist>
                     <datalist id="mp-models">{% for model in hints.models %}<option value="{{ model.fill.model }}">{% endfor %}</datalist>
 
                     <p class="form-help">Créée « disponible ». Le statut, la limite de réservations et la popularité se règlent ensuite, sur la fiche.</p>
@@ -203,6 +222,29 @@
             input.addEventListener('input', () => sync(group));
         });
         badgeTiles.forEach((t) => t.addEventListener('click', () => { on(t, !t.classList.contains('is-on')); note(); }));
+        // Étiquettes : le <textarea> caché (un mot par ligne) est la vérité, les tuiles le reflètent.
+        const tagFields = [...form.querySelectorAll('[data-mp-tags]')].map((box) => {
+            const store = box.querySelector('textarea'), row = box.querySelector('.ml-cats'), add = box.querySelector('input');
+            const words = () => store.value.split('\n').map((w) => w.trim()).filter(Boolean);
+            const render = () => {
+                const now = words();
+                row.querySelectorAll('[data-mp-added]').forEach((t) => { if (!now.includes(t.dataset.mpTag)) t.remove(); });
+                now.forEach((w) => {
+                    if ([...row.children].some((t) => t.dataset.mpTag === w)) return;
+                    const t = document.createElement('button'); t.type = 'button'; t.className = 'ml-tile'; t.dataset.mpTag = w; t.dataset.mpAdded = ''; t.setAttribute('aria-pressed', 'true');
+                    const b = document.createElement('b'); b.className = 'ml-tile-label'; b.textContent = w; t.append(b); row.append(t);
+                });
+                [...row.children].forEach((t) => on(t, now.includes(t.dataset.mpTag)));
+            };
+            const toggle = (w) => { const now = words(); store.value = (now.includes(w) ? now.filter((x) => x !== w) : [...now, w]).join('\n'); render(); notes(); };
+            const commit = () => { add.value.split(',').map((w) => w.trim()).filter(Boolean).forEach((w) => { if (!words().includes(w)) toggle(w); }); add.value = ''; };
+            row.addEventListener('click', (e) => { const t = e.target.closest('.ml-tile'); if (t) toggle(t.dataset.mpTag); });
+            add.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); commit(); } });
+            // Choisir dans l'autocomplétion pose la valeur exacte d'une option : on l'ajoute aussitôt.
+            add.addEventListener('input', () => { if ([...add.list.options].some((o) => o.value === add.value)) commit(); });
+            add.addEventListener('blur', commit);
+            return render;
+        });
         const filled = (names) => names.filter((n) => { const f = form.elements[n]; return f && (f.value ?? '') !== ''; }).length;
         const notes = () => {
             const a = filled(['niveau', 'granularite', 'manufacturer', 'model', 'description']);
@@ -217,7 +259,7 @@
                 if (name === 'niveau') { form.querySelectorAll('[name=niveau]').forEach((r) => { r.checked = r.value === value; }); continue; }
                 field.value = value;
             }
-            form.querySelectorAll('[data-mp-pick]').forEach(sync); notes();
+            form.querySelectorAll('[data-mp-pick]').forEach(sync); tagFields.forEach((render) => render()); notes();
         };
         form.querySelectorAll('[data-mp-model]').forEach((tile) => tile.addEventListener('click', () => {
             form.querySelectorAll('[data-mp-model]').forEach((t) => on(t, t === tile));

@@ -219,7 +219,10 @@ questions (nom, catégorie, badges, emplacement) en tuiles cliquables `.ml-tile`
 catégorie proposant ses badges habituels ; le reste replié ; identifiant de boîtier
 généré ; statut, limite et popularité sortis de la création. Écartés : un assistant
 en étapes, des listes fermées, un catalogue de modèles à part. Données :
-`App\Page\MachineCreationHints`. 🅿️ À la décision : retirer la page, sa route et
+`App\Page\MachineCreationHints`. Ajout du même jour, à la demande : matériaux et
+caractéristiques deviennent des étiquettes (les mots déjà employés se cliquent, un
+champ en ajoute un autre avec autocomplétion sur tout l'existant ; la valeur postée
+reste « un par ligne ») ; la marque s'autocomplète aussi. 🅿️ À la décision : retirer la page, sa route et
 son entrée de menu.
 
 ## 0.6.3 — la page publique « Maintenance » retirée (2026-10-06)

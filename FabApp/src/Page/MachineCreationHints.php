@@ -48,7 +48,31 @@ final class MachineCreationHints
             'locations' => $this->db->fetchAllKeyValue("SELECT localisation, COUNT(*) n FROM MACHINE WHERE archivedAt IS NULL AND localisation <> '' GROUP BY localisation ORDER BY n DESC, localisation LIMIT 8"),
             'slots' => $this->db->fetchFirstColumn("SELECT granularite FROM MACHINE WHERE granularite <> '' GROUP BY granularite ORDER BY CAST(granularite AS UNSIGNED)"),
             'models' => $this->models(),
+            'materials' => $this->vocabulary('materials'),
+            'features' => $this->vocabulary('features'),
+            'manufacturers' => $this->db->fetchFirstColumn("SELECT manufacturer FROM MACHINE WHERE manufacturer <> '' GROUP BY manufacturer ORDER BY COUNT(*) DESC"),
         ];
+    }
+
+    /**
+     * Les mots déjà saisis dans une liste libre (matériaux, caractéristiques), les plus
+     * employés d'abord : ils deviennent des étiquettes à cliquer et l'autocomplétion.
+     *
+     * @return array<string, int>
+     */
+    private function vocabulary(string $column): array
+    {
+        $counts = [];
+        foreach ($this->db->fetchFirstColumn("SELECT $column FROM MACHINE WHERE archivedAt IS NULL AND $column IS NOT NULL") as $json) {
+            foreach ((array) json_decode((string) $json, true) as $word) {
+                if (\is_string($word) && trim($word) !== '') {
+                    $counts[trim($word)] = ($counts[trim($word)] ?? 0) + 1;
+                }
+            }
+        }
+        arsort($counts);
+
+        return $counts;
     }
 
     /**
