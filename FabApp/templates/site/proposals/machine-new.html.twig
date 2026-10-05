@@ -1,0 +1,235 @@
+{% extends 'base.html.twig' %}
+
+{# PROPOSITION (2026-10-06) — « Créer une machine », revu.
+   Diagnostic (revue d'un designer sur l'écran actuel, 40 machines en base) :
+     • l'écran ignore ce que le lab possède : 14 X1 Carbon saisies une à une, d'où
+       « BambuLab » et « Bambu Lab » ;
+     • tout vocabulaire déjà connu est une case vide (catégorie, localisation, modèle) ;
+     • le statut s'ouvre sur « idle » quand 34 machines sur 40 sont « disponible » ;
+     • des champs sans effet à la création tiennent le chemin principal (limite, popularité) ;
+     • les badges — la seule décision d'accès — sont tout en bas, en 11 grosses cartes.
+   Ici : repartir d'un modèle possédé en un clic ; quatre questions ; catégorie, badges
+   et emplacement cliquables et préremplis l'un par l'autre ; le reste replié.
+   Les motifs sont ceux du site (`.ml-tile`, `.choice-tiles`, `<details>` de formulaire) :
+   aucune feuille de style propre à cette page.
+   🅿️ À la décision : retirer ce gabarit, `MachineProposalController`, son entrée de menu. #}
+
+{% block title %}Proposition — Créer une machine{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/admin.css') ~ '?v=' ~ css_version }}">
+    <link rel="stylesheet" href="{{ asset('css/details.css') ~ '?v=' ~ css_version }}">
+{% endblock %}
+
+{% block body %}
+    {% include 'site/_header.html.twig' %}
+    <main id="main-content" tabindex="-1" class="admin-page">
+        <div class="admin-edit-layout">
+            {% include 'site/_admin_sidebar.html.twig' %}
+
+            <section class="admin-panel admin-list-card admin-form-card">
+                {% include 'site/_admin_form_head.html.twig' with {
+                    title: 'Créer une machine',
+                    subtitle: 'Proposition · une maquette avec les vraies données du lab, qui n’enregistre rien.',
+                    back_href: path('app_admin_machine_new'),
+                    back_label: 'Voir l’écran actuel',
+                } only %}
+
+                <form class="admin-edit-form" id="mp-form" onsubmit="return false">
+                    {% if hints.models|length %}
+                        <div class="form-section"><h3>Une machine que le lab possède déjà ?</h3></div>
+                        <p class="form-help">Un clic recopie sa fiche — catégorie, badges, emplacement, fiche publique. Il ne reste qu’à vérifier le nom.</p>
+                        <div class="ml-cats" role="group" aria-label="Partir d’un modèle connu">
+                            {% for model in hints.models %}
+                                <button type="button" class="ml-tile" data-mp-model="{{ model.fill|json_encode }}">
+                                    <b class="ml-tile-label">{{ model.label }}</b>
+                                    <b class="ml-tile-count">× {{ model.count }}</b>
+                                </button>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div class="form-section"><h3>La machine</h3></div>
+                    <div class="form-grid">
+                        <div class="form-field is-required full">
+                            <label for="mp-nom">Nom</label><span class="form-required" aria-hidden="true">{{ 'common.required'|trans }}</span>
+                            <input type="text" id="mp-nom" name="nom" required>
+                        </div>
+
+                        <div class="form-field full">
+                            <label for="mp-categorie">Catégorie</label>
+                            <div class="ml-cats" data-mp-pick="mp-categorie">
+                                {% for label, count in hints.categories %}
+                                    <button type="button" class="ml-tile" data-mp-value="{{ label }}" data-mp-badges="{{ (hints.badgesByCategory[label] ?? [])|json_encode }}">
+                                        <b class="ml-tile-label">{{ label }}</b>
+                                        <b class="ml-tile-count">{{ count }}</b>
+                                    </button>
+                                {% endfor %}
+                                <button type="button" class="ml-tile" data-mp-other><b class="ml-tile-label">Autre…</b></button>
+                            </div>
+                            <input type="text" id="mp-categorie" name="categorie" placeholder="Une nouvelle catégorie" hidden>
+                        </div>
+
+                        <div class="form-field full">
+                            <label>Qui peut la réserver ?</label>
+                            <div class="ml-cats" id="mp-badges">
+                                {% for badge in badges %}
+                                    <button type="button" class="ml-tile" aria-pressed="false" data-mp-badge="{{ badge.id }}" title="{{ badge.description }}">
+                                        <b class="ml-tile-label">{{ badge.nom }}</b>
+                                    </button>
+                                {% endfor %}
+                            </div>
+                            <p class="form-help" id="mp-badges-note">Aucun badge choisi : tout membre pourra la réserver.</p>
+                        </div>
+
+                        {% if venues|length > 1 %}
+                            <div class="form-field">
+                                <label for="mp-venue">Lieu</label>
+                                <select id="mp-venue" name="venue">
+                                    {% for venue in venues %}<option value="{{ venue.id }}">{{ venue.name }}</option>{% endfor %}
+                                </select>
+                            </div>
+                        {% endif %}
+                        <div class="form-field{{ venues|length > 1 ? '' : ' full' }}">
+                            <label for="mp-localisation">Où, dans le lieu ?</label>
+                            <input type="text" id="mp-localisation" name="localisation" list="mp-locations" placeholder="Atelier bois, établi 3…">
+                        </div>
+                        {% if hints.locations|length %}
+                            <div class="form-field full">
+                                <div class="ml-cats" data-mp-pick="mp-localisation">
+                                    {% for label, count in hints.locations %}
+                                        <button type="button" class="ml-tile" data-mp-value="{{ label }}">
+                                            <b class="ml-tile-label">{{ label }}</b>
+                                            <b class="ml-tile-count">{{ count }}</b>
+                                        </button>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <details class="settings-danger settings-danger--neutral">
+                        <summary>Plus de réglages <small id="mp-more-note"></small></summary>
+                        <div class="form-grid">
+                            <fieldset class="choice-tiles form-field full">
+                                <legend>Niveau <small>indicatif, ne bloque rien</small></legend>
+                                {% for n in 1..3 %}
+                                    <input type="radio" name="niveau" id="mp-niveau-{{ n }}" value="{{ n }}">
+                                    <label for="mp-niveau-{{ n }}">Niveau {{ n }}</label>
+                                {% endfor %}
+                            </fieldset>
+                            <div class="form-field">
+                                <label for="mp-granularite">Durée d’un créneau</label>
+                                <select id="mp-granularite" name="granularite">
+                                    <option value="">Celle du calendrier</option>
+                                    {% for slot in hints.slots %}<option value="{{ slot }}">{{ slot }} min</option>{% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label for="mp-token">Identifiant du boîtier</label>
+                                <input type="text" id="mp-token" name="machineToken" value="{{ random(100000, 999999) ~ 'a81ecb7' }}">
+                                <p class="form-help">Généré. À remplacer seulement si un boîtier RFID envoie déjà le sien.</p>
+                            </div>
+                            <div class="form-field">
+                                <label for="mp-manufacturer">Marque</label>
+                                <input type="text" id="mp-manufacturer" name="manufacturer">
+                            </div>
+                            <div class="form-field">
+                                <label for="mp-model">Modèle</label>
+                                <input type="text" id="mp-model" name="model" list="mp-models">
+                            </div>
+                            <div class="form-field full">
+                                <label for="mp-description">Description</label>
+                                <textarea id="mp-description" name="description" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </details>
+
+                    <details class="settings-danger settings-danger--neutral">
+                        <summary>Fiche publique <small id="mp-public-note"></small></summary>
+                        <div class="form-grid">
+                            <div class="form-field full"><label for="mp-materiaux">Matériaux</label><textarea id="mp-materiaux" name="materiaux" rows="3"></textarea><p class="form-help">Un par ligne.</p></div>
+                            <div class="form-field full"><label for="mp-caracteristiques">Caractéristiques</label><textarea id="mp-caracteristiques" name="caracteristiques" rows="3"></textarea></div>
+                            <div class="form-field full"><label for="mp-prerequis">Prérequis</label><textarea id="mp-prerequis" name="prerequis" rows="2"></textarea></div>
+                            <div class="form-field"><label for="mp-photo">Photo</label><input type="text" id="mp-photo" name="photo"></div>
+                            <div class="form-field"><label for="mp-icone">Icône</label><input type="text" id="mp-icone" name="icone"></div>
+                        </div>
+                    </details>
+
+                    <datalist id="mp-locations">{% for label, count in hints.locations %}<option value="{{ label }}">{% endfor %}</datalist>
+                    <datalist id="mp-models">{% for model in hints.models %}<option value="{{ model.fill.model }}">{% endfor %}</datalist>
+
+                    <p class="form-help">Créée « disponible ». Le statut, la limite de réservations et la popularité se règlent ensuite, sur la fiche.</p>
+                    <div class="form-actions">
+                        <a class="btn-link" href="{{ path('app_admin_machines') }}">{{ 'common.cancel'|trans }}</a>
+                        <button type="button" class="btn-link" data-mp-save="again">Créer, puis une autre identique</button>
+                        <span class="btn-submit"><button type="button" data-mp-save="one">Créer la machine</button></span>
+                    </div>
+                    <p class="form-help" id="mp-result" role="status"></p>
+                </form>
+            </section>
+        </div>
+    </main>
+
+    {# Maquette : ce script part avec la proposition. Le vrai écran aura un contrôleur Stimulus. #}
+    <script>
+    (() => {
+        const form = document.getElementById('mp-form');
+        const $ = (id) => document.getElementById(id);
+        const on = (tile, yes) => { tile.classList.toggle('is-on', yes); if (tile.hasAttribute('aria-pressed')) tile.setAttribute('aria-pressed', yes); };
+        const badgeTiles = [...form.querySelectorAll('[data-mp-badge]')];
+        const setBadges = (ids) => { badgeTiles.forEach((t) => on(t, ids.includes(+t.dataset.mpBadge))); note(); };
+        const note = () => {
+            const n = badgeTiles.filter((t) => t.classList.contains('is-on')).length;
+            $('mp-badges-note').textContent = n ? (n > 1 ? 'Il faudra ces ' + n + ' badges pour la réserver.' : 'Il faudra ce badge pour la réserver.') : 'Aucun badge choisi : tout membre pourra la réserver.';
+        };
+        // Une rangée de tuiles qui remplit un champ ; « Autre… » montre le champ.
+        const sync = (group) => {
+            const input = $(group.dataset.mpPick);
+            let hit = false;
+            group.querySelectorAll('[data-mp-value]').forEach((t) => { const yes = t.dataset.mpValue === input.value; on(t, yes); hit = hit || yes; });
+            const other = group.querySelector('[data-mp-other]');
+            if (other) { const free = !hit && input.value !== ''; on(other, free || (!hit && !input.hidden)); if (hit) input.hidden = true; if (free) input.hidden = false; }
+        };
+        form.querySelectorAll('[data-mp-pick]').forEach((group) => {
+            const input = $(group.dataset.mpPick);
+            group.addEventListener('click', (e) => {
+                const tile = e.target.closest('.ml-tile'); if (!tile) return;
+                if (tile.hasAttribute('data-mp-other')) { input.value = ''; input.hidden = false; sync(group); input.focus(); return; }
+                input.value = tile.classList.contains('is-on') ? '' : tile.dataset.mpValue;
+                if (tile.dataset.mpBadges && input.value) setBadges(JSON.parse(tile.dataset.mpBadges));
+                sync(group);
+            });
+            input.addEventListener('input', () => sync(group));
+        });
+        badgeTiles.forEach((t) => t.addEventListener('click', () => { on(t, !t.classList.contains('is-on')); note(); }));
+        const filled = (names) => names.filter((n) => { const f = form.elements[n]; return f && (f.value ?? '') !== ''; }).length;
+        const notes = () => {
+            const a = filled(['niveau', 'granularite', 'manufacturer', 'model', 'description']);
+            const b = filled(['materiaux', 'caracteristiques', 'prerequis', 'photo', 'icone']);
+            $('mp-more-note').textContent = a ? '· ' + a + ' rempli(s)' : '';
+            $('mp-public-note').textContent = b ? '· ' + b + ' rempli(s)' : '';
+        };
+        const fill = (data) => {
+            for (const [name, value] of Object.entries(data)) {
+                if (name === 'badges') { setBadges(value); continue; }
+                const field = form.elements[name]; if (!field) continue;
+                if (name === 'niveau') { form.querySelectorAll('[name=niveau]').forEach((r) => { r.checked = r.value === value; }); continue; }
+                field.value = value;
+            }
+            form.querySelectorAll('[data-mp-pick]').forEach(sync); notes();
+        };
+        form.querySelectorAll('[data-mp-model]').forEach((tile) => tile.addEventListener('click', () => {
+            form.querySelectorAll('[data-mp-model]').forEach((t) => on(t, t === tile));
+            fill(JSON.parse(tile.dataset.mpModel)); $('mp-nom').focus(); $('mp-nom').select();
+        }));
+        form.addEventListener('input', notes);
+        form.querySelectorAll('[data-mp-save]').forEach((b) => b.addEventListener('click', () => {
+            const nom = $('mp-nom').value.trim();
+            $('mp-result').textContent = nom === '' ? 'Il manque le nom.'
+                : 'Maquette : rien n’est enregistré. Le vrai écran créerait « ' + nom + ' » puis ouvrirait ' + (b.dataset.mpSave === 'again' ? 'ce formulaire prérempli à l’identique, nom suivant proposé.' : 'sa fiche, pour la compléter.');
+            if (nom === '') $('mp-nom').focus();
+        }));
+    })();
+    </script>
+{% endblock %}

@@ -205,6 +205,23 @@ des propositions est retiré (contrôleur, registre, gabarits, menu) ; les servi
 deviennent `App\Page\*`, les feuilles `pages.css` + `page-<page>.css`. Versions
 nommées à partir d'ici (`docs/VERSIONS.md`, étiquettes `v0.4.0`, `v0.5.0`).
 
+## Proposition — « Créer une machine » revu (2026-10-06)
+
+Demande de l'opérateur : l'écran est lourd et ne précharge rien de ce qui existe.
+Revue d'un designer sur l'écran actuel (40 machines en base) : il ignore ce que le
+lab possède (14 X1 Carbon saisies une à une, d'où « BambuLab » / « Bambu Lab ») ;
+catégorie, localisation et modèle sont des cases vides ; le statut s'ouvre sur
+« idle » quand 34 sur 40 sont « disponible » ; limite et popularité, sans effet à la
+création, tiennent le chemin principal ; les badges sont tout en bas en 11 cartes.
+Proposition, en sous-page du menu Développement (`/admin/propositions/machine`,
+maquette qui n'enregistre rien) : repartir d'un modèle possédé en un clic ; quatre
+questions (nom, catégorie, badges, emplacement) en tuiles cliquables `.ml-tile`, la
+catégorie proposant ses badges habituels ; le reste replié ; identifiant de boîtier
+généré ; statut, limite et popularité sortis de la création. Écartés : un assistant
+en étapes, des listes fermées, un catalogue de modèles à part. Données :
+`App\Page\MachineCreationHints`. 🅿️ À la décision : retirer la page, sa route et
+son entrée de menu.
+
 ## 0.6.3 — la page publique « Maintenance » retirée (2026-10-06)
 
 Demande de l'opérateur : la page du menu principal ne sert plus. Elle listait les
