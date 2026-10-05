@@ -32,15 +32,15 @@
                         <div class="pp-tr-resume-in">
                             <div>
                                 <h2 id="pp-tr-resume-title" class="pp-next-title"><a href="{{ path('app_formation_detail', {id: t.formation.id}) }}">{{ t.formation.titre }}</a></h2>
-                                <ol class="pp-steps">
-                                    {% for step in t.journey.steps %}
-                                        <li class="{{ step.done ? 'is-done' : (step.key == t.journey.next ? 'is-next' : '') }}">
-                                            <span class="pp-steps-mark" aria-hidden="true">{{ step.done ? '✓' : loop.index }}</span>
-                                            <b>{{ ('fdet.step_' ~ step.key)|trans }}</b>
-                                            <small>{{ (step.done ? 'mytr.step_done' : (step.key == t.journey.next ? 'mytr.step_next' : (step.blocking ? 'mytr.step_team' : 'mytr.step_later')))|trans }}</small>
-                                        </li>
-                                    {% endfor %}
-                                </ol>
+                                {% set stepsOut = [] %}
+                                {% for step in t.journey.steps %}
+                                    {% set stepsOut = stepsOut|merge([{
+                                        state: step.done ? 'done' : (step.key == t.journey.next ? 'next' : ''),
+                                        label: ('fdet.step_' ~ step.key)|trans,
+                                        note: (step.done ? 'mytr.step_done' : (step.key == t.journey.next ? 'mytr.step_next' : (step.blocking ? 'mytr.step_team' : 'mytr.step_later')))|trans,
+                                    }]) %}
+                                {% endfor %}
+                                {% include 'site/_steps.html.twig' with { steps: stepsOut } only %}
                             </div>
                             <div class="pp-tr-resume-side">
                                 {% if t.journey.next %}
@@ -59,23 +59,25 @@
                     {title: 'mytr.done', rows: trainings.done, done: true},
                 ] %}
                     {% if group.rows|length %}
-                        <section class="pp-rows{{ group.done ? ' is-past' : '' }}">
-                            <h2>{{ group.title|trans }}</h2>
-                            <ul>
-                                {% for t in group.rows %}
-                                    <li class="pp-tr-row">
-                                        <span class="pp-row-what"><a href="{{ path('app_formation_detail', {id: t.formation.id}) }}">{{ t.formation.titre }}</a></span>
-                                        <span class="pp-row-motif">{{ group.done ? 'mytr.row_done'|trans : (t.journey.next ? ('fdet.step_' ~ t.journey.next)|trans : '—') }}</span>
-                                        <span class="pp-row-motif">{% if t.journey.quizTotal %}{{ 'mytr.quiz_validated'|trans({'%done%': t.journey.quizValidated, '%total%': t.journey.quizTotal}) }}{% else %}{{ t.journey.percent }} %{% endif %}</span>
-                                        {% if group.done and t.journey.badge %}
-                                            <a class="pp-row-go" href="{{ path('app_badge_detail', {id: t.journey.badge.id}) }}">{{ 'mytr.see_badge'|trans }}</a>
-                                        {% else %}
-                                            <a class="pp-row-go" href="{{ path('app_formation_follow', {id: t.formation.id}) }}">{{ t.journey.next ? ('fdet.next_' ~ t.journey.next)|trans : 'mytr.see'|trans }}</a>
-                                        {% endif %}
-                                    </li>
-                                {% endfor %}
-                            </ul>
-                        </section>
+                        {% set rowsOut = [] %}
+                        {% for t in group.rows %}
+                            {% set rowsOut = rowsOut|merge([{
+                                class: 'pp-tr-row',
+                                what: {text: t.formation.titre, url: path('app_formation_detail', {id: t.formation.id})},
+                                notes: [
+                                    group.done ? 'mytr.row_done'|trans : (t.journey.next ? ('fdet.step_' ~ t.journey.next)|trans : '—'),
+                                    t.journey.quizTotal ? 'mytr.quiz_validated'|trans({'%done%': t.journey.quizValidated, '%total%': t.journey.quizTotal}) : t.journey.percent ~ ' %',
+                                ],
+                                verb: group.done and t.journey.badge
+                                    ? {label: 'mytr.see_badge'|trans, url: path('app_badge_detail', {id: t.journey.badge.id})}
+                                    : {label: t.journey.next ? ('fdet.next_' ~ t.journey.next)|trans : 'mytr.see'|trans, url: path('app_formation_follow', {id: t.formation.id})},
+                            }]) %}
+                        {% endfor %}
+                        {% include 'site/_dated_rows.html.twig' with {
+                            title: group.title|trans,
+                            class: group.done ? 'is-past' : '',
+                            rows: rowsOut,
+                        } only %}
                     {% endif %}
                 {% endfor %}
             {% endif %}

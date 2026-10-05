@@ -1,0 +1,24 @@
+{#
+   LES ÉTAPES EN LIGNE — un parcours court (3 à 5 étapes) où UNE étape est « la suivante » et
+   les passées sont cochées (`.pp-steps`). Pas pour une simple liste.
+
+   Paramètres :
+
+     steps   la liste ; chaque étape est un hash {label, note, state}
+               label   le nom de l'étape, déjà traduit
+               note    la ligne quiète dessous (« Fait », « À faire maintenant »)
+               state   `done` | `next` | rien — le partiel écrit `is-done` / `is-next` et la
+                       pastille (✓ ou le numéro d'ordre)
+
+   ⚠️ Il ne CALCULE RIEN : quelle étape est faite, laquelle est la suivante, et chaque mot,
+   c'est l'appelant. Le partiel ne rend que l'<ol> ; l'enveloppe (carte, titre) est à la page.
+#}
+<ol class="pp-steps">
+    {% for step in steps %}
+        <li class="{{ step.state|default('') ? 'is-' ~ step.state : '' }}">
+            <span class="pp-steps-mark" aria-hidden="true">{{ step.state|default('') == 'done' ? '✓' : loop.index }}</span>
+            <b>{{ step.label }}</b>
+            <small>{{ step.note }}</small>
+        </li>
+    {% endfor %}
+</ol>

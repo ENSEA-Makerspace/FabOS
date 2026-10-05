@@ -1,0 +1,46 @@
+{#
+   LA PROCHAINE CHOSE — UN seul élément en tête d'une page « mes… » : celui qu'on cherche
+   (`.pp-next`). Média, « quand », titre, note, et un côté (accès + actions). Au-delà d'un
+   élément, c'est `_dated_rows`.
+
+   ⚠️ Il ne CALCULE RIEN : quelle est LA prochaine, comment s'écrit le jour, quelle pastille,
+   quelle porte s'ouvre — tout vient de l'appelant. Le partiel positionne.
+
+   Paramètres :
+
+     id            l'id du titre (sert à `aria-labelledby`)
+     title         le titre ; `title_url` en fait un lien ; `heading` = h2 (défaut) | h3
+     media_photo   chemin ou URL d'une image (un chemin relatif passe par `asset()`) ;
+                   sinon `media_icon` (nom `_icon`, défaut `calendar`) ; `photo_class` = classe
+                   de l'<img> (ex. `pt-photo`, le traitement photo du portail)
+     kicker        la petite ligne au-dessus (« En cours », « Prochaine réservation ») ;
+                   `kicker_class` (défaut `md-kicker`)
+     when_strong   le mot fort du « quand » (« Demain ») ; `when_rest` = ce qui suit « · »
+     note          une ligne quiète sous le titre ; `note_icon` = nom `_icon` devant elle
+     actions       [{label, url, style, icon}] : `style` = primary (défaut) | secondary
+
+   Blocs (via `embed`) :
+     main_extra    sous la note : la pastille, une ligne de places…
+     side_before   au-dessus des actions : la boîte « accès à la porte »
+#}
+{% set _heading = heading|default('h2') %}
+<section class="pp-next" aria-labelledby="{{ id }}">
+    <div class="pp-next-media">
+        {% if media_photo|default('') %}<img{% if photo_class|default('') %} class="{{ photo_class }}"{% endif %} src="{{ media_photo starts with 'http' or media_photo starts with '/' ? media_photo : asset(media_photo) }}" alt="" loading="lazy">
+        {% else %}{% include 'site/_icon.html.twig' with { name: media_icon|default('calendar') } only %}{% endif %}
+    </div>
+    <div class="pp-next-main">
+        {% if kicker|default('') %}<p class="{{ kicker_class|default('md-kicker') }}">{{ kicker }}</p>{% endif %}
+        {% if when_strong|default('') %}<p class="pp-next-when"><b>{{ when_strong }}</b> · {{ when_rest|default('') }}</p>{% endif %}
+        <{{ _heading }} id="{{ id }}" class="pp-next-title">{% if title_url|default('') %}<a href="{{ title_url }}">{{ title }}</a>{% else %}{{ title }}{% endif %}</{{ _heading }}>
+        {% if note|default('') %}<p class="pp-next-motif">{% if note_icon|default('') %}{% include 'site/_icon.html.twig' with { name: note_icon } only %} {% endif %}{{ note }}</p>{% endif %}
+        {% block main_extra %}{% endblock %}
+    </div>
+    <div class="pp-next-side">
+        {% block side_before %}{% endblock %}
+        <div class="pp-next-actions">
+            {% for a in actions|default([]) %}<a class="btn btn-{{ a.style|default('primary') }}" href="{{ a.url }}">{% if a.icon|default('') %}{% include 'site/_icon.html.twig' with { name: a.icon } only %} {% endif %}{{ a.label }}</a>
+            {% endfor %}
+        </div>
+    </div>
+</section>

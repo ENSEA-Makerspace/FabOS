@@ -1,6 +1,8 @@
 /* Les motifs partagés des pages revues de la 0.5 (2026-10-02) : lignes datées
    (`pp-rows`), « prochaine » en tête (`pp-next`), « À faire » (`pp-todo`), étapes
-   (`pp-steps`), cartes horizontales (`pp-hcard`)… Nés comme propositions d'après
+   (`pp-steps`), cartes horizontales (`pp-hcard`)… Quatre ont leur partiel, le seul
+   endroit qui écrit leur balisage : `site/_next_card` (`pp-next`), `site/_dated_rows`
+   (`pp-rows`), `site/_steps` (`pp-steps`), `site/_hcard` (`pp-hcard`). Nés comme propositions d'après
    les planches (Phase V), ils servent maintenant les vraies pages.
    ⚠️ Le préfixe `pp-` est historique ; jetons du thème seulement. Une règle propre
    à UNE page vit dans sa feuille `page-<page>.css`. */

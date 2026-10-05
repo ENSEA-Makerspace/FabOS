@@ -114,15 +114,15 @@
                 {% for t in held.trainings|filter(t => t.journey.steps) %}
                     <section class="detail-card pp-bo-path" aria-labelledby="pp-bo-path-{{ t.formation.id }}">
                         <h2 id="pp-bo-path-{{ t.formation.id }}">{{ (held.owned ? 'badgeheld.how_obtained' : 'badgeheld.your_path')|trans }} — {{ t.formation.titre }}</h2>
-                        <ol class="pp-steps">
-                            {% for step in t.journey.steps %}
-                                <li class="{{ step.done ? 'is-done' : (step.key == t.journey.next ? 'is-next' : '') }}">
-                                    <span class="pp-steps-mark" aria-hidden="true">{{ step.done ? '✓' : loop.index }}</span>
-                                    <b>{{ ('fdet.step_' ~ step.key)|trans }}</b>
-                                    <small>{{ (step.done ? 'mytr.step_done' : (step.key == t.journey.next ? 'mytr.step_next' : (step.blocking ? 'mytr.step_team' : 'mytr.step_later')))|trans }}</small>
-                                </li>
-                            {% endfor %}
-                        </ol>
+                        {% set stepsOut = [] %}
+                        {% for step in t.journey.steps %}
+                            {% set stepsOut = stepsOut|merge([{
+                                state: step.done ? 'done' : (step.key == t.journey.next ? 'next' : ''),
+                                label: ('fdet.step_' ~ step.key)|trans,
+                                note: (step.done ? 'mytr.step_done' : (step.key == t.journey.next ? 'mytr.step_next' : (step.blocking ? 'mytr.step_team' : 'mytr.step_later')))|trans,
+                            }]) %}
+                        {% endfor %}
+                        {% include 'site/_steps.html.twig' with { steps: stepsOut } only %}
                         {% if not held.owned and t.journey.next %}
                             <p class="pp-bo-actions"><a class="btn btn-primary" href="{{ path('app_formation_follow', {id: t.formation.id}) }}">{{ ('fdet.next_' ~ t.journey.next)|trans }}</a></p>
                         {% endif %}

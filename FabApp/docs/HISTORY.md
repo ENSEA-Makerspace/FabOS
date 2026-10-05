@@ -205,6 +205,19 @@ des propositions est retiré (contrôleur, registre, gabarits, menu) ; les servi
 deviennent `App\Page\*`, les feuilles `pages.css` + `page-<page>.css`. Versions
 nommées à partir d'ici (`docs/VERSIONS.md`, étiquettes `v0.4.0`, `v0.5.0`).
 
+## 0.6.1 et 0.6.2 — le design documenté, puis factorisé (2026-10-06)
+
+Règle de l'opérateur : du design neuf est permis **s'il est documenté dans
+`/admin/design`**. 0.6.1 : la page documente les motifs nés en 0.5/0.6 (tête de
+fiche, motifs `pp-`, bloc membre, liste de motifs, page de compte, fonction
+activable) et gagne `.form-narrow` (formulaire public étroit, R8 de la revue).
+0.6.2 : les quatre motifs recopiés à la main dans six pages deviennent des partiels
+— `_next_card`, `_dated_rows` (variante `search`), `_steps`, `_hcard` — et la page
+Design les inclut. Preuve : le `<main>` de sept pages rendu avant et après, comparé
+sans les espaces, est identique. `_reason_list` et `_honeypot` prennent un
+`id_prefix`. 🅿️ Reste : la carte « à reprendre » de Mes formations, et le choix
+du mot d'une étape écrit deux fois (`my-trainings`, `badge-detail`).
+
 ## 0.6.0 — Phase W : six fonctions activables (2026-10-05)
 
 Après la comparaison avec FabtrackJS (Sorbonne), l'opérateur retient six idées,

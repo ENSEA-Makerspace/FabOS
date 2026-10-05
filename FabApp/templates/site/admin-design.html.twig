@@ -1215,89 +1215,95 @@
                 <h3>Les motifs de <code>pages.css</code> (préfixe <code>pp-</code>)</h3>
                 <p>
                     Le préfixe est historique (« public pages ») : ce sont les blocs des pages où un membre
-                    regarde <em>sa</em> situation. Il n'existe pas de partiel pour eux — chaque page écrit le
-                    balisage, mais <strong>les classes sont les mêmes</strong> et rien ne se redessine.
-                    Données ci-dessous : fictives, de la même forme que celles des vraies pages.
+                    regarde <em>sa</em> situation. Quatre d'entre eux ont un partiel — <strong>la page passe
+                    des mots et des signaux, le partiel écrit le balisage</strong> ; rien n'est recopié, rien
+                    ne se redessine. Les exemples ci-dessous <em>incluent</em> ces partiels : ce que vous voyez
+                    est ce que les pages rendent. Données : fictives, de la même forme que celles des vraies pages.
                 </p>
 
-                <p class="dz-label">LA prochaine chose — <code>.pp-next</code></p>
+                <p class="dz-label">LA prochaine chose — <code>_next_card.html.twig</code> (<code>.pp-next</code>)</p>
                 <div class="dz-demo">
-                    <section class="pp-next" aria-labelledby="dz-pp-next-title">
-                        <div class="pp-next-media">{% include 'site/_icon.html.twig' with { name: 'calendar' } only %}</div>
-                        <div class="pp-next-main">
-                            <p class="pp-next-when"><b>Demain</b> · 14:00–16:00</p>
-                            <h2 id="dz-pp-next-title" class="pp-next-title"><a href="#motifs-pp">Découpeuse laser</a></h2>
-                            <p class="pp-next-motif">Prototype boîtier</p>
-                        </div>
-                        <div class="pp-next-side">
-                            <div class="pp-next-actions">
-                                <a class="btn btn-primary" href="#motifs-pp">Gérer</a>
-                            </div>
-                        </div>
-                    </section>
+                    {% embed 'site/_next_card.html.twig' with {
+                        id: 'dz-pp-next-title',
+                        media_icon: 'calendar',
+                        when_strong: 'Demain',
+                        when_rest: '14:00–16:00',
+                        title: 'Découpeuse laser',
+                        title_url: '#motifs-pp',
+                        note: 'Prototype boîtier',
+                        actions: [{label: 'Gérer', url: '#motifs-pp'}],
+                    } %}
+                        {% block main_extra %}{% include 'site/_state_chip.html.twig' with { label: 'Confirmée', signal: 'go' } only %}{% endblock %}
+                    {% endembed %}
                 </div>
                 <p class="dz-used">
                     <b>Quand :</b> en tête d'une page « mes… », UN seul élément — celui qu'on cherche. Au-delà d'un,
-                    c'est <code>.pp-rows</code>. <b>Sert :</b> <code>mes-reservations</code>, <code>events</code> (mes inscriptions),
-                    et <code>.pp-next-title</code> dans <code>my-trainings</code>.
+                    c'est <code>_dated_rows</code>. <b>Paramètres :</b> <code>id</code>, <code>title</code> / <code>title_url</code> /
+                    <code>heading</code>, <code>media_photo</code> ou <code>media_icon</code>, <code>kicker</code>, <code>when_strong</code> +
+                    <code>when_rest</code>, <code>note</code> (+ <code>note_icon</code>), <code>actions</code> (<code>[{label, url, style, icon}]</code>) ;
+                    blocs <code>main_extra</code> (la pastille, une ligne de places) et <code>side_before</code> (la boîte « accès à la porte »).
+                    Il ne calcule rien : quelle est LA prochaine, c'est l'appelant.
+                    <b>Sert :</b> <code>mes-reservations</code>, <code>events</code> (mes inscriptions). <code>my-trainings</code> garde
+                    <code>.pp-next-title</code> seul, dans sa carte « à reprendre » (pas de média ni de côté : ce n'est pas ce motif).
                 </p>
 
-                <p class="dz-label" style="margin-top: var(--spacing-lg)">Les lignes datées — <code>.pp-rows</code></p>
+                <p class="dz-label" style="margin-top: var(--spacing-lg)">Les lignes datées — <code>_dated_rows.html.twig</code> (<code>.pp-rows</code>)</p>
                 <div class="dz-demo">
-                    <section class="pp-rows">
-                        <h2>À venir</h2>
-                        <ul>
-                            {% for r in demoPatterns.rows %}
-                                <li>
-                                    <span class="pp-row-date"><small>{{ r.day }}</small>{{ r.date }}</span>
-                                    <span class="pp-row-what"><small>{{ r.time }}</small>{{ r.what }}</span>
-                                    <span class="pp-row-motif">{{ r.motif }}</span>
-                                    {% if r.pending %}{% include 'site/_state_chip.html.twig' with { label: 'À valider', signal: 'wait' } only %}{% else %}<span></span>{% endif %}
-                                    <a class="pp-row-go" href="#motifs-pp">Gérer</a>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    </section>
+                    {% set demoRows2 = [] %}
+                    {% for r in demoPatterns.rows %}
+                        {% set demoRows2 = demoRows2|merge([{
+                            date: {day: r.day, text: r.date},
+                            what: {small: r.time, text: r.what},
+                            notes: [r.motif],
+                            chip: r.pending ? {label: 'À valider', signal: 'wait'} : null,
+                            verb: {label: 'Gérer', url: '#motifs-pp'},
+                        }]) %}
+                    {% endfor %}
+                    {% include 'site/_dated_rows.html.twig' with { title: 'À venir', rows: demoRows2, chip_column: true } only %}
                 </div>
                 <p class="dz-used">
                     <b>Quand :</b> plusieurs éléments qui ont une date, rangés par groupe (À venir, Passées).
-                    Cinq colonnes au plus : date, quoi, motif, état, un verbe. <code>.is-past</code> les fait
-                    reculer. <b>Sert :</b> <code>mes-reservations</code>, <code>my-trainings</code> (variante <code>.pp-tr-row</code>), <code>events</code>.
+                    Cinq colonnes au plus : date, quoi, notes, état, un verbe. <b>Paramètres :</b> <code>rows</code>
+                    (<code>[{date, what, notes, chip, verb, class}]</code>), <code>title</code>, <code>tag</code> (<code>details</code> = repliable),
+                    <code>class</code> (<code>is-past</code> les fait reculer), <code>list_class</code>, <code>chip_column</code>, <code>more</code>,
+                    <code>data</code> ; <code>variant: 'search'</code> pour un résultat de recherche ; bloc <code>heading</code>.
+                    <b>Sert :</b> <code>mes-reservations</code>, <code>my-trainings</code> (ligne <code>.pp-tr-row</code>), <code>events</code>, <code>search</code>.
                 </p>
 
-                <p class="dz-label" style="margin-top: var(--spacing-lg)">Les étapes en ligne — <code>.pp-steps</code></p>
+                <p class="dz-label" style="margin-top: var(--spacing-lg)">Les étapes en ligne — <code>_steps.html.twig</code> (<code>.pp-steps</code>)</p>
                 <div class="dz-demo">
                     <section class="detail-card">
-                        <ol class="pp-steps">
-                            {% for st in demoPatterns.steps %}
-                                <li class="{{ st.state }}"><b class="pp-steps-mark" aria-hidden="true">{{ st.mark }}</b><b>{{ st.label }}</b><small>{{ st.note }}</small></li>
-                            {% endfor %}
-                        </ol>
+                        {% set demoSteps = [] %}
+                        {% for st in demoPatterns.steps %}
+                            {% set demoSteps = demoSteps|merge([{label: st.label, note: st.note, state: st.state|replace({'is-': ''})}]) %}
+                        {% endfor %}
+                        {% include 'site/_steps.html.twig' with { steps: demoSteps } only %}
                     </section>
                 </div>
                 <p class="dz-used">
-                    <b>Quand :</b> un parcours court (3 à 5 étapes) où UNE étape est « la suivante » (<code>is-next</code>)
-                    et les passées sont cochées (<code>is-done</code>). Pas pour une simple liste.
-                    <b>Sert :</b> <code>my-trainings</code> (reprendre une formation), <code>badge-detail</code>.
+                    <b>Quand :</b> un parcours court (3 à 5 étapes) où UNE étape est « la suivante »
+                    et les passées sont cochées. Pas pour une simple liste. <b>Paramètres :</b> <code>steps</code> =
+                    <code>[{label, note, state}]</code>, <code>state</code> = <code>done</code> | <code>next</code> | rien ; la pastille
+                    (✓ ou le numéro) est écrite par le partiel. <b>Sert :</b> <code>my-trainings</code> (reprendre une formation), <code>badge-detail</code>.
                 </p>
 
-                <p class="dz-label" style="margin-top: var(--spacing-lg)">La carte horizontale — <code>.pp-hcard</code></p>
+                <p class="dz-label" style="margin-top: var(--spacing-lg)">La carte horizontale — <code>_hcard.html.twig</code> (<code>.pp-hcard</code>)</p>
                 <div class="dz-demo">
                     <div class="pp-now-list">
-                        <article class="pp-hcard">
-                            <div class="pp-hcard-media">{% include 'site/_icon.html.twig' with { name: 'map' } only %}</div>
-                            <div>
-                                <h3>Salle de réunion Ada</h3>
-                                <p class="pp-hcard-meta"><span>8 places</span> <span>{% include 'site/_icon.html.twig' with { name: 'pin' } only %} Atelier bois</span></p>
-                                <p class="pp-hcard-when">● Libre</p>
-                            </div>
-                            <a class="btn btn-primary" href="#motifs-pp">Réserver</a>
-                        </article>
+                        {% include 'site/_hcard.html.twig' with {
+                            title: 'Salle de réunion Ada',
+                            icon: 'map',
+                            meta: [{text: '8 places'}, {icon: 'pin', text: 'Atelier bois'}],
+                            when: 'Libre',
+                            action: {label: 'Réserver', url: '#motifs-pp'},
+                        } only %}
                     </div>
                 </div>
                 <p class="dz-used">
                     <b>Quand :</b> deux ou trois choses « à saisir tout de suite » en tête d'un catalogue, avec UN verbe.
                     Au-delà, c'est la grille <a href="#catalogue">de cartes</a>, jamais une pile de cartes horizontales.
+                    <b>Paramètres :</b> <code>title</code>, <code>icon</code>, <code>meta</code> (<code>[{text, icon | svg}]</code>), <code>when</code> +
+                    <code>later</code> (teinte « plus tard »), <code>action</code> (<code>{label, url}</code>). La grille <code>.pp-now-list</code> est à la page.
                     <b>Sert :</b> <code>places</code> (libres maintenant).
                 </p>
 

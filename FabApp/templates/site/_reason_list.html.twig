@@ -10,29 +10,33 @@
      token     l'identifiant du jeton CSRF que cette route attend
      help      (facultatif) une phrase d'aide, déjà traduite
      movable   (facultatif) montre ↑ ↓ : seulement là où l'ordre se voit (les tuiles de la borne)
+     id_prefix (facultatif) préfixe des ids (`<préfixe>-new`, `<préfixe>-<id>`, `<préfixe>-list`
+               pour le repli) : à passer dès qu'une page porte deux listes. Défaut `reason`, et
+               le repli garde alors son id historique `motifs` (ancre existante).
 
    Même balisage que les catégories de machines et d'événements (`.cat-inline`) ; ⚠️ le
    contenu (`label`) est de la donnée : jamais traduit.
 #}
 {# Le <div> : un enfant direct de la carte de liste reçoit le retrait latéral des tuiles (`.admin-panel > *`). #}
+{% set _p = id_prefix|default('reason') %}
 <div>
-<details class="settings-danger settings-danger--neutral" id="motifs">
+<details class="settings-danger settings-danger--neutral" id="{{ id_prefix is defined and id_prefix ? id_prefix ~ '-list' : 'motifs' }}">
     <summary>{{ 'reasons.title'|trans }}</summary>
     <div>
         {% if help|default('') %}<p class="settings-hint">{{ help }}</p>{% endif %}
         <form method="post" action="{{ path(route) }}" class="cat-inline">
             <input type="hidden" name="_token" value="{{ csrf_token(token) }}">
             <input type="hidden" name="action" value="add">
-            <label class="sr-only" for="reason-new">{{ 'reasons.new'|trans }}</label>
-            <input id="reason-new" type="text" name="label" maxlength="120" required>
+            <label class="sr-only" for="{{ _p }}-new">{{ 'reasons.new'|trans }}</label>
+            <input id="{{ _p }}-new" type="text" name="label" maxlength="120" required>
             <button class="ml-btn" type="submit">{{ 'reasons.add'|trans }}</button>
         </form>
         {% for r in reasons %}
             <form method="post" action="{{ path(route) }}" class="cat-inline" data-reason="{{ r.id }}">
                 <input type="hidden" name="_token" value="{{ csrf_token(token) }}">
                 <input type="hidden" name="id" value="{{ r.id }}">
-                <label class="sr-only" for="reason-{{ r.id }}">{{ 'reasons.rename'|trans }}</label>
-                <input id="reason-{{ r.id }}" type="text" name="label" maxlength="120" required value="{{ r.label }}">
+                <label class="sr-only" for="{{ _p }}-{{ r.id }}">{{ 'reasons.rename'|trans }}</label>
+                <input id="{{ _p }}-{{ r.id }}" type="text" name="label" maxlength="120" required value="{{ r.label }}">
                 <button class="admin-action" type="submit" name="action" value="rename">{{ 'reasons.rename'|trans }}</button>
                 {% if movable|default(false) %}
                     <button class="admin-action" type="submit" name="action" value="move_up" aria-label="{{ 'reasons.move_up'|trans }}" title="{{ 'reasons.move_up'|trans }}">↑</button>

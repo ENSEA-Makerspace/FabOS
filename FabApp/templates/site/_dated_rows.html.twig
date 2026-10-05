@@ -1,0 +1,66 @@
+{#
+   LES LIGNES DATÉES — un groupe de lignes (`.pp-rows`) : date, quoi, notes, pastille, un verbe.
+
+   À quoi ça sert : « Mes réservations », « Mes inscriptions », « Mes formations » et les
+   résultats de recherche rangent leurs éléments de la même façon. Ce partiel écrit le
+   balisage ; les pages ne le recopient plus.
+
+   ⚠️ Il ne CALCULE RIEN : pas de date formatée ici, pas de mot, pas de choix de signal. Le
+   partiel positionne ; l'appelant décide des mots (déjà traduits) et des signaux.
+
+   Paramètres :
+
+     rows        la liste des lignes. Chaque ligne est un hash, toutes les clés facultatives :
+                   date    {day, text}      « Mar » au-dessus de « 7 oct »
+                   what    {text, small, url}  le quoi ; `small` = la ligne quiète au-dessus
+                           (l'heure) ; `url` en fait un lien
+                   notes   [mot, mot]       une cellule `.pp-row-motif` par mot
+                   chip    {label, signal}  la pastille (`_state_chip`) — go|wait|caution|stop|muted
+                   verb    {label, url}     LE verbe, en bouton rond
+                   class   classe de la <li> (ex. `pp-tr-row`)
+     title       le titre du groupe (déjà traduit) ; remplaçable par le bloc `heading`
+     tag         `section` (défaut) | `details` (repliable : le titre devient le <summary>)
+     class       classes ajoutées au conteneur (ex. `is-past` : le groupe recule)
+     list_class  classes ajoutées au <ul> (ex. `pp-ev-rows`)
+     chip_column true : une ligne sans pastille émet une cellule vide, pour garder les colonnes
+                 alignées (mes réservations : la pastille n'existe que pour « à valider »)
+     data        {clé: valeur} rendu en `data-clé="valeur"` sur le conteneur
+     more        {url, label} : la ligne « voir tout » sous la liste
+
+   Variante `variant: 'search'` : une ligne de RÉSULTAT DE RECHERCHE — toute la ligne est un
+   lien. Clés de ligne : `url`, `icon` (nom `_icon`), `title`, `description`, `meta`.
+
+   Blocs (via `embed`) : `heading` (le contenu du <h2>/<summary>, pour y mettre une icône ou un
+   lien « Voir tout »).
+#}
+{% set _tag = tag|default('section') %}
+<{{ _tag }} class="pp-rows{{ class|default('') ? ' ' ~ class : '' }}"{% for k, v in data|default({}) %} data-{{ k }}="{{ v }}"{% endfor %}>
+    {% if _tag == 'details' %}
+        <summary>{% block heading %}{{ title|default('') }}{% endblock %}</summary>
+    {% else %}
+        <h2>{{ block('heading') }}</h2>
+    {% endif %}
+    <ul{% if list_class|default('') %} class="{{ list_class }}"{% endif %}>
+        {% for r in rows %}
+            {% if variant|default('') == 'search' %}
+                <li>
+                    <a class="pp-search-row" href="{{ r.url }}">
+                        <span class="pp-search-ic" aria-hidden="true">{% include 'site/_icon.html.twig' with { name: r.icon|default('open') } only %}</span>
+                        <span class="pp-search-what"><b>{{ r.title }}</b>{% if r.description %}<small>{{ r.description }}</small>{% endif %}</span>
+                        <span class="pp-search-meta">{{ r.meta }}</span>
+                        <span class="pp-search-go" aria-hidden="true">›</span>
+                    </a>
+                </li>
+            {% else %}
+                <li{% if r.class|default('') %} class="{{ r.class }}"{% endif %}>
+                    {% if r.date is defined and r.date %}<span class="pp-row-date"><small>{{ r.date.day }}</small>{{ r.date.text }}</span>{% endif %}
+                    {% if r.what is defined and r.what %}<span class="pp-row-what">{% if r.what.small|default('') %}<small>{{ r.what.small }}</small>{% endif %}{% if r.what.url|default('') %}<a href="{{ r.what.url }}">{{ r.what.text }}</a>{% else %}{{ r.what.text }}{% endif %}</span>{% endif %}
+                    {% for note in r.notes|default([]) %}<span class="pp-row-motif">{{ note }}</span>{% endfor %}
+                    {% if r.chip is defined and r.chip %}{% include 'site/_state_chip.html.twig' with { label: r.chip.label, signal: r.chip.signal } only %}{% elseif chip_column|default(false) %}<span></span>{% endif %}
+                    {% if r.verb is defined and r.verb %}<a class="pp-row-go" href="{{ r.verb.url }}">{{ r.verb.label }}</a>{% endif %}
+                </li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+    {% if more|default(null) %}<p class="pp-rows-more"><a href="{{ more.url }}">{{ more.label }}</a></p>{% endif %}
+</{{ _tag }}>

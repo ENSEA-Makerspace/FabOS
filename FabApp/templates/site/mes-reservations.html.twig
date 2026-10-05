@@ -36,19 +36,23 @@
             {% set res = reservable(hero) %}
             {% set day = hero.dateDebut|date('Y-m-d') %}
             {% set photo = photoOf[hero.id]|default(null) %}
-            <section class="pp-next" aria-labelledby="pp-next-title">
-                <div class="pp-next-media">
-                    {% if photo %}<img class="pt-photo" src="{{ photo starts with 'http' or photo starts with '/' ? photo : asset(photo) }}" alt="">
-                    {% else %}{% include 'site/_icon.html.twig' with { name: hero.reservableType and hero.reservableType.value == 'place' ? 'map' : 'calendar' } only %}{% endif %}
-                </div>
-                <div class="pp-next-main">
-                    <p class="md-kicker">{{ hero in current ? 'resv.state_current'|trans : 'resv.next_booking'|trans }}</p>
-                    <p class="pp-next-when"><b>{{ day == today ? 'resv.today'|trans : (day == tomorrow ? 'resv.tomorrow'|trans : hero.dateDebut|loc_date('EEEE d MMMM')|capitalize) }}</b> · {{ hero.dateDebut|date('H:i') }}–{{ hero.dateFin|date('H:i') }}</p>
-                    <h2 id="pp-next-title" class="pp-next-title">{% if res.url %}<a href="{{ res.url }}">{{ res.name }}</a>{% else %}{{ res.name ?: 'fallback.resource'|trans }}{% endif %}</h2>
-                    {% if hero.motif %}<p class="pp-next-motif">{{ hero.motif }}</p>{% endif %}
+            {% embed 'site/_next_card.html.twig' with {
+                id: 'pp-next-title',
+                media_photo: photo,
+                photo_class: 'pt-photo',
+                media_icon: hero.reservableType and hero.reservableType.value == 'place' ? 'map' : 'calendar',
+                kicker: hero in current ? 'resv.state_current'|trans : 'resv.next_booking'|trans,
+                when_strong: day == today ? 'resv.today'|trans : (day == tomorrow ? 'resv.tomorrow'|trans : hero.dateDebut|loc_date('EEEE d MMMM')|capitalize),
+                when_rest: hero.dateDebut|date('H:i') ~ '–' ~ hero.dateFin|date('H:i'),
+                title: res.name ?: 'fallback.resource'|trans,
+                title_url: res.url,
+                note: hero.motif,
+                actions: [{label: 'resv.manage'|trans, url: path('app_reservation_detail', {id: hero.id})}]|merge(res.calendarUrl ? [{label: 'nav.calendar'|trans, url: res.calendarUrl, style: 'secondary'}] : []),
+            } %}
+                {% block main_extra %}
                     {% include 'site/_state_chip.html.twig' with { label: hero.pending ? 'resv.state_pending'|trans : 'resv.state_confirmed'|trans, signal: hero.pending ? 'wait' : 'go' } only %}
-                </div>
-                <div class="pp-next-side">
+                {% endblock %}
+                {% block side_before %}
                     {% if doorsOf[hero.id] is defined %}
                         <div class="pp-next-access">
                             <p class="pp-next-access-title">{% include 'site/_icon.html.twig' with { name: 'key' } only %} {{ 'resv.badge_opens'|trans }}</p>
@@ -56,12 +60,8 @@
                             {% for door in doorsOf[hero.id] %}<p class="pp-next-door">{{ door }}</p>{% endfor %}
                         </div>
                     {% endif %}
-                    <div class="pp-next-actions">
-                        <a class="btn btn-primary" href="{{ path('app_reservation_detail', {id: hero.id}) }}">{{ 'resv.manage'|trans }}</a>
-                        {% if res.calendarUrl %}<a class="btn btn-secondary" href="{{ res.calendarUrl }}">{{ 'nav.calendar'|trans }}</a>{% endif %}
-                    </div>
-                </div>
-            </section>
+                {% endblock %}
+            {% endembed %}
         {% else %}
             {% include 'site/_cell_empty.html.twig' with {reason: 'resv.none'} only %}
         {% endif %}
@@ -72,40 +72,44 @@
         ] %}
         {% for section in sections %}
             {% if section.rows|length %}
-                <section class="pp-rows{{ section.key == 'past' ? ' is-past' : '' }}">
-                    <h2>{{ section.title }}</h2>
-                    <ul>
-                        {% for r in section.rows|slice(0, section.key == 'past' ? 5 : 50) %}
-                            {% set rr = reservable(r) %}
-                            <li>
-                                <span class="pp-row-date"><small>{{ r.dateDebut|loc_date('EEE')|capitalize }}</small>{{ r.dateDebut|loc_date('d MMM') }}</span>
-                                <span class="pp-row-what"><small>{{ r.dateDebut|date('H:i') }}–{{ r.dateFin|date('H:i') }}</small>{{ rr.name ?: 'fallback.resource'|trans }}</span>
-                                <span class="pp-row-motif">{{ r.motif }}</span>
-                                {% if section.key != 'past' and r.pending %}{% include 'site/_state_chip.html.twig' with { label: 'resv.state_pending'|trans, signal: 'wait' } only %}{% else %}<span></span>{% endif %}
-                                <a class="pp-row-go" href="{{ path('app_reservation_detail', {id: r.id}) }}">{{ section.key == 'past' ? 'common.see'|trans : 'resv.manage'|trans }}</a>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                    {% if section.key == 'past' and section.rows|length > 5 %}<p class="pp-rows-more"><a href="{{ path('app_my_reservations', {etat: 'past'}) }}">{{ 'resv.all_past'|trans({'%n%': section.rows|length}) }}</a></p>{% endif %}
-                </section>
+                {% set isPast = section.key == 'past' %}
+                {% set rowsOut = [] %}
+                {% for r in section.rows|slice(0, isPast ? 5 : 50) %}
+                    {% set rowsOut = rowsOut|merge([{
+                        date: {day: r.dateDebut|loc_date('EEE')|capitalize, text: r.dateDebut|loc_date('d MMM')},
+                        what: {small: r.dateDebut|date('H:i') ~ '–' ~ r.dateFin|date('H:i'), text: reservable(r).name ?: 'fallback.resource'|trans},
+                        notes: [r.motif],
+                        chip: (not isPast and r.pending) ? {label: 'resv.state_pending'|trans, signal: 'wait'} : null,
+                        verb: {label: (isPast ? 'common.see'|trans : 'resv.manage'|trans), url: path('app_reservation_detail', {id: r.id})},
+                    }]) %}
+                {% endfor %}
+                {% include 'site/_dated_rows.html.twig' with {
+                    title: section.title,
+                    class: isPast ? 'is-past' : '',
+                    rows: rowsOut,
+                    chip_column: true,
+                    more: isPast and section.rows|length > 5 ? {url: path('app_my_reservations', {etat: 'past'}), label: 'resv.all_past'|trans({'%n%': section.rows|length})} : null,
+                } only %}
             {% endif %}
         {% endfor %}
 
         {% if groupsInOrder.cancelled|default([])|length %}
-            <details class="pp-rows is-past">
-                <summary>{{ 'resv.f_cancelled'|trans }} ({{ groupsInOrder.cancelled|length }})</summary>
-                <ul>
-                    {% for r in groupsInOrder.cancelled %}
-                        <li>
-                            <span class="pp-row-date"><small>{{ r.dateDebut|loc_date('EEE')|capitalize }}</small>{{ r.dateDebut|loc_date('d MMM') }}</span>
-                            <span class="pp-row-what"><small>{{ r.dateDebut|date('H:i') }}–{{ r.dateFin|date('H:i') }}</small>{{ reservable(r).name }}</span>
-                            <span class="pp-row-motif">{{ r.motif }}</span>
-                            {% include 'site/_state_chip.html.twig' with { label: r.declined ? 'resv.state_declined'|trans : 'resv.state_cancelled'|trans, signal: 'stop' } only %}
-                            <a class="pp-row-go" href="{{ path('app_reservation_detail', {id: r.id}) }}">{{ 'common.see'|trans }}</a>
-                        </li>
-                    {% endfor %}
-                </ul>
-            </details>
+            {% set rowsOut = [] %}
+            {% for r in groupsInOrder.cancelled %}
+                {% set rowsOut = rowsOut|merge([{
+                    date: {day: r.dateDebut|loc_date('EEE')|capitalize, text: r.dateDebut|loc_date('d MMM')},
+                    what: {small: r.dateDebut|date('H:i') ~ '–' ~ r.dateFin|date('H:i'), text: reservable(r).name},
+                    notes: [r.motif],
+                    chip: {label: r.declined ? 'resv.state_declined'|trans : 'resv.state_cancelled'|trans, signal: 'stop'},
+                    verb: {label: 'common.see'|trans, url: path('app_reservation_detail', {id: r.id})},
+                }]) %}
+            {% endfor %}
+            {% include 'site/_dated_rows.html.twig' with {
+                tag: 'details',
+                title: 'resv.f_cancelled'|trans ~ ' (' ~ groupsInOrder.cancelled|length ~ ')',
+                class: 'is-past',
+                rows: rowsOut,
+            } only %}
         {% endif %}
     </div>
 </main>

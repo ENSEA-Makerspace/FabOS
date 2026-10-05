@@ -1,8 +1,11 @@
 {# Le pot de miel des formulaires publics : un champ `website` hors écran, jamais atteint au
    clavier ni annoncé ; seul un robot le remplit. Un seul balisage pour la page de panne
    (`machine-report`) et la borne de check-in. Ce n'est pas la seule défense : voir le
-   contrôleur de chaque formulaire (jeton CSRF, limite de débit). #}
+   contrôleur de chaque formulaire (jeton CSRF, limite de débit).
+
+   `id_prefix` (facultatif, défaut `hp`) : l'id du champ est `<préfixe>-website` ; à passer dès
+   qu'une page porte deux formulaires avec pot de miel. #}
 <div class="sr-only" aria-hidden="true" data-honeypot>
-    <label for="hp-website">{{ 'common.honeypot'|trans }}</label>
-    <input id="hp-website" type="text" name="website" value="" tabindex="-1" autocomplete="off">
+    <label for="{{ id_prefix|default('hp') }}-website">{{ 'common.honeypot'|trans }}</label>
+    <input id="{{ id_prefix|default('hp') }}-website" type="text" name="website" value="" tabindex="-1" autocomplete="off">
 </div>

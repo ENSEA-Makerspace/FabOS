@@ -55,18 +55,14 @@
                 <div class="pp-now-list">
                     {% for entry in featured|slice(0, 3) %}
                         {% set p = entry.place %}
-                        <article class="pp-hcard">
-                            <div class="pp-hcard-media">{% include 'site/_icon.html.twig' with { name: 'map' } only %}</div>
-                            <div>
-                                <h3>{{ p.nom }}</h3>
-                                <p class="pp-hcard-meta">
-                                    {% if p.capacite %}<span>{{ people_svg }} {{ p.capacite }} {{ 'places.capacity_suffix'|trans }}</span>{% endif %}
-                                    {% if p.localisation %}<span>{% include 'site/_icon.html.twig' with { name: 'pin' } only %} {{ p.localisation }}</span>{% endif %}
-                                </p>
-                                <p class="pp-hcard-when{{ entry.freeNow ? '' : ' is-later' }}">● {{ entry.freeNow ? 'state.free'|trans : whenOf['p' ~ p.id] }}</p>
-                            </div>
-                            <a class="btn btn-primary" href="{{ path('app_place_detail', {id: p.id}) }}#place-calendar">{{ 'places.book'|trans }}</a>
-                        </article>
+                        {% include 'site/_hcard.html.twig' with {
+                            title: p.nom,
+                            icon: 'map',
+                            meta: (p.capacite ? [{svg: people_svg, text: p.capacite ~ ' ' ~ 'places.capacity_suffix'|trans}] : [])|merge(p.localisation ? [{icon: 'pin', text: p.localisation}] : []),
+                            when: entry.freeNow ? 'state.free'|trans : whenOf['p' ~ p.id],
+                            later: not entry.freeNow,
+                            action: {label: 'places.book'|trans, url: path('app_place_detail', {id: p.id}) ~ '#place-calendar'},
+                        } only %}
                     {% endfor %}
                 </div>
             {% endif %}

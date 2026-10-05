@@ -1,0 +1,29 @@
+{#
+   LA CARTE HORIZONTALE — une chose « à saisir tout de suite » (`.pp-hcard`) : média, titre,
+   quelques faits, un « quand », et UN verbe. À poser dans un `.pp-now-list` (la grille est
+   à la page). Deux ou trois au plus ; au-delà, c'est la grille de cartes du catalogue.
+
+   ⚠️ Il ne CALCULE RIEN : le « quand », les mots et la destination viennent de l'appelant.
+
+   Paramètres :
+
+     title     le titre (déjà traduit ou donnée)
+     icon      nom `_icon` du média (défaut `map`)
+     meta      [{text, icon, svg}] : les faits, une pastille chacun. `icon` = nom `_icon` ;
+               `svg` = un SVG déjà écrit (Markup) quand l'icône n'est pas dans `_icon`
+     when      le « quand », avec le point ; vide = pas de ligne
+     later     true : le « quand » est pour plus tard (teinte primaire, pas verte)
+     action    {label, url} : le verbe, en bouton plein
+#}
+<article class="pp-hcard">
+    <div class="pp-hcard-media">{% include 'site/_icon.html.twig' with { name: icon|default('map') } only %}</div>
+    <div>
+        <h3>{{ title }}</h3>
+        <p class="pp-hcard-meta">
+            {% for m in meta|default([]) %}<span>{% if m.svg|default('') %}{{ m.svg }}{% elseif m.icon|default('') %}{% include 'site/_icon.html.twig' with { name: m.icon } only %}{% endif %} {{ m.text }}</span>
+            {% endfor %}
+        </p>
+        {% if when|default('') %}<p class="pp-hcard-when{{ later|default(false) ? ' is-later' : '' }}">● {{ when }}</p>{% endif %}
+    </div>
+    <a class="btn btn-primary" href="{{ action.url }}">{{ action.label }}</a>
+</article>
