@@ -175,16 +175,18 @@ final class Checkins
         }
         if ($closing !== null) {
             $closeAt = $localStart->setTime(0, 0)->modify('+' . $closing . ' minutes')->setTimezone($utc);
-            if ($closeAt < $start) {
-                $closeAt = $start;
+            // 🔴 2026-10-06 — arrivé APRÈS la fermeture (séance tardive, équipe) : la
+            // visite ne finit pas à l'instant où elle commence — on retombe sur la
+            // règle « sans horaires » : elle dure jusqu'à la fin de la journée.
+            if ($closeAt > $start) {
+                return $now >= $closeAt ? $closeAt : null;
             }
-
-            return $now >= $closeAt ? $closeAt : null;
         }
-        // Pas d'horaires ce jour-là : la visite finit avec le jour.
+        // Pas d'horaires ce jour-là, ou arrivée après la fermeture : la visite finit
+        // avec le jour.
         $dayEnd = $localStart->setTime(23, 59, 59)->setTimezone($utc);
 
-        return $now > $dayEnd ? $start : null;
+        return $now > $dayEnd ? $dayEnd : null;
     }
 
     // ── Lectures de l'équipe ────────────────────────────────────────────────
