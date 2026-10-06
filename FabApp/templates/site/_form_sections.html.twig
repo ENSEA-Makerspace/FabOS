@@ -34,20 +34,27 @@
    gabarit appelant s'applique donc ici. Ce qui suit en dépend : sans
    `form/admin_theme.html.twig`, `form_row()` rend l'enveloppe par défaut de
    Symfony et non `.form-field`. #}
+{# ⚠️ **0.7.0 — une section dont AUCUN champ n'existe sur cet écran ne se rend pas**
+   (un titre sans champ dessous). Et un repli dit combien de ses champs sont déjà
+   remplis : fermé, il ne doit pas cacher qu'il contient quelque chose. #}
 {% set _fields = form|keys %}
 {% for section in sections %}
+  {% set _present = section.fields|filter(name => name in _fields) %}
+  {% if _present|length %}
     {% if section.fold|default(false) %}
-        {% set _refused %}{% for name in section.fields %}{% if name in _fields and form[name].vars.errors|length %}!{% endif %}{% endfor %}{% endset %}
+        {% set _refused %}{% for name in _present %}{% if form[name].vars.errors|length %}!{% endif %}{% endfor %}{% endset %}
+        {% set _filled = _present|filter(name => form[name].vars.value is not iterable and form[name].vars.value|trim != '')|length %}
         <details class="settings-danger settings-danger--neutral"{{ _refused|trim ? ' open' : '' }}>
-            <summary>{{ section.title|trans }}</summary>
+            <summary>{{ section.title|trans }}{% if _filled %} <small>· {{ 'common.filled_count'|trans({'%n%': _filled}) }}</small>{% endif %}</summary>
             <div class="form-grid">
-                {% for name in section.fields %}{% if name in _fields %}{{ form_row(form[name]) }}{% endif %}{% endfor %}
+                {% for name in _present %}{{ form_row(form[name]) }}{% endfor %}
             </div>
         </details>
     {% else %}
         <div class="form-section"><h3>{{ section.title|trans }}</h3></div>
         <div class="form-grid">
-            {% for name in section.fields %}{% if name in _fields %}{{ form_row(form[name]) }}{% endif %}{% endfor %}
+            {% for name in _present %}{{ form_row(form[name]) }}{% endfor %}
         </div>
     {% endif %}
+  {% endif %}
 {% endfor %}

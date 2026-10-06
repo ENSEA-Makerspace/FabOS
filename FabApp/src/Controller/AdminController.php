@@ -863,21 +863,44 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/machines/new', name: 'app_admin_machine_new', methods: ['GET', 'POST'])]
-    public function newMachine(Request $request, EntityManagerInterface $entityManager, BadgeRepository $badges, MachineRepository $machines, MachineCategoryRepository $categories, VenueRepository $venues): Response
+    public function newMachine(Request $request, EntityManagerInterface $entityManager, BadgeRepository $badges, MachineRepository $machines, MachineCategoryRepository $categories, VenueRepository $venues, \App\Page\MachineCreationHints $creationHints): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         $machine = new Machine();
         $machine->setVenue($this->requireDefaultVenue($venues));
+        // 0.7.0 — une machine se crée « disponible » (34 sur 40 le sont) et son
+        // identifiant de boîtier est généré : on ne bloque plus la création sur un
+        // identifiant matériel qu'on n'a pas sous la main. Les deux se changent ensuite.
+        $machine->setStatut('disponible');
+        $machine->setMachineToken(bin2hex(random_bytes(8)));
+
+        // « Une machine que le lab possède déjà » : `?copier=<id>` recopie sa fiche.
+        // Côté serveur, donc sans JavaScript, et c'est aussi ce que rouvre
+        // « Créer, puis une autre identique ».
+        $copyId = $request->query->getInt('copier');
+        $copy = $copyId > 0 ? $creationHints->copyOf($copyId) : null;
+        if ($copy !== null) {
+            $machine->setNom($copy['nom']);
+            $machine->setLocalisation($copy['localisation']);
+            $machine->setGranularite($copy['granularite']);
+            $machine->setManufacturer($copy['manufacturer']);
+            $machine->setModel($copy['model']);
+            $machine->setPhoto($copy['photo']);
+            $machine->setDescription($copy['description']);
+            $machine->setVenue($venues->find($copy['venueId']) ?? $machine->getVenue());
+        }
+
         $form = $this->createForm(MachineAdminType::class, $machine, [
-            'category_label' => null,
-            'level_value' => null,
-            'icon_slug' => null,
-            'materials' => [],
-            'features' => [],
-            'requirement_description' => null,
+            'category_label' => $copy['category'] ?? null,
+            'level_value' => $copy['level'] ?? null,
+            'icon_slug' => $copy['icon'] ?? null,
+            'materials' => $copy['materials'] ?? [],
+            'features' => $copy['features'] ?? [],
+            'requirement_description' => $copy['requirement'] ?? null,
             'popularity' => null,
             'include_machine_token' => true,
+            'hints' => $hints = $creationHints->all(),
         ]);
         $availableBadges = $badges->findBy([], ['nom' => 'ASC']);
         $submittedBadgeIds = $request->request->all('requiredBadges');
@@ -902,26 +925,26 @@ final class AdminController extends AbstractController
                 $this->addFlash('warning', 'flash.cette_machine_na_aucun_badge_requis');
             }
 
-            return $this->redirectToRoute('app_admin_machines');
+            // La fiche, pour la compléter — ou le même formulaire, prérempli à l'identique.
+            return $form->get('saveAgain')->isClicked()
+                ? $this->redirectToRoute('app_admin_machine_new', ['copier' => $machine->getId()])
+                : $this->redirectToRoute('app_admin_machine_edit', ['id' => $machine->getId()]);
         }
 
         return $this->render('site/admin-machine-new.html.twig', [
             'machine' => $machine,
             'form' => $form,
-            // ⚠️ Non-archived only. Archiving a category means it stops being
-            // offered; a machine already carrying it keeps it, which is why the
-            // field stays free text rather than becoming a ChoiceType (S133).
-            'categoryChoices' => array_map(
-                static fn (MachineCategory $category): string => $category->getLabel(),
-                $categories->allOrdered(includeArchived: false),
-            ),
+            'hints' => $hints,
+            'copyId' => $copy !== null ? $copyId : null,
             'availableBadges' => $availableBadges,
-            'selectedBadgeIds' => array_map('intval', array_filter($submittedBadgeIds, static fn ($id): bool => is_scalar($id) && ctype_digit((string) $id))),
+            'selectedBadgeIds' => $form->isSubmitted()
+                ? array_map('intval', array_filter($submittedBadgeIds, static fn ($id): bool => is_scalar($id) && ctype_digit((string) $id)))
+                : ($copy['badges'] ?? []),
         ], $form->isSubmitted() ? new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY) : null);
     }
 
     #[Route('/machines/{id}/edit', name: 'app_admin_machine_edit', requirements: ['id' => '\\d+'], methods: ['GET', 'POST'])]
-    public function editMachine(Machine $machine, Request $request, EntityManagerInterface $entityManager, BadgeRepository $badges, MachineCategoryRepository $categories, MachineDocumentRepository $machineDocuments): Response
+    public function editMachine(Machine $machine, Request $request, EntityManagerInterface $entityManager, BadgeRepository $badges, MachineDocumentRepository $machineDocuments, \App\Page\MachineCreationHints $creationHints): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
@@ -933,6 +956,7 @@ final class AdminController extends AbstractController
             'features' => $machine->getFeatures(),
             'requirement_description' => $machine->getRequirementDescription(),
             'popularity' => $machine->getPopularity(),
+            'hints' => $hints = $creationHints->all(),
         ]);
         $availableBadges = $badges->findBy([], ['nom' => 'ASC']);
         $selectedBadgeIds = [];
@@ -962,10 +986,7 @@ final class AdminController extends AbstractController
             'machineDocuments' => $machineDocuments->forMachine($machine),
             'machine' => $machine,
             'form' => $form,
-            'categoryChoices' => array_map(
-                static fn (MachineCategory $category): string => $category->getLabel(),
-                $categories->allOrdered(includeArchived: false),
-            ),
+            'hints' => $hints,
             'availableBadges' => $availableBadges,
             'selectedBadgeIds' => $selectedBadgeIds,
         ]);
@@ -992,8 +1013,11 @@ final class AdminController extends AbstractController
         $machine->setFeatures($this->linesToArray($form->get('caracteristiques')->getData()));
         $machine->setRequirementDescription($this->nullableString($form->get('prerequis')->getData()));
 
-        $popularity = $form->get('popularite')->getData();
-        $machine->setPopularity($popularity === null || $popularity === '' ? null : (int) $popularity);
+        // ⚠️ Absent à la création (0.7.0) : la popularité se règle sur la fiche.
+        if ($form->has('popularite')) {
+            $popularity = $form->get('popularite')->getData();
+            $machine->setPopularity($popularity === null || $popularity === '' ? null : (int) $popularity);
+        }
     }
 
     /**

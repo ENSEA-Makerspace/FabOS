@@ -42,6 +42,7 @@ announce:
     nobody: "Nobody has started this training yet: there is no one to write to."
 
 common:
+    filled_count: "%n% filled"
     honeypot: "Do not fill in this field"
     required: "required"
     skip_to_content: "Skip to main content"
@@ -2280,7 +2281,6 @@ admin_nav:
         app_admin_design: "Design"
         app_admin_missing_pages: "Missing pages"
         app_admin_references: "References"
-        app_admin_proposal_machine: "Proposal: add a machine"
 
 workspace:
     navigation: "%workspace% workspace navigation"
@@ -3519,12 +3519,13 @@ admin_features:
 
 # Créer une machine — S134c.
 admin_machine_new:
+    after_note: "Created as “available”. Status, booking limit and popularity are set afterwards, on its record."
+    submit_again: "Create, then another identical one"
+    known_hint: "One click copies its record — category, badges, location, public sheet. Only the name is left to check."
+    known_title: "A machine the lab already owns?"
     browser_title: "Create a machine - FabOS"
     title: "Create a machine"
-    subtitle: "Creates a machine and its required badges, with no course or user attached."
-    panel_title: "New machine"
-    panel_hint: "Choose the badges required to control access to the machine."
-    no_badge_warning: "This machine will require no badge: anyone will be able to book it."
+    subtitle: "Four questions are enough; the rest can be filled in whenever you like."
     submit: "Create the machine"
 
 # Gestion des machines — S134c.
@@ -3782,9 +3783,15 @@ event_categories:
         no_formation: "Not a training session"
 
 admin_machine_form:
-    granularite: "Slot length"
+    suggest_help: "Enter or comma to add. Click a tag to remove it."
+    suggest_add: "Add…"
+    suggest_other: "Other…"
+    badges_note: "Members must hold the selected badges. With none, any member can book it."
+    badges_question: "Who can book it?"
+    section_more: "More settings"
+    granularite: "Slot length (min)"
     limite_reservations: "Booking limit"
-    machine_token: "Machine token"
+    machine_token: "Box identifier"
     manufacturer: "Brand"
     model: "Model"
     materiaux: "Materials"
@@ -3798,17 +3805,17 @@ admin_machine_form:
     help_caracteristiques: "One specification per line — work area, power, precision."
     help_materiaux: "One material per line."
     help_manufacturer: "Used by the “Models and brands” grouping on the admin side."
-    help_token: "The identifier the RFID box sends for this machine."
+    help_token: "Generated. Replace it only if an RFID box already sends its own."
     help_limite: "⚠️ Published by the API, but nothing enforces it: quotas are set in the booking policies."
-    help_granularite: "The length of one calendar slot — 30 min, for example."
+    help_granularite: "Empty: the calendar’s own."
     help_statut: "Out of service, the machine stays visible but can no longer be booked."
     help_localisation: "Where to find it on site — “Wood shop”, “Bench 3”."
     help_description: "The first paragraph of the public page."
     help_niveau: "Indicative only: shown to the member, it blocks no booking."
     help_categorie: "Groups the machine in the catalogue filters and tiles."
     section_media: "Image and icon"
-    section_public: "What the public sees"
-    section_booking: "How it is booked"
+    section_public: "Public sheet"
+    section_booking: "State"
     section_place: "Where it lives"
     section_identity: "Identity"
     archive: "Retire from the lab"

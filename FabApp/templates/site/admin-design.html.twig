@@ -1054,6 +1054,45 @@
                 </p>
             </div>
 
+            {# 0.7.0 — proposer l'existant. Le composant réel : le contrôleur `suggest` bâtit les tuiles. #}
+            <div class="dz-block">
+                <p class="dz-label">Proposer ce qui existe déjà — contrôleur <code>suggest</code> sur le champ, tuiles <code>.ml-tile</code></p>
+                <form class="dz-demo" onsubmit="return false"
+                      data-suggest-other="{{ 'admin_machine_form.suggest_other'|trans }}"
+                      data-suggest-add="{{ 'admin_machine_form.suggest_add'|trans }}"
+                      data-suggest-help="{{ 'admin_machine_form.suggest_help'|trans }}">
+                    <div class="form-field">
+                        <label for="dz-suggest-one">Une valeur (<code>mode: one</code>, avec <code>other</code>)</label>
+                        <input type="text" id="dz-suggest-one" data-controller="suggest" data-suggest-mode-value="one" data-suggest-other-value="1"
+                               data-suggest-words-value="{{ {'Impression 3D': 16, 'Électronique': 5, 'Textile': 4}|json_encode }}">
+                    </div>
+                    <div class="form-field">
+                        <label for="dz-suggest-many">Des étiquettes (<code>mode: many</code>, sur un <code>&lt;textarea&gt;</code> « un par ligne »)</label>
+                        <textarea id="dz-suggest-many" data-controller="suggest" data-suggest-mode-value="many"
+                                  data-suggest-words-value="{{ {'PLA': 12, 'PETG': 9, 'Bois fin': 3}|json_encode }}">PLA
+Nylon</textarea>
+                    </div>
+                    <div class="form-field">
+                        <label>Des cases à cocher en tuiles (sans JavaScript : <code>label.ml-tile</code> autour de la case)</label>
+                        <div class="ml-cats">
+                            {% for name in ['Maker 3D', 'Accès PrintLab', 'Badge CNC'] %}
+                                <label class="ml-tile"><input type="checkbox"{{ loop.first ? ' checked' : '' }}><b class="ml-tile-label">{{ name }}</b></label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </form>
+                <p class="dz-used">
+                    <b>Quand :</b> un champ libre dont le lab connaît déjà les valeurs (catégorie, localisation, matériaux).
+                    Le champ reste libre — une valeur neuve est toujours possible — mais la case vide n'est plus le défaut.
+                    ⚠️ Pas une liste fermée : pour un choix imposé, c'est un <code>&lt;select&gt;</code>.
+                    <b>Comment :</b> les mots viennent du serveur en <code>data-suggest-words-value</code> (mot → nombre d'usages,
+                    les plus employés d'abord) ; <code>checks</code> + <code>checksName</code> font qu'une valeur coche les cases
+                    qu'elle amène d'habitude. Les libellés se posent sur le <code>&lt;form&gt;</code> (<code>data-suggest-*</code>).
+                    <b>Sert :</b> créer / modifier une machine (<code>_machine_form.html.twig</code>, données
+                    <code>App\Page\MachineCreationHints</code>).
+                </p>
+            </div>
+
             <div class="dz-sec" id="recherche">
                 <h3>La recherche : deux formes, et trois qui n'en sont pas</h3>
                 <p>

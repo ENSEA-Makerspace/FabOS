@@ -205,25 +205,37 @@ des propositions est retiré (contrôleur, registre, gabarits, menu) ; les servi
 deviennent `App\Page\*`, les feuilles `pages.css` + `page-<page>.css`. Versions
 nommées à partir d'ici (`docs/VERSIONS.md`, étiquettes `v0.4.0`, `v0.5.0`).
 
-## Proposition — « Créer une machine » revu (2026-10-06)
+## 0.7.0 — « Créer une machine » propose au lieu de demander (2026-10-06, S211)
 
 Demande de l'opérateur : l'écran est lourd et ne précharge rien de ce qui existe.
-Revue d'un designer sur l'écran actuel (40 machines en base) : il ignore ce que le
-lab possède (14 X1 Carbon saisies une à une, d'où « BambuLab » / « Bambu Lab ») ;
-catégorie, localisation et modèle sont des cases vides ; le statut s'ouvre sur
+Revue d'un designer sur l'ancien écran (40 machines en base) : il ignorait ce que le
+lab possède (les X1 Carbon saisies une à une, d'où « BambuLab » / « Bambu Lab ») ;
+catégorie, localisation et modèle étaient des cases vides ; le statut s'ouvrait sur
 « idle » quand 34 sur 40 sont « disponible » ; limite et popularité, sans effet à la
-création, tiennent le chemin principal ; les badges sont tout en bas en 11 cartes.
-Proposition, en sous-page du menu Développement (`/admin/propositions/machine`,
-maquette qui n'enregistre rien) : repartir d'un modèle possédé en un clic ; quatre
-questions (nom, catégorie, badges, emplacement) en tuiles cliquables `.ml-tile`, la
-catégorie proposant ses badges habituels ; le reste replié ; identifiant de boîtier
-généré ; statut, limite et popularité sortis de la création. Écartés : un assistant
-en étapes, des listes fermées, un catalogue de modèles à part. Données :
-`App\Page\MachineCreationHints`. Ajout du même jour, à la demande : matériaux et
-caractéristiques deviennent des étiquettes (les mots déjà employés se cliquent, un
-champ en ajoute un autre avec autocomplétion sur tout l'existant ; la valeur postée
-reste « un par ligne ») ; la marque s'autocomplète aussi. 🅿️ À la décision : retirer la page, sa route et
-son entrée de menu.
+création, tenaient le chemin principal ; les badges étaient tout en bas en 11 cartes.
+Passé par une proposition en sous-page du menu Développement, validée puis RETIRÉE.
+
+Livré, création ET édition (le même `_machine_form`) :
+- **repartir d'une machine possédée** : tuiles des modèles, `?copier=<id>` recopie la
+  fiche côté serveur (`MachineCreationHints::copyOf()`), nom suivant proposé ;
+  « Créer, puis une autre identique » rouvre ce formulaire ;
+- **quatre questions** : nom, catégorie, qui peut la réserver, où. Catégorie et
+  localisation en tuiles cliquables, les badges en tuiles à cocher juste après la
+  catégorie — qui coche ceux que ses machines demandent d'habitude ;
+- **matériaux et caractéristiques en étiquettes**, autocomplétées sur l'existant ; la
+  valeur postée reste « un par ligne » (aucune migration) ;
+- **replié** : « Plus de réglages », « Fiche publique », avec « n rempli(s) » ;
+- **à la création** : statut « disponible », identifiant de boîtier généré, ni
+  statut ni limite ni popularité (ils restent à l'édition) ; après création on
+  arrive sur la fiche, plus sur la liste.
+Technique : contrôleur Stimulus générique `suggest` (progressif : sans JavaScript le
+champ est le champ), tuiles `.ml-tile` réutilisées, quatre règles CSS ;
+`_form_sections` ne rend plus une section sans champ et compte les champs remplis
+d'un repli. Écartés : un assistant en étapes, des listes fermées, un catalogue de
+modèles à part. Sonde : `app:s211:machine-create-probe`. Documenté dans
+`/admin/design` (« Proposer ce qui existe déjà »).
+🅿️ Non fait : les valeurs du statut restent en anglais brut (« idle ») à l'édition ;
+les étiquettes sont triées par usage global, pas par catégorie.
 
 ## 0.6.3 — la page publique « Maintenance » retirée (2026-10-06)
 

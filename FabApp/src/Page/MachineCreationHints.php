@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Page;
 
 use App\Repository\MachineCategoryRepository;
-use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 
 /**
@@ -50,7 +49,45 @@ final class MachineCreationHints
             'models' => $this->models(),
             'materials' => $this->vocabulary('materials'),
             'features' => $this->vocabulary('features'),
+            'modelNames' => $this->db->fetchFirstColumn("SELECT model FROM MACHINE WHERE model <> '' GROUP BY model ORDER BY COUNT(*) DESC"),
             'manufacturers' => $this->db->fetchFirstColumn("SELECT manufacturer FROM MACHINE WHERE manufacturer <> '' GROUP BY manufacturer ORDER BY COUNT(*) DESC"),
+        ];
+    }
+
+    /**
+     * La fiche d'une machine, prête à en créer une autre : les colonnes BRUTES (pas les
+     * valeurs par défaut des accesseurs de l'entité), ses badges, et le nom suivant —
+     * « Creality K1 Max n°4 » propose « Creality K1 Max n°5 ».
+     *
+     * @return array<string, mixed>|null
+     */
+    public function copyOf(int $machineId): ?array
+    {
+        $row = $this->db->fetchAssociative('SELECT nom, manufacturer, model, categoryLabel, levelSlug, localisation, granularite, photo, iconSlug, materials, features, requirementDescription, description, venueId FROM MACHINE WHERE id = ?', [$machineId]);
+        if ($row === false) {
+            return null;
+        }
+        $base = trim((string) preg_replace('/\s*(n°|#)?\s*\d+$/u', '', (string) $row['nom']));
+        $siblings = (int) $this->db->fetchOne('SELECT COUNT(*) FROM MACHINE WHERE nom = ? OR nom LIKE ?', [$base, addcslashes($base, '%_') . ' %']);
+        $list = static fn (?string $json): array => array_values(array_filter((array) json_decode($json ?? '[]', true), 'is_string'));
+        $level = (int) preg_replace('/\D/', '', (string) $row['levelSlug']);
+
+        return [
+            'nom' => $base . ' n°' . (max(1, $siblings) + 1),
+            'category' => $row['categoryLabel'] ?: null,
+            'level' => $level >= 1 && $level <= 3 ? $level : null,
+            'venueId' => (int) $row['venueId'],
+            'localisation' => $row['localisation'] ?: null,
+            'granularite' => $row['granularite'] ?: null,
+            'manufacturer' => $row['manufacturer'] ?: null,
+            'model' => $row['model'] ?: null,
+            'photo' => $row['photo'] ?: null,
+            'icon' => $row['iconSlug'] ?: null,
+            'description' => $row['description'] ?: null,
+            'materials' => $list($row['materials']),
+            'features' => $list($row['features']),
+            'requirement' => $row['requirementDescription'] ?: null,
+            'badges' => array_map('intval', $this->db->fetchFirstColumn('SELECT badgeId FROM MACHINE_BADGE WHERE machineId = ?', [$machineId])),
         ];
     }
 
@@ -76,15 +113,15 @@ final class MachineCreationHints
     }
 
     /**
-     * Les modèles que le lab possède en plusieurs exemplaires d'abord. Chacun porte la
-     * fiche de son exemplaire le plus récent : c'est elle qu'un clic recopie.
+     * Les modèles que le lab possède en plusieurs exemplaires d'abord. Chacun désigne
+     * son exemplaire le plus récent : c'est sa fiche qu'un clic recopie (`copyOf()`).
      *
      * @return list<array<string, mixed>>
      */
     private function models(): array
     {
         $groups = [];
-        foreach ($this->db->fetchAllAssociative("SELECT id, nom, manufacturer, model, categoryLabel, levelSlug, localisation, granularite, photo, iconSlug, materials, features, requirementDescription, venueId FROM MACHINE WHERE archivedAt IS NULL AND model <> '' ORDER BY id DESC") as $row) {
+        foreach ($this->db->fetchAllAssociative("SELECT id, manufacturer, model FROM MACHINE WHERE archivedAt IS NULL AND model <> '' ORDER BY id DESC") as $row) {
             $key = preg_replace('/\s+/', '', mb_strtolower(($row['manufacturer'] ?? '') . '|' . $row['model']));
             $groups[$key] ??= ['count' => 0, 'last' => $row];
             ++$groups[$key]['count'];
@@ -92,38 +129,12 @@ final class MachineCreationHints
         uasort($groups, static fn (array $a, array $b): int => $b['count'] <=> $a['count']);
         $groups = \array_slice($groups, 0, 6);
 
-        $ids = array_map(static fn (array $g): int => (int) $g['last']['id'], $groups);
-        $badges = [];
-        if ($ids !== []) {
-            foreach ($this->db->fetchAllAssociative('SELECT machineId, badgeId FROM MACHINE_BADGE WHERE machineId IN (?)', [array_values($ids)], [ArrayParameterType::INTEGER]) as $row) {
-                $badges[(int) $row['machineId']][] = (int) $row['badgeId'];
-            }
-        }
-
         $models = [];
         foreach ($groups as $group) {
-            $last = $group['last'];
-            $lines = static fn (?string $json): string => implode("\n", array_filter((array) json_decode($json ?? '[]', true), 'is_string'));
             $models[] = [
-                'label' => trim(($last['manufacturer'] ?? '') . ' ' . $last['model']),
+                'id' => (int) $group['last']['id'],
+                'label' => trim(($group['last']['manufacturer'] ?? '') . ' ' . $group['last']['model']),
                 'count' => $group['count'],
-                'fill' => [
-                    // « Creality K1 Max n°4 » propose « Creality K1 Max n°5 ».
-                    'nom' => trim((string) preg_replace('/\s*(n°|#)?\s*\d+$/u', '', $last['nom'])) . ' n°' . ($group['count'] + 1),
-                    'categorie' => (string) $last['categoryLabel'],
-                    'niveau' => (string) preg_replace('/\D/', '', (string) $last['levelSlug']),
-                    'venue' => (string) $last['venueId'],
-                    'localisation' => (string) $last['localisation'],
-                    'granularite' => (string) $last['granularite'],
-                    'manufacturer' => (string) $last['manufacturer'],
-                    'model' => (string) $last['model'],
-                    'photo' => (string) $last['photo'],
-                    'icone' => (string) $last['iconSlug'],
-                    'materiaux' => $lines($last['materials']),
-                    'caracteristiques' => $lines($last['features']),
-                    'prerequis' => (string) $last['requirementDescription'],
-                    'badges' => $badges[(int) $last['id']] ?? [],
-                ],
             ];
         }
 

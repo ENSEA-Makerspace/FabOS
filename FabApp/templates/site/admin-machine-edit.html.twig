@@ -47,7 +47,7 @@
 
                 {% include 'site/_machine_form.html.twig' with {
                     form: form,
-                    categoryChoices: categoryChoices|default([]),
+                    hints: hints,
                     availableBadges: availableBadges,
                     selectedBadgeIds: selectedBadgeIds,
                 } only %}

@@ -42,6 +42,7 @@ announce:
     nobody: "Nessuno ha ancora iniziato questa formazione: non c'è nessuno a cui scrivere."
 
 common:
+    filled_count: "%n% compilato/i"
     honeypot: "Non compilare questo campo"
     required: "obbligatorio"
     skip_to_content: "Vai al contenuto principale"
@@ -2280,7 +2281,6 @@ admin_nav:
         app_admin_design: "Design"
         app_admin_missing_pages: "Pagine mancanti"
         app_admin_references: "Riferimenti"
-        app_admin_proposal_machine: "Proposta: creare una macchina"
 
 workspace:
     navigation: "Navigazione dello spazio %workspace%"
@@ -3518,12 +3518,13 @@ admin_features:
 
 # Créer une machine — S134c.
 admin_machine_new:
+    after_note: "Creata «disponibile». Stato, limite di prenotazioni e popolarità si regolano dopo, nella scheda."
+    submit_again: "Crea, poi un’altra identica"
+    known_hint: "Un clic copia la sua scheda: categoria, badge, posizione, scheda pubblica. Resta solo da verificare il nome."
+    known_title: "Una macchina che il lab possiede già?"
     browser_title: "Crea una macchina - FabOS"
     title: "Crea una macchina"
-    subtitle: "Creazione di una macchina e dei suoi badge necessari, senza formazione né utente associato."
-    panel_title: "Nuova macchina"
-    panel_hint: "Scegli i badge necessari per controllare l’accesso alla macchina."
-    no_badge_warning: "Questa macchina non richiederà alcun badge: chiunque potrà prenotarla."
+    subtitle: "Bastano quattro domande; il resto si completa quando vuole."
     submit: "Crea la macchina"
 
 # Gestion des machines — S134c.
@@ -3781,9 +3782,15 @@ event_categories:
         no_formation: "Non è una sessione di formazione"
 
 admin_machine_form:
-    granularite: "Granularità"
+    suggest_help: "Invio o virgola per aggiungere. Un clic su un’etichetta la rimuove."
+    suggest_add: "Aggiungi…"
+    suggest_other: "Altro…"
+    badges_note: "Servono i badge scelti. Senza badge, qualsiasi membro potrà prenotarla."
+    badges_question: "Chi può prenotarla?"
+    section_more: "Altre impostazioni"
+    granularite: "Durata di uno slot (min)"
     limite_reservations: "Limite prenotazioni"
-    machine_token: "Token macchina"
+    machine_token: "Identificativo del box"
     manufacturer: "Marca"
     model: "Modello"
     materiaux: "Materiali"
@@ -3797,17 +3804,17 @@ admin_machine_form:
     help_caracteristiques: "Una caratteristica per riga — superficie utile, potenza, precisione."
     help_materiaux: "Un materiale per riga."
     help_manufacturer: "Serve al raggruppamento «Modelli e marche» lato amministrazione."
-    help_token: "L’identificativo che il box RFID invia per questa macchina."
+    help_token: "Generato. Da sostituire solo se un box RFID invia già il proprio."
     help_limite: "⚠️ Pubblicata dall’API, ma nulla la applica: le quote si impostano nelle politiche di prenotazione."
-    help_granularite: "La durata di una fascia nel calendario — ad esempio 30 min."
+    help_granularite: "Vuoto: quella del calendario."
     help_statut: "Fuori servizio, la macchina resta visibile ma non è più prenotabile."
     help_localisation: "Dove trovarla nella sede — «Officina legno», «Banco 3»."
     help_description: "Il primo paragrafo della scheda pubblica."
     help_niveau: "Solo indicativo: mostrato al membro, non blocca alcuna prenotazione."
     help_categorie: "Raggruppa la macchina nei filtri e nelle schede del catalogo."
     section_media: "Immagine e icona"
-    section_public: "Cosa vede il pubblico"
-    section_booking: "Come si prenota"
+    section_public: "Scheda pubblica"
+    section_booking: "Stato"
     section_place: "Dove si trova"
     section_identity: "Identità"
     archive: "Ritirare dal parco"

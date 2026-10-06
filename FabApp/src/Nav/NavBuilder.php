@@ -398,8 +398,6 @@ final class NavBuilder
                 // portaient « cette maquette n'enregistre rien ». Une proposition
                 // implémentée se supprime ; ce qui reste ici décrit ce qui EST.
                 $this->adminItem('admin_nav.entry.app_admin_design', 'app_admin_design', 'dashboard'),
-                // 🅿️ Proposition (2026-10-06), à retirer à la décision — voir le contrôleur.
-                $this->adminItem('admin_nav.entry.app_admin_proposal_machine', 'app_admin_proposal_machine', 'machines'),
                 $this->adminItem('admin_nav.entry.app_admin_missing_pages', 'app_admin_missing_pages', 'logs'),
                 // 🅿️ **Temporaire, et daté.** Des planches de référence pour la
                 // future phase Formations — donc « ce qui pourrait être », ce que

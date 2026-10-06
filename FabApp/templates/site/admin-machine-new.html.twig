@@ -30,18 +30,10 @@
                     back_href: path('app_admin_machines'),
                     back_label: 'admin_machine_edit.back'|trans,
                 } only %}
-                <div class="admin-edit-panel-header">
-                    <h2>{{ 'admin_machine_new.panel_title'|trans }}</h2>
-                    <p>{{ 'admin_machine_new.panel_hint'|trans }}</p>
-                </div>
-
-                {% if selectedBadgeIds is empty %}
-                    <div class="form-warning">{{ 'admin_machine_new.no_badge_warning'|trans }}</div>
-                {% endif %}
-
                 {% include 'site/_machine_form.html.twig' with {
                     form: form,
-                    categoryChoices: categoryChoices|default([]),
+                    hints: hints,
+                    copyId: copyId,
                     availableBadges: availableBadges,
                     selectedBadgeIds: selectedBadgeIds,
                     submit_label: 'admin_machine_new.submit'|trans,

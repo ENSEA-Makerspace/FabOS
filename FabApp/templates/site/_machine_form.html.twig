@@ -16,47 +16,74 @@
    `<datalist>` du catalogue de catégories, et les badges requis — qui sont un
    `requiredBadges[]` posté à côté du formulaire, lu par le contrôleur. Ils gardent
    leur place, mais sous un titre de section comme le reste, pas flottants. #}
+{# ⚠️ **0.7.0 — l'écran propose au lieu de demander.** `hints`
+   (`App\Page\MachineCreationHints`) porte ce que le lab sait déjà : le `FormType`
+   le pose sur les champs pour le contrôleur `suggest` (tuiles à cliquer), et les
+   `<datalist>` ci-dessous autocomplètent le reste. Les badges viennent juste après
+   le nom et la catégorie : c'est la seule décision d'accès de l'écran. #}
 {% form_theme form 'form/admin_theme.html.twig' %}
-{{ form_start(form, {attr: {class: 'admin-edit-form', novalidate: 'novalidate'}}) }}
+{% set _sections = constant('App\\Form\\MachineAdminType::SECTIONS') %}
+{{ form_start(form, {attr: {
+    class: 'admin-edit-form', novalidate: 'novalidate',
+    'data-suggest-other': 'admin_machine_form.suggest_other'|trans,
+    'data-suggest-add': 'admin_machine_form.suggest_add'|trans,
+    'data-suggest-help': 'admin_machine_form.suggest_help'|trans,
+}}) }}
     {{ form_errors(form) }}
 
-    {# ⚠️ S133 — le catalogue de catégories, proposé sans être imposé.
-       `form.categorie` porte `list="machine-category-options"` ; voici la liste.
-       Les catégories archivées en sont absentes, ce qui est exactement ce
-       qu'archiver une catégorie veut dire : elle cesse d'être proposée, et les
-       machines qui la portent la gardent. #}
-    <datalist id="machine-category-options">
-        {% for label in categoryChoices|default([]) %}<option value="{{ label }}">{% endfor %}
-    </datalist>
+    {# Création seulement. « Une machine que le lab possède déjà ? » — un lien, pas du
+       JavaScript : `?copier=<id>` recopie la fiche de l'exemplaire le plus récent. #}
+{% if form.saveAgain is defined and hints.models|default([])|length %}
+            <div class="form-section"><h3>{{ 'admin_machine_new.known_title'|trans }}</h3></div>
+            <p class="form-help">{{ 'admin_machine_new.known_hint'|trans }}</p>
+            <nav class="ml-cats" aria-label="{{ 'admin_machine_new.known_title'|trans }}">
+                {% for model in hints.models %}
+                    <a class="ml-tile{{ model.id == copyId|default(null) ? ' is-on' : '' }}" href="{{ path('app_admin_machine_new', {copier: model.id}) }}"{{ model.id == copyId|default(null) ? ' aria-current="true"' : '' }}>
+                        <b class="ml-tile-label">{{ model.label }}</b>
+                        <b class="ml-tile-count">× {{ model.count }}</b>
+                    </a>
+                {% endfor %}
+            </nav>
+    {% endif %}
 
-    {% include 'site/_form_sections.html.twig' with {
-        form: form,
-        sections: constant('App\\Form\\MachineAdminType::SECTIONS'),
-    } only %}
+    {# ⚠️ S133 — le catalogue de catégories, proposé sans être imposé : les archivées
+       en sont absentes, et les machines qui en portent une la gardent. #}
+    {% for id, words in {
+        'machine-category-options': hints.categories|default({})|keys,
+        'machine-slot-options': hints.slots|default([]),
+        'machine-manufacturer-options': hints.manufacturers|default([]),
+        'machine-model-options': hints.modelNames|default([]),
+    } %}
+        <datalist id="{{ id }}">{% for word in words %}<option value="{{ word }}">{% endfor %}</datalist>
+    {% endfor %}
 
-    <div class="form-section"><h3>{{ 'admin_machine_edit.badges_label'|trans }}</h3></div>
+    {% include 'site/_form_sections.html.twig' with {form: form, sections: _sections|slice(0, 1)} only %}
+
     <div class="form-grid">
         <div class="form-field full">
+            <label>{{ 'admin_machine_form.badges_question'|trans }}</label>
             {% if availableBadges is empty %}
                 <p class="empty-state">{{ 'admin_machine_edit.badges_empty'|trans }}</p>
             {% else %}
-                <div class="badge-checkbox-grid">
+                <div class="ml-cats">
                     {% for badge in availableBadges %}
-                        <label class="badge-checkbox">
+                        <label class="ml-tile" title="{{ badge.description }}">
                             <input type="checkbox" name="requiredBadges[]" value="{{ badge.id }}" {{ badge.id in selectedBadgeIds ? 'checked' : '' }}>
-                            <span>
-                                <span class="badge-checkbox-title">{{ badge.nom }}</span>
-                                <span class="badge-checkbox-meta">{{ badge.description ?: 'machine.badge_required_desc'|trans }}</span>
-                            </span>
+                            <b class="ml-tile-label">{{ badge.nom }}</b>
                         </label>
                     {% endfor %}
                 </div>
+                <p class="form-help">{{ 'admin_machine_form.badges_note'|trans }}</p>
             {% endif %}
         </div>
     </div>
 
+    {% include 'site/_form_sections.html.twig' with {form: form, sections: _sections|slice(1)} only %}
+
+    {% if form.saveAgain is defined %}<p class="form-help">{{ 'admin_machine_new.after_note'|trans }}</p>{% endif %}
     <div class="form-actions">
         <a class="btn-link" href="{{ path('app_admin_machines') }}">{{ 'common.cancel'|trans }}</a>
+        {% if form.saveAgain is defined %}{{ form_widget(form.saveAgain, {attr: {class: 'btn-link'}}) }}{% endif %}
         <span class="btn-submit">{{ form_widget(form.save, {label: submit_label|default('common.save'|trans)}) }}</span>
     </div>
 {{ form_end(form) }}

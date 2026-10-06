@@ -81,9 +81,10 @@ où FabOS est un portail où le membre agit lui-même). L'opérateur rencontre s
 auteurs bientôt. Six idées retenues ; deux à rediscuter.
 
 ### 🅿️ Reste ouvert après la revue de sortie (0.6.0)
-- **Proposition en attente de décision : « Créer une machine » revu**
-  (`/admin/propositions/machine`, menu Développement). Si retenue : la porter sur
-  le vrai écran (et l'édition), puis retirer la page. Voir `HISTORY.md`.
+- Créer une machine (0.7.0, S211) : le statut reste en valeurs anglaises brutes à
+  l'édition ; les étiquettes de matériaux sont triées par usage global, pas par
+  catégorie. Même traitement possible pour matériaux, prêts et espaces (mêmes
+  formulaires à sections) — à décider après usage.
 - Le passage de badge à une porte n'ouvre pas un check-in : il n'existe pas d'API
   de porte qui enregistre les passages (à faire avec elle).
 - R8 de la revue : borner la largeur du formulaire public de signalement (demande

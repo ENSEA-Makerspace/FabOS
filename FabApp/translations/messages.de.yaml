@@ -42,6 +42,7 @@ announce:
     nobody: "Niemand hat diese Schulung begonnen: es gibt niemanden, dem man schreiben könnte."
 
 common:
+    filled_count: "%n% ausgefüllt"
     honeypot: "Dieses Feld nicht ausfüllen"
     required: "erforderlich"
     skip_to_content: "Zum Hauptinhalt springen"
@@ -2280,7 +2281,6 @@ admin_nav:
         app_admin_design: "Design"
         app_admin_missing_pages: "Fehlende Seiten"
         app_admin_references: "Referenzen"
-        app_admin_proposal_machine: "Vorschlag: Maschine anlegen"
 
 workspace:
     navigation: "Navigation im Arbeitsbereich %workspace%"
@@ -3518,12 +3518,13 @@ admin_features:
 
 # Créer une machine — S134c.
 admin_machine_new:
+    after_note: "Wird als „verfügbar“ angelegt. Status, Buchungslimit und Beliebtheit werden danach im Datensatz eingestellt."
+    submit_again: "Anlegen, dann eine weitere gleiche"
+    known_hint: "Ein Klick übernimmt ihre Angaben — Kategorie, Badges, Standort, öffentliche Seite. Nur der Name ist noch zu prüfen."
+    known_title: "Eine Maschine, die das Lab schon besitzt?"
     browser_title: "Maschine anlegen - FabOS"
     title: "Maschine anlegen"
-    subtitle: "Legt eine Maschine und ihre erforderlichen Abzeichen an, ohne Schulung oder Benutzer."
-    panel_title: "Neue Maschine"
-    panel_hint: "Wählen Sie die Abzeichen, die den Zugang zur Maschine steuern."
-    no_badge_warning: "Diese Maschine verlangt kein Abzeichen: jede Person kann sie reservieren."
+    subtitle: "Vier Fragen genügen; der Rest lässt sich jederzeit ergänzen."
     submit: "Maschine anlegen"
 
 # Gestion des machines — S134c.
@@ -3781,9 +3782,15 @@ event_categories:
         no_formation: "Kein Schulungstermin"
 
 admin_machine_form:
-    granularite: "Zeitraster"
+    suggest_help: "Eingabetaste oder Komma zum Hinzufügen. Ein Klick auf ein Etikett entfernt es."
+    suggest_add: "Hinzufügen…"
+    suggest_other: "Andere…"
+    badges_note: "Die gewählten Badges sind erforderlich. Ohne Badge kann jedes Mitglied buchen."
+    badges_question: "Wer darf sie buchen?"
+    section_more: "Weitere Einstellungen"
+    granularite: "Slot-Dauer (Min.)"
     limite_reservations: "Buchungslimit"
-    machine_token: "Maschinen-Token"
+    machine_token: "Kennung der Box"
     manufacturer: "Marke"
     model: "Modell"
     materiaux: "Materialien"
@@ -3797,17 +3804,17 @@ admin_machine_form:
     help_caracteristiques: "Eine Angabe pro Zeile – Arbeitsfläche, Leistung, Genauigkeit."
     help_materiaux: "Ein Material pro Zeile."
     help_manufacturer: "Dient der Gruppierung „Modelle und Marken“ in der Verwaltung."
-    help_token: "Die Kennung, die die RFID-Box für diese Maschine sendet."
+    help_token: "Erzeugt. Nur ersetzen, wenn eine RFID-Box bereits ihre eigene sendet."
     help_limite: "⚠️ Von der API veröffentlicht, aber nichts setzt sie durch: Kontingente stehen in den Buchungsregeln."
-    help_granularite: "Die Länge eines Kalenderslots – zum Beispiel 30 Min."
+    help_granularite: "Leer: die des Kalenders."
     help_statut: "Außer Betrieb bleibt die Maschine sichtbar, ist aber nicht mehr buchbar."
     help_localisation: "Wo sie vor Ort steht – „Holzwerkstatt“, „Werkbank 3“."
     help_description: "Der erste Absatz der öffentlichen Seite."
     help_niveau: "Nur ein Hinweis: wird angezeigt, blockiert aber keine Buchung."
     help_categorie: "Gruppiert die Maschine in Filtern und Kacheln des Katalogs."
     section_media: "Bild und Symbol"
-    section_public: "Was Besucher sehen"
-    section_booking: "Wie sie gebucht wird"
+    section_public: "Öffentliche Seite"
+    section_booking: "Zustand"
     section_place: "Standort"
     section_identity: "Identität"
     archive: "Archivieren"
