@@ -3784,9 +3784,11 @@ event_categories:
         no_formation: "Ce n'est pas une séance de formation"
 
 admin_machine_form:
-    suggest_help: "Entrée ou virgule pour ajouter. Un clic sur une étiquette la retire."
-    suggest_add: "Ajouter…"
-    suggest_other: "Autre…"
+    statut_disponible: "Disponible"
+    statut_unavailable: "Indisponible"
+    statut_maintenance: "En maintenance"
+    statut_active: "En cours d’utilisation"
+    statut_idle: "Au repos"
     badges_note: "Il faut détenir les badges choisis. Sans badge, tout membre pourra la réserver."
     badges_question: "Qui peut la réserver ?"
     section_more: "Plus de réglages"
@@ -3827,6 +3829,11 @@ admin_machine_form:
 # ⚠️ Y mettre un mot SEULEMENT s’il veut dire la même chose partout : « Nom »
 # est générique, « Nom de famille » ne l’est pas — voir la note dans le commit.
 form:
+    tiles_filter: "Filtrer…"
+    tiles_more: "%n% autres"
+    suggest_help: "Entrée ou virgule pour ajouter. Un clic sur une étiquette la retire."
+    suggest_add: "Ajouter…"
+    suggest_other: "Autre…"
     name: "Nom"
     description: "Description"
     title: "Titre"

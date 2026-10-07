@@ -17,6 +17,10 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 final class PlaceAdminType extends AbstractType
 {
+    public function __construct(private readonly Suggest $suggest)
+    {
+    }
+
     /**
      * L'ordre et le découpage de l'écran — motif `SECTIONS` (S151, R3), déroulé
      * par `site/_form_sections.html.twig`.
@@ -68,6 +72,7 @@ final class PlaceAdminType extends AbstractType
             ->add('localisation', TextType::class, [
                 'label' => 'form.location',
                 'required' => false,
+                'attr' => $this->suggest->one($this->suggest->known('PLACE', 'localisation')),
                 'constraints' => [new Assert\Length(max: 150, maxMessage: 'Ce champ ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('capacite', IntegerType::class, [
@@ -75,9 +80,9 @@ final class PlaceAdminType extends AbstractType
                 'required' => false,
                 'constraints' => [new Assert\PositiveOrZero(message: 'La capacité doit être positive.')],
             ])
-            ->add('category', TextType::class, ['label' => 'form.category', 'required' => false, 'constraints' => [new Assert\Length(max: 120)]])
+            ->add('category', TextType::class, ['label' => 'form.category', 'required' => false, 'attr' => $this->suggest->one($this->suggest->known('PLACE', 'category')), 'constraints' => [new Assert\Length(max: 120)]])
             ->add('manager', TextType::class, ['label' => 'admin_place_form.manager', 'required' => false, 'constraints' => [new Assert\Length(max: 150)]])
-            ->add('department', TextType::class, ['label' => 'admin_place_form.department', 'required' => false, 'constraints' => [new Assert\Length(max: 150)]])
+            ->add('department', TextType::class, ['label' => 'admin_place_form.department', 'required' => false, 'attr' => $this->suggest->one($this->suggest->known('PLACE', 'department')), 'constraints' => [new Assert\Length(max: 150)]])
             ->add('description', TextareaType::class, [
                 'label' => 'form.description',
                 // ⚠️ La pleine largeur vient d'ICI, pas du gabarit — les deux
@@ -101,6 +106,7 @@ final class PlaceAdminType extends AbstractType
                 'expanded' => true,
                 'required' => false,
                 'mapped' => false,
+                'attr' => ['class' => 'check-tiles'],
                 'label' => 'admin_place_form.required_badges',
                 'help' => 'admin_place_form.required_badges_help',
                 'choice_translation_domain' => false,

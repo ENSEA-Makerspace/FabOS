@@ -15,6 +15,10 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 final class LoanableItemAdminType extends AbstractType
 {
+    public function __construct(private readonly Suggest $suggest)
+    {
+    }
+
     /**
      * **Le découpage de l'écran (S150)** — même contrat que
      * `MachineAdminType::SECTIONS`, lu par `_loanable_item_form.html.twig`.
@@ -69,6 +73,8 @@ final class LoanableItemAdminType extends AbstractType
                 'label' => 'form.category',
                 'required' => false,
                 'help' => 'loans.item_help_category',
+                'row_attr' => ['class' => 'full'],
+                'attr' => $this->suggest->one($this->suggest->known('LOANABLE_ITEM', 'category'), true),
                 'constraints' => [new Assert\Length(max: 80)],
             ])
             ->add('description', TextareaType::class, [
@@ -91,6 +97,7 @@ final class LoanableItemAdminType extends AbstractType
                 'label' => 'form.storage_location',
                 'required' => false,
                 'help' => 'loans.item_help_storage',
+                'attr' => $this->suggest->one($this->suggest->known('LOANABLE_ITEM', 'storageLocation')),
                 'constraints' => [new Assert\Length(max: 180)],
             ])
             // ⚠️ « (optionnel) » disparaît des libellés : règle 5 de

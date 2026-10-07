@@ -3782,9 +3782,11 @@ event_categories:
         no_formation: "Kein Schulungstermin"
 
 admin_machine_form:
-    suggest_help: "Eingabetaste oder Komma zum Hinzufügen. Ein Klick auf ein Etikett entfernt es."
-    suggest_add: "Hinzufügen…"
-    suggest_other: "Andere…"
+    statut_disponible: "Verfügbar"
+    statut_unavailable: "Nicht verfügbar"
+    statut_maintenance: "In Wartung"
+    statut_active: "In Benutzung"
+    statut_idle: "Bereit"
     badges_note: "Die gewählten Badges sind erforderlich. Ohne Badge kann jedes Mitglied buchen."
     badges_question: "Wer darf sie buchen?"
     section_more: "Weitere Einstellungen"
@@ -3825,6 +3827,11 @@ admin_machine_form:
 # ⚠️ Y mettre un mot SEULEMENT s’il veut dire la même chose partout : « Nom »
 # est générique, « Nom de famille » ne l’est pas — voir la note dans le commit.
 form:
+    tiles_filter: "Filtern…"
+    tiles_more: "%n% weitere"
+    suggest_help: "Eingabetaste oder Komma zum Hinzufügen. Ein Klick auf ein Etikett entfernt es."
+    suggest_add: "Hinzufügen…"
+    suggest_other: "Andere…"
     name: "Name"
     description: "Beschreibung"
     title: "Titel"

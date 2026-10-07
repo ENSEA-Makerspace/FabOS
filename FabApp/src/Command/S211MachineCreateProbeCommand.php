@@ -125,6 +125,18 @@ final class S211MachineCreateProbeCommand extends Command
             ]], $session);
             $row = $this->db->fetchAssociative('SELECT statut, limiteReservations, popularity, materials FROM MACHINE WHERE id = ?', [$bisId]);
             $this->check($io, $failures, 'ils s’enregistrent (réponse ' . $response->getStatusCode() . ')', $row !== false && $row['statut'] === 'maintenance' && (int) $row['limiteReservations'] === 3 && (int) $row['popularity'] === 5 && json_decode((string) $row['materials'], true) === ['PETG']);
+
+            $io->section('5. Les mêmes tuiles ailleurs (0.7.1)');
+            $html = $this->page('/admin/materials/new', $session);
+            $this->check($io, $failures, 'matériau : les machines sont des tuiles à cocher, repliées au-delà de douze', str_contains($html, 'name="material_admin[machines][]"') && str_contains($html, 'class="ml-tile"')
+                && ($before <= 12 || str_contains($html, 'data-controller="admin-list-filter"')));
+            $response = $this->post('/admin/materials/new', ['material_admin' => ['_token' => 'csrf-token', 'name' => 'Sonde S211 matériau', 'category' => 'Sonde', 'machines' => [(string) $bisId], 'save' => '']], $session);
+            $materialId = (int) $this->db->fetchOne("SELECT id FROM MATERIAL WHERE name = 'Sonde S211 matériau'");
+            $this->check($io, $failures, 'matériau : une machine cochée en tuile est enregistrée (réponse ' . $response->getStatusCode() . ')', $materialId > 0 && (int) $this->db->fetchOne('SELECT COUNT(*) FROM MACHINE_MATERIAL WHERE materialId = ?', [$materialId]) === 1);
+            foreach (['/admin/loanable-items/new' => 'objet en prêt', '/admin/places/new' => 'espace'] as $path => $what) {
+                $html = $this->page($path, $session);
+                $this->check($io, $failures, $what . ' : l’écran se rend, avec ses propositions s’il y a des valeurs connues', str_contains($html, 'class="admin-edit-form"'));
+            }
         } finally {
             $this->db->rollBack();
             $this->entityManager->clear();

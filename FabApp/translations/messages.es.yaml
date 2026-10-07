@@ -3782,9 +3782,11 @@ event_categories:
         no_formation: "No es una sesión de formación"
 
 admin_machine_form:
-    suggest_help: "Intro o coma para añadir. Un clic en una etiqueta la quita."
-    suggest_add: "Añadir…"
-    suggest_other: "Otra…"
+    statut_disponible: "Disponible"
+    statut_unavailable: "No disponible"
+    statut_maintenance: "En mantenimiento"
+    statut_active: "En uso"
+    statut_idle: "En reposo"
     badges_note: "Hay que tener las insignias elegidas. Sin insignia, cualquier miembro podrá reservarla."
     badges_question: "¿Quién puede reservarla?"
     section_more: "Más ajustes"
@@ -3825,6 +3827,11 @@ admin_machine_form:
 # ⚠️ Y mettre un mot SEULEMENT s’il veut dire la même chose partout : « Nom »
 # est générique, « Nom de famille » ne l’est pas — voir la note dans le commit.
 form:
+    tiles_filter: "Filtrar…"
+    tiles_more: "%n% más"
+    suggest_help: "Intro o coma para añadir. Un clic en una etiqueta la quita."
+    suggest_add: "Añadir…"
+    suggest_other: "Otra…"
     name: "Nombre"
     description: "Descripción"
     title: "Título"

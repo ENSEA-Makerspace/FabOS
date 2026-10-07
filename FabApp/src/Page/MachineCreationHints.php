@@ -24,7 +24,7 @@ final class MachineCreationHints
     }
 
     /** @return array<string, mixed> */
-    public function all(): array
+    public function all(?string $forCategory = null): array
     {
         $used = $this->db->fetchAllKeyValue("SELECT categoryLabel, COUNT(*) FROM MACHINE WHERE archivedAt IS NULL AND categoryLabel <> '' GROUP BY categoryLabel");
         $categories = [];
@@ -44,11 +44,12 @@ final class MachineCreationHints
         return [
             'categories' => $categories,
             'badgesByCategory' => $badgesByCategory,
-            'locations' => $this->db->fetchAllKeyValue("SELECT localisation, COUNT(*) n FROM MACHINE WHERE archivedAt IS NULL AND localisation <> '' GROUP BY localisation ORDER BY n DESC, localisation LIMIT 8"),
+            'locations' => $this->db->fetchAllKeyValue("SELECT localisation, COUNT(*) n FROM MACHINE WHERE archivedAt IS NULL AND localisation <> '' GROUP BY localisation ORDER BY n DESC, localisation LIMIT 150"),
             'slots' => $this->db->fetchFirstColumn("SELECT granularite FROM MACHINE WHERE granularite <> '' GROUP BY granularite ORDER BY CAST(granularite AS UNSIGNED)"),
             'models' => $this->models(),
-            'materials' => $this->vocabulary('materials'),
-            'features' => $this->vocabulary('features'),
+            'materials' => $this->vocabulary('materials', $forCategory),
+            'features' => $this->vocabulary('features', $forCategory),
+            'badgeUsage' => array_map('intval', $this->db->fetchAllKeyValue('SELECT badgeId, COUNT(*) FROM MACHINE_BADGE GROUP BY badgeId')),
             'modelNames' => $this->db->fetchFirstColumn("SELECT model FROM MACHINE WHERE model <> '' GROUP BY model ORDER BY COUNT(*) DESC"),
             'manufacturers' => $this->db->fetchFirstColumn("SELECT manufacturer FROM MACHINE WHERE manufacturer <> '' GROUP BY manufacturer ORDER BY COUNT(*) DESC"),
         ];
@@ -94,22 +95,29 @@ final class MachineCreationHints
     /**
      * Les mots déjà saisis dans une liste libre (matériaux, caractéristiques), les plus
      * employés d'abord : ils deviennent des étiquettes à cliquer et l'autocomplétion.
+     * Avec `$category`, les mots déjà employés par cette catégorie passent devant.
      *
      * @return array<string, int>
      */
-    private function vocabulary(string $column): array
+    private function vocabulary(string $column, ?string $category = null): array
     {
-        $counts = [];
-        foreach ($this->db->fetchFirstColumn("SELECT $column FROM MACHINE WHERE archivedAt IS NULL AND $column IS NOT NULL") as $json) {
-            foreach ((array) json_decode((string) $json, true) as $word) {
+        // ⚠️ Machines archivées comprises : un mot reste un mot du lab quand sa machine part.
+        $counts = $own = [];
+        foreach ($this->db->fetchAllAssociative("SELECT categoryLabel c, $column w FROM MACHINE WHERE $column IS NOT NULL") as $row) {
+            foreach ((array) json_decode((string) $row['w'], true) as $word) {
                 if (\is_string($word) && trim($word) !== '') {
                     $counts[trim($word)] = ($counts[trim($word)] ?? 0) + 1;
+                    if ($category !== null && $row['c'] === $category) {
+                        $own[trim($word)] = true;
+                    }
                 }
             }
         }
         arsort($counts);
 
-        return $counts;
+        // Les mots de la catégorie de CETTE machine d'abord : pour une imprimante 3D,
+        // « PLA » avant « Bois fin », quel que soit le nombre de machines du lab.
+        return array_intersect_key($counts, $own) + $counts;
     }
 
     /**

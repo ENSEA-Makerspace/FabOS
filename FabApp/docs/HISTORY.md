@@ -205,6 +205,31 @@ des propositions est retiré (contrôleur, registre, gabarits, menu) ; les servi
 deviennent `App\Page\*`, les feuilles `pages.css` + `page-<page>.css`. Versions
 nommées à partir d'ici (`docs/VERSIONS.md`, étiquettes `v0.4.0`, `v0.5.0`).
 
+## 0.7.1 — les tuiles partout, et elles tiennent quand le lab grossit (2026-10-07)
+
+L'opérateur valide le nouvel écran machine et demande de l'étendre, « en tenant compte
+qu'il peut y avoir beaucoup de machines : les menus ne doivent pas déformer la page ».
+
+- **Étendu** : matériaux (catégorie, couleur, rangement ; machines qui l'acceptent),
+  objets en prêt (catégorie, rangement), espaces (localisation, catégorie, service ;
+  badges requis). Une ligne par champ dans le `FormType` :
+  `'attr' => $this->suggest->one($this->suggest->known('TABLE', 'colonne'))`
+  (`App\Form\Suggest`). Sans valeur connue, pas de tuiles : le champ reste le champ.
+- **Borné, partout** : 8 tuiles au plus pour une valeur, 12 pour des étiquettes ; le
+  reste par l'autocomplétion du champ (150 mots envoyés au plus). Un choix multiple
+  (`attr: {class: 'check-tiles'}` → `_check_tiles`) montre les cases cochées et les
+  douze premières, le reste derrière un repli « N autres » filtrable qui défile dans
+  un cadre de hauteur fixe. Un nom long est coupé à 28 caractères. Mesuré sur
+  « machines qui acceptent ce matériau » : 38 machines, 12 visibles.
+- **Machine** : les badges les plus demandés d'abord ; les étiquettes de la catégorie
+  de la machine passent devant (« PLA » avant « Bois fin » pour une imprimante 3D) ;
+  le statut se lit en mots (« Au repos », « Disponible »…) et plus en valeurs brutes.
+- 🔴 **Corrigé avant livraison** : choisir une catégorie REMPLAÇAIT les badges cochés,
+  y compris ceux d'une machine existante à l'édition. Une catégorie ne propose plus
+  ses badges que si aucun n'est choisi (ou si le choix est encore celui proposé).
+- Les libellés du contrôleur `suggest` arrivent en valeurs traduites (plus sur le
+  `<form>`), et les mots en liste de paires (un objet JSON trie les clés numériques).
+
 ## 0.7.0 — « Créer une machine » propose au lieu de demander (2026-10-06, S211)
 
 Demande de l'opérateur : l'écran est lourd et ne précharge rien de ce qui existe.
@@ -234,8 +259,8 @@ champ est le champ), tuiles `.ml-tile` réutilisées, quatre règles CSS ;
 d'un repli. Écartés : un assistant en étapes, des listes fermées, un catalogue de
 modèles à part. Sonde : `app:s211:machine-create-probe`. Documenté dans
 `/admin/design` (« Proposer ce qui existe déjà »).
-🅿️ Non fait : les valeurs du statut restent en anglais brut (« idle ») à l'édition ;
-les étiquettes sont triées par usage global, pas par catégorie.
+(Les deux points laissés ouverts — statut en anglais brut, étiquettes triées sans
+tenir compte de la catégorie — sont faits en 0.7.1.)
 
 ## 0.6.3 — la page publique « Maintenance » retirée (2026-10-06)
 

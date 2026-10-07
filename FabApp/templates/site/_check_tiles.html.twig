@@ -1,0 +1,41 @@
+{#
+   DES CASES À COCHER EN TUILES, QUI NE DÉFORMENT PAS LA PAGE (0.7.1).
+
+   Un choix multiple (badges requis, machines qui acceptent un matériau) rendu en
+   `label.ml-tile` : la case est la vérité, la tuile son apparence — aucun JavaScript.
+
+   🔴 **Pensé pour BEAUCOUP de choix.** Au-delà de `limit` (12), on ne montre que les
+   cases COCHÉES et les premières de la liste ; le reste passe derrière un repli
+   « N autres », avec un champ pour filtrer (contrôleur `admin-list-filter`, déjà là).
+   Trois cents machines donnent donc la même hauteur d'écran que douze.
+
+   Paramètres :
+     items   liste de {name, value, label, checked, title?} — DANS L'ORDRE VOULU
+             (l'appelant met les plus employés d'abord s'il le sait)
+     limit   nombre de tuiles visibles sans déplier (défaut 12)
+#}
+{% set limit = limit|default(12) %}
+{% set shown = items|length > limit ? (items|filter(i => i.checked))|merge(items|filter(i => not i.checked))|slice(0, limit) : items %}
+{% set rest = items|length > limit ? (items|filter(i => i.checked))|merge(items|filter(i => not i.checked))|slice(limit) : [] %}
+{% macro tile(item, row) %}
+    <label class="ml-tile"{% if item.title|default('') %} title="{{ item.title }}"{% endif %}{{ row ? ' data-admin-list-filter-row' : '' }}>
+        <input type="checkbox" name="{{ item.name }}" value="{{ item.value }}"{{ item.checked ? ' checked' : '' }}>
+        <b class="ml-tile-label">{{ item.label }}</b>
+    </label>
+{% endmacro %}
+<div class="ml-cats">
+    {% for item in shown %}{{ _self.tile(item, false) }}{% endfor %}
+</div>
+{% if rest|length %}
+    {# ⚠️ Ouvert d'office si une case cochée s'y trouve : un choix invisible est un choix perdu. #}
+    <details class="settings-danger settings-danger--neutral" data-controller="admin-list-filter"{{ rest|filter(i => i.checked)|length ? ' open' : '' }}>
+        <summary>{{ 'form.tiles_more'|trans({'%n%': rest|length}) }}</summary>
+        <div class="form-field">
+            <input type="search" placeholder="{{ 'form.tiles_filter'|trans }}" aria-label="{{ 'form.tiles_filter'|trans }}"
+                   data-admin-list-filter-target="search" data-action="input->admin-list-filter#filter">
+        </div>
+        <div class="ml-cats">
+            {% for item in rest %}{{ _self.tile(item, true) }}{% endfor %}
+        </div>
+    </details>
+{% endif %}

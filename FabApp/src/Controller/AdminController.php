@@ -900,7 +900,7 @@ final class AdminController extends AbstractController
             'requirement_description' => $copy['requirement'] ?? null,
             'popularity' => null,
             'include_machine_token' => true,
-            'hints' => $hints = $creationHints->all(),
+            'hints' => $hints = $creationHints->all($copy['category'] ?? null),
         ]);
         $availableBadges = $badges->findBy([], ['nom' => 'ASC']);
         $submittedBadgeIds = $request->request->all('requiredBadges');
@@ -956,7 +956,7 @@ final class AdminController extends AbstractController
             'features' => $machine->getFeatures(),
             'requirement_description' => $machine->getRequirementDescription(),
             'popularity' => $machine->getPopularity(),
-            'hints' => $hints = $creationHints->all(),
+            'hints' => $hints = $creationHints->all($machine->getCategoryLabel()),
         ]);
         $availableBadges = $badges->findBy([], ['nom' => 'ASC']);
         $selectedBadgeIds = [];

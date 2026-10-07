@@ -16,6 +16,10 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 final class MaterialAdminType extends AbstractType
 {
+    public function __construct(private readonly Suggest $suggest)
+    {
+    }
+
     /**
      * **Le découpage de l'écran (S150)** — même contrat que
      * `MachineAdminType::SECTIONS`, lu par `_material_form.html.twig`.
@@ -76,11 +80,15 @@ final class MaterialAdminType extends AbstractType
                 'label' => 'form.category',
                 'required' => false,
                 'help' => 'materials_form.help_category',
+                'row_attr' => ['class' => 'full'],
+                'attr' => $this->suggest->one($this->suggest->known('MATERIAL', 'category'), true),
                 'constraints' => [new Assert\Length(max: 80)],
             ])
             ->add('color', TextType::class, [
                 'label' => 'materials_form.color',
                 'required' => false,
+                'row_attr' => ['class' => 'full'],
+                'attr' => $this->suggest->one($this->suggest->known('MATERIAL', 'color')),
                 'constraints' => [new Assert\Length(max: 60)],
             ])
             ->add('description', TextareaType::class, [
@@ -116,7 +124,9 @@ final class MaterialAdminType extends AbstractType
                 'required' => false,
                 'by_reference' => false,
                 'row_attr' => ['class' => 'full'],
-                'attr' => ['class' => 'choice-grid'],
+                // 0.7.1 — en tuiles, repliées au-delà de douze : un lab a vite cent machines.
+                'attr' => ['class' => 'check-tiles'],
+                'choice_translation_domain' => false,
                 'help' => 'materials_form.help_machines',
                 'query_builder' => static fn ($repo) => $repo->createQueryBuilder('machine')->orderBy('machine.nom', 'ASC'),
             ])
@@ -124,6 +134,7 @@ final class MaterialAdminType extends AbstractType
                 'label' => 'form.storage_location',
                 'required' => false,
                 'help' => 'materials_form.help_storage',
+                'attr' => $this->suggest->one($this->suggest->known('MATERIAL', 'storageLocation')),
                 'constraints' => [new Assert\Length(max: 180)],
             ])
             ->add('purchaseUrl', UrlType::class, [

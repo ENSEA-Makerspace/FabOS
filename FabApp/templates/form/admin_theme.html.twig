@@ -164,11 +164,25 @@
             son nom. L'ancien balisage y échappait par accident : le gabarit posait
             `.choice-grid` sur un div PARENT du conteneur, la grille n'avait donc
             qu'un seul enfant et ne rangeait rien du tout. -#}
+        {#- 0.7.1 — `attr: {class: 'check-tiles'}` : les mêmes cases, en tuiles, repliées
+            au-delà de douze (`_check_tiles`). Pour un choix qui peut devenir LONG. -#}
+        {%- if multiple and 'check-tiles' in attr.class|default('') -%}
+            {%- set _items = [] -%}
+            {%- for child in form -%}
+                {%- set _items = _items|merge([{
+                    name: child.vars.full_name, value: child.vars.value, checked: child.vars.checked,
+                    label: choice_translation_domain is same as(false) ? child.vars.label : child.vars.label|trans({}, choice_translation_domain),
+                }]) -%}
+                {%- do child.setRendered -%}
+            {%- endfor -%}
+            {{- include('site/_check_tiles.html.twig', {items: _items}, with_context = false) -}}
+        {%- else -%}
         {%- for child in form -%}
             <span class="choice-item">
                 {{- form_widget(child) -}}
                 {{- form_label(child, null, {translation_domain: choice_translation_domain}) -}}
             </span>
         {%- endfor -%}
+        {%- endif -%}
     </div>
 {% endblock %}

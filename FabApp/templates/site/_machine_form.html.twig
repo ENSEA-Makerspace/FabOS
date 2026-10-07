@@ -25,9 +25,6 @@
 {% set _sections = constant('App\\Form\\MachineAdminType::SECTIONS') %}
 {{ form_start(form, {attr: {
     class: 'admin-edit-form', novalidate: 'novalidate',
-    'data-suggest-other': 'admin_machine_form.suggest_other'|trans,
-    'data-suggest-add': 'admin_machine_form.suggest_add'|trans,
-    'data-suggest-help': 'admin_machine_form.suggest_help'|trans,
 }}) }}
     {{ form_errors(form) }}
 
@@ -65,14 +62,13 @@
             {% if availableBadges is empty %}
                 <p class="empty-state">{{ 'admin_machine_edit.badges_empty'|trans }}</p>
             {% else %}
-                <div class="ml-cats">
-                    {% for badge in availableBadges %}
-                        <label class="ml-tile" title="{{ badge.description }}">
-                            <input type="checkbox" name="requiredBadges[]" value="{{ badge.id }}" {{ badge.id in selectedBadgeIds ? 'checked' : '' }}>
-                            <b class="ml-tile-label">{{ badge.nom }}</b>
-                        </label>
-                    {% endfor %}
-                </div>
+                {# Les plus demandés d'abord ; au-delà de douze, `_check_tiles` replie le reste. #}
+                {% set _usage = hints.badgeUsage|default({}) %}
+                {% set _items = [] %}
+                {% for badge in availableBadges|sort((a, b) => (_usage[b.id] ?? 0) <=> (_usage[a.id] ?? 0)) %}
+                    {% set _items = _items|merge([{name: 'requiredBadges[]', value: badge.id, label: badge.nom, title: badge.description, checked: badge.id in selectedBadgeIds}]) %}
+                {% endfor %}
+                {% include 'site/_check_tiles.html.twig' with {items: _items} only %}
                 <p class="form-help">{{ 'admin_machine_form.badges_note'|trans }}</p>
             {% endif %}
         </div>

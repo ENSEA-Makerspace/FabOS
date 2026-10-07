@@ -17,6 +17,10 @@ final class MachineAdminType extends AbstractType
 {
     private const STATUSES = ['idle', 'active', 'maintenance', 'unavailable', 'disponible'];
 
+    public function __construct(private readonly Suggest $suggest)
+    {
+    }
+
     /**
      * **Le découpage de l'écran, décidé ici et pas dans les gabarits (S150).**
      *
@@ -83,14 +87,9 @@ final class MachineAdminType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         // 0.7.0 — ce que le lab sait déjà (`MachineCreationHints::all()`), posé sur
-        // les champs pour le contrôleur Stimulus `suggest` : des tuiles à cliquer au
+        // les champs par `Suggest` pour le contrôleur Stimulus du même nom : des tuiles à cliquer au
         // lieu d'une case vide. Sans JavaScript, les champs restent ce qu'ils étaient.
         $hints = $options['hints'];
-        $suggest = static fn (array $words, string $mode, array $more = []): array => $words === [] ? [] : [
-            'data-controller' => 'suggest',
-            'data-suggest-words-value' => json_encode($words, \JSON_UNESCAPED_UNICODE),
-            'data-suggest-mode-value' => $mode,
-        ] + $more;
         $creation = $options['include_machine_token'];
 
         // ⚠️ **L'ordre des `->add()` suit SECTIONS**, pour que l'ordre de
@@ -126,8 +125,7 @@ final class MachineAdminType extends AbstractType
                 'data' => $options['category_label'],
                 'help' => 'admin_machine_form.help_categorie',
                 'row_attr' => ['class' => 'full'],
-                'attr' => ['list' => 'machine-category-options'] + $suggest($hints['categories'] ?? [], 'one', [
-                    'data-suggest-other-value' => '1',
+                'attr' => ['list' => 'machine-category-options'] + $this->suggest->one($hints['categories'] ?? [], true, [
                     'data-suggest-checks-value' => json_encode($hints['badgesByCategory'] ?? new \stdClass()),
                     'data-suggest-checks-name-value' => 'requiredBadges[]',
                 ]),
@@ -157,7 +155,7 @@ final class MachineAdminType extends AbstractType
                 'label' => 'form.location',
                 'required' => false,
                 'help' => 'admin_machine_form.help_localisation',
-                'attr' => $suggest($hints['locations'] ?? [], 'one'),
+                'attr' => $this->suggest->one($hints['locations'] ?? []),
                 'constraints' => [new Assert\Length(max: 255, maxMessage: 'La localisation ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('granularite', TextType::class, [
@@ -175,7 +173,8 @@ final class MachineAdminType extends AbstractType
             $builder
                 ->add('statut', ChoiceType::class, [
                     'label' => 'form.status',
-                    'choices' => array_combine(self::STATUSES, self::STATUSES),
+                    // 0.7.1 — des mots, plus les valeurs brutes (« idle »).
+                    'choices' => array_combine(array_map(static fn (string $s): string => 'admin_machine_form.statut_' . $s, self::STATUSES), self::STATUSES),
                     'row_attr' => ['class' => 'full'],
                     'help' => 'admin_machine_form.help_statut',
                     'invalid_message' => 'Statut invalide.',
@@ -223,7 +222,7 @@ final class MachineAdminType extends AbstractType
                 'data' => implode("\n", $options['materials']),
                 'row_attr' => ['class' => 'full'],
                 'help' => 'admin_machine_form.help_materiaux',
-                'attr' => $suggest($hints['materials'] ?? [], 'many'),
+                'attr' => $this->suggest->many($hints['materials'] ?? []),
                 'constraints' => [new Assert\Length(max: 2000, maxMessage: 'La liste des matériaux ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('caracteristiques', TextareaType::class, [
@@ -233,7 +232,7 @@ final class MachineAdminType extends AbstractType
                 'data' => implode("\n", $options['features']),
                 'row_attr' => ['class' => 'full'],
                 'help' => 'admin_machine_form.help_caracteristiques',
-                'attr' => $suggest($hints['features'] ?? [], 'many'),
+                'attr' => $this->suggest->many($hints['features'] ?? []),
                 'constraints' => [new Assert\Length(max: 3000, maxMessage: 'La liste des caractéristiques ne doit pas dépasser {{ limit }} caractères.')],
             ])
             ->add('prerequis', TextareaType::class, [
